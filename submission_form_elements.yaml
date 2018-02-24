@@ -1,0 +1,272 @@
+tape_number:
+  '#type': textfield
+  '#title': 'A. Tape Number'
+  '#help': 'This is the original mp3 name, as it is received from Audio Seva Team'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>Please write the original audio file name, as it is received from the Audio Seva Team.</li>
+    	<li>The name consists of a series code, a serial number of the tape in that series and a side letter (A/B). Examples: SYA-125A, ML2-0567A, etc. Please maintain the format, as it gets easier to sort later.</li>
+    </ul>
+  '#description_display': after
+  '#size': '20'
+  '#autocomplete': 'off'
+  '#required': true
+  '#attributes':
+    class:
+      - form-item-short
+has_fused_lectures:
+  '#type': radios_other
+  '#title': 'B. Has Fused Lectures'
+  '#help': 'Does the mp3 have more than one lecture? If so please mention in the next field which minute the next lecture starts.'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>This indicates the audio file provided to you has multiple lectures fused together. This is typical in the case of mp3s, which have been created by digitizing cassettes.</li>
+    	<li>Please dedicate one row to each of the fused lectures. For example, please refer rows #6, 7, 8 in the Excel Template. The same audio file (DK-012A) contains 3 lectures, hence for that one audio file 3 different rows have been created to note the details of each individual lecture.</li>
+    </ul>
+  '#options': yes_no
+  '#options_display': side_by_side
+timing_for_fused_lecture:
+  '#type': textfield
+  '#title': 'C. Timing (only for fused lecture)'
+  '#help': 'In case of fused lectures, please mention minutes for which details are provided here.'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>Please write the timing when the new lecture begins and ends in min:sec or hr:min:sec format, as applicable.</li>
+    	<li>This will help the Audio Seva Team to separate the individual lectures and archive them with appropriate labeling.</li>
+    	<li>Please note that this column needs to be filled ONLY in the case of Fused lectures.</li>
+    </ul>
+  '#states':
+    disabled:
+      ':input[name="has_fused_lectures[radios]"]':
+        'value': 'No'
+date:
+  '#type': textfield
+  '#title': 'D. Date'
+  '#help': 'This is taken from original file name OR from the lecture. If date is not readily available, please mention any hint of a tithi mentioned. Please maintain dd/mm/yyyy format.'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>
+    	<p>Please write the date of the recording if it can be obtained by hearing. For example, in the end of the lecture, some devotee might announce the date or the tithi (lunar day such as ekadasi, pratipata, etc. or special day such as Janmastami, Gaura Purnima, etc.)</p>
+    	</li>
+    	<li>
+    	<p>If you are unsure of the date, please put a &lsquo;?&rsquo; after the suggestion.</p>
+    	</li>
+    	<li>
+    	<p>In the case that the date is missing, if any tithi is alluded to in the lecture, please mention it here, as it might help us to arrive at a date by backward calculation. For instance: Srila Gurudeva might say, &ldquo;Tomorrow is Govardhan Annakuta. We will have a festival&hellip;&rdquo; Then please mention &lsquo;Tomorrow is Govardhan Annakuta&rsquo; here.</p>
+    	</li>
+    	<li>
+    	<p>This field is crucial for organizing the archive as well as identifying duplicates, so any information provided here may help.</p>
+    	</li>
+    </ul>
+location:
+  '#type': textfield
+  '#title': 'E. Location'
+  '#help': 'Please write the name of the city here. If other details are available such as whether it was parikrama or a particular matha, please mention.'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>
+    	<p>Please write the date of the recording if it can be obtained by hearing. For example, in the end of the lecture, some devotee might announce the date or the tithi (lunar day such as ekadasi, pratipata, etc. or special day such as Janmastami, Gaura Purnima, etc.)</p>
+    	</li>
+    	<li>
+    	<p>If you are unsure of the date, please put a &lsquo;?&rsquo; after the suggestion.</p>
+    	</li>
+    	<li>
+    	<p>In the case that the date is missing, if any tithi is alluded to in the lecture, please mention it here, as it might help us to arrive at a date by backward calculation. For instance: Srila Gurudeva might say, &ldquo;Tomorrow is Govardhan Annakuta. We will have a festival&hellip;&rdquo; Then please mention &lsquo;Tomorrow is Govardhan Annakuta&rsquo; here.</p>
+    	</li>
+    	<li>
+    	<p>This field is crucial for organizing the archive as well as identifying duplicates, so any information provided here may help.</p>
+    	</li>
+    </ul>
+category:
+  '#type': radios_other
+  '#title': 'F. Category'
+  '#more_title': 'Read more'
+  '#more': |
+    <p>If you are able to determine whether it is a darsana, lecture, parikrama, walk or conference, please mention it here.</p>
+    <ul>
+    	<li>
+    	<p>Darśana: Comparatively casual talk, Q&amp;A, no prayers at the beginning and/or end, guests visits, etc.</p>
+    	</li>
+    	<li>
+    	<p>Lecture: Organised katha, with invocation offered at the beginning and/ or end, not much interaction, Srila Gurudeva speaking on a particular topic</p>
+    	</li>
+    	<li>
+    	<p>Parikrama: Visiting specific parikrama spots (&lsquo;This is Nanda Baba&rsquo;s palace, &lsquo;Here Mahaprabhu took sannyasa&rsquo;, etc.)</p>
+    	</li>
+    	<li>
+    	<p>Walk: Q&amp;A with disciples, informal talk or discussion on specific topics, no invocation at beginning and/ or end, sounds of outdoors like chirping of birds, cars, etc.</p>
+    	</li>
+    	<li>
+    	<p>Conference: A formal forum where various speakers have been invited to discuss about a particular topic. For instance: Rupa Gosvami Conference</p>
+    	</li>
+    </ul>
+  '#title_display': before
+  '#options':
+    Darsana: Darśana
+    Lecture: Lecture
+    Parikrama: Parikrama
+    Walk: Walk
+    Conference: Conference
+  '#options_display': side_by_side
+topic:
+  '#type': textarea
+  '#title': 'G. Topics'
+  '#help': 'Whichever main topics Srila Gurudeva has spoken on should be mentioned here. Mostly these would be 2-4 per class.'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>
+    	<p>This column is helpful for titling and identifying duplicates.</p>
+    	</li>
+    	<li>
+    	<p>Please try to mention the important topics which Srila Gurudeva has touched upon in the lecture.</p>
+    	</li>
+    	<li>
+    	<p>Also mention topics spoken by devotees who Srila Gurudeva requested to speak, along with their names, if possible. (This is not applicable in the case of a conference, as per the category described for Column F above)</p>
+    	</li>
+    	<li>
+    	<p>Details are not to be mentioned. However, this should not be at the cost of missing out on some topic Srila Gurudeva is speaking about. Typically a 45 minute lecture would have 2-4 topics discussed, but if you are unsure whether to leave out a detail, rather mention it.</p>
+    	</li>
+    	<li>
+    	<p>Please write each topic on a separate line.</p>
+    	</li>
+    	<li>
+    	<p>Add a hyphen (-) at the beginning of each line for ease of reading.</p>
+    	</li>
+    </ul>
+gurudeva_timings:
+  '#type': textfield
+  '#title': 'H. Gurudeva Timings'
+  '#help': 'Only in case of conferences, please note the minutes where Srila Gurudeva is speaking in min:sec or hr:min:sec format.'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>
+    	<p>This column is to be filled only in the case of formal conferences, where many speakers are invited from outside.</p>
+    	</li>
+    	<li>
+    	<p>Note down only the minutes when Srila Gurudeva speaks in the recording.</p>
+    	</li>
+    	<li>
+    	<p>Suppose Srila Gurudeva spoke in the beginning and then didn&rsquo;t speak between 16:11 and 22:02, please write &ldquo;1:00 to 16:11 and then 22:02 to 40:09&rdquo; here.</p>
+    	</li>
+    	<li>
+    	<p>Please refer Row # 11 for an illustration of the above.</p>
+    	</li>
+    </ul>
+other_speakers:
+  '#type': textarea
+  '#title': 'I. Other Speakers'
+  '#help': 'If any speakers other than Srila Gurudeva are speaking, please mention the name and language in which they are speaking'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>
+    	<p>If any speakers other than Srila Gurudeva are speaking, please mention the name and language in which they are speaking</p>
+    	</li>
+    	<li>
+    	<p>If you are unable to determine who the speaker is, you may write &lsquo;Yes, ?&rsquo; here.</p>
+    	</li>
+    </ul>
+kirtana:
+  '#type': textfield
+  '#title': 'J. Kirtana'
+  '#help': 'Does the mp3 have one or more kirtans? if so, please mention which minute the kirtan starts and stops. If possible mention the name of the kirtan and If Gurudeva is singing, please mention.'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>
+    	<p>Does the file have one or more kirtanas? If not, mention &lsquo;No&rsquo; here. If yes, please mention which minute the kirtana starts and stops.</p>
+    	</li>
+    	<li>
+    	<p>If possible, mention the name of the kirtana.</p>
+    	</li>
+    	<li>
+    	<p>If Gurudeva himself is leading the kirtana, please mention.</p>
+    	</li>
+    </ul>
+abrupt_lecture:
+  '#type': radios_other
+  '#title': 'K. Abrupt lecture'
+  '#help': 'Does the lecture begin or end abruptly? If so please mention'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>
+    	<p>If the lecture is beginning or ending abruptly, please mention here whether it is cutting off abruptly in the beginning or end.</p>
+    	</li>
+    </ul>
+  '#options':
+    'no': 'No'
+    beginning: 'Abrupt in the beginning'
+    end: 'Abrupt in the end'
+  '#options_display': side_by_side
+suggested_title:
+  '#type': textfield
+  '#title': 'L. Suggested Title'
+  '#help': 'Please suggest a title for the lecture, which would be the part Srila Gurudeva emphasized on most.'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>
+    	<p>Title can be any most important topic that Srila Gurudeva stressed on during the lecture. E.g.: If there are 3 lectures given on verse one, Manah Siksa Verse 1 &ndash; honour the brahmanas, Manah Siksa Verse 2 &ndash; Dedicatedly chant Diksa mantras could be mentioned instead of generalizing Manah Siksa 1</p>
+      </li>
+      <li>
+    	<p>It can also be a line he said in the kathas it is. E.g.: &lsquo;Importance of guru-seva&rsquo;, &lsquo;No progress without seva&rsquo;</p>
+      </li>
+    </ul>
+languages:
+  '#type': checkboxes_other
+  '#title': 'M. Lecture Language(s)'
+  '#help': 'Please mention the languages in which Srila Gurudeva is speaking in the lecture'
+  '#more_title': 'Read more'
+  '#more': |
+    <p>Please choose the languages in which Srila Gurudeva is speaking. For multiple languages, choose multiple options.</p>
+  '#options':
+    Hindi: Hindi
+    English: English
+    Bengali: Bengali
+  '#options_display': side_by_side
+sound_issue:
+  '#type': textfield
+  '#title': 'N. Sound Issues'
+  '#help': 'If the lecture has some sound issues like too much background noise, or long blank pauses, low sound or some part of the speech needs to be edited, please mention in this column with comments on what the issue is and minutes where the disturbance occurs.'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>
+    	<p>This column is crucial for cleaning up the audio files for enhanced audibility.</p>
+    	</li>
+    	<li>
+    	<p>If the lecture has some sound issues like too much background noise, or long blank pauses, low sound or some part of the speech needs to be edited, please mention in this column with comments on what the issue is and minutes where the disturbance occurs.</p>
+    	</li>
+    	<li>
+    	<p>You may mention in as much detail as you think fit.</p>
+    	</li>
+    </ul>
+filled_by_person:
+  '#type': textfield
+  '#title': 'O. Your name'
+  '#help': 'Name of the devotee filling the details, country/city.'
+  '#more_title': 'Read more'
+  '#more': 'Please write your name here, along with city or country.'
+  '#required': true
+comments:
+  '#type': textarea
+  '#title': 'P. Comments'
+  '#help': 'In case you are unable to enter details of the recording, please mention comments here.'
+  '#more_title': 'Read more'
+  '#more': |
+    <ul>
+    	<li>
+    	<p>If you are unable to note the details of the lecture for some reason, please mention it here. Common reasons could be &ndash; language not understood, audio not playing, inaudible, and so on. (Refer Row # 13 in the template)</p>
+    	</li>
+    	<li>
+    	<p>Please write any other comments if you wish to mention about the file here.</p>
+    	</li>
+    </ul>
