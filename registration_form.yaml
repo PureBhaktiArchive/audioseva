@@ -1,0 +1,84 @@
+your_name:
+  '#type': textfield
+  '#title': 'Your name'
+  '#required': true
+country:
+  '#type': textfield
+  '#title': Country
+email:
+  '#type': email
+  '#title': Email
+  '#states':
+    required:
+      ':input[name="i_don_t_have_an_email"]':
+        unchecked: true
+    disabled:
+      ':input[name="i_don_t_have_an_email"]':
+        checked: true
+i_don_t_have_an_email:
+  '#type': checkbox
+  '#title': 'I don''t have an Email ID'
+contact_number:
+  '#type': textfield
+  '#title': 'Contact number'
+  '#placeholder': 'Enter your phone number with country code'
+  '#states':
+    required:
+      ':input[name="i_am_available_on_whatsapp"]':
+        checked: true
+i_am_available_on_whatsapp:
+  '#type': checkbox
+  '#title': 'I am available on WhatsApp'
+  '#toggle_theme': modern
+your_language:
+  '#type': checkboxes
+  '#title': 'Your Language(s)'
+  '#options':
+    Hindi: Hindi
+    English: English
+  '#states':
+    invisible:
+      - ':input[name="languages[checkboxes][English]"]':
+          checked: true
+      - or
+      - ':input[name="languages[checkboxes][English]"]':
+          unchecked: true
+languages:
+  '#type': checkboxes_other
+  '#title': 'Your Language(s)'
+  '#options': common_languages
+  '#required': true
+  '#select2': true
+seva_options:
+  '#type': fieldset
+  '#title': 'Seva options'
+  '#title_display': invisible
+  '#attributes':
+    style: 'margin-top: 12pt;'
+  '#format': details
+  seva:
+    '#type': checkboxes
+    '#title': 'Your Seva'
+    '#title_display': before
+    '#options':
+      listen-notes: "<b>#1 Listening to audio in your language and making notes in English ☝</b> -- This effort entails simply hearing Srila Gurudeva’s lectures and making a few notes as per the guidelines supplied. It is so simple that anyone can do it!<br>\n<b>☝ Immediate seva required, our goal is to complete this by the end of 2018.</b>"
+      sorting-duplicates: '#2 Sorting out duplicates -- Experience in MS Excel will be useful.'
+      sound-editing: '#3 Sound editing -- Cleaning up sound files.'
+      transcribing: '#4 Transcribing -- This effort entails hearing Srila Gurudeva’s lectures in your language and transcribing it in English word for word.'
+    '#options_description_display': help
+    '#other__option_label': 'Other services…'
+    '#other__placeholder': 'Describe any other services would you like to render'
+    '#required': true
+    '#required_error': 'You must select at least one option'
+  _preference_of_data_submission:
+    '#type': radios
+    '#title': "Preference of data submission for seva\_#1"
+    '#options':
+      'Excel Spreadsheet': 'Excel Spreadsheet'
+      'Online form': 'Online form'
+      'Written on paper': 'Written on paper'
+    '#options_display': side_by_side
+    '#states':
+      visible:
+        ':input[name="seva[listen-notes]"]':
+          checked: true
