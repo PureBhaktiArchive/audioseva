@@ -1,7 +1,6 @@
-body {background:#F7F5F4;font-family: 'Montserrat', sans-serif;font-size: 15px;}
-h1, h2, h2 a, h3, h3 a, a:focus, a {color:#800;font-family: 'Montserrat', sans-serif;}
+body {background-color: #F7F5F4; font-size: 12pt; color: #191919; }
+h1, h2, h2 a, h3, h3 a, a:focus, a {color:#800;}
 a:hover {color:#9E2017;text-decoration:none;}
-strong { color:#800;font-weight:bold;}
 
 @media only screen and (max-width: 768px) {h1 { font-size:24px;margin: 20px 0 5px;}}
 @media only screen and (max-width: 768px) {h2 { font-size:21px;margin: 20px 0 5px;}}
@@ -47,7 +46,7 @@ strong { color:#800;font-weight:bold;}
 .navbar-collapse .nav > li > a {width: 177px;padding: 5px 4px;font-size:100%;background:#FAE6E1;border-radius:6px;margin: 4px 0;color:#8B0000;}
 .navbar-collapse .nav > li > a:focus {color:#000;background:#FACBC1;}
 .navbar-collapse .nav > li > active a:hover {color: #FACBC1;}
-.navbar-default .navbar-nav > .active > a {color: #000;background:#FAE6E1;}
+.navbar-default .navbar-nav > .active > a {color: #000;background:#FAE6E1;display:none;}
 .navbar-default .navbar-nav > .active > a:hover {color: #111;background:#fcd7cf;}
 .navbar-default .navbar-nav  .is-active {display:none;}
 
@@ -71,7 +70,7 @@ margin:2px;padding: 14px 10px;font-size:133%;border: 2px solid #D6BBB4; border-r
 .navbar-default .navbar-toggle {color: #CFAEA7;background-color:#672517;}
 .navbar-default .navbar-toggle:hover {color: #E6C2BB;background-color:#7E2B1B;}
 .navbar-default .navbar-toggle:focus {color: #E6C2BB;background-color:#7C3223;}
-.navbar-default .navbar-toggle > .active {color: #E6C2BB;background-color:#601C0F;}
+.navbar-default .navbar-toggle > .active {color: #E6C2BB;background-color:#601C0F;display:none;}
 @media only screen and (max-width: 768px) {.navbar-toggle {margin-top:50px;margin-right: 5px;margin-left:-5px;padding: 9px;}}
 @media only screen and (max-width: 450px) {.navbar-toggle {margin-top:38px;margin-right: 4px;}}
 
@@ -81,7 +80,6 @@ margin:2px;padding: 14px 10px;font-size:133%;border: 2px solid #D6BBB4; border-r
 #block-progress {margin-top:18px;}
 
 /* misc */
-legend {margin-bottom:0px;}
 @media only screen and (max-width: 1000px) {#block-topbarbanner img {width:800px;}}
 @media only screen and (max-width: 768px) {#block-topbarbanner {display:none;}}
 #edit-preview {display:none;}
@@ -112,7 +110,6 @@ legend {margin-bottom:0px;}
 @media only screen and (max-width: 768px) {.webform-submission-report-add-form .form-control {width: 90%;}}
 .webform-submission-report-add-form fieldset.form-item {margin-bottom:15px;}*/
 .webform-options-display-side-by-side .form-item {padding:0;}
-.form-item legend {font-size:16px;background: #fff;margin-left: -10px;padding-left: 10px;}
 .form-item-short .form-control {width:50%;}
 
 .path-webform #navbar-collapse {height: 137px !important;overflow: hidden !important;width: 184px !important;}
