@@ -1,8 +1,11 @@
+'#attributes':
+  class:
+    - audioseva-grouped-items
 tape_number:
   '#type': textfield
   '#title': 'A. Tape Number'
   '#help': 'This is the original mp3 name, as it is received from Audio Seva Team'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>Please write the original audio file name, as it is received from the Audio Seva Team.</li>
@@ -15,11 +18,11 @@ tape_number:
   '#attributes':
     class:
       - form-item-short
-has_fused_lectures:
-  '#type': radios_other
-  '#title': 'B. Has Fused Lectures'
+fused_lecture:
+  '#type': radios
+  '#title': 'B. Fused Lecture'
   '#help': 'Does the mp3 have more than one lecture? If so please mention in the next field which minute the next lecture starts.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>This indicates the audio file provided to you has multiple lectures fused together. This is typical in the case of mp3s, which have been created by digitizing cassettes.</li>
@@ -31,7 +34,7 @@ timing_for_fused_lecture:
   '#type': textfield
   '#title': 'C. Timing (only for fused lecture)'
   '#help': 'In case of fused lectures, please mention minutes for which details are provided here.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>Please write the timing when the new lecture begins and ends in min:sec or hr:min:sec format, as applicable.</li>
@@ -46,7 +49,7 @@ date:
   '#type': textfield
   '#title': 'D. Date'
   '#help': 'This is taken from original file name OR from the lecture. If date is not readily available, please mention any hint of a tithi mentioned. Please maintain dd/mm/yyyy format.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>
@@ -66,7 +69,7 @@ location:
   '#type': textfield
   '#title': 'E. Location'
   '#help': 'Please write the name of the city here. If other details are available such as whether it was parikrama or a particular matha, please mention.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>
@@ -85,7 +88,7 @@ location:
 category:
   '#type': radios_other
   '#title': 'F. Category'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <p>If you are able to determine whether it is a darsana, lecture, parikrama, walk or conference, please mention it here.</p>
     <ul>
@@ -117,7 +120,7 @@ topic:
   '#type': textarea
   '#title': 'G. Topics'
   '#help': 'Whichever main topics Srila Gurudeva has spoken on should be mentioned here. Mostly these would be 2-4 per class.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>
@@ -143,7 +146,7 @@ gurudeva_timings:
   '#type': textfield
   '#title': 'H. Gurudeva Timings'
   '#help': 'Only in case of conferences, please note the minutes where Srila Gurudeva is speaking in min:sec or hr:min:sec format.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>
@@ -163,7 +166,7 @@ other_speakers:
   '#type': textarea
   '#title': 'I. Other Speakers'
   '#help': 'If any speakers other than Srila Gurudeva are speaking, please mention the name and language in which they are speaking'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>
@@ -177,7 +180,7 @@ kirtana:
   '#type': textfield
   '#title': 'J. Kirtana'
   '#help': 'Does the mp3 have one or more kirtans? if so, please mention which minute the kirtan starts and stops. If possible mention the name of the kirtan and If Gurudeva is singing, please mention.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>
@@ -194,7 +197,7 @@ abrupt_lecture:
   '#type': radios_other
   '#title': 'K. Abrupt lecture'
   '#help': 'Does the lecture begin or end abruptly? If so please mention'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>
@@ -210,7 +213,7 @@ suggested_title:
   '#type': textfield
   '#title': 'L. Suggested Title'
   '#help': 'Please suggest a title for the lecture, which would be the part Srila Gurudeva emphasized on most.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>
@@ -224,7 +227,7 @@ languages:
   '#type': checkboxes_other
   '#title': 'M. Lecture Language(s)'
   '#help': 'Please mention the languages in which Srila Gurudeva is speaking in the lecture'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <p>Please choose the languages in which Srila Gurudeva is speaking. For multiple languages, choose multiple options.</p>
   '#options':
@@ -236,7 +239,7 @@ sound_issue:
   '#type': textfield
   '#title': 'N. Sound Issues'
   '#help': 'If the lecture has some sound issues like too much background noise, or long blank pauses, low sound or some part of the speech needs to be edited, please mention in this column with comments on what the issue is and minutes where the disturbance occurs.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>
@@ -253,14 +256,14 @@ filled_by_person:
   '#type': textfield
   '#title': 'O. Your name'
   '#help': 'Name of the devotee filling the details, country/city.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': 'Please write your name here, along with city or country.'
   '#required': true
 comments:
   '#type': textarea
   '#title': 'P. Comments'
   '#help': 'In case you are unable to enter details of the recording, please mention comments here.'
-  '#more_title': 'Read more'
+  '#more_title': 'Guidelines'
   '#more': |
     <ul>
     	<li>
