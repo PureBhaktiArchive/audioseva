@@ -84,17 +84,8 @@ margin:2px;padding: 14px 10px;font-size:133%;border: 2px solid #D6BBB4; border-r
 @media only screen and (max-width: 768px) {#block-topbarbanner {display:none;}}
 #edit-preview {display:none;}
 .view-id-frontpage .views-row {margin-bottom:25px;}
-.abutton {padding:13px 7px;border-radius: 20px;background-image: linear-gradient(#fcd7cf, #f9ae9f 60%, #fcd7cf); margin-bottom: 10px; text-align: center;width: 387px;clear:left;float: left;margin-left: 2px;}
-@media only screen and (max-width: 450px) {.abutton {padding:10px 3px;margin-left:1px;width: 290px;font-size:85%;}}
-
-.abutton a {color:#1B0A01; }
-.abutton:hover {background-image: linear-gradient(#fcd7cf, #F2D7D2 60%, #fcd7cf);}
-.abutton a:hover {color:#3A1908;font-weight:bold;}
 .printfriendly {float:right;}
 @media only screen and (max-width: 450px) {.printfriendly {margin-top:-30px;}}
-
-/* Registration webform */
-.form-item-seva-listen-notes-english {border-bottom:1px dotted #601C0F; padding-bottom:5px;margin-bottom:10px;}
 
 .block-webform {padding:10px;background: #FFFBFA;border-radius: 5px;}
 .webform-submission-registration-add-form .form-item {width: 90%;}
@@ -103,12 +94,6 @@ margin:2px;padding: 14px 10px;font-size:133%;border: 2px solid #D6BBB4; border-r
 @media only screen and (max-width: 1000px) {.path-webform .col-sm-12 {padding-left:7px;padding-right:5px;}}
 @media only screen and (max-width: 768px) {.path-webform .col-sm-12 {padding-left:5px;width:100%;}}
 
-/* report webform */
-.audioseva-grouped-items .form-item {background:#FFFEFE;padding:10px;}
-
-/*.webform-submission-report-add-form .form-control {width: 90%;}
-@media only screen and (max-width: 768px) {.webform-submission-report-add-form .form-control {width: 90%;}}
-.webform-submission-report-add-form fieldset.form-item {margin-bottom:15px;}*/
 .webform-options-display-side-by-side .form-item {padding:0;}
 .form-item-short .form-control {width:50%;}
 
