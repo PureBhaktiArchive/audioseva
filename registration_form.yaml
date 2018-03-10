@@ -8,6 +8,7 @@ country:
 email:
   '#type': email
   '#title': Email
+  '#unique': true
   '#states':
     required:
       ':input[name="i_don_t_have_an_email"]':
