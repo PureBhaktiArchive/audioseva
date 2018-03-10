@@ -1,3 +1,6 @@
+tip:
+  '#type': markup
+  '#markup': 'Tip: It might be convenient for some devotees to note the lecture details for each field on paper first, while hearing the lecture and then enter into the Online Submission Form.'
 tape_number:
   '#type': textfield
   '#title': 'A. Tape Number'
