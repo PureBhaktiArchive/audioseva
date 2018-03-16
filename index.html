@@ -6,12 +6,17 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-  <title>Bootstrap 101 Template</title>
+  <title>Allot Audio Seva</title>
 
   <!-- Bootstrap -->
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/css/multi-select.min.css" />
+
+  <link rel="stylesheet" href="jquery-multicheckbox/jquery.multicheckbox.css" />
+
   <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
@@ -26,45 +31,80 @@
     <form>
       <div class="form-group">
         <label for="devotee">Devotee</label>
-        <select class="form-control" id="devotee" data-placeholder="Select a devotee">
-          <option selected>Choose...</option>
-          <option value="1">One</option>
-          <option value="2">Two</option>
-          <option value="3">Three</option>
+        <select class="form-control" id="devotee">
+          <option></option>
         </select>
       </div>
       <div class="form-group">
         <label for="list">List</label>
         <select class="form-control" id="list" placeholder="Choose a list">
+          <option></option>
           <option value="1">ML1</option>
           <option value="2">ML2</option>
-          <option value="3">ML3</option>
         </select>
       </div>
       <div class="form-group">
-        <label for="file">Files</label>
-        <select class="form-control" id="file" size="10" multiple>
-          <option value="1">1A</option>
-          <option value="2">1B</option>
-          <option value="3">2A</option>
-          <option value="1">1A</option>
-          <option value="2">1B</option>
-          <option value="3">2A</option>
-          <option value="1">1A</option>
-          <option value="2">1B</option>
-          <option value="3">2A</option>
-          <option value="1">1A</option>
-          <option value="2">1B</option>
-          <option value="3">2A</option>
-          <option value="1">1A</option>
-          <option value="2">1B</option>
-          <option value="3">2A</option>
-          <option value="1">1A</option>
-          <option value="2">1B</option>
-          <option value="3">2A</option>
-          <option value="1">1A</option>
-          <option value="2">1B</option>
-          <option value="3">2A</option>
+        <label for="files1">Files 1</label>
+        <select class="form-control" id="files1" size="10" multiple placeholder="Choose files">
+          <optgroup label="ML1 - Hindi" class="ml1">
+            <option value="1">1	4 A_Hindi _New Archive.mp3</option>
+            <option value="2">2	4 B_Hindi _New Archive.mp3</option>
+            <option value="3">4	5 B_Hindi _New Archive.mp3</option>
+            <option value="4">3	5 A_Hindi _New Archive.mp3</option>
+            <option value="5">5	6 A_Hindi _New Archive.mp3</option>
+          </optgroup>
+          <optgroup label="ML2" class="ml2">
+            <option value="1	1 A.mp3">1	1 A.mp3</option>
+            <option value="2	1 B.mp3">2	1 B.mp3</option>
+            <option value="3	1A (2).mp3">3	1A (2).mp3</option>
+            <option value="4	1A (3).mp3">4	1A (3).mp3</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="files2">Files 2</label>
+        <select class="form-control" id="files2" size="10" multiple placeholder="Choose files">
+          <optgroup label="ML1 - Hindi" class="ml1">
+            <option value="1">1	4 A_Hindi _New Archive.mp3</option>
+            <option value="2">2	4 B_Hindi _New Archive.mp3</option>
+            <option value="3">4	5 B_Hindi _New Archive.mp3</option>
+            <option value="4">3	5 A_Hindi _New Archive.mp3</option>
+            <option value="5">5	6 A_Hindi _New Archive.mp3</option>
+          </optgroup>
+          <optgroup label="ML2" class="ml2">
+            <option value="1	1 A.mp3">1	1 A.mp3</option>
+            <option value="2	1 B.mp3">2	1 B.mp3</option>
+            <option value="3	1A (2).mp3">3	1A (2).mp3</option>
+            <option value="4	1A (3).mp3">4	1A (3).mp3</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="files3">Files 3</label>
+        <select class="form-control" id="files3" size="10" multiple placeholder="Choose files">
+            <option value="1">1	4 A_Hindi _New Archive.mp3</option>
+            <option value="2">2	4 B_Hindi _New Archive.mp3</option>
+            <option value="3">4	5 B_Hindi _New Archive.mp3</option>
+            <option value="4">3	5 A_Hindi _New Archive.mp3</option>
+            <option value="5">5	6 A_Hindi _New Archive.mp3</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="files4">Files 4</label>
+        <select class="form-control" id="files4" size="10" multiple placeholder="Choose files">
+          <optgroup label="ML1 - Hindi" class="ml1">
+            <option value="1">1	4 A_Hindi _New Archive.mp3</option>
+            <option value="2">2	4 B_Hindi _New Archive.mp3</option>
+            <option value="3">4	5 B_Hindi _New Archive.mp3</option>
+            <option value="4">3	5 A_Hindi _New Archive.mp3</option>
+            <option value="5">5	6 A_Hindi _New Archive.mp3</option>
+          </optgroup>
+          <optgroup label="ML2" class="ml2">
+            <option value="1	1 A.mp3">1	1 A.mp3</option>
+            <option value="2	1 B.mp3">2	1 B.mp3</option>
+            <option value="3	1A (2).mp3">3	1A (2).mp3</option>
+            <option value="4	1A (3).mp3">4	1A (3).mp3</option>
+          </optgroup>
         </select>
       </div>
       <button type="submit" class="btn btn-primary">Assign</button>
@@ -76,6 +116,48 @@
   <!-- Include all compiled plugins (below), or include individual files as needed -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/js/bootstrap-multiselect.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/js/jquery.multi-select.min.js"></script>
+  <script src="jquery-multicheckbox/jquery.multicheckbox.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $.get("https://hook.integromat.com/41xuikkmbdo2ql56g6uwkxb656hp0zj4", null, null, "json")
+        .then(function(data) {
+          console.log(data);
+          $('#devotee').select2({
+            width: '100%',
+            placeholder: 'Select a devotee',
+            data: data.results,
+            allowClear: true,
+            minimumResultsForSearch: 5,
+          });
+        });
+      $("#list").select2({
+        width: '100%',
+        placeholder: 'Select a list',
+        minimumResultsForSearch: 5,
+      });
+      $("#files4").select2({
+        width: '100%',
+        placeholder: 'Select files',
+        minimumResultsForSearch: 20,
+        closeOnSelect: false,
+      });
+      $("#files2").multiselect({
+        closeOnSelect: false,
+        enableClickableOptGroups: true,
+        enableCollapsibleOptGroups: true,
+      }).multiselect('rebuild');
+
+      $("#files").multiSelect({
+
+      });
+
+      $("#files3").multicheckbox({
+        label_wrap: '<div class="checkbox"></div>'
+      });
+    });
+  </script>
 </body>
 
 </html>
