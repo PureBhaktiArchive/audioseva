@@ -1,0 +1,3 @@
+[submodule "jquery-multicheckbox"]
+	path = jquery-multicheckbox
+	url = git@github.com:jurrick/jquery-multicheckbox.git
