@@ -100,7 +100,7 @@ topics:
     	<li>This field is helpful for titling and identifying duplicates.</li>
     	<li>Please try to mention the important topics which Srila Gurudeva has touched upon in the lecture. If Srila Gurudeva is speaking from a particular scripture (e.g. Srimad Bhagavatam, Madhurya Kadambini, etc.), please mention the same here.</li>
     	<li>Also mention topics spoken by devotees who Srila Gurudeva requested to speak, along with their names, if possible. (This is not applicable in the case of a conference, as per the category described for # F above)</li>
-    	<li>Details are not to be mentioned. However, this should not be at the cost of missing out on some topic Srila Gurudeva is speaking about. Typically a 45 minute lecture would have 2-4 topics discussed, but if you are unsure whether to leave out a detail,
+    	<li>Details are not to be mentioned. However, this should not be at the cost of missing out on some topic Srila Gurudeva is speaking about. Typically a 45 minute lecture would have 4-6 topics discussed, but if you are unsure whether to leave out a detail,
     		rather mention it.</li>
     	<li>Please write each topic on a separate line.</li>
     	<li>Add a hyphen (-) at the beginning of each line for ease of reading.</li>
@@ -186,7 +186,8 @@ sound_issues:
     <ul>
     	<li>This field is crucial for cleaning up the audio files for enhanced audibility.</li>
     	<li>If the lecture has some sound issues like too much background noise, or long blank pauses, low sound or some part of the speech needs to be edited, please mention here with comments on what the issue is and minutes where the disturbance occurs</li>
-    	<li>You may mention in as much detail as you think fit.</li>
+      <li>If the lecture seems like the continuation of another, within the set allotted to you, please mention it here.</li>
+      <li>You may mention in as much detail as you think fit.</li>
     </ul>
 filled_by:
   '#type': textfield
