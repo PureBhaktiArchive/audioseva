@@ -64,28 +64,7 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/js/bootstrap-multiselect.min.js"></script>
-  <script type="text/javascript">
-    $(document).ready(function() {
-      $.get("https://hook.integromat.com/41xuikkmbdo2ql56g6uwkxb656hp0zj4", null, null, "json")
-        .then(function(data) {
-          console.log(data);
-          $('#devotee').select2({
-            width: '100%',
-            placeholder: 'Select a devotee',
-            data: data.results,
-            allowClear: true,
-            minimumResultsForSearch: 5,
-          });
-        });
-      $("#files").multiselect({
-        numberDisplayed: 1,
-        closeOnSelect: false,
-        enableClickableOptGroups: true,
-        enableCollapsibleOptGroups: true,
-      });
-
-    });
-  </script>
+  <script src="allot.js"></script>
 </body>
 
 </html>
