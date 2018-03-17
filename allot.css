@@ -1,0 +1,21 @@
+span.name {
+  font-weight: bold;
+  display: block;
+  float: left;
+}
+
+span.location {
+  color: gray;
+  display: block;
+  float: right;
+}
+
+span.emailaddress {
+  color: gray;
+  display: block;
+  clear: left;
+}
+
+.selectize-dropdown [data-selectable] {
+  border-bottom: 1px gray;
+}
