@@ -20,35 +20,12 @@ $(document).ready(function() {
       });
     });
 
-  $("input").change(function() {
-    $(".files").empty();
-    $.get({
-      url: "https://hook.integromat.com/kjdqf7lnvgisr4kpia4lxzsf3cw53nvn",
-      data: {
-        list: this.id
-      },
-      dataType: "json",
-      success: function(data) {
-        $.each(data, function(i, item) {
-          $(".files")
-            .append($('<div/>', {
-                class: 'checkbox'
-              })
-              .append($('<label/>')
-                .append($('<input/>', {
-                  'type': 'checkbox',
-                  value: item.index
-                }))
-                .append($('<strong>', {
-                  text: item.index + " "
-                }))
-                .append($('<code>', {
-                  text: item.filename
-                }))
-              ));
-        });
-      }
-    });
+  $.get({
+    url: "https://hook.integromat.com/kjdqf7lnvgisr4kpia4lxzsf3cw53nvn",
+    dataType: "json",
+    success: function(data) {
+      $(".files").empty().html(Mustache.render($('#files-template').html(), data));
+    }
   });
 
 });
