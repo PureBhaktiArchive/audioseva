@@ -66,6 +66,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/js/standalone/selectize.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.min.js" integrity="sha256-iaqfO5ue0VbSGcEiQn+OeXxnxAMK2+QgHXIDA5bWtGI=" crossorigin="anonymous"></script>
   <script src="allot.js"></script>
+  <script id="devotee-template" type="x-tmpl-mustache">
+    <div>
+      <div class="row">
+        <div class="col-md-3"><strong>{{name}}</strong></div>
+        <div class="col-md-2">{{location}}</div>
+        <div class="col-md-3">{{emailaddress}}</div>
+        <div class="col-md-4">{{phone}}</div>
+      </div>
+    </div>
+  </script>
   <script id="files-template" type="x-tmpl-mustache">
     {{#.}}
       <h3>{{list}}</h3>
