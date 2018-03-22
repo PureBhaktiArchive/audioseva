@@ -32,4 +32,16 @@ $(document).ready(function() {
     });
   });
 
+  $("form").submit(event => {
+
+      // Stop form from submitting normally
+      event.preventDefault();
+
+      $.post({
+        url: "https://hook.integromat.com/u7lxphmgyu4w37rzly6aikqu3fpq22rw",
+        data: $(event.target).serialize(),
+        success: data => {},
+      });
+  });
+
 });
