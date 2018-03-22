@@ -17,12 +17,19 @@ $(document).ready(function() {
     },
   });
 
-  $.get({
-    url: "https://hook.integromat.com/kjdqf7lnvgisr4kpia4lxzsf3cw53nvn",
-    dataType: "json",
-    success: function(data) {
-      $(".files").empty().html(Mustache.render($('#files-template').html(), data));
-    }
+  $('input[type=radio][name=list]').change(event => {
+    $("#files").html("<div class='loader'></div>");
+    $.get({
+      url: "https://hook.integromat.com/kjdqf7lnvgisr4kpia4lxzsf3cw53nvn",
+      data: {
+        list: $(event.target).val(),
+        count: 20,
+      },
+      dataType: "json",
+      success: data => {
+        $("#files").html(Mustache.render($('#files-template').html(), data));
+      }
+    });
   });
 
 });
