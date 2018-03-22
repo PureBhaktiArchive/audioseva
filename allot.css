@@ -1,7 +1,3 @@
-.selectize-dropdown [data-selectable] {
-  border-bottom: 1px gray;
-}
-
 .loader {
     border: 8pt solid #f3f3f3; /* Light grey */
     border-top: 8pt solid #3498db; /* Blue */
