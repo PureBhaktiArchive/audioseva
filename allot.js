@@ -37,10 +37,16 @@ $(document).ready(function() {
       // Stop form from submitting normally
       event.preventDefault();
 
+      $("#confirmation-message").addClass("invisible");
       $.post({
         url: "https://hook.integromat.com/u7lxphmgyu4w37rzly6aikqu3fpq22rw",
         data: $(event.target).serialize(),
-        success: data => {},
+        success: () => {
+          $("form").trigger("reset");
+          $("#files").empty();
+          $("#devotee")[0].selectize.clear();
+          $("#confirmation-message").removeClass("invisible");
+        },
       });
   });
 
