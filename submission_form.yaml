@@ -26,9 +26,11 @@ fused_lecture:
   '#more_title': Guidelines
   '#more': |
     <ul>
-    	<li>This indicates the audio file provided to you has multiple lectures fused together. This is typical in the case of mp3s, which have been created by digitizing cassettes.</li>
-    	<li>Choose ‘No’ if the audio file does not contain Fused lectures and ‘Yes’ if it does.</li>
-    	<li>Please dedicate one form to each of the Fused lectures. For example, suppose the same audio file - DK-012A - contains 3 lectures, hence for that one audio file (DK-012A), 3 different forms have to be filled to note the details of each individual lecture.</li>
+    	<li>While digitizing, multiple recordings on one side of the cassette merge together into one mp3. When you hear the audio, if you notice that there are various lectures with different themes/ dates/ locations etc. in the same audio file, then such an audio
+    		file is to be treated as a Fused lecture. If this is the case, choose ‘Yes’ in this field. Otherwise please choose ‘No’.</li>
+    	<li>Details for each segment of the Fused lecture&nbsp;—&nbsp;which means each of the individual recordings in the audio file&nbsp;—&nbsp;should be filled separately in a new form.</li>
+    	<li>For example, please refer Row #6, 7, 8 in the <a href="/audioseva/sites/default/files/guidelines/Pure%20Bhakti%20Audio%20Seva%20Template.xlsx">Excel template</a>. The same audio file&nbsp;—&nbsp;
+    		<nobr>DK-012A</nobr>&nbsp;—&nbsp;contains 3 lectures, hence for that one audio file (DK-012A), 3 different rows have been created to note the details of each individual lecture.</li>
     </ul>
   '#options': yes_no
   '#options_display': side_by_side
