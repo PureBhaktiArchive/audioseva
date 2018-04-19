@@ -115,8 +115,8 @@
     {{#.}}
       <div class="checkbox">
         <label>
-          <input type="checkbox" name="files[]" value="{{index}}"></input>
-          <code>{{filename}}</code>
+          <input type="checkbox" name="files[]" value="{{.}}"></input>
+          <code>{{.}}</code>
         </label>
       </div>
     {{/.}}
