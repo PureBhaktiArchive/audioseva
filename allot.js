@@ -41,10 +41,11 @@ $(document).ready(function() {
       $.post({
         url: "https://hook.integromat.com/u7lxphmgyu4w37rzly6aikqu3fpq22rw",
         data: $(event.target).serialize(),
-        success: () => {
+        success: (data) => {
           $("form").trigger("reset");
           $("#files").empty();
           $("#devotee")[0].selectize.clear();
+          $("#whatsapp").attr("href", "https://api.whatsapp.com/send?text=" + encodeURI(data));
           $("#confirmation-message").removeClass("invisible");
         },
       });
