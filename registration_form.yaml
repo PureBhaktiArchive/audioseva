@@ -63,9 +63,8 @@ seva_options:
     '#title_display': before
     '#options':
       listen-notes: "<b>#1 Listening to audio in your language and making notes in English ☝</b> -- Hearing Srila Gurudeva’s lectures and making a few notes as per the guidelines supplied. It is so simple that anyone can do it!<br>\n<b>☝ Immediate seva required, our goal is to complete this by the end of 2018.</b>"
-      sorting-duplicates: '#2 Sorting out duplicates -- Experience in MS Excel will be useful.'
-      sound-editing: '#3 Sound editing -- Cleaning up, trimming, enhancing audio quality, etc. Requires knowledge of sound editing software.'
-      transcribing: '#4 Transcribing -- Hearing Srila Gurudeva’s lectures in your language and transcribing in English.'
+      sound-editing: '#2 Sound editing -- Cleaning up, trimming, enhancing audio quality, etc. Requires knowledge of sound editing software.'
+      transcribing: '#3 Transcribing -- Hearing Srila Gurudeva’s lectures in your language and transcribing in English.'
     '#options_description_display': help
     '#other__option_label': 'Other services…'
     '#other__placeholder': 'Describe any other services would you like to render'
