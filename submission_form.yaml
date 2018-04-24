@@ -137,7 +137,7 @@ kirtana:
     	<li>If Srila Gurudeva himself is leading the kirtana, please mention.</li>
     </ul>
 abrupt_lecture:
-  '#type': radios_other
+  '#type': checkboxes_other
   '#title': 'K. Abrupt lecture'
   '#more_title': Guidelines
   '#more': |
@@ -145,7 +145,6 @@ abrupt_lecture:
     	<li>If the lecture is beginning or ending abruptly, please choose the appropriate option here.</li>
     </ul>
   '#options':
-    'no': 'No'
     beginning: 'Abrupt in the beginning'
     end: 'Abrupt in the end'
   '#options_display': side_by_side
