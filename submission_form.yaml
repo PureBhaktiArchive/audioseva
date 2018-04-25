@@ -190,21 +190,54 @@ sound_issues:
       <li>If the lecture seems like the continuation of another, within the set allotted to you, please mention it here.</li>
       <li>You may mention in as much detail as you think fit.</li>
     </ul>
-filled_by:
-  '#type': textfield
-  '#title': 'O. Your name'
-  '#more_title': Guidelines
-  '#more': |
-    <ul>
-    	<li>Please write your name here, along with city or country.</li>
-    </ul>
-  '#required': true
 comments:
   '#type': textarea
-  '#title': 'P. Comments'
+  '#title': 'O. Comments'
   '#more_title': Guidelines
   '#more': |
     <ul>
     	<li>If you are unable to note the details of the lecture for some reason, please mention it here. Common reasons could be – language not understood, audio not playing, inaudible, and so on.</li>
     	<li>Please write any other comments you wish to mention about the file here.</li>
     </ul>
+filled_by:
+  '#type': container
+  filled_by_label:
+    '#type': label
+    '#title': 'P. Filled By'
+  name:
+    '#type': textfield
+    '#title': Name
+    '#required': true
+    '#more_title': Guidelines
+    '#more': |
+      <ul>
+      	<li>Please write your name here, along with city or country.</li>
+      </ul>
+  email_address:
+    '#type': email
+    '#title': 'Email Address'
+    '#title_display': inline
+    '#states':
+      optional:
+        ':input[name="no_email_address"]':
+          checked: true
+    '#more_title': Guidelines
+    '#more': |
+      <ul>
+      	<li><b>Please fill your registered email address here. This is very important for providing feedback.</b></li>
+      	<li>If you haven’t registered an email address with us, please click “I don’t have an Email Address” and then fill your registered phone number below.</li>
+      </ul>
+  no_email_address:
+    '#type': checkbox
+    '#title': 'I don’t have an Email Address'
+  phone_number:
+    '#type': textfield
+    '#title': 'Phone number (ex. +91 12345 12345)'
+    '#help': 'Please use international format: +91 12345 12345 or +1 (123) 45-67 890 or similar.'
+    '#placeholder': '+91 12345 12345'
+    '#required': true
+    '#pattern': '^\+\W*((9[976]|8[987530]|6[987]|5[90]|42|3[875]|2[^07])\d|9[0-58]|8[6421]|6[0-6]|5[1-8]|4[^2]|3[960-4]|2[70]|7|1)(\W*\d){2,12}$'
+    '#states':
+      visible:
+        ':input[name="no_email_address"]':
+          checked: true
