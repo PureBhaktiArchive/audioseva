@@ -21,8 +21,11 @@ i_don_t_have_an_email:
   '#title': 'I don''t have an Email ID'
 contact_number:
   '#type': textfield
-  '#title': 'Contact number'
-  '#placeholder': 'Enter your phone number with country code'
+  '#title': 'Mobile phone number (ex. +91 12345 12345)'
+  '#help': 'Please use international format: +91 12345 12345 or +1 (123) 45-67 890 or similar.'
+  '#placeholder': '+91 12345 12345'
+  '#unique': true
+  '#pattern': '^\+\W*((9[976]|8[987530]|6[987]|5[90]|42|3[875]|2[^07])\d|9[0-58]|8[6421]|6[0-6]|5[1-8]|4[^2]|3[960-4]|2[70]|7|1)(\W*\d){2,12}$'
   '#states':
     required:
       ':input[name="i_am_available_on_whatsapp"]':
