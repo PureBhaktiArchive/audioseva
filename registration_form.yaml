@@ -74,3 +74,15 @@ seva_options:
         ':input[name="seva[listen-notes]"]':
           checked: true
     '#required': true
+where_did_u_hear_about_this_seva:
+  '#type': radios_other
+  '#title': 'Where did u hear about this seva'
+  '#options':
+    Facebook: Facebook
+    WhatsApp: WhatsApp
+    'From a preacher': 'From a preacher'
+    'From another devotee who is doing the service': 'From another devotee who is doing the service'
+    'From a poster/banner': 'From a poster/banner'
+    'From a friend': 'From a friend'
+  '#options_display': two_columns
+  '#required': true
