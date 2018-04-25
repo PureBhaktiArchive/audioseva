@@ -37,25 +37,11 @@ i_am_available_on_whatsapp:
   '#type': checkbox
   '#title': 'I am available on WhatsApp'
   '#toggle_theme': modern
-your_language:
-  '#type': checkboxes
-  '#title': 'Your Language(s)'
-  '#options':
-    Hindi: Hindi
-    English: English
-  '#states':
-    invisible:
-      - ':input[name="languages[checkboxes][English]"]':
-          checked: true
-      - or
-      - ':input[name="languages[checkboxes][English]"]':
-          unchecked: true
 languages:
   '#type': checkboxes_other
   '#title': 'Your Language(s)'
   '#options': common_languages
   '#required': true
-  '#select2': true
 seva_options:
   '#type': fieldset
   '#title': 'Seva options'
