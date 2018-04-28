@@ -1,3 +1,6 @@
+tip:
+  '#type': markup
+  '#markup': '<small>The immediate <em>seva</em> required is listening to Srila Gurudeva’s lectures and making a few notes in English as per the guidelines. <b>Our goal is to complete this by the end of&nbsp;2018.</b></small>'
 your_name:
   '#type': textfield
   '#title': 'Your name'
@@ -49,6 +52,7 @@ seva_options:
   '#attributes':
     style: 'margin-top: 12pt;'
   '#format': details
+  '#access': false
   seva:
     '#type': checkboxes
     '#title': 'Your Seva'
@@ -74,6 +78,14 @@ seva_options:
         ':input[name="seva[listen-notes]"]':
           checked: true
     '#required': true
+preference_of_data_submission:
+  '#type': radios
+  '#title': 'Preference of data submission'
+  '#options':
+    'Excel Spreadsheet': 'Excel Spreadsheet'
+    'Online form': 'Online form'
+  '#options_display': side_by_side
+  '#required': true
 where_did_u_hear_about_this_seva:
   '#type': radios_other
   '#title': 'Where did u hear about this seva'
