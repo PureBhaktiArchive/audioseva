@@ -6,8 +6,11 @@ your_name:
   '#title': 'Your name'
   '#required': true
 country:
-  '#type': textfield
-  '#title': Country
+  '#type': select
+  '#title': 'Country'
+  '#options': country_names
+  '#select2': true
+  '#required': true
 email:
   '#type': email
   '#title': Email
