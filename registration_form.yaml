@@ -95,6 +95,7 @@ where_did_u_hear_about_this_seva:
   '#options':
     Facebook: Facebook
     WhatsApp: WhatsApp
+    Email: Email
     'From a preacher': 'From a preacher'
     'From another devotee who is doing the service': 'From another devotee who is doing the service'
     'From a poster/banner': 'From a poster/banner'
