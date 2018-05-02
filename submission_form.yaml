@@ -13,13 +13,8 @@ tape_number:
         </ul>
       </li>
     </ul>
-  '#description_display': after
-  '#size': '20'
   '#autocomplete': 'off'
   '#required': true
-  '#attributes':
-    class:
-      - form-item-short
 fused_lecture:
   '#type': radios
   '#title': 'B. Fused Lecture'
@@ -85,7 +80,6 @@ category:
         </ul>
       </li>
     </ul>
-  '#title_display': before
   '#options':
     Darsana: Darśana
     Lecture: Lecture
