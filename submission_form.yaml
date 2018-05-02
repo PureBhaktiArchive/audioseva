@@ -14,6 +14,7 @@ tape_number:
       </li>
     </ul>
   '#autocomplete': 'off'
+  '#prepopulate': true
   '#required': true
 fused_lecture:
   '#type': radios
@@ -207,6 +208,7 @@ filled_by:
       <ul>
       	<li>Please write your name here, along with city or country.</li>
       </ul>
+    '#prepopulate': true
   email_address:
     '#type': email
     '#title': 'Email Address'
@@ -221,6 +223,7 @@ filled_by:
       	<li><b>Please fill your registered email address here. This is very important for providing feedback.</b></li>
       	<li>If you haven’t registered an email address with us, please click “I don’t have an Email Address” and then fill your registered phone number below.</li>
       </ul>
+    '#prepopulate': true
   no_email_address:
     '#type': checkbox
     '#title': 'I don’t have an Email Address'
