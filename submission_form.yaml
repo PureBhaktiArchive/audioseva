@@ -1,3 +1,17 @@
+direct_input:
+  '#type': hidden
+  '#title': Direct Input Allowed
+  '#prepopulate': true
+prefilled_link_should_be_used:
+  '#type': message
+  '#states':
+    visible:
+      ':input[name="tape_number"]':
+        empty: true
+      ':input[name="direct_input"]':
+        empty: true
+  '#message_type': warning
+  '#message_message': 'Please use &ldquo;Submit with Online Submission Form&rdquo; link from the email.'
 tip:
   '#type': markup
   '#markup': 'Tip: It might be convenient for some devotees to note the lecture details for each field on paper first, while hearing the lecture and then enter into the Online Submission Form.'
@@ -12,6 +26,10 @@ tape_number:
   '#autocomplete': 'off'
   '#prepopulate': true
   '#required': true
+  '#states':
+    readwrite:
+      ':input[name="direct_input"]':
+        filled: true
 fused_lecture:
   '#type': radios
   '#title': 'B. Fused Lecture'
@@ -207,6 +225,10 @@ filled_by:
       	<li>Please write your name here, along with city or country.</li>
       </ul>
     '#prepopulate': true
+    '#states':
+      readwrite:
+        ':input[name="direct_input"]':
+          filled: true
   email_address:
     '#type': email
     '#title': 'Email Address'
@@ -215,6 +237,9 @@ filled_by:
       optional:
         ':input[name="no_email_address"]':
           checked: true
+      readwrite:
+        ':input[name="direct_input"]':
+          filled: true
     '#more_title': Guidelines
     '#more': |
       <ul>
@@ -240,3 +265,12 @@ filled_by:
       <ul>
       	<li>Please use international format: +91 12345 12345 or +1 (123) 45-67 890 or similar.</li>
       </ul>
+actions:
+  '#type': webform_actions
+  '#title': 'Submit button(s)'
+  '#states':
+    disabled:
+      ':input[name="tape_number"]':
+        empty: true
+      ':input[name="direct_input"]':
+        empty: true
