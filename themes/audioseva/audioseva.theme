@@ -1,0 +1,23 @@
+<?php
+/**
+ * @file
+ * Bootstrap sub-theme.
+ *
+ * Place your custom PHP code in this file.
+ */
+ function audioseva_preprocess_html(&$variables) {
+   if ($node = \Drupal::request()->attributes->get('node')) {
+     $variables['attributes']['class'][] = 'page-node-' . $node->id();
+   }
+ }
+
+function audioseva_preprocess_node(&$variables) {
+  $variables['date'] = \Drupal::service('date.formatter')->format($variables['node']->getCreatedTime(), 'submit_date');
+}
+
+function audioseva_user_login($account) {
+  $previousUrl= \Drupal::request()->server->get('HTTP_REFERER');
+  $response = new Symfony\Component\HttpFoundation\RedirectResponse($previousUrl);
+  $response->send();
+  return;
+}

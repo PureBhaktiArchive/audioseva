@@ -1,0 +1,28 @@
+global-styling:
+  css:
+    theme:
+      css/legacy.css: {}
+      css/style.css: {}
+
+circliful:
+  version: "1.0.x"
+  css:
+    # The SMACSS category.
+    theme:
+      css/jquery.circliful.css: {}
+  js:
+    js/jquery.circliful.js: {}
+    js/apply-circliful.js: {}
+  dependencies:
+    - core/jquery
+
+bhakti-corescripts:
+  version: VERSION
+  js:
+    js/scripts.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal.ajax
+    - core/drupal
+    - core/drupalSettings
+    - core/jquery.once

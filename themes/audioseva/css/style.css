@@ -1,0 +1,41 @@
+body {
+  background-color: #F7F5F4;
+  font-size: 12pt;
+  font-family: Verdana, sans-serif;
+  color: #191919;
+  line-height: 180%;
+}
+
+h1, h2, h2 a, h3, h3 a, a:focus, a {
+  color: #800;
+}
+
+a:hover {
+  color: #9E2017;
+  text-decoration: none;
+}
+
+.btn-primary, .btn-primary.focus, .btn-primary:focus, .btn-primary:hover, .btn-primary.active.focus, .btn-primary.active:focus, .btn-primary.active:hover, .btn-primary:active.focus, .btn-primary:active:focus, .btn-primary:active:hover, .open>.dropdown-toggle.btn-primary.focus, .open>.dropdown-toggle.btn-primary:focus, .open>.dropdown-toggle.btn-primary:hover {
+  background-image: linear-gradient(#fcd7cf, #f9ae9f 60%, #fcd7cf);
+  color: #1B0A01;
+  border: none;
+}
+
+.btn {
+  border-radius: 20px;
+}
+
+#block-audioseva-progress {
+  text-align: center;
+  font-size: 88%;
+}
+
+#block-audioseva-experiences {}
+
+h4 {
+  margin-top: 2em;
+}
+
+.page-header {
+  padding-bottom: 20px;
+}
