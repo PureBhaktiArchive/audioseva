@@ -39,3 +39,7 @@ h4 {
 .page-header {
   padding-bottom: 20px;
 }
+
+blockquote {
+  font-size: inherit;
+}
