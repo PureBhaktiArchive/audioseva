@@ -16,9 +16,9 @@ a:hover {
 }
 
 .btn-primary, .btn-primary.focus, .btn-primary:focus, .btn-primary:hover, .btn-primary.active.focus, .btn-primary.active:focus, .btn-primary.active:hover, .btn-primary:active.focus, .btn-primary:active:focus, .btn-primary:active:hover, .open>.dropdown-toggle.btn-primary.focus, .open>.dropdown-toggle.btn-primary:focus, .open>.dropdown-toggle.btn-primary:hover {
-  background-image: linear-gradient(#fcd7cf, #f9ae9f 60%, #fcd7cf);
-  color: #1B0A01;
-  border: none;
+  background: #9E2017;
+  font-weight: bold;
+  border-color: #881b14;
 }
 
 .btn {
