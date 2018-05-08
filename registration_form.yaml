@@ -93,7 +93,7 @@ preference_of_data_submission:
   '#required': true
 where_did_u_hear_about_this_seva:
   '#type': radios_other
-  '#title': 'Where did u hear about this seva'
+  '#title': 'Where did you hear about this seva'
   '#options':
     Facebook: Facebook
     WhatsApp: WhatsApp
