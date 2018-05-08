@@ -104,3 +104,10 @@ where_did_u_hear_about_this_seva:
     'From a friend': 'From a friend'
   '#options_display': two_columns
   '#required': true
+actions:
+  '#type': webform_actions
+  '#title': 'Submit button(s)'
+  '#submit__label': Register
+  '#submit__attributes':
+    class:
+      - btn-lg
