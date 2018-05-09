@@ -1,3 +1,15 @@
+body {
+  background-color: #F7F5F4;
+  font-size: 12pt;
+  font-family: Verdana, sans-serif;
+  color: #191919;
+  line-height: 180%;
+}
+
+h1, h2, h2 a, h3, h3 a, a:focus, a {
+  color: #800;
+}
+
 h1, .h1 {
     font-size: 30px;
 }
@@ -8,6 +20,41 @@ h2, .h2 {
 @media only screen and (max-width: 768px) {h1 { font-size:24px;margin: 20px 0 5px;}}
 @media only screen and (max-width: 768px) {h2 { font-size:21px;margin: 20px 0 5px;}}
 @media only screen and (max-width: 768px) {h3, h3 a {font-size:19px;}}
+
+h4 {
+  margin-top: 2em;
+}
+
+a:hover {
+  color: #9E2017;
+  text-decoration: none;
+}
+
+.btn-primary, .btn-primary.focus, .btn-primary:focus, .btn-primary:hover, .btn-primary.active.focus, .btn-primary.active:focus, .btn-primary.active:hover, .btn-primary:active.focus, .btn-primary:active:focus, .btn-primary:active:hover, .open>.dropdown-toggle.btn-primary.focus, .open>.dropdown-toggle.btn-primary:focus, .open>.dropdown-toggle.btn-primary:hover {
+  background: #9E2017;
+  font-weight: bold;
+  border-color: #881b14;
+}
+
+.btn {
+  border-radius: 20px;
+}
+
+#block-audioseva-progress {
+  text-align: center;
+  font-size: 88%;
+}
+
+#block-audioseva-experiences {}
+
+.page-header {
+  padding-bottom: 20px;
+}
+
+blockquote {
+  font-size: inherit;
+}
+
 /*#block-footerblock {background-image: linear-gradient(#f9ae9f, #fcd7cf 60%, #f9ae9f);}*/
 
 .path-frontpage h1 {display:none;height:0;}
