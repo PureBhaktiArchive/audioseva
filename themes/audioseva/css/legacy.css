@@ -55,8 +55,6 @@ blockquote {
   font-size: inherit;
 }
 
-/*#block-footerblock {background-image: linear-gradient(#f9ae9f, #fcd7cf 60%, #f9ae9f);}*/
-
 .path-frontpage h1 {display:none;height:0;}
 .path-frontpage .region-content {margin-top:2px;}
 .navbar.container {padding:0px;border: none;background-color: inherit;}
@@ -65,16 +63,27 @@ blockquote {
 
 /* navigation */
 .navbar-header {background-image: linear-gradient(#fcd7cf, #f9ae9f 60%, #f9ae9f); float:none; margin: 0;}
-@media only screen and (max-width: 768px) {.region-navigation { width:375px;float:left;}}
-@media only screen and (max-width: 450px) {.region-navigation { width:300px;}}
-@media only screen and (max-width: 320px) {.region-navigation { width:280px;}}
+@media only screen and (max-width: 768px) {.region-navigation {padding-right: 90px;}}
 
-.headertext {padding-top: 30px; height: 100px;}
-@media only screen and (max-width: 768px) {.headertext {padding-top:20px;padding-left:20px;}}
-@media only screen and (max-width: 450px) {.headertext {padding-top:5px;padding-left:10px;}}
-@media only screen and (max-width: 320px) {.headertext {padding-left:0px;}}
+.headertext {
+  padding-top: 30px;
+  text-align: center;
+}
 
-.headertext img {height:80px;}
+@media only screen and (max-width: 768px) {.headertext {padding-top:15px;}}
+@media only screen and (max-width: 450px) {.headertext {padding-top:5px;padding-left:10px; font-size: 80%}}
+@media only screen and (max-width: 320px) {.headertext {padding-left:0px; font-size: 50%}}
+
+.title1 {
+  font: bold 180% Alex Brush;
+  color: #374a81;
+}
+
+.title2 {
+  font: bold 280% Libel Suit;
+  letter-spacing: 0.02em;
+  line-height: 0.7;
+}
 
 @media only screen and (max-width: 768px) {.navbar-collapse .dropdown-menu > li > a {text-align:center;float:left;background:#E49C8E;margin:2px;padding: 14px 12px;font-size:133%;border:2px solid #8B655D; border-radius: 25px; -webkit-transition: all 1.5s;-moz-transition: all 1.5s;transition: all 1.5s;}}
 
@@ -102,14 +111,10 @@ margin:2px;padding: 14px 10px;font-size:133%;border: 2px solid #D6BBB4; border-r
 @media only screen and (max-width: 768px) {.navbar-collapse  {float:right;}}
 @media only screen and (max-width: 768px) {.navbar-collapse {margin-top: 5px;}}
 
-.navbar-default .navbar-toggle {color: #CFAEA7;background-color:#672517;}
+.navbar-default .navbar-toggle {color: #CFAEA7;background-color:#672517; position: absolute; right: 10px; top: 50px; margin: 0; }
 .navbar-default .navbar-toggle:hover {color: #E6C2BB;background-color:#7E2B1B;}
 .navbar-default .navbar-toggle:focus {color: #E6C2BB;background-color:#7C3223;}
 .navbar-default .navbar-toggle > .active {color: #E6C2BB;background-color:#601C0F;display:none;}
-@media only screen and (max-width: 768px) {.navbar-toggle {margin-top:50px;margin-right: 5px;margin-left:-5px;padding: 9px;}}
-@media only screen and (max-width: 450px) {.navbar-toggle {margin-top:38px;margin-right: 4px;}}
-
-/*#block-progress {margin-top:18px;}*/
 
 /* misc */
 @media only screen and (max-width: 1000px) {#block-topbarbanner img {width:800px;}}

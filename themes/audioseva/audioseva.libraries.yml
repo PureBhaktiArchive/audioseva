@@ -1,6 +1,8 @@
 global-styling:
   css:
     theme:
+      //fonts.googleapis.com/css?family=Alex+Brush: { type: external }
+      css/libelsuit.css: {}
       css/legacy.css: {}
 
 circliful:
