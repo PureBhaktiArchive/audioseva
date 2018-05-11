@@ -15,16 +15,7 @@ email:
   '#type': email
   '#title': Email
   '#unique': true
-  '#states':
-    required:
-      ':input[name="i_don_t_have_an_email"]':
-        unchecked: true
-    disabled:
-      ':input[name="i_don_t_have_an_email"]':
-        checked: true
-i_don_t_have_an_email:
-  '#type': checkbox
-  '#title': 'I don''t have an Email ID'
+  '#required': true
 contact_number:
   '#type': textfield
   '#title': 'Mobile phone number (ex. +91 12345 12345)'
@@ -34,9 +25,6 @@ contact_number:
   '#pattern': '^\+\W*((9[976]|8[987530]|6[987]|5[90]|42|3[875]|2[^07])\d|9[0-58]|8[6421]|6[0-6]|5[1-8]|4[^2]|3[960-4]|2[70]|7|1)(\W*\d){2,12}$'
   '#states':
     required:
-      - ':input[name="i_don_t_have_an_email"]':
-          checked: true
-      - or
       - ':input[name="i_am_available_on_whatsapp"]':
           checked: true
 i_am_available_on_whatsapp:
