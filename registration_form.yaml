@@ -47,8 +47,21 @@ where_did_u_hear_about_this_seva:
     'From another devotee who is doing the service': 'From another devotee who is doing the service'
     'From a poster/banner': 'From a poster/banner'
     'From a friend': 'From a friend'
-  '#options_display': two_columns
+  '#options_display': side_by_side
   '#required': true
+recommended_by:
+  '#type': textfield
+  '#title': 'Recommended by'
+  '#states':
+    visible:
+      - ':input[name="where_did_u_hear_about_this_seva[radios]"]':
+          value: 'From a preacher'
+      - or
+      - ':input[name="where_did_u_hear_about_this_seva[radios]"]':
+          value: 'From another devotee who is doing the service'
+      - or
+      - ':input[name="where_did_u_hear_about_this_seva[radios]"]':
+          value: 'From a friend'
 actions:
   '#type': webform_actions
   '#title': 'Submit button(s)'
