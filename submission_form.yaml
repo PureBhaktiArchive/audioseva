@@ -1,16 +1,11 @@
 direct_input:
   '#type': hidden
-  '#title': Direct Input Allowed
+  '#title': 'Direct Input Allowed'
   '#prepopulate': true
 prefilled_link_should_be_used:
   '#type': message
-  '#states':
-    visible:
-      ':input[name="tape_number"]':
-        empty: true
-      ':input[name="direct_input"]':
-        empty: true
   '#message_type': warning
+  '#access': false
   '#message_message': 'Please use &ldquo;Submit with Online Submission Form&rdquo; link from the email.'
 tip:
   '#type': markup
@@ -27,9 +22,9 @@ tape_number:
   '#prepopulate': true
   '#required': true
   '#states':
-    readwrite:
+    readonly:
       ':input[name="direct_input"]':
-        filled: true
+        value: 'no'
 fused_lecture:
   '#type': radios
   '#title': 'B. Fused Lecture'
@@ -226,9 +221,9 @@ filled_by:
       </ul>
     '#prepopulate': true
     '#states':
-      readwrite:
+      readonly:
         ':input[name="direct_input"]':
-          filled: true
+          value: 'no'
   email_address:
     '#type': email
     '#title': 'Email Address'
@@ -237,9 +232,9 @@ filled_by:
       optional:
         ':input[name="no_email_address"]':
           checked: true
-      readwrite:
+      readonly:
         ':input[name="direct_input"]':
-          filled: true
+          value: 'no'
     '#more_title': Guidelines
     '#more': |
       <ul>
@@ -250,6 +245,13 @@ filled_by:
   no_email_address:
     '#type': checkbox
     '#title': 'I don’t have an Email Address'
+    '#states':
+      visible:
+        - ':input[name="direct_input"]':
+            '!value': 'no'
+        - or
+        - ':input[name="email_address"]':
+            empty: true
   phone_number:
     '#type': textfield
     '#title': 'Phone number (ex. +91 12345 12345)'
@@ -268,9 +270,3 @@ filled_by:
 actions:
   '#type': webform_actions
   '#title': 'Submit button(s)'
-  '#states':
-    disabled:
-      ':input[name="tape_number"]':
-        empty: true
-      ':input[name="direct_input"]':
-        empty: true
