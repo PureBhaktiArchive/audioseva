@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Allot Audio Seva</title>
+
+  <!-- Bootstrap -->
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="allot.css">
+</head>
+
+<body>
+  <div class="container" id="app">
+    <h1>Allot Audio Seva</h1>
+    <form class="form-horizontal" style="display: none;" @submit.stop.prevent="allot" v-show="devotees">
+      <div class="form-group">
+        <label for="devotee" class="col-sm-2 control-label">Devotee</label>
+        <div class="col-sm-10">
+          <v-select name="devotee" required :options="devotees" v-model="allotment.devotee" label="name">
+            <template slot="option" slot-scope="option">
+              <div>
+                <div class="row">
+                  <div class="col-md-4"><strong>{{option.name}}</strong></div>
+                  <div class="col-md-4">{{option.emailaddress}}</div>
+                </div>
+              </div>
+            </template>
+          </v-select>
+          <span>{{ allotment.devotee }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" v-model="allotment.repeated"> This devotee was allotted before
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="list" class="col-sm-2 control-label">Files</label>
+        <div class="col-sm-10">
+          <div class="radio-inline" v-for="language in languages">
+            <label>
+              <input type="radio" v-model="allotment.language" :value="language" name="language" required>
+              {{ language }}
+            </label>
+          </div>
+          <div class='loader' v-show="loading"></div>
+          <div class="checkbox" v-for="file in files">
+            <label>
+                <input type="checkbox" v-model="allotment.files" :value="file"></input>
+                <code>{{ file.list }}-{{ file.filename }}</code>
+              </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="comment" class="col-sm-2 control-label">Comment</label>
+        <div class="col-sm-10">
+          <textarea v-model="allotment.comment" class="form-control" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <button type="submit" class="btn btn-primary">Allot</button>
+        </div>
+      </div>
+
+      <div id="confirmation-message" class="col-sm-offset-2 col-sm-10 invisible">
+        <div class="alert alert-success" role="alert">
+          Lectures allotted successfully.</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@latest/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-resource@latest"></script>
+  <script src="https://unpkg.com/vue-select@latest"></script>
+  <script src="allot.js"></script>
+</body>
+
+</html>
