@@ -31,7 +31,6 @@
               </div>
             </template>
           </v-select>
-          <span>{{ allotment.devotee }}</span>
         </div>
       </div>
 
@@ -58,7 +57,7 @@
           <div class="checkbox" v-for="file in files">
             <label>
                 <input type="checkbox" v-model="allotment.files" :value="file"></input>
-                <code>{{ file.list }}-{{ file.filename }}</code>
+                <code>{{ file.filename }}</code> <span>{{ file.notes }}</span>
               </label>
           </div>
         </div>
