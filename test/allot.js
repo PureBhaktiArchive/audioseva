@@ -32,6 +32,17 @@ var app = new Vue({
 
         });
     },
+    reset: function () {
+      this.allotment = {
+        devotee: null,
+        repeated: false,
+        language: null,
+        files: [],
+        comment: null,
+      };
+      this.files = null;
+      this.submissionStatus = null;
+    },
   },
   watch: {
     'allotment.devotee': function(newValue, oldValue) {
@@ -44,7 +55,10 @@ var app = new Vue({
       }
 
     },
-    'allotment.language': function() {
+    'allotment.language': function(newValue) {
+      if (newValue == null)
+        return;
+
       this.loading = true;
       this.files = null;
       this.allotment.files = [];
