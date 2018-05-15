@@ -77,13 +77,13 @@
           <button type="submit" class="btn btn-primary" :disabled="submissionStatus === 'inProgress'">Allot <span class="glyphicon glyphicon-refresh rotate" aria-hidden="true" v-show="submissionStatus === 'inProgress'"></button>
         </div>
       </div>
-
-      <div id="confirmation-message" class="col-sm-offset-2 col-sm-10 invisible">
-        <div class="alert alert-success" role="alert">
-          Lectures allotted successfully.</a>
-        </div>
-      </div>
     </form>
+
+    <div id="confirmation-message" class="col-sm-offset-2 col-sm-10" v-show="submissionStatus === 'complete'">
+      <div class="alert alert-success" role="alert">
+        Lectures allotted successfully. <button type="button" class="btn btn-default" @click="reset">Make another allotment</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/vue@latest/dist/vue.js"></script>
