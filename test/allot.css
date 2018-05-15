@@ -5,6 +5,9 @@
     width: 60pt;
     height: 60pt;
     animation: spin 2s linear infinite;
+[v-cloak] {
+  display: none
+}
 }
 
 @keyframes spin {
