@@ -13,7 +13,8 @@ var app = new Vue({
       language: null,
       files: [],
       comment: null
-    }
+    },
+    submissionStatus: null,
   },
   mounted: function() {
     this.$http.get('https://hook.integromat.com/41xuikkmbdo2ql56g6uwkxb656hp0zj4').then((response) => {
@@ -22,11 +23,15 @@ var app = new Vue({
   },
   methods: {
     allot: function() {
-      this.$http.post(
-        "https://hook.integromat.com/91s84ercu7gsom8gnz69w7b4o632217a",
-        this.allotment)
-        .then((data) => {});
-    }
+      this.submissionStatus = 'inProgress';
+      this.$http
+        .post("https://hook.integromat.com/91s84ercu7gsom8gnz69w7b4o632217a", this.allotment)
+        .then((data) => {
+          this.submissionStatus = 'complete';
+        }, response => {
+
+        });
+    },
   },
   watch: {
     'allotment.devotee': function(newValue, oldValue) {
