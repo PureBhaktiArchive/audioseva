@@ -11,45 +11,35 @@
   <!-- Bootstrap -->
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/css/selectize.bootstrap3.min.css" integrity="sha256-xaHB15TZbLhew82A2NzY8rvCCp/REcOA/kSpWWO7TlE=" crossorigin="anonymous" />
   <link rel="stylesheet" href="allot.css">
-  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-  <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
 </head>
 
 <body>
-  <div class="container">
-    <h1>Allot Audio Seva</h1>
-    <form class="form-horizontal">
+  <div class="container" id="app" v-cloak>
+    <h1 class="col-sm-offset-2 col-sm-10">Allot Audio Seva</h1>
+    <form class="form-horizontal" @submit.stop.prevent="allot" v-show="submissionStatus != 'complete'">
       <div class="form-group">
         <label for="devotee" class="col-sm-2 control-label">Devotee</label>
         <div class="col-sm-10">
-          <select class="form-control" id="devotee" name="devotee" required>
-            <option></option>
-          </select>
+          <v-select name="devotee" required :options="devotees" v-model="allotment.devotee" label="name">
+            <template slot="option" slot-scope="option">
+              <div>
+                <div class="row">
+                  <div class="col-md-4"><strong>{{option.name}}</strong></div>
+                  <div class="col-md-4">{{option.emailaddress}}</div>
+                </div>
+              </div>
+            </template>
+          </v-select>
         </div>
+        <div class="col-sm-offset-2 col-sm-10" v-if="allotment.devotee != null">{{ allotment.devotee.languages}}</div>
       </div>
 
       <div class="form-group">
         <div class="col-sm-offset-2 col-sm-10">
           <div class="checkbox">
             <label>
-              <input type="checkbox" name="send-email" checked> Send Email to the devotee
-            </label>
-            <span class="help-block">Coordinator will get an Email anyway.</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div class="col-sm-offset-2 col-sm-10">
-          <div class="checkbox">
-            <label>
-              <input type="checkbox" name="repeated"> This devotee was allotted before
+              <input type="checkbox" v-model="allotment.repeated"> This devotee was allotted before
             </label>
           </div>
         </div>
@@ -58,77 +48,49 @@
       <div class="form-group">
         <label for="list" class="col-sm-2 control-label">Files</label>
         <div class="col-sm-10">
-          <div class="radio-inline">
+          <div class="radio-inline" v-for="language in languages">
             <label>
-              <input type="radio" name="list" value="ML1" required>
-              ML1 - Hindi
+              <input type="radio" v-model="allotment.language" :value="language" name="language" required>
+              {{ language }}
             </label>
           </div>
-          <div class="radio-inline">
-            <label>
-              <input type="radio" name="list" value="ML2" required>
-              ML2 - English
-            </label>
+          <div v-show="loading">
+            <span class='glyphicon glyphicon-refresh rotate'></span>
           </div>
-          <div class="radio-inline">
+          <div class="checkbox" v-for="file in files">
             <label>
-              <input type="radio" name="list" value="DK" required>
-              DK - Dvija Krsna’s
-            </label>
+                <input type="checkbox" v-model="allotment.files" :value="file"></input>
+                <code>{{ file.filename }}</code> <span>{{ file.notes }}</span>
+              </label>
           </div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <div id="files" class="col-sm-offset-2 col-sm-10">
         </div>
       </div>
 
       <div class="form-group">
         <label for="comment" class="col-sm-2 control-label">Comment</label>
         <div class="col-sm-10">
-          <textarea id="comment" name="comment" class="form-control" rows="3"></textarea>
+          <textarea v-model="allotment.comment" class="form-control" rows="3"></textarea>
         </div>
       </div>
 
       <div class="form-group">
         <div class="col-sm-offset-2 col-sm-10">
-          <button type="submit" class="btn btn-primary">Allot</button>
-        </div>
-      </div>
-      <div id="confirmation-message" class="col-sm-offset-2 col-sm-10 invisible">
-        <div class="alert alert-success" role="alert">
-          Lectures allotted successfully. <a id="whatsapp" href="https://api.whatsapp.com/send">Allot via WhatsApp</a>
+          <button type="submit" class="btn btn-primary" :disabled="submissionStatus === 'inProgress'">Allot <span class="glyphicon glyphicon-refresh rotate" aria-hidden="true" v-show="submissionStatus === 'inProgress'"></button>
         </div>
       </div>
     </form>
-  </div>
 
-  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-  <!-- Include all compiled plugins (below), or include individual files as needed -->
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.4/js/standalone/selectize.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.min.js" integrity="sha256-iaqfO5ue0VbSGcEiQn+OeXxnxAMK2+QgHXIDA5bWtGI=" crossorigin="anonymous"></script>
-  <script src="allot.js"></script>
-  <script id="devotee-template" type="x-tmpl-mustache">
-    <div>
-      <div class="row">
-        <div class="col-md-4"><strong>{{name}}</strong></div>
-        <div class="col-md-4">{{emailaddress}}</div>
+    <div id="confirmation-message" class="col-sm-offset-2 col-sm-10" v-show="submissionStatus === 'complete'">
+      <div class="alert alert-success" role="alert">
+        Lectures allotted successfully. <button type="button" class="btn btn-default" @click="reset">Make another allotment</button>
       </div>
     </div>
-  </script>
-  <script id="files-template" type="x-tmpl-mustache">
-    {{#.}}
-      <div class="checkbox">
-        <label>
-          <input type="checkbox" name="files[]" value="{{.}}"></input>
-          <code>{{.}}</code>
-        </label>
-      </div>
-    {{/.}}
-  </script>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@latest/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-resource@latest"></script>
+  <script src="https://unpkg.com/vue-select@latest"></script>
+  <script src="allot.js"></script>
 </body>
 
 </html>
