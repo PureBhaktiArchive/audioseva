@@ -1,54 +1,80 @@
-$(document).ready(function() {
+Vue.component('v-select', VueSelect.VueSelect);
 
-  $.get({
-    url: "https://hook.integromat.com/41xuikkmbdo2ql56g6uwkxb656hp0zj4",
-    dataType: "json",
-    success: data => {
-      $('#devotee').selectize({
-        placeholder: 'Select a devotee',
-        options: data,
-        valueField: 'id',
-        labelField: 'name',
-        searchField: ['name', 'emailaddress'],
-        render: {
-          option: item => Mustache.render($('#devotee-template').html(), item)
+var app = new Vue({
+  el: '#app',
+  http: {
+    emulateJSON: true,
+  },
+  data: {
+    devotees: [],
+    languages: ["English", "Hindi", "Bengali"],
+    files: null,
+    loading: false,
+    allotment: {
+      devotee: null,
+      repeated: false,
+      language: null,
+      files: [],
+      comment: null
+    },
+    submissionStatus: null,
+  },
+  mounted: function() {
+    this.$http.get('https://hook.integromat.com/41xuikkmbdo2ql56g6uwkxb656hp0zj4').then((response) => {
+      this.devotees = response.data;
+    });
+  },
+  methods: {
+    allot: function() {
+      this.submissionStatus = 'inProgress';
+      this.$http
+        .post("https://hook.integromat.com/91s84ercu7gsom8gnz69w7b4o632217a", this.allotment)
+        .then((data) => {
+          this.submissionStatus = 'complete';
+        }, response => {
+
+        });
+    },
+    reset: function () {
+      this.allotment = {
+        devotee: null,
+        repeated: false,
+        language: null,
+        files: [],
+        comment: null,
+      };
+      this.files = null;
+      this.submissionStatus = null;
+    },
+  },
+  watch: {
+    'allotment.devotee': function(newValue, oldValue) {
+      if (newValue == null)
+        return;
+
+      for (var language of this.languages) {
+        if (newValue.languages.includes(language))
+          this.allotment.language = language;
+      }
+
+    },
+    'allotment.language': function(newValue) {
+      if (newValue == null)
+        return;
+
+      this.loading = true;
+      this.files = null;
+      this.allotment.files = [];
+      this.$http.get('https://hook.integromat.com/kajqd3givp1odto4wm9w4dpb08wauhff', {
+        params: {
+          language: this.allotment.language,
+          count: 20,
         }
+      }).then((response) => {
+        this.loading = false;
+        this.files = response.data;
       });
     },
-  });
-
-  $('input[type=radio][name=list]').change(event => {
-    $("#files").html("<div class='loader'></div>");
-    $.get({
-      url: "https://hook.integromat.com/kjdqf7lnvgisr4kpia4lxzsf3cw53nvn",
-      data: {
-        list: $(event.target).val(),
-        count: 20,
-      },
-      dataType: "json",
-      success: data => {
-        $("#files").html(Mustache.render($('#files-template').html(), data));
-      }
-    });
-  });
-
-  $("form").submit(event => {
-
-      // Stop form from submitting normally
-      event.preventDefault();
-
-      $("#confirmation-message").addClass("invisible");
-      $.post({
-        url: "https://hook.integromat.com/u7lxphmgyu4w37rzly6aikqu3fpq22rw",
-        data: $(event.target).serialize(),
-        success: (data) => {
-          $("form").trigger("reset");
-          $("#files").empty();
-          $("#devotee")[0].selectize.clear();
-          $("#whatsapp").attr("href", "https://api.whatsapp.com/send?text=" + encodeURI(data));
-          $("#confirmation-message").removeClass("invisible");
-        },
-      });
-  });
-
+  },
+  computed: {}
 });
