@@ -2,6 +2,9 @@ Vue.component('v-select', VueSelect.VueSelect);
 
 var app = new Vue({
   el: '#app',
+  http: {
+    emulateJSON: true,
+  },
   data: {
     devotees: [],
     languages: ["English", "Hindi", "Bengali"],
