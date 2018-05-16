@@ -8,12 +8,17 @@ var app = new Vue({
   data: {
     devotees: [],
     languages: ["English", "Hindi", "Bengali"],
+    lists: ["ML1", "ML2"],
     files: null,
     loading: false,
+    filesSelector: {
+      language: null,
+      list: null,
+      count: 20,
+    },
     allotment: {
       devotee: null,
       repeated: false,
-      language: null,
       files: [],
       comment: null
     },
@@ -39,9 +44,13 @@ var app = new Vue({
       this.allotment = {
         devotee: null,
         repeated: false,
-        language: null,
         files: [],
         comment: null,
+      };
+      this.filesSelector = {
+        language: null,
+        list: null,
+        count: 20,
       };
       this.files = null;
       this.submissionStatus = null;
@@ -58,22 +67,25 @@ var app = new Vue({
       }
 
     },
-    'allotment.language': function(newValue) {
-      if (newValue == null)
-        return;
+    filesSelector: {
+      handler: function(val, oldVal) {
+        this.files = null;
+        this.allotment.files = [];
 
-      this.loading = true;
-      this.files = null;
-      this.allotment.files = [];
-      this.$http.get('https://hook.integromat.com/kajqd3givp1odto4wm9w4dpb08wauhff', {
-        params: {
-          language: this.allotment.language,
-          count: 20,
-        }
-      }).then((response) => {
-        this.loading = false;
-        this.files = response.data;
-      });
+        if (this.filesSelector.language == null || this.filesSelector.list == null)
+          return;
+
+        this.loading = true;
+        this.$http
+          .get('https://hook.integromat.com/kajqd3givp1odto4wm9w4dpb08wauhff', {
+            params: this.filesSelector,
+          })
+          .then((response) => {
+            this.loading = false;
+            this.files = response.data;
+          });
+      },
+      deep: true
     },
   },
   computed: {}
