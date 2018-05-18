@@ -54,10 +54,16 @@ fused_lecture:
     	<li>While digitizing, multiple recordings on one side of the cassette merge together into one audio file. When you hear the audio, if you notice that there are various lectures with different themes/ dates/ locations etc. in the same audio file, then such an audio
     		file is to be treated as a Fused lecture. If this is the case, choose ‘Yes’ in this field. Otherwise please choose ‘No’.</li>
     	<li>Details for each individual recording in the same audio file are to be filled separately in a new form. In such cases, please fill the same Online Submission Form link again, after you press the submit button.</li>
-    	<li>For example, suppose an audio file given to you has two lectures fused in it: first one from 00:00 to 30:20 and the next from 31:00 to 46:00. Then please choose ‘Yes’ in this field and write the beginning and ending timings of each lecture in Field C. (In this case 00:00 – 30:20, in the first form) Then mention all the details from 00:00 – 30:20 in the first form and submit it. Once you submit, you will get the following message at the top of the page:
-    		<div class="alert alert-success" role="alert">Thank you! We have received your submission.<br /><br />For fused lectures, please submit details for the next lecture in the same audio file below.</div>
+    	<li>For example, suppose an audio file given to you has two lectures fused in it: first one from 00:00 to 30:20 and the next from 31:00 to 46:00. Then please choose ‘Yes’ in this field and write the beginning and ending timings of each lecture in Field C.
+    		(In this case 00:00 – 30:20, in the first form) Then mention all the details from 00:00 – 30:20 in the first form and submit it. Once you submit, you will be directed to another page with a confirmation message like this:
+        <div class="center-block alert alert-success text-center">
+          <p><strong>Thank you! We have received your submission.&nbsp;</strong></p>
+          <p><strong>For fused lectures, please click the button below to submit the next lecture within the same audio file.</strong></p>
+          <div class="btn btn-primary">Make another submission for fused lectures</div>
+        </div>
       </li>
-      <li>Then, to fill the details of the next lecture in the same audio file, start over again, on the same form, which would now have the same audio file name, with all the other fields blank. Choose ‘Yes’ again for Fused lectures and mention the timings in field C as	31:00 – 46:00. Then, in all the remaining fields in this form, mention the details of the lecture from 31:00 – 46:00.</li>
+      <li>To fill the details of the next fused lecture in the same audio file, click the button- ‘Make another submission for fused lecture’. You will now be directed to a new submission form with the same audio file name pre-filled, along with your name and email id. Start over again, on the same form, which would now have the same audio file name, with all the other fields blank. Choose ‘Yes’ again for Fused lectures and mention the timings in field C as
+        31:00 – 46:00. Then, in all the remaining fields in this form, mention the details of the lecture from 31:00 – 46:00.</li>
     </ul>
   '#options': yes_no
   '#options_display': side_by_side
@@ -163,9 +169,9 @@ gurudeva_timings:
   '#more_title': Guidelines
   '#more': |
     <ul>
-    	<li>This field is to be filled only in the case of formal conferences, where many speakers are invited from outside.</li>
-    	<li>Note down only the minutes when Srila Gurudeva speaks in the recording.</li>
+    	<li>Please note down only the minutes when Srila Gurudeva speaks in the recording.</li>
     	<li>Suppose Srila Gurudeva spoke in the beginning and then didn’t speak between 16:11 and 22:02, please write “1:00 to 16:11 and then 22:02 to 40:09” here.</li>
+    	<li>In the case of question and answer, the timing when the question is asked can be clubbed together as Gurudeva Timings.</li>
     </ul>
   '#states':
     visible:
@@ -274,7 +280,7 @@ comments:
   '#more_title': Guidelines
   '#more': |
     <ul>
-    	<li>If you are unable to note the details of the lecture for some reason, please mention it here. Common reasons could be – language not understood, audio not playing, inaudible, and so on.</li>
+    	<li>If you are unable to note the details of the lecture for some reason, please mention it here. Common reasons could be – audio not playing, inaudible, and so on.</li>
     	<li>Please write any other comments you wish to mention about the file here.</li>
     </ul>
 filled_by:
@@ -289,7 +295,8 @@ filled_by:
     '#more_title': Guidelines
     '#more': |
       <ul>
-      	<li>Please write your name here, along with city or country.</li>
+      	<li>This field will be pre-filled along with you email address.</li>
+      	<li>In case it is blank, please write your name here, along with city or country and fill your registered email address in the next text box.</li>
       </ul>
     '#prepopulate': true
     '#states':
@@ -301,44 +308,11 @@ filled_by:
     '#title': 'Email Address'
     '#title_display': inline
     '#states':
-      optional:
-        ':input[name="no_email_address"]':
-          checked: true
       readonly:
         ':input[name="direct_input"]':
           value: 'no'
-    '#more_title': Guidelines
-    '#more': |
-      <ul>
-      	<li><b>Please fill your registered email address here. This is very important for providing feedback.</b></li>
-      	<li>If you haven’t registered an email address with us, please click “I don’t have an Email Address” and then fill your registered phone number below.</li>
-      </ul>
-    '#prepopulate': true
-  no_email_address:
-    '#type': checkbox
-    '#title': 'I don’t have an Email Address'
-    '#states':
-      visible:
-        - ':input[name="direct_input"]':
-            '!value': 'no'
-        - or
-        - ':input[name="email_address"]':
-            empty: true
-  phone_number:
-    '#type': textfield
-    '#title': 'Phone number (ex. +91 12345 12345)'
-    '#placeholder': '+91 12345 12345'
     '#required': true
-    '#pattern': '^\+\W*((9[976]|8[987530]|6[987]|5[90]|42|3[875]|2[^07])\d|9[0-58]|8[6421]|6[0-6]|5[1-8]|4[^2]|3[960-4]|2[70]|7|1)(\W*\d){2,12}$'
-    '#states':
-      visible:
-        ':input[name="no_email_address"]':
-          checked: true
-    '#more_title': Guidelines
-    '#more': |
-      <ul>
-      	<li>Please use international format: +91 12345 12345 or +1 (123) 45-67 890 or similar.</li>
-      </ul>
+    '#prepopulate': true
 actions:
   '#type': webform_actions
   '#title': 'Submit button(s)'
