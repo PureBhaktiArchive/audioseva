@@ -63,7 +63,7 @@ var app = new Vue({
 
       for (var language of this.languages) {
         if (newValue.languages.includes(language))
-          this.allotment.language = language;
+          this.filesSelector.language = language;
       }
 
     },
