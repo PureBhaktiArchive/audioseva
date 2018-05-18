@@ -7,9 +7,29 @@ prefilled_link_should_be_used:
   '#message_type': warning
   '#access': false
   '#message_message': 'Please use &ldquo;Submit with Online Submission Form&rdquo; link from the email.'
+cancellation_box:
+  '#type': details
+  '#title': 'CLICK HERE if the allotted lecture in not in your preferred language'
+  '#attributes':
+    class:
+      - panel-info
+  not_preferred_language:
+    '#type': checkbox
+    '#title': 'The allotted lecture is not in my preferred language'
+  reallot_label:
+    '#type': label
+    '#title': 'Please let us know which language it is in below. We will allot you new lectures shortly.'
+    '#states':
+      visible:
+        ':input[name="not_preferred_language"]':
+          checked: true
 tip:
   '#type': markup
   '#markup': 'Tip: It might be convenient for some devotees to note the lecture details for each field on paper first, while hearing the lecture and then enter into the Online Submission Form.'
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 tape_number:
   '#type': textfield
   '#title': 'A. Audio File Name'
@@ -41,6 +61,10 @@ fused_lecture:
     </ul>
   '#options': yes_no
   '#options_display': side_by_side
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 timing_for_fused_lecture:
   '#type': textfield
   '#title': 'C. Timing (only for fused lecture)'
@@ -51,6 +75,10 @@ timing_for_fused_lecture:
     	<li>Please write the timing when the new lecture begins and ends in min:sec or hr:min:sec format, as applicable.</li>
     	<li>This will help the Audio Seva Team to separate the individual lectures and archive them with appropriate labeling.</li>
     </ul>
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 date:
   '#type': textfield
   '#title': 'D. Date'
@@ -65,6 +93,10 @@ date:
     		have a festival…” Then please mention ‘Tomorrow is Govardhan Annakuta’ here.</li>
       <li>This field is crucial for organizing the archive as well as identifying duplicates, so any information provided here may help.</li>
     </ul>
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 location:
   '#type': textfield
   '#title': 'E. Location'
@@ -75,6 +107,10 @@ location:
     	<li>Write the name of the city here. If the city is not known, write the country name here.</li>
     	<li>Also during a lecture you may ascertain whether it’s in a Matha, during parikrama, etc. Please mention this information here.</li>
     </ul>
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 category:
   '#type': radios_other
   '#title': 'F. Category'
@@ -99,6 +135,10 @@ category:
     Walk: Walk
     Conference: Conference
   '#options_display': side_by_side
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 topics:
   '#type': textarea
   '#title': 'G. Topics'
@@ -113,6 +153,10 @@ topics:
     	<li>Please write each topic on a separate line.</li>
     	<li>Add a hyphen (-) at the beginning of each line for ease of reading.</li>
     </ul>
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 gurudeva_timings:
   '#type': textfield
   '#title': 'H. Gurudeva Timings'
@@ -123,6 +167,10 @@ gurudeva_timings:
     	<li>Note down only the minutes when Srila Gurudeva speaks in the recording.</li>
     	<li>Suppose Srila Gurudeva spoke in the beginning and then didn’t speak between 16:11 and 22:02, please write “1:00 to 16:11 and then 22:02 to 40:09” here.</li>
     </ul>
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 other_speakers:
   '#type': textarea
   '#title': 'I. Other Speakers'
@@ -132,6 +180,10 @@ other_speakers:
     	<li>If any speakers other than Srila Gurudeva are speaking, please mention the name and language in which they are speaking</li>
     	<li>If you are unable to determine who the speaker is, you may write ‘Yes, ?’ here.</li>
     </ul>
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 kirtana:
   '#type': textfield
   '#title': 'J. Kirtana'
@@ -142,6 +194,10 @@ kirtana:
     	<li>If possible, mention the name of the kirtana</li>
     	<li>If Srila Gurudeva himself is leading the kirtana, please mention.</li>
     </ul>
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 abrupt_lecture:
   '#type': checkboxes_other
   '#title': 'K. Abrupt lecture'
@@ -154,6 +210,10 @@ abrupt_lecture:
     beginning: 'Abrupt in the beginning'
     end: 'Abrupt in the end'
   '#options_display': side_by_side
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 suggested_title:
   '#type': textfield
   '#title': 'L. Suggested Title'
@@ -164,6 +224,10 @@ suggested_title:
     		instead of generalizing as Manah Siksa 1</li>
     	<li>It can also be a line he said in the kathas it is. E.g.: ‘Importance of guru-seva’, ‘No progress without seva’, etc.</li>
     </ul>
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 lecture_languages:
   '#type': checkboxes_other
   '#title': 'M. Lecture Language(s)'
@@ -185,6 +249,10 @@ lecture_languages:
     English: English
     Bengali: Bengali
   '#options_display': side_by_side
+  '#states':
+    required:
+      ':input[name="not_preferred_language"]':
+        checked: true
 sound_issues:
   '#type': textfield
   '#title': 'N. Sound Issues'
@@ -196,6 +264,10 @@ sound_issues:
       <li>If the lecture seems like the continuation of another, within the set allotted to you, please mention it here.</li>
       <li>You may mention in as much detail as you think fit.</li>
     </ul>
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
 comments:
   '#type': textarea
   '#title': 'O. Comments'
