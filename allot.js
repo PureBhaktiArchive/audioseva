@@ -1,6 +1,12 @@
 Vue.component('v-select', VueSelect.VueSelect);
 
+var router = new VueRouter({
+    mode: 'history',
+    routes: []
+});
+
 var app = new Vue({
+  router,
   el: '#app',
   http: {
     emulateJSON: true,
@@ -27,6 +33,10 @@ var app = new Vue({
   mounted: function() {
     this.$http.get('https://hook.integromat.com/41xuikkmbdo2ql56g6uwkxb656hp0zj4').then((response) => {
       this.devotees = response.data;
+      if (this.$route.query.emailaddress) {
+        this.allotment.devotee = this.devotees.find(devotee => devotee.emailaddress == this.$route.query.emailaddress);
+        this.allotment.repeated = true;
+      }
     });
   },
   methods: {
