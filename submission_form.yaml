@@ -2,14 +2,25 @@ direct_input:
   '#type': hidden
   '#title': 'Direct Input Allowed'
   '#prepopulate': true
+sample:
+  '#type': hidden
+  '#title': Sample
 prefilled_link_should_be_used:
   '#type': message
   '#message_type': warning
   '#access': false
   '#message_message': 'Please use &ldquo;Submit with Online Submission Form&rdquo; link from the email.'
+  '#states':
+    invisible:
+      ':input[name="sample"]':
+        filled: true
 cancellation_box:
   '#type': details
   '#title': 'CLICK HERE if the allotted lecture in not in your preferred language'
+  '#states':
+    invisible:
+      ':input[name="sample"]':
+        filled: true
   '#attributes':
     class:
       - panel-info
@@ -25,11 +36,21 @@ cancellation_box:
           checked: true
 tip:
   '#type': markup
-  '#markup': 'Tip: It might be convenient for some devotees to note the lecture details for each field on paper first, while hearing the lecture and then enter into the Online Submission Form.'
   '#states':
     visible:
+      ':input[name="sample"]':
+        empty: true
       ':input[name="not_preferred_language"]':
-        checked: false
+        unchecked: true
+  '#markup': 'Tip: It might be convenient for some devotees to note the lecture details for each field on paper first, while hearing the lecture and then enter into the Online Submission Form.'
+sample_message:
+  '#type': message
+  '#message_type': warning
+  '#states':
+    visible:
+      ':input[name="sample"]':
+        filled: true
+  '#message_message': 'This is a sample form. Please use &ldquo;Submit with Online Submission Form&rdquo; link from the email.'
 tape_number:
   '#type': textfield
   '#title': 'A. Audio File Name'
@@ -43,8 +64,11 @@ tape_number:
   '#required': true
   '#states':
     readonly:
-      ':input[name="direct_input"]':
-        value: 'no'
+      - ':input[name="sample"]':
+          filled: true
+      - or
+      - ':input[name="direct_input"]':
+          value: 'no'
 fused_lecture:
   '#type': radios
   '#title': 'B. Fused Lecture'
@@ -71,6 +95,9 @@ fused_lecture:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    disabled:
+      ':input[name="sample"]':
+        filled: true
 timing_for_fused_lecture:
   '#type': textfield
   '#title': 'C. Timing (only for fused lecture)'
@@ -85,6 +112,9 @@ timing_for_fused_lecture:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    readonly:
+      ':input[name="sample"]':
+        filled: true
 date:
   '#type': textfield
   '#title': 'D. Date'
@@ -103,6 +133,9 @@ date:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    readonly:
+      ':input[name="sample"]':
+        filled: true
 location:
   '#type': textfield
   '#title': 'E. Location'
@@ -117,6 +150,9 @@ location:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    readonly:
+      ':input[name="sample"]':
+        filled: true
 category:
   '#type': radios_other
   '#title': 'F. Category'
@@ -145,6 +181,9 @@ category:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    disabled:
+      ':input[name="sample"]':
+        filled: true
 topics:
   '#type': textarea
   '#title': 'G. Topics'
@@ -163,6 +202,9 @@ topics:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    readonly:
+      ':input[name="sample"]':
+        filled: true
 gurudeva_timings:
   '#type': textfield
   '#title': 'H. Gurudeva Timings'
@@ -177,6 +219,9 @@ gurudeva_timings:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    readonly:
+      ':input[name="sample"]':
+        filled: true
 other_speakers:
   '#type': textarea
   '#title': 'I. Other Speakers'
@@ -190,6 +235,9 @@ other_speakers:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    readonly:
+      ':input[name="sample"]':
+        filled: true
 kirtana:
   '#type': textfield
   '#title': 'J. Kirtana'
@@ -204,6 +252,9 @@ kirtana:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    readonly:
+      ':input[name="sample"]':
+        filled: true
 abrupt_lecture:
   '#type': checkboxes_other
   '#title': 'K. Abrupt lecture'
@@ -220,6 +271,9 @@ abrupt_lecture:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    disabled:
+      ':input[name="sample"]':
+        filled: true
 suggested_title:
   '#type': textfield
   '#title': 'L. Suggested Title'
@@ -234,6 +288,9 @@ suggested_title:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    readonly:
+      ':input[name="sample"]':
+        filled: true
 lecture_languages:
   '#type': checkboxes_other
   '#title': 'M. Lecture Language(s)'
@@ -259,6 +316,9 @@ lecture_languages:
     required:
       ':input[name="not_preferred_language"]':
         checked: true
+    disabled:
+      ':input[name="sample"]':
+        filled: true
 sound_issues:
   '#type': textfield
   '#title': 'N. Sound Issues'
@@ -274,6 +334,9 @@ sound_issues:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    readonly:
+      ':input[name="sample"]':
+        filled: true
 comments:
   '#type': textarea
   '#title': 'O. Comments'
@@ -283,6 +346,10 @@ comments:
     	<li>If you are unable to note the details of the lecture for some reason, please mention it here. Common reasons could be – audio not playing, inaudible, and so on.</li>
     	<li>Please write any other comments you wish to mention about the file here.</li>
     </ul>
+  '#states':
+    readonly:
+      ':input[name="sample"]':
+        filled: true
 filled_by:
   '#type': container
   filled_by_label:
@@ -301,18 +368,28 @@ filled_by:
     '#prepopulate': true
     '#states':
       readonly:
-        ':input[name="direct_input"]':
-          value: 'no'
+        - ':input[name="direct_input"]':
+            value: 'no'
+        - or
+        - ':input[name="sample"]':
+            filled: true
   email_address:
     '#type': email
     '#title': 'Email Address'
     '#title_display': inline
     '#states':
       readonly:
-        ':input[name="direct_input"]':
-          value: 'no'
+        - ':input[name="direct_input"]':
+            value: 'no'
+        - or
+        - ':input[name="sample"]':
+            filled: true
     '#required': true
     '#prepopulate': true
 actions:
   '#type': webform_actions
   '#title': 'Submit button(s)'
+  '#states':
+    invisible:
+      ':input[name="sample"]':
+        filled: true
