@@ -1,6 +1,19 @@
 tip:
   '#type': markup
   '#markup': '<small>The immediate <em>seva</em> required is listening to Srila Gurudeva’s lectures and making a few notes in English as per the guidelines. <b>Our goal is to complete this by the end of&nbsp;2018.</b></small>'
+seva:
+  '#type': checkboxes
+  '#title': 'Your Seva'
+  '#title_display': before
+  '#options':
+    'Listen and note down the topics discussed': |
+      <b>Listening to audio in your language and making notes in English ☝</b> -- Hearing Srila Gurudeva’s lectures and making a few notes as per the guidelines supplied. It is so simple that anyone can do it!<br>
+      <b>☝ Immediate seva required, our goal is to complete this by the end of 2018.</b>
+    'Sound editing': 'Sound editing -- Cleaning up, trimming, enhancing audio quality, etc. Requires knowledge of sound editing software.'
+  '#options_description_display': help
+  '#other__option_label': 'Other services…'
+  '#other__placeholder': 'Describe any other services would you like to render'
+  '#required': true
 your_name:
   '#type': textfield
   '#title': 'Your name'
