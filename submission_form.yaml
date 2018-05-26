@@ -319,33 +319,75 @@ lecture_languages:
     disabled:
       ':input[name="sample"]':
         filled: true
-sound_issues:
-  '#type': textfield
-  '#title': 'N. Sound Issues'
-  '#more_title': Guidelines
-  '#more': |
-    <ul>
-    	<li>This field is crucial for cleaning up the audio files for enhanced audibility.</li>
-    	<li>If the lecture has some sound issues like too much background noise, or long blank pauses, low sound or some part of the speech needs to be edited, please mention here with comments on what the issue is and minutes where the disturbance occurs</li>
-      <li>If the lecture seems like the continuation of another, within the set allotted to you, please mention it here.</li>
-      <li>You may mention in as much detail as you think fit.</li>
-    </ul>
+sound_quality_group:
+  '#type': container
   '#states':
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
-    readonly:
+    disabled:
       ':input[name="sample"]':
         filled: true
+  sound_quality_label:
+    '#type': label
+    '#title': 'N. Sound Issues'
+  sound_issues:
+    '#type': textarea
+    '#title': 'Details'
+    '#more_title': Guidelines
+    '#more': |
+      <ul>
+      	<li>This field is crucial for cleaning up the audio files for enhanced audibility.</li>
+      	<li>If the lecture has some sound issues like too much background noise, or long blank pauses, low sound or some part of the speech needs to be edited, please mention here with comments on what the issue is and minutes where the disturbance occurs.</li>
+        <li>You may mention in as much detail as you think fit.</li>
+        <li>Please choose one of the options below to indicate the overall experience of the sound quality while hearing the lecture.</li>
+      </ul>
+    '#prepopulate': true
+  sound_quality:
+    '#type': radios
+    '#title': 'Summary - how was the sound quality of the overall audio?'
+    '#prepopulate': true
+    '#options':
+      Good: '<b>Good</b> - You can hear Srila Gurudeva clearly with very little or no disturbance'
+      Average: '<b>Average</b> - Srila Gurudeva can be heard clearly but there are background noises or the volumn is low'
+      Bad: '<b>Bad</b> - You can hear Srila Gurudeva but need to strain because of either very low volume, or too much background noise, constant distractions, etc'
+      Inaudible: '<b>Inaudible</b> - You can make out that there is some recording but cannot hear anything clearly'
+      Blank: '<b>Blank</b> - There is no sound at all or just irrelevant sound (like someone forgot to stop recording)'
+    '#required': true
+continuation_group:
+  '#type': container
+  '#title': 'O. Continuation'
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+    disabled:
+      ':input[name="sample"]':
+        filled: true
+  continuation_label:
+    '#type': label
+    '#title': 'O. Continuation'
+  is_this_a_continuation_of_another_lecture:
+    '#type': checkbox
+    '#title': 'This is the continuation of a lecture I have worked on'
+    '#more_title': Guidelines
+    '#more': 'If this audio file is a continuation of a lecture from another audio file, mention the file name from which it continues.'
+    '#prepopulate': true
+  audio_file_name_where_the_lecture_starts:
+    '#type': textfield
+    '#title': 'Audio file name from which the lecture continues'
+    '#prepopulate': true
+    '#required': true
+    '#states':
+      visible:
+        ':input[name="is_this_a_continuation_of_another_lecture"]':
+          checked: true
 comments:
   '#type': textarea
-  '#title': 'O. Comments'
+  '#title': 'P. Comments'
   '#more_title': Guidelines
-  '#more': |
-    <ul>
-    	<li>If you are unable to note the details of the lecture for some reason, please mention it here. Common reasons could be – audio not playing, inaudible, and so on.</li>
-    	<li>Please write any other comments you wish to mention about the file here.</li>
-    </ul>
+  '#more': 'Please write any other comments you wish to mention about the file, that will help us to categorise / label the lecture properly or provide any other helpful information here.'
+  '#prepopulate': true
   '#states':
     readonly:
       ':input[name="sample"]':
@@ -354,7 +396,7 @@ filled_by:
   '#type': container
   filled_by_label:
     '#type': label
-    '#title': 'P. Filled By'
+    '#title': 'Q. Filled By'
   name:
     '#type': textfield
     '#title': Name
