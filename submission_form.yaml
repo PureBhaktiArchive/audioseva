@@ -264,8 +264,8 @@ abrupt_lecture:
     	<li>If the lecture is beginning or ending abruptly, please choose the appropriate option here.</li>
     </ul>
   '#options':
-    beginning: 'Abrupt in the beginning'
-    end: 'Abrupt in the end'
+    Beginning: 'Abrupt in the beginning'
+    End: 'Abrupt in the end'
   '#options_display': side_by_side
   '#states':
     visible:
