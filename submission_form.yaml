@@ -206,7 +206,7 @@ topics:
       ':input[name="sample"]':
         filled: true
 gurudeva_timings:
-  '#type': textfield
+  '#type': textarea
   '#title': 'H. Gurudeva Timings'
   '#more_title': Guidelines
   '#more': |
