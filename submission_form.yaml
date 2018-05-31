@@ -277,9 +277,6 @@ sound_quality_group:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
-    disabled:
-      ':input[name="sample"]':
-        filled: true
   sound_quality_label:
     '#type': label
     '#title': 'N. Sound Issues'
@@ -306,6 +303,10 @@ sound_quality_group:
       Inaudible: '<b>Inaudible</b> - You can make out that there is some recording but cannot hear anything clearly'
       Blank: '<b>Blank</b> - There is no sound at all or just irrelevant sound (like someone forgot to stop recording)'
     '#required': true
+    '#states':
+      visible:
+        ':input[name="not_preferred_language"]':
+          checked: false
 continuation_group:
   '#type': container
   '#title': 'O. Continuation'
