@@ -44,7 +44,7 @@ tape_number:
   '#states':
     readonly:
       ':input[name="direct_input"]':
-          value: 'no'
+        value: 'no'
 fused_lecture:
   '#type': radios
   '#title': 'B. Fused Lecture'
@@ -282,7 +282,7 @@ sound_quality_group:
     '#title': 'N. Sound Issues'
   sound_issues:
     '#type': textarea
-    '#title': 'Details'
+    '#title': Details
     '#more_title': Guidelines
     '#more': |
       <ul>
@@ -357,7 +357,7 @@ filled_by:
     '#states':
       readonly:
         ':input[name="direct_input"]':
-            value: 'no'
+          value: 'no'
   email_address:
     '#type': email
     '#title': 'Email Address'
@@ -365,7 +365,7 @@ filled_by:
     '#states':
       readonly:
         ':input[name="direct_input"]':
-            value: 'no'
+          value: 'no'
     '#required': true
     '#prepopulate': true
 actions:
