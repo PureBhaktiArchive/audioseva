@@ -87,6 +87,12 @@ timing_for_fused_lecture:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+    disabled:
+      ':input[name="fused_lecture"]':
+        value: 'No'
+    required:
+      ':input[name="fused_lecture"]':
+        value: 'Yes'
 date:
   '#type': textfield
   '#title': 'D. Date'
