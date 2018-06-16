@@ -205,7 +205,7 @@ other_speakers:
       ':input[name="not_preferred_language"]':
         checked: false
 kirtana:
-  '#type': textfield
+  '#type': textarea
   '#title': 'J. Kirtana'
   '#more_title': Guidelines
   '#more': |
