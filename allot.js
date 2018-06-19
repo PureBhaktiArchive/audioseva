@@ -14,7 +14,7 @@ var app = new Vue({
   data: {
     devotees: [],
     languages: ["English", "Hindi", "Bengali", "None"],
-    lists: ["ML1", "ML2", "JAG", "Test"],
+    lists: ["ML1", "ML2", "SER", "JAG", "Test"],
     files: null,
     loading: false,
     filesSelector: {
