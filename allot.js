@@ -1,4 +1,5 @@
 Vue.component('v-select', VueSelect.VueSelect);
+Vue.use(vueJsonp);
 
 var router = new VueRouter({
     mode: 'history',
@@ -14,7 +15,7 @@ var app = new Vue({
   data: {
     devotees: [],
     languages: ["English", "Hindi", "Bengali", "None"],
-    lists: ["ML1", "ML2", "SER", "JAG", "Test"],
+    lists: null,
     files: null,
     loading: false,
     filesSelector: {
@@ -37,6 +38,9 @@ var app = new Vue({
         this.allotment.devotee = this.devotees.find(devotee => devotee.emailaddress == this.$route.query.emailaddress);
         this.allotment.repeated = true;
       }
+    });
+    this.$jsonp('https://script.google.com/macros/s/AKfycbwUx5nYP13bZbRiIHPB5LaJjROTPR9zuz-HzxLmS4L5DccH65s/exec').then(data => {
+      this.lists = data;
     });
   },
   methods: {
