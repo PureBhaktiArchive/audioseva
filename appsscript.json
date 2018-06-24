@@ -1,0 +1,18 @@
+{
+  "timeZone": "Asia/Krasnoyarsk",
+  "dependencies": {
+    "libraries": [{
+      "userSymbol": "ArrayLib",
+      "libraryId": "1r9wNWbta3ebuYL4ENAdIp4UYKmyNiWf1AqsXYzfXduRHhTZEeTxS9MhZ",
+      "version": "13"
+    }]
+  },
+  "webapp": {
+    "access": "ANYONE_ANONYMOUS",
+    "executeAs": "USER_DEPLOYING"
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "executionApi": {
+    "access": "ANYONE"
+  }
+}
