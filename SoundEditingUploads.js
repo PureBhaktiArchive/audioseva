@@ -1,19 +1,15 @@
 /// sri sri guru gauranga jayatah
 /// Srila Gurudeva ki jaya!
 
-function watchUploads() {
-  /// SERIES-SERIAL-PART[-vN.M (DESCRIPTION)].mp3/wav
-  var FILE_NAME_PATTERN = /^(\w+-\d+-\d+)(?:\.|\s*)v(\d+)(?:[\.\s]*(.+))?\.\w{3}$/;
-  var SPREADHSHEETS = {
-    Isa: "13JBF8iyfY1glFPyUAAVKXOLtcop-1YO3oPZEb68vMfI",
-    Test: "",
-  };
+/// SERIES-SERIAL-PART[-vN.M (DESCRIPTION)].mp3/wav
+var FILE_NAME_PATTERN = /^(\w+-\d+-\d+)(?:\.|\s*)v(\d+)(?:[\.\s]*(.+))?\.\w{3}$/;
+var SPREADHSHEETS = {
+  Isa: "13JBF8iyfY1glFPyUAAVKXOLtcop-1YO3oPZEb68vMfI",
+  Test: "",
+};
 
-  var uploadsFolder = DriveApp.getFolderById(PropertiesService.getScriptProperties().getProperty("soundEditing.uploadsFolderId"));
-  var qcFolder = DriveApp.getFolderById(PropertiesService.getScriptProperties().getProperty("soundEditing.QCFolderId"));
-
-  var search = '"' + uploadsFolder.getId() + '" in parents';
-  var files = DriveApp.searchFiles(search);
+function forEachAudioFile(folder, callback) {
+  var files = folder.searchFiles("mimeType contains 'audio'");
 
   var incorrectFiles = [];
 
@@ -29,46 +25,83 @@ function watchUploads() {
 
     var nameMatch = fileName.match(FILE_NAME_PATTERN);
     if (!nameMatch) {
-      console.log("%s does not match the file name convention.", fileName);
+      console.warn("%s does not match the file name convention.", fileName);
       incorrectFiles.push(file);
       continue;
     }
 
-    var baseName = nameMatch[1];
-    var versionNumber = nameMatch[2];
-    var description = nameMatch[3];
+    var nameComponents = {
+      baseName: nameMatch[1],
+      versionNumber: nameMatch[2],
+      description: nameMatch[3],
+    }
 
-    var task = tasksTable.select({"Output Audio File Name": baseName}).first();
+    var task = tasksTable.select({
+      "Output Audio File Name": nameComponents.baseName
+    }).first();
 
     if (!task) {
-      console.log("%s is not found among tasks.", baseName);
+      console.warn("%s is not found among tasks.", nameComponents.baseName);
       incorrectFiles.push(file);
       continue;
     }
 
+    callback(file, nameComponents, task)
+  }
+}
+
+function watchSoundEditingUploads() {
+  var properties = PropertiesService.getScriptProperties();
+
+  var uploadsFolder = DriveApp.getFolderById(properties.getProperty("soundEditing.uploadsFolderId"));
+  var qcFolder = DriveApp.getFolderById(properties.getProperty("soundEditing.qcFolderId"));
+
+  forEachAudioFile(uploadsFolder, function(file, name, task) {
     var latestVersion = task.getFieldValue("Latest Version");
-    if (versionNumber <= latestVersion) {
-      console.log("%s is skipped, v%s was already processed.", fileName, latestVersion);
-      incorrectFiles.push(file);
-      continue;
+    if (name.versionNumber <= latestVersion) {
+      console.warn("Skipping %s, v%s was already processed.", file.getName(), latestVersion);
+      return;
     }
 
-    console.log("Setting last version of %s from %s to %s", baseName, latestVersion, versionNumber);
-    task.setFieldValue("Latest Version", versionNumber);
+    console.log("Setting last version of %s from %s to %s", task.getFieldValue("Output Audio File Name"), latestVersion, name.versionNumber);
+    task.setFieldValue("Latest Version", name.versionNumber);
     task.commitFieldValue("Latest Version");
 
     if (task.getFieldValue("Status") == "Given") {
-      console.log("Setting status of %s to WIP", baseName);
+      console.log("Setting status of %s to WIP", task.getFieldValue("Output Audio File Name"));
       task.setFieldValue("Status", "WIP");
       task.commitFieldValue("Status");
     }
 
-    console.log("Moving %s from %s to %s", fileName, uploadsFolder.getName(), qcFolder.getName());
+    console.log("Moving %s from %s to %s", file.getName(), uploadsFolder.getName(), qcFolder.getName());
     qcFolder.addFile(file);
     uploadsFolder.removeFile(file);
-  }
-
-
-  Logger.log(incorrectFiles);
+  })
 }
 
+function moveQualityCheckedAudioFiles() {
+  var properties = PropertiesService.getScriptProperties();
+
+  var qcFolder = DriveApp.getFolderById(properties.getProperty("soundEditing.qcFolderId"));
+  var doneFolder = DriveApp.getFolderById(properties.getProperty("soundEditing.doneFolderId"));
+  var processedFolder = DriveApp.getFolderById(properties.getProperty("soundEditing.processedFolderId"));
+
+  forEachAudioFile(qcFolder, function(file, name, task) {
+    if (task.getFieldValue("Latest Feedback") < name.versionNumber)
+      return;
+
+    switch (task.getFieldValue("Status")) {
+      case "Done":
+        console.log("Moving %s from %s to %s", file.getName(), qcFolder.getName(), doneFolder.getName());
+        doneFolder.addFile(file);
+        qcFolder.removeFile(file);
+        break;
+
+      default:
+        console.log("Moving %s from %s to %s", file.getName(), qcFolder.getName(), processedFolder.getName());
+        processedFolder.addFile(file);
+        qcFolder.removeFile(file);
+        break;
+    }
+  })
+}
