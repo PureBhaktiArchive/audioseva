@@ -9,7 +9,6 @@ function listen_page_theme($existing, $type, $theme, $path) {
     'listen_page' => [
       'variables' => [
         'audio_src' => NULL,
-        'form_link' => NULL,
       ],
     ],
   ];
