@@ -1,0 +1,10 @@
+# sri sri guru gauranga jayatah
+# Srila Gurudeva ki jaya!
+
+listen_page.content:
+  path: '/listen/{file_name}'
+  defaults:
+    _controller: '\Drupal\listen_page\Controller\ListenController::page'
+    _title: 'Listen'
+  requirements:
+    _permission: 'access content'
