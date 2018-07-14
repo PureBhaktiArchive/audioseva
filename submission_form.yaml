@@ -5,8 +5,13 @@ direct_input:
 prefilled_link_should_be_used:
   '#type': message
   '#message_type': warning
-  '#access': false
   '#message_message': 'Please use &ldquo;Submit with Online Submission Form&rdquo; link from the email.'
+  '#states':
+    visible:
+      ':input[name="direct_input"]':
+        '!value': Haribol
+      ':input[name="tape_number"]':
+        empty: true
 cancellation_box:
   '#type': details
   '#title': 'CLICK HERE if the allotted lecture in not in your preferred language'
@@ -44,7 +49,7 @@ tape_number:
   '#states':
     readonly:
       ':input[name="direct_input"]':
-        value: 'no'
+        '!value': Haribol
 fused_lecture:
   '#type': radios
   '#title': 'B. Fused Lecture'
@@ -363,7 +368,7 @@ filled_by:
     '#states':
       readonly:
         ':input[name="direct_input"]':
-          value: 'no'
+          '!value': Haribol
   email_address:
     '#type': email
     '#title': 'Email Address'
@@ -371,7 +376,7 @@ filled_by:
     '#states':
       readonly:
         ':input[name="direct_input"]':
-          value: 'no'
+          '!value': Haribol
     '#required': true
     '#prepopulate': true
 actions:
