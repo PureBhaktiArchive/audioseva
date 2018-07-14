@@ -189,6 +189,7 @@ gurudeva_timings:
     	<li>Please note down only the minutes when Srila Gurudeva speaks in the recording.</li>
     	<li>Suppose Srila Gurudeva spoke in the beginning and then didn’t speak between 16:11 and 22:02, please write “1:00 to 16:11 and then 22:02 to 40:09” here.</li>
     	<li>In the case of question and answer, the timing when the question is asked can be clubbed together as Gurudeva Timings.</li>
+      <li>If only Srila Gurudeva spoke during the entire lecture, OR if he never spoke, please mention it here.</li>
     </ul>
   '#prepopulate': true
   '#states':
@@ -299,6 +300,7 @@ sound_quality_group:
       <ul>
       	<li>This field is crucial for cleaning up the audio files for enhanced audibility.</li>
       	<li>If the lecture has some sound issues like too much background noise, or long blank pauses, low sound or some part of the speech needs to be edited, please mention here with comments on what the issue is and minutes where the disturbance occurs.</li>
+        <li>If the lecture is blank after a certain point till the end (or from the beginning till a certain point) please mention this along with the details of the timings.</li>
         <li>You may mention in as much detail as you think fit.</li>
         <li>Please choose one of the options below to indicate the overall experience of the sound quality while hearing the lecture.</li>
       </ul>
