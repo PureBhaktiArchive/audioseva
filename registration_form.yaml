@@ -9,11 +9,19 @@ seva:
     'Listen and note down the topics discussed': |
       <b>Listening to audio in your language and making notes in English ☝</b> -- Hearing Srila Gurudeva’s lectures and making a few notes as per the guidelines supplied. It is so simple that anyone can do it!<br>
       <b>☝ Immediate seva required, our goal is to complete this by the end of 2018.</b>
-    'Sound editing': 'Sound editing -- Cleaning up, trimming, enhancing audio quality, etc. Requires knowledge of sound editing software.'
+    'Sound editing': 'Sound editing -- Cleaning up, trimming, enhancing audio quality, etc. Requires knowledge of a sound editing software. We can provide training from scratch as well.'
   '#options_description_display': help
   '#other__option_label': 'Other services…'
   '#other__placeholder': 'Describe any other services would you like to render'
   '#required': true
+experience:
+  '#type': textarea
+  '#title': 'Your experience'
+  '#autocomplete': 'off'
+  '#states':
+    visible:
+      ':input[name="seva[Sound editing]"]':
+        checked: true
 your_name:
   '#type': textfield
   '#title': 'Your name'
