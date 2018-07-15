@@ -21,7 +21,7 @@ class ListenController extends ControllerBase {
       $folder = "Hindi";
     }
 
-    $real_file_name = str_replace('ML2-', '', $file_name); // ML2 prefix is artificial, files are without it.
+    $real_file_name = rawurlencode(str_replace('ML2-', '', $file_name)); // ML2 prefix is artificial, files are without it.
 
     return [
         '#title' => "Audio File Name: $file_name",
