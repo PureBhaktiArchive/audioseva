@@ -2,9 +2,9 @@
   "timeZone": "Asia/Krasnoyarsk",
   "dependencies": {
     "libraries": [{
-      "userSymbol": "ArrayLib",
-      "libraryId": "1r9wNWbta3ebuYL4ENAdIp4UYKmyNiWf1AqsXYzfXduRHhTZEeTxS9MhZ",
-      "version": "13"
+      "userSymbol": "Sheetfu",
+      "libraryId": "1N8BGDNX4N64WP4HRjsnZJNwBx2UrAbc_DPZKYwFnVxqzeJdqEJQuCBSv",
+      "version": "3"
     }]
   },
   "webapp": {
