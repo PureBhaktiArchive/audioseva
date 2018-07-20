@@ -92,9 +92,9 @@ timing_for_fused_lecture:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
-    disabled:
+    enabled:
       ':input[name="fused_lecture"]':
-        value: 'No'
+        value: 'Yes'
     required:
       ':input[name="fused_lecture"]':
         value: 'Yes'
