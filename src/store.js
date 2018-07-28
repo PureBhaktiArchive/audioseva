@@ -1,3 +1,6 @@
+/*
+ * sri sri guru gauranga jayatah
+ */
 import Vue from "vue";
 import Vuex from "vuex";
 
