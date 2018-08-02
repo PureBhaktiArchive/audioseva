@@ -1,0 +1,6 @@
+{
+  "git.enabled": true,
+  "editor.formatOnSave": false,
+  "eslint.autoFixOnSave": true,
+  "eslint.validate": ["javascript"]
+}
