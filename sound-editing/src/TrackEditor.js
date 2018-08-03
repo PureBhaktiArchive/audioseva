@@ -18,6 +18,7 @@ export class TrackEditor extends Devotee {
 
     while (files.hasNext()) {
       const file = files.next();
+      console.log('Processing “%s”.', file.getName());
 
       const taskId = file.getName().replace(/\.flac$/, '');
 
@@ -26,39 +27,37 @@ export class TrackEditor extends Devotee {
       if (task) {
         switch (task.getFieldValue('Status')) {
           case 'Done':
-            MailApp.sendEmail(
-              file.getOwner().getEmail(),
-              `File “${taskId}” is already Done`,
-              `This file is already processed and marked as Done. You cannot upload a new version.`
+            super.sendEmailToDevotee(
+              `Task “${taskId}” is already Done`,
+              `You have uploaded file “${file.getName()}” recently, however this task is already marked as Done. You cannot upload a new version now.`
             );
             break;
 
           default:
-            DriveUtils.removeAllFiles(this.editedFolder, file.getName());
+            {
+              DriveUtils.removeAllFiles(this.editedFolder, file.getName());
 
-            // Making a copy and saving the file for further processing
-            console.log('Copying %s into Edited folder.', file.getName());
-            const copiedFile = file.makeCopy(this.editedFolder);
+              // Making a copy and saving the file for further processing
+              console.log('Copying “%s” into Edited folder.', file.getName());
+              const copiedFile = file.makeCopy(this.editedFolder);
 
-            // Saving file link
-            task.setFieldValue('Edited File Link', copiedFile.getUrl());
-            task.commitFieldValue('Edited File Link');
+              // Saving file link
+              task.setFieldValue('Edited File Link', copiedFile.getUrl());
+              task.commitFieldValue('Edited File Link');
 
-            task.setFieldValue('Status', 'WIP');
-            task.commitFieldValue('Status');
+              task.setFieldValue('Status', 'WIP');
+              task.commitFieldValue('Status');
+            }
             break;
         }
       }
 
       if (!task) {
-        console.warn('File “%s” does not match any task.', file.getName());
-        MailApp.sendEmail(
-          file.getOwner().getEmail(),
+        console.warn('Task “%s” is not found in TE Doc.', taskId);
+        super.sendEmailToDevotee(
           `Task “${taskId}” is not found in your TE Doc`,
           `You have uploaded “${file.getName()}” file recently, but there is no corresponding task in your TE Doc. Please recheck the file name and upload again.`
         );
-        // Drive.Comments.insert({ content: 'Task is not found in your TE Doc.' }, file.getId());
-        continue;
       }
 
       this.processedFolder.addFile(file);

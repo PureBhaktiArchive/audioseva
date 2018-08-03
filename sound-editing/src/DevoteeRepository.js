@@ -30,6 +30,7 @@ export class DevoteeRepository {
         case 'TE':
           return new TrackEditor(
             item.getFieldValue('Name'),
+            item.getFieldValue('Email'),
             item.getFieldValue('Spreadsheet Id'),
             item.getFieldValue('Uploads Id')
           );
