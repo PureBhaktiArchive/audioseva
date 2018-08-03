@@ -10,4 +10,11 @@ export class DriveUtils {
 
     to.addFile(file);
   }
+
+  static removeAllFiles(folder, fileName) {
+    const files = folder.getFilesByName(fileName);
+    while (files.hasNext()) {
+      files.next().setTrashed(true);
+    }
+  }
 }
