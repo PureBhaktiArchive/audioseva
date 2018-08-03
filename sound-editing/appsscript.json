@@ -1,11 +1,20 @@
 {
   "timeZone": "Asia/Calcutta",
   "dependencies": {
-    "libraries": [{
-      "userSymbol": "Sheetfu",
-      "libraryId": "1N8BGDNX4N64WP4HRjsnZJNwBx2UrAbc_DPZKYwFnVxqzeJdqEJQuCBSv",
-      "version": "3"
-    }]
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "Drive",
+        "serviceId": "drive",
+        "version": "v2"
+      }
+    ],
+    "libraries": [
+      {
+        "userSymbol": "Sheetfu",
+        "libraryId": "1N8BGDNX4N64WP4HRjsnZJNwBx2UrAbc_DPZKYwFnVxqzeJdqEJQuCBSv",
+        "version": "3"
+      }
+    ]
   },
   "exceptionLogging": "STACKDRIVER"
 }
