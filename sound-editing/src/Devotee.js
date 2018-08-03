@@ -18,55 +18,21 @@ export class Devotee {
   }
 
   get uploadsFolder() {
-    delete this.uploadsFolder;
-    this.uploadsFolder = DriveApp.getFolderById(this.uploadsFolderId);
-    return this.uploadsFolder;
+    return DriveApp.getFolderById(this.uploadsFolderId);
   }
 
   get incorrectFolder() {
-    delete this.incorrectFolder;
-    this.incorrectFolder = DriveUtils.getOrCreateSubfolder(this.uploadsFolder, 'Incorrect');
-    return this.incorrectFolder;
+    return DriveUtils.getOrCreateSubfolder(this.uploadsFolder, 'Incorrect');
   }
 
   get processedFolder() {
-    delete this.processedFolder;
-    this.processedFolder = DriveUtils.getOrCreateSubfolder(this.uploadsFolder, 'Processed');
-    return this.processedFolder;
+    return DriveUtils.getOrCreateSubfolder(this.uploadsFolder, 'Processed');
   }
 
   get editedFolder() {
-    delete this.editedFolder;
-    this.editedFolder = DriveApp.getFolderById(EDITED_FOLDER_ID);
-    return this.editedFolder;
+    return DriveApp.getFolderById(EDITED_FOLDER_ID);
   }
 
-  static get ids() {
-    return {
-      backend: {
-        spreadsheetId: '1ex-_7NHvH3dYK3rN0BARrC9gRrlxugQZirBr2ZXeoz4',
-        sheets: { devotees: 'Devotees' }
-      }
-    };
-  }
-
-  static get devoteesTable() {
-    return new Sheetfu.Table(
-      SpreadsheetApp.openById(this.ids.backend.spreadsheetId)
-        .getSheetByName(this.ids.backend.sheets.devotees)
-        .getDataRange(),
-      'Email'
-    );
-  }
-
-  static get all() {
-    return this.devoteesTable.items.map(
-      item =>
-        new Devotee(
-          item.getFieldValue('Name'),
-          item.getFieldValue('Spreadsheet Id'),
-          item.getFieldValue('Uploads Id')
-        )
-    );
-  }
+  /* eslint class-methods-use-this: 0 */
+  processUploads() {}
 }

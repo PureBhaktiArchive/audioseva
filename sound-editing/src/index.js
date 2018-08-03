@@ -1,11 +1,7 @@
-import { Devotee } from './Devotee';
-
-global.test = () => {
-  console.log(Devotee.all);
-};
+import { DevoteeRepository } from './DevoteeRepository';
 
 global.watchUploads = () => {
-  Devotee.all.forEach(devotee => {
+  DevoteeRepository.all.forEach(devotee => {
     devotee.processUploads();
   });
 };
