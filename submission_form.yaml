@@ -12,12 +12,33 @@ prefilled_link_should_be_used:
         '!value': Haribol
       ':input[name="tape_number"]':
         empty: true
+unable_to_play_or_download_box:
+  '#type': details
+  '#title': 'CLICK HERE if you are unable to play or download the audio'
+  '#attributes':
+    class:
+      - panel-warning
+  unable_to_play_or_download:
+    '#type': checkbox
+    '#title': 'I’m unable to play or download the audio'
+  audio_problem_description:
+    '#type': textarea
+    '#title': 'Describe the problem'
+    '#required': true
+    '#states':
+      visible:
+        ':input[name="unable_to_play_or_download"]':
+          checked: true
 cancellation_box:
   '#type': details
   '#title': 'CLICK HERE if the allotted lecture in not in your preferred language'
   '#attributes':
     class:
       - panel-info
+  '#states':
+    visible:
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
   not_preferred_language:
     '#type': checkbox
     '#title': 'The allotted lecture is not in my preferred language'
@@ -34,7 +55,9 @@ tip:
   '#states':
     visible:
       ':input[name="not_preferred_language"]':
-        unchecked: true
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
 tape_number:
   '#type': textfield
   '#title': 'A. Audio File Name'
@@ -77,6 +100,8 @@ fused_lecture:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
 timing_for_fused_lecture:
   '#type': textfield
   '#title': 'C. Timing (only for fused lecture)'
@@ -91,6 +116,8 @@ timing_for_fused_lecture:
   '#states':
     visible:
       ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
         checked: false
     enabled:
       ':input[name="fused_lecture"]':
@@ -117,6 +144,8 @@ date:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
 location:
   '#type': textfield
   '#title': 'E. Location'
@@ -131,6 +160,8 @@ location:
   '#states':
     visible:
       ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
         checked: false
 category:
   '#type': radios_other
@@ -161,6 +192,8 @@ category:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
 topics:
   '#type': textarea
   '#title': 'G. Topics'
@@ -180,6 +213,8 @@ topics:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
 gurudeva_timings:
   '#type': textarea
   '#title': 'H. Gurudeva Timings'
@@ -196,6 +231,8 @@ gurudeva_timings:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
 other_speakers:
   '#type': textarea
   '#title': 'I. Other Speakers'
@@ -209,6 +246,8 @@ other_speakers:
   '#states':
     visible:
       ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
         checked: false
 kirtana:
   '#type': textarea
@@ -224,6 +263,8 @@ kirtana:
   '#states':
     visible:
       ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
         checked: false
 abrupt_lecture:
   '#type': checkboxes_other
@@ -242,6 +283,8 @@ abrupt_lecture:
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
 suggested_title:
   '#type': textfield
   '#title': 'L. Suggested Title'
@@ -256,6 +299,8 @@ suggested_title:
   '#states':
     visible:
       ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
         checked: false
 lecture_languages:
   '#type': checkboxes_other
@@ -283,11 +328,16 @@ lecture_languages:
     required:
       ':input[name="not_preferred_language"]':
         checked: true
+    visible:
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
 sound_quality_group:
   '#type': container
   '#states':
     visible:
       ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
         checked: false
   sound_quality_label:
     '#type': label
@@ -320,12 +370,16 @@ sound_quality_group:
       visible:
         ':input[name="not_preferred_language"]':
           checked: false
+        ':input[name="unable_to_play_or_download"]':
+          checked: false
 continuation_group:
   '#type': container
   '#title': 'O. Continuation'
   '#states':
     visible:
       ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
         checked: false
   continuation_label:
     '#type': label
@@ -351,6 +405,10 @@ comments:
   '#more_title': Guidelines
   '#more': 'Please write any other comments you wish to mention about the file, that will help us to categorise / label the lecture properly or provide any other helpful information here.'
   '#prepopulate': true
+  '#states':
+    visible:
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
 filled_by:
   '#type': container
   filled_by_label:
