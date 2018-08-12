@@ -28,19 +28,10 @@ export class DevoteeRepository {
     return this.devoteesTable.items.map(item => {
       switch (item.getFieldValue('Role')) {
         case 'TE':
-          return new TrackEditor(
-            item.getFieldValue('Name'),
-            item.getFieldValue('Email'),
-            item.getFieldValue('Spreadsheet Id'),
-            item.getFieldValue('Uploads Id')
-          );
+          return new TrackEditor(item);
 
         default:
-          return new Devotee(
-            item.getFieldValue('Name'),
-            item.getFieldValue('Spreadsheet Id'),
-            item.getFieldValue('Uploads Id')
-          );
+          return new Devotee(item);
       }
     });
   }

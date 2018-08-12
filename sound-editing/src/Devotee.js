@@ -7,11 +7,34 @@ import { DriveUtils } from './DriveUtils';
 const EDITED_FOLDER_ID = '1lCop0H9AQg-6GT-U-blu8zMDHvoP0Sco';
 
 export class Devotee {
-  constructor(name, emailAddress, spreadsheetId, uploadsFolderId) {
-    this.name = name;
-    this.emailAddress = emailAddress;
-    this.spreadsheetId = spreadsheetId;
-    this.uploadsFolderId = uploadsFolderId;
+  constructor(item) {
+    this.item = item;
+  }
+
+  get name() {
+    return this.item.getFieldValue('Name');
+  }
+
+  get emailAddress() {
+    return this.item.getFieldValue('Email');
+  }
+
+  get spreadsheetId() {
+    return this.item.getFieldValue('Spreadsheet Id');
+  }
+
+  get uploadsFolderId() {
+    return this.item.getFieldValue('Uploads Id');
+  }
+
+  set spreadsheetId(value) {
+    this.item.setFieldValue('Spreadsheet Id', value);
+    this.item.commitFieldValue('Spreadsheet Id');
+  }
+
+  set uploadsFolderId(value) {
+    this.item.setFieldValue('Uploads Id', value);
+    this.item.commitFieldValue('Uploads Id');
   }
 
   get spreadsheet() {
