@@ -1,4 +1,4 @@
-import { SoundEditingWorkflow } from '../SoundEditingWorkflow';
+import { SoundEditingAPI } from '../sound-editing/API';
 
 // function getCachedOutput(source, key, expiration) {
 //   const cache = CacheService.getScriptCache();
@@ -13,13 +13,13 @@ import { SoundEditingWorkflow } from '../SoundEditingWorkflow';
 function findSource(path) {
   switch (path) {
     case 'te/lists':
-      return SoundEditingWorkflow.getLists;
+      return SoundEditingAPI.getLists;
 
     case 'te/tasks':
-      return SoundEditingWorkflow.getTasks;
+      return SoundEditingAPI.getTasks;
 
     case 'te/devotees':
-      return SoundEditingWorkflow.getDevotees;
+      return SoundEditingAPI.getDevotees;
 
     default:
       return null;

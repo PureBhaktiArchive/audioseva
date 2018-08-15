@@ -1,0 +1,69 @@
+<div style="color:red; font-weight:bold;">
+  <? for (var i = 0; i < warnings.length; i++) { ?>
+    <p>
+      <?= warnings[i] ?>
+    </p>
+    <? } ?>
+</div>
+
+<p>Hare Krsna! Dandavat Pranams.</p>
+<p>Below are the details of your <b>Track Editing Fidelity Check (TFC)</b> task. You can refer the TFC guidelines here -
+  http://purebhakti.info/audioseva/sound-editing/guidelines.
+</p>
+
+<p>Firstly, please download the Edited and Source files from the links below:</p>
+<p>
+  <b>Track Edited File Link:</b> <?=task.getFieldValue('Edited File Link')?>
+</p>
+<p><b>Source File Links:</b><br>
+  <?= task.getFieldValue('Source File 1 Link')?><br>
+  <?= task.getFieldValue('Source File 2 Link')?><br>
+  <?= task.getFieldValue('Source File 3 Link')?><br>
+</p>
+
+<p><b>Please provide your feedback for this task by filling this form:</b> <a href="http://purebhakti.info/audioseva/form/track-editing-fidelity-check?task_id=<?=task.getFieldValue('Task ID')?>&name=<?=task.getFieldValue('FC Name') ?>&email_address=<?=task.getFieldValue('FC Email Address') ?>">Track
+    Editing Fidelity Check Submission Form</a></p>
+
+<p>Please refer the details of the task for the TE as well as the TE inputs below.</p>
+
+<p style="color: red;font-weight: bold">DETAILS OF THE TASK:</p>
+
+<p><b>Task ID:</b>
+  <?= task.getFieldValue('Task ID')?>
+</p>
+<p><b>Action:</b>
+  <?= task.getFieldValue('Action')?>
+</p>
+<p>
+  <b>Task Definition:</b>
+  <? task.getFieldValue('Task Definition').split('\n').forEach(function(line) { ?>
+    <br>
+    <?= line ?>
+    <? }) ?>
+</p>
+
+<p style="color: red;font-weight: bold">TE INPUTS:</p>
+
+<p>
+  <b>Sound Quality Rating:</b> <?=task.getFieldValue('Sound Quality Rating')?>
+</p>
+<p>
+  <b>Sound Issues:</b>
+  <? task.getFieldValue('Comments for SE').split('\n').forEach(function(line) { ?>
+    <br>
+    <?= line ?>
+    <? }) ?>
+</p>
+<p>
+  <b>TE Comments:</b> <?=task.getFieldValue('TE Comments')?>
+</p>
+<p>
+  <b>Total Duration of Edited File:</b> <?=task.getFieldValue('Total Duration of Edited File')?>
+</p>
+<p>
+  <b>TE:</b> <?=task.getFieldValue('TE Name')?>
+</p>
+<p>Please feel free to ask any queries at any point.</p>
+<p>
+  --<br> Your Servants,<br> Pure Bhakti Audio Seva Team.
+</p>

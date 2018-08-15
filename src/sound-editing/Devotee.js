@@ -2,9 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import { DriveUtils } from './DriveUtils';
-
-const EDITED_FOLDER_ID = '1lCop0H9AQg-6GT-U-blu8zMDHvoP0Sco';
+import { DriveUtils } from '../DriveUtils';
 
 export class Devotee {
   constructor(item) {
@@ -19,26 +17,21 @@ export class Devotee {
     return this.item.getFieldValue('Email Address');
   }
 
-  get spreadsheetId() {
-    return this.item.getFieldValue('Spreadsheet Id');
+  get role() {
+    return this.item.getFieldValue('Role');
+  }
+
+  get status() {
+    return this.item.getFieldValue('Status');
   }
 
   get uploadsFolderId() {
     return this.item.getFieldValue('Uploads Folder Id');
   }
 
-  set spreadsheetId(value) {
-    this.item.setFieldValue('Spreadsheet Id', value);
-    this.item.commitFieldValue('Spreadsheet Id');
-  }
-
   set uploadsFolderId(value) {
     this.item.setFieldValue('Uploads Folder Id', value);
     this.item.commitFieldValue('Uploads Folder Id');
-  }
-
-  get spreadsheet() {
-    return SpreadsheetApp.openById(this.spreadsheetId);
   }
 
   get uploadsFolder() {
@@ -53,13 +46,6 @@ export class Devotee {
     return DriveUtils.getOrCreateSubfolder(this.uploadsFolder, 'Processed');
   }
 
-  get editedFolder() {
-    return DriveApp.getFolderById(EDITED_FOLDER_ID);
-  }
-
-  /* eslint class-methods-use-this: 0 */
-  processUploads() {}
-
   sendEmailToDevotee(subject, text) {
     MailApp.sendEmail(this.emailAddress, subject, text, {
       bcc: 'audioseva@purebhakti.info',
@@ -67,4 +53,11 @@ export class Devotee {
       htmlBody: text
     });
   }
+
+  // Virtual methods
+
+  /* eslint class-methods-use-this: 0 */
+  processUploads() {}
+
+  setupWorkspace() {}
 }

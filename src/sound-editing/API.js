@@ -2,27 +2,20 @@
  * sri sri guru gauranga jayatah
  */
 
-export class SoundEditingWorkflow {
-  static get spreadsheet() {
-    return SpreadsheetApp.openById('1ex-_7NHvH3dYK3rN0BARrC9gRrlxugQZirBr2ZXeoz4');
-  }
+import { DevoteeRepository } from './DevoteeRepository';
+import { SoundEditingWorkflow } from './SoundEditingWorkflow';
 
-  static getTable(sheetName) {
-    return new Sheetfu.Table(
-      SoundEditingWorkflow.spreadsheet.getSheetByName(sheetName).getDataRange()
-    );
-  }
-
+export class SoundEditingAPI {
   // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=te/devotees&role=TE
   // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=te/devotees&role=FC
   static getDevotees(parameter) {
-    return SoundEditingWorkflow.getTable('Devotees')
-      .items.filter(item => item.getFieldValue('Role') === parameter.role)
-      .map(item => ({
-        emailAddress: item.getFieldValue('Email Address'),
-        name: item.getFieldValue('Name'),
-        status: item.getFieldValue('Status'),
-        uploadsFolderId: item.getFieldValue('Uploads Folder Id')
+    return DevoteeRepository.all
+      .filter(devotee => devotee.role === parameter.role)
+      .map(devotee => ({
+        emailAddress: devotee.emailAddress,
+        name: devotee.name,
+        status: devotee.status,
+        uploadsFolderId: devotee.uploadsFolderId
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
