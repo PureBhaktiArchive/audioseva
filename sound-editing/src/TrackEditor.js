@@ -7,9 +7,26 @@ import { DriveUtils } from './DriveUtils';
 
 const FLAC_MIME_TYPE = 'audio/flac';
 
+const COLUMNS = {
+  DateGiven: 'Date Given',
+  Status: 'Status',
+  OutputFileName: 'Output File Name',
+  EditedFileLink: 'Edited File Link',
+  SoundQualityRating: 'Sound Quality Rating'
+};
+
+const STATUSES = {
+  Given: 'Given',
+  WIP: 'WIP',
+  Done: 'Done'
+};
+
 export class TrackEditor extends Devotee {
   get tasksTable() {
-    return new Sheetfu.Table(this.spreadsheet.getSheets()[0].getDataRange(), 'Output File Name');
+    return new Sheetfu.Table(
+      this.spreadsheet.getSheets()[0].getDataRange(),
+      COLUMNS.OutputFileName
+    );
   }
 
   processUploads() {
@@ -25,8 +42,8 @@ export class TrackEditor extends Devotee {
       // Finding corresponding task
       const task = this.tasksTable.getItemById(taskId);
       if (task) {
-        switch (task.getFieldValue('Status')) {
-          case 'Done':
+        switch (task.getFieldValue(COLUMNS.Status)) {
+          case STATUSES.Done:
             super.sendEmailToDevotee(
               `Task “${taskId}” is already Done`,
               `You have uploaded file “${file.getName()}” recently, however this task is already marked as Done. You cannot upload a new version now.`
@@ -42,11 +59,11 @@ export class TrackEditor extends Devotee {
               const copiedFile = file.makeCopy(this.editedFolder);
 
               // Saving file link
-              task.setFieldValue('Edited File Link', copiedFile.getUrl());
-              task.commitFieldValue('Edited File Link');
+              task.setFieldValue(COLUMNS.EditedFileLink, copiedFile.getUrl());
+              task.commitFieldValue(COLUMNS.EditedFileLink);
 
-              task.setFieldValue('Status', 'WIP');
-              task.commitFieldValue('Status');
+              task.setFieldValue(COLUMNS.Status, STATUSES.WIP);
+              task.commitFieldValue(COLUMNS.Status);
             }
             break;
         }
