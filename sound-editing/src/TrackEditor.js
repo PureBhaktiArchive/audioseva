@@ -11,8 +11,13 @@ const COLUMNS = {
   DateGiven: 'Date Given',
   Status: 'Status',
   OutputFileName: 'Output File Name',
+  TaskDefinition: 'Task Definition',
+  SourceFileLink1: 'Source File 1 Link',
+  SourceFileLink2: 'Source File 2 Link',
+  SourceFileLink3: 'Source File 3 Link',
   EditedFileLink: 'Edited File Link',
-  SoundQualityRating: 'Sound Quality Rating'
+  SoundQualityRating: 'Sound Quality Rating',
+  CommentsForSE: 'Comments For SE'
 };
 
 const STATUSES = {
@@ -44,9 +49,16 @@ export class TrackEditor extends Devotee {
       if (task) {
         switch (task.getFieldValue(COLUMNS.Status)) {
           case STATUSES.Done:
-            super.sendEmailToDevotee(
-              `Task “${taskId}” is already Done`,
-              `You have uploaded file “${file.getName()}” recently, however this task is already marked as Done. You cannot upload a new version now.`
+            GmailApp.sendEmail(
+              this.emailAddress,
+              `TE upload - ${this.name} - ${file.getName()} - ERROR`,
+              '',
+              {
+                from: 'audioseva@purebhakti.info',
+                name: 'Pure Bhakti Audio Seva',
+                bcc: 'audioseva@purebhakti.info',
+                htmlBody: `You have uploaded file “${file.getName()}” recently, however this task is already marked as Done. You cannot upload a new version now.`
+              }
             );
             break;
 
@@ -64,6 +76,28 @@ export class TrackEditor extends Devotee {
 
               task.setFieldValue(COLUMNS.Status, STATUSES.WIP);
               task.commitFieldValue(COLUMNS.Status);
+
+              GmailApp.sendEmail(
+                'audioseva@purebhakti.info',
+                `TE upload - ${this.name} - ${copiedFile.getName()}`,
+                '',
+                {
+                  from: 'audioseva@purebhakti.info',
+                  name: 'Pure Bhakti Audio Seva',
+                  replyTo: this.emailAddress,
+                  htmlBody: `
+                    TE Doc: ${this.spreadsheet.getUrl()}<br><br>
+                    Task Definition: ${task.getFieldValue(COLUMNS.TaskDefinition)}<br>
+                    Source File Links:<br>
+                      ${task.getFieldValue(COLUMNS.SourceFileLink1)}<br>
+                      ${task.getFieldValue(COLUMNS.SourceFileLink2)}<br>
+                      ${task.getFieldValue(COLUMNS.SourceFileLink3)}<br>
+                    Edited File Link: ${copiedFile.getUrl()}<br>
+                    Sound Quality Rating: ${task.getFieldValue(COLUMNS.SoundQualityRating)}<br>
+                    Comments for SE: ${task.getFieldValue(COLUMNS.CommentsForSE)}<br>
+                    `
+                }
+              );
             }
             break;
         }
@@ -71,9 +105,16 @@ export class TrackEditor extends Devotee {
 
       if (!task) {
         console.warn('Task “%s” is not found in TE Doc.', taskId);
-        super.sendEmailToDevotee(
-          `Task “${taskId}” is not found in your TE Doc`,
-          `You have uploaded “${file.getName()}” file recently, but there is no corresponding task in your TE Doc. Please recheck the file name and upload again.`
+        GmailApp.sendEmail(
+          this.emailAddress,
+          `TE upload - ${this.name} - ${file.getName()} - ERROR`,
+          '',
+          {
+            from: 'audioseva@purebhakti.info',
+            name: 'Pure Bhakti Audio Seva',
+            bcc: 'audioseva@purebhakti.info',
+            htmlBody: `You have uploaded “${file.getName()}” file recently, but there is no corresponding task in your TE Doc. Please recheck the file name and upload again.`
+          }
         );
       }
 
