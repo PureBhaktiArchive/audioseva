@@ -35,12 +35,11 @@ export class TrackEditor extends Devotee {
   }
 
   processUploads() {
-    console.log('Processing uploads for %s.', this.name);
     const files = this.uploadsFolder.searchFiles(`mimeType = '${FLAC_MIME_TYPE}'`);
 
     while (files.hasNext()) {
       const file = files.next();
-      console.log('Processing “%s”.', file.getName());
+      console.log('Processing “%s” uploaded by %s.', file.getName(), this.name);
 
       const taskId = file.getName().replace(/\.flac$/, '');
 
@@ -67,7 +66,11 @@ export class TrackEditor extends Devotee {
               DriveUtils.removeAllFiles(this.editedFolder, file.getName());
 
               // Making a copy and saving the file for further processing
-              console.log('Copying “%s” into Edited folder.', file.getName());
+              console.log(
+                'Copying “%s” uploaded by %s into Edited folder.',
+                file.getName(),
+                this.name
+              );
               const copiedFile = file.makeCopy(this.editedFolder);
 
               // Saving file link
@@ -104,7 +107,7 @@ export class TrackEditor extends Devotee {
       }
 
       if (!task) {
-        console.warn('Task “%s” is not found in TE Doc.', taskId);
+        console.warn('Task “%s” is not found in TE Doc of %s.', taskId, this.name);
         GmailApp.sendEmail(
           this.emailAddress,
           `TE upload - ${this.name} - ${file.getName()} - ERROR`,
