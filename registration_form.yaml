@@ -95,6 +95,13 @@ recommended_by:
       - or
       - ':input[name="where_did_u_hear_about_this_seva[radios]"]':
           value: 'From a friend'
+email_warning:
+  '#type': message
+  '#message_type': warning
+  '#message_message': |
+    <p>Once you register, you will instantly get an email from audioseva@purebhakti.info confirming your registration.</p>
+    <p><b>Please Note: If you do not receive this email in the Inbox of the registered email ID, it is likely to have been identified as 'SPAM' by your account.
+    In such cases, please look into your SPAM mail and ensure that you mark it as 'Not SPAM' so that you get further mails from us in your Inbox when we allot the lectures to you.</b></p>
 actions:
   '#type': webform_actions
   '#title': 'Submit button(s)'
