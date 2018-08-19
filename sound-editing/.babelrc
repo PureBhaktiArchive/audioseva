@@ -1,14 +1,3 @@
 {
-    "presets": [
-        ["env", {
-            "modules": false
-        }]
-    ],
-    "plugins": [
-        "transform-es3-property-literals",
-        "transform-es3-member-expression-literals",
-        "transform-class-properties",
-        "transform-object-rest-spread",
-        "transform-object-assign"
-    ]
+  "presets": ["google-apps-script"]
 }
