@@ -5,6 +5,7 @@ import Vue from "vue";
 import Router from "vue-router";
 import Home from "./views/Home.vue";
 import QCAllotment from "@/views/QCAllotment";
+import TEAllotment from "@/views/TEAllotment";
 
 Vue.use(Router);
 
@@ -16,6 +17,11 @@ export default new Router({
       path: "/",
       name: "home",
       component: Home
+    },
+    {
+      path: "/te",
+      name: "TE",
+      component: TEAllotment
     },
     {
       path: "/qc",
