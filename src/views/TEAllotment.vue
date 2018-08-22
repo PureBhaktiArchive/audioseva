@@ -3,7 +3,7 @@
  */
 <template>
   <div>
-    <h1>Sound Editing TE Allotment Form</h1>
+    <h1>TE Allotment Form</h1>
     <form @submit.stop.prevent="allot" v-show="submissionStatus != 'complete'">
 
       <!-- Track Editor -->
@@ -50,30 +50,51 @@
         </div>
       </div>
 
-      <!-- Tasks -->
+      <!-- Language -->
       <div class="form-group row">
-        <label for="tasks" class="col-sm-2 control-label">Tasks</label>
+        <label class="col-sm-2 control-label">Langauge</label>
         <div class="col-sm-10">
-          <div v-for="task in tasks" :key="task.id">
-            <div class="row">
-              <div class="col-md-3">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" v-model="allotment.tasks" :value="task" />
-                  <label class="form-check-label">
-                    {{ task.id }}
-                    <span class="badge" v-bind:class="{ 'badge-success': task.soundQuality == 'Good', 'badge-warning': task.soundQuality == 'Average', 'badge-danger': task.soundQuality == 'Bad', 'badge-secondary': task.soundQuality == 'Blank' || task.soundQuality == 'Inaudible' }">{{ task.soundQuality }}</span>
-                  </label>
-                </div>
+          <template v-if="languages">
+            <div class="form-check form-check-inline" v-for="language in languages" :key="language">
+              <input class="form-check-input" type="radio" v-model="filter.language" :value="language" name="language" :id="'language' + language" required>
+              <label class="form-check-label" :for="'language' + language">{{ language }}</label>
+            </div>
+          </template>
+          <p class="form-control-static" v-else>Loading…</p>
+        </div>
+      </div>
+
+      <!-- List -->
+      <div class="form-group row">
+        <label class="col-sm-2 control-label">List</label>
+        <div class="col-sm-10">
+          <template v-if="lists">
+            <div class="form-check form-check-inline" v-for="list in lists" :key="list">
+              <input class="form-check-input" type="radio" v-model="filter.list" :value="list" name="list" :id="'list' + list" required>
+              <label class="form-check-label" :for="'list' + list">{{ list }}</label>
+            </div>
+          </template>
+          <p class="form-control-static" v-else>Loading…</p>
+        </div>
+      </div>
+
+      <!-- Tasks -->
+      <div class="form-group row" v-show="tasks != null || filter.list && filter.language">
+        <label for="tasks" class="col-sm-2 control-label">Tasks</label>
+        <div class="col-sm-10" v-if="tasks">
+          <div class="row mb-2" v-for="task in tasks" :key="task.id">
+            <div class="col-md-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" v-model="allotment.tasks" :id="'task-' + task.id" :value="task" />
+                <label class="form-check-label" :for="'task-' + task.id">{{ task.id }}</label>
               </div>
-              <div class="col-md-5">
-                <pre>{{ task.definition }}</pre>
-              </div>
-              <div class="col-md-4">
-                {{ task.soundIssues }}
-              </div>
+            </div>
+            <div class="col-md-9 bg-light shadow-sm">
+              <pre>{{ task.definition }}</pre>
             </div>
           </div>
         </div>
+        <span class="form-control-static col-sm-10" v-else>Loading…</span>
       </div>
 
       <!-- Comment -->
@@ -105,15 +126,24 @@ export default {
       trackEditors: [],
       fcs: []
     },
+    languages: ["English", "Hindi", "Bengali", "None"],
+    lists: ["ML1", "ML2"],
     tasks: [
       {
-        id: "ML1-101-1",
-        definition: "Hi101 A + Hi101 B",
-        soundQuality: "Bad",
-        soundIssues: "Noise"
+        id: "ML1-020-1",
+        definition:
+          "20 A_Hindi _New Archive; beginning - end\n+\n20 B_Hindi _New Archive; beginning - end"
+      },
+      {
+        id: "ML1-021-1",
+        definition:
+          "21 A_Hindi _New Archive\n+\n21 B_Hindi _New Archive (0:00:00 - 0:24:45)"
       }
     ],
-    comment: null,
+    filter: {
+      language: null,
+      list: null
+    },
     allotment: {
       trackEditor: null,
       fc: null,
