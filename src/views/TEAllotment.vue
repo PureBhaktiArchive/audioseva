@@ -23,9 +23,6 @@
             </template>
           </v-select>
         </div>
-        <div class="col-sm-offset-2 col-sm-10" v-if="allotment.trackEditor != null">Devotee languages:
-          <strong>{{ allotment.trackEditor.languages}}</strong>
-        </div>
       </div>
 
       <!-- Fidelity Check -->
@@ -44,9 +41,6 @@
               </div>
             </template>
           </v-select>
-        </div>
-        <div class="col-sm-offset-2 col-sm-10" v-if="allotment.fc != null">Devotee languages:
-          <strong>{{ allotment.fc.languages}}</strong>
         </div>
       </div>
 
@@ -121,25 +115,18 @@
 <script>
 export default {
   name: "TE",
+  http: {
+    root:
+      "https://script.google.com/macros/s/AKfycbzA-Ymekm0TYYqns8Z22GGBNkfI43lRyv6ofYx8CEyWU0Sao9Ll/"
+  },
   data: () => ({
     devotees: {
       trackEditors: [],
       fcs: []
     },
     languages: ["English", "Hindi", "Bengali", "None"],
-    lists: ["ML1", "ML2"],
-    tasks: [
-      {
-        id: "ML1-020-1",
-        definition:
-          "20 A_Hindi _New Archive; beginning - end\n+\n20 B_Hindi _New Archive; beginning - end"
-      },
-      {
-        id: "ML1-021-1",
-        definition:
-          "21 A_Hindi _New Archive\n+\n21 B_Hindi _New Archive (0:00:00 - 0:24:45)"
-      }
-    ],
+    lists: null,
+    tasks: null,
     filter: {
       language: null,
       list: null
@@ -153,46 +140,60 @@ export default {
     submissionStatus: null
   }),
   mounted: function() {
-    // google.script.run
-    //   .withSuccessHandler(data => {
-    //     this.soundEditors = data;
-    //     // if (this.$route.query.emailAddress) {
-    //     //   this.allotment.devotee = this.devotees.find(devotee => devotee.emailAddress == this.$route.query.emailAddress);
-    //     //   this.allotment.repeated = true;
-    //     // }
-    //   })
-    //   .getDevotees("Sound Editing service");
-    // google.script.run
-    //   .withSuccessHandler(data => {
-    //     this.qualityCheckers = data;
-    //   })
-    //   .getDevotees("QC service");
-    // google.script.run
-    //   .withSuccessHandler(data => {
-    //     this.lists = data;
-    //   })
-    //   .getAvailableSoundEditingLists();
+    // Getting TEs
+    // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=te/devotees&role=TE
+    this.$http
+      .jsonp("exec", { params: { path: "te/devotees", role: "TE" } })
+      .then(response => {
+        this.devotees.trackEditors = response.body;
+      });
+
+    // Getting FCs
+    // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=te/devotees&role=FC
+    this.$http
+      .jsonp("exec", { params: { path: "te/devotees", role: "FC" } })
+      .then(response => {
+        this.devotees.fcs = response.body;
+      });
+
+    // Getting lists
+    // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=te/lists
+    this.$http
+      .jsonp("exec", { params: { path: "te/lists" } })
+      .then(response => {
+        this.lists = response.body;
+      });
   },
   methods: {
     allot() {
       this.submissionStatus = "inProgress";
-      // google.script.run
-      //   .withSuccessHandler(data => {
-      //     this.submissionStatus = "complete";
-      //   })
-      //   .withFailureHandler(error => {
-      //     this.submissionStatus = "error";
-      //     alert(error.message);
-      //   })
-      //   .allotSoundEditingTasks(
-      //     this.allotment.soundEditor,
-      //     this.allotment.qualityChecker,
-      //     this.allotment.tasks,
-      //     this.allotment.comment
-      //   );
     },
     reset() {
       Object.assign(this.$data, this.$options.data());
+    }
+  },
+  watch: {
+    filter: {
+      deep: true,
+      handler: function() {
+        this.tasks = null;
+        this.allotment.tasks = [];
+
+        if (this.filter.language == null || this.filter.list == null) return;
+
+        // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=te/tasks&language=English&list=ML2
+        this.$http
+          .jsonp("exec", {
+            params: {
+              path: "te/tasks",
+              list: this.filter.list,
+              language: this.filter.language
+            }
+          })
+          .then(response => {
+            this.tasks = response.body;
+          });
+      }
     }
   }
 };
