@@ -73,7 +73,7 @@
       </div>
 
       <!-- Tasks -->
-      <div class="form-group row" v-show="tasks != null || filter.list && filter.language">
+      <div id="tasks" class="form-group row" v-show="tasks != null || filter.list && filter.language">
         <label for="tasks" class="col-sm-2 control-label">Tasks</label>
         <div class="col-sm-10" v-if="tasks">
           <div class="row mb-2" v-for="task in tasks" :key="task.id">
@@ -82,9 +82,11 @@
                 <input class="form-check-input" type="checkbox" v-model="allotment.tasks" :id="'task-' + task.id" :value="task" />
                 <label class="form-check-label" :for="'task-' + task.id">{{ task.id }}</label>
               </div>
+              <span class="badge badge-info">{{ task.action }}</span>
+              <span class="badge badge-warning" v-if="task.sourceFiles.length === 0">No source files</span>
             </div>
-            <div class="col-md-9 bg-light shadow-sm">
-              <pre>{{ task.definition }}</pre>
+            <div class="col-md-9">
+              <pre class="p-1 shadow-sm">{{ task.definition }}</pre>
             </div>
           </div>
         </div>
@@ -111,6 +113,12 @@
     </form>
   </div>
 </template>
+
+<style>
+#tasks pre {
+  background-color: #ffcccc;
+}
+</style>
 
 <script>
 export default {
@@ -205,6 +213,3 @@ export default {
   }
 };
 </script>
-
-<style>
-</style>
