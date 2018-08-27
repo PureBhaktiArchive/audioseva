@@ -141,7 +141,6 @@ export default {
   }),
   mounted: function() {
     // Getting TEs
-    // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=te/devotees&role=TE
     this.$http
       .jsonp("exec", { params: { path: "te/devotees", role: "TE" } })
       .then(response => {
@@ -149,7 +148,6 @@ export default {
       });
 
     // Getting FCs
-    // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=te/devotees&role=FC
     this.$http
       .jsonp("exec", { params: { path: "te/devotees", role: "FC" } })
       .then(response => {
@@ -157,7 +155,6 @@ export default {
       });
 
     // Getting lists
-    // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=te/lists
     this.$http
       .jsonp("exec", { params: { path: "te/lists" } })
       .then(response => {
@@ -167,6 +164,17 @@ export default {
   methods: {
     allot() {
       this.submissionStatus = "inProgress";
+      this.$http
+        .post(
+          "https://hook.integromat.com/n45ody4b541ykox5aba58f11wwakfe54",
+          this.allotment
+        )
+        .then(
+          () => {
+            this.submissionStatus = "complete";
+          },
+          () => {}
+        );
     },
     reset() {
       Object.assign(this.$data, this.$options.data());
@@ -181,7 +189,6 @@ export default {
 
         if (this.filter.language == null || this.filter.list == null) return;
 
-        // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=te/tasks&language=English&list=ML2
         this.$http
           .jsonp("exec", {
             params: {
