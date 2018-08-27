@@ -44,20 +44,6 @@
         </div>
       </div>
 
-      <!-- Language -->
-      <div class="form-group row">
-        <label class="col-sm-2 control-label">Langauge</label>
-        <div class="col-sm-10">
-          <template v-if="languages">
-            <div class="form-check form-check-inline" v-for="language in languages" :key="language">
-              <input class="form-check-input" type="radio" v-model="filter.language" :value="language" name="language" :id="'language' + language" required>
-              <label class="form-check-label" :for="'language' + language">{{ language }}</label>
-            </div>
-          </template>
-          <p class="form-control-static" v-else>Loading…</p>
-        </div>
-      </div>
-
       <!-- List -->
       <div class="form-group row">
         <label class="col-sm-2 control-label">List</label>
@@ -73,7 +59,7 @@
       </div>
 
       <!-- Tasks -->
-      <div id="tasks" class="form-group row" v-show="tasks != null || filter.list && filter.language">
+      <div id="tasks" class="form-group row" v-show="tasks != null || filter.list">
         <label for="tasks" class="col-sm-2 control-label">Tasks</label>
         <div class="col-sm-10" v-if="tasks">
           <div class="row mb-2" v-for="task in tasks" :key="task.id">
@@ -82,10 +68,10 @@
                 <input class="form-check-input" type="checkbox" v-model="allotment.tasks" :id="'task-' + task.id" :value="task" />
                 <label class="form-check-label" :for="'task-' + task.id">{{ task.id }}</label>
               </div>
-              <span class="badge badge-info">{{ task.action }}</span>
-              <span class="badge badge-warning" v-if="task.sourceFiles.length === 0">No source files</span>
+              <span class="badge badge-danger" v-if="task.sourceFiles.length === 0">No source files</span>
             </div>
-            <div class="col-md-9">
+            <div class="col-md-3">{{ task.action }} {{ task.language }}</div>
+            <div class="col-md-6">
               <pre class="p-1 shadow-sm">{{ task.definition }}</pre>
             </div>
           </div>
@@ -116,7 +102,8 @@
 
 <style>
 #tasks pre {
-  background-color: #ffcccc;
+  background-color: #f9f2f4;
+  color: #c7254e;
 }
 </style>
 
@@ -132,11 +119,9 @@ export default {
       trackEditors: [],
       fcs: []
     },
-    languages: ["English", "Hindi", "Bengali", "None"],
     lists: null,
     tasks: null,
     filter: {
-      language: null,
       list: null
     },
     allotment: {
@@ -195,14 +180,13 @@ export default {
         this.tasks = null;
         this.allotment.tasks = [];
 
-        if (this.filter.language == null || this.filter.list == null) return;
+        if (this.filter.list == null) return;
 
         this.$http
           .jsonp("exec", {
             params: {
               path: "te/tasks",
-              list: this.filter.list,
-              language: this.filter.language
+              list: this.filter.list
             }
           })
           .then(response => {
