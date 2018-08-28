@@ -20,7 +20,9 @@ export class SoundEditingWorkflow {
       .items.filter(item => item.getFieldValue('Role') === parameter.role)
       .map(item => ({
         emailAddress: item.getFieldValue('Email Address'),
-        name: item.getFieldValue('Name')
+        name: item.getFieldValue('Name'),
+        status: item.getFieldValue('Status'),
+        uploadsFolderId: item.getFieldValue('Uploads Folder Id')
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
