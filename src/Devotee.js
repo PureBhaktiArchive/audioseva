@@ -16,7 +16,7 @@ export class Devotee {
   }
 
   get emailAddress() {
-    return this.item.getFieldValue('Email');
+    return this.item.getFieldValue('Email Address');
   }
 
   get spreadsheetId() {
@@ -24,7 +24,7 @@ export class Devotee {
   }
 
   get uploadsFolderId() {
-    return this.item.getFieldValue('Uploads Id');
+    return this.item.getFieldValue('Uploads Folder Id');
   }
 
   set spreadsheetId(value) {
@@ -33,8 +33,8 @@ export class Devotee {
   }
 
   set uploadsFolderId(value) {
-    this.item.setFieldValue('Uploads Id', value);
-    this.item.commitFieldValue('Uploads Id');
+    this.item.setFieldValue('Uploads Folder Id', value);
+    this.item.commitFieldValue('Uploads Folder Id');
   }
 
   get spreadsheet() {

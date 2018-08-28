@@ -20,7 +20,7 @@ export class DevoteeRepository {
       SpreadsheetApp.openById(this.ids.backend.spreadsheetId)
         .getSheetByName(this.ids.backend.sheets.devotees)
         .getDataRange(),
-      'Email'
+      'Email Address'
     );
   }
 
