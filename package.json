@@ -9,7 +9,6 @@
   "homepage": "http://purebhakti.info/audioseva/",
   "main": "src/index.js",
   "scripts": {
-    "prebuild": "npm version --loose-semver --new-version patch",
     "watch": "webpack --progress --watch",
     "build": "webpack",
     "deploy": "npm run build && clasp push"
