@@ -67,6 +67,10 @@ can_be_dropped:
 comments:
   "#type": textarea
   "#title": Comments
+  "#states":
+    required:
+      ':input[name="can_be_dropped"]':
+        value: No
 uploaded_group:
   "#type": container
   "#states":
