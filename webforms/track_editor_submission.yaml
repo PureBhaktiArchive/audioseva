@@ -24,7 +24,7 @@ sound_issues:
     issue:
       "#type": webform_radios_other
       "#options":
-        "Sudden background noise": "Sudden background noise"
+        "Background noise": "Background noise"
         Volume: "Low volume or changing volume"
         Reverberation: Reverberation
       "#title": Issue
@@ -63,12 +63,16 @@ can_be_dropped:
   "#states":
     visible:
       ':input[name="task_action"]':
-        value: "Confirm & Drop"
+        pattern: ^Confirm
 comments:
   "#type": textarea
   "#title": Comments
 uploaded_group:
   "#type": container
+  "#states":
+    visible:
+      ':input[name="task_action"]':
+        value: Edit
   uploaded:
     "#type": radios
     "#title": "The Output File is already uploaded"
