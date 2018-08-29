@@ -40,6 +40,7 @@ export class SoundEditingAPI {
       .items.filter(
         item =>
           item.getFieldValue('Task ID').startsWith(parameter.list) &&
+          !item.getFieldValue('Status') &&
           (!parameter.language || item.getFieldValue('Language') === parameter.language) &&
           allottedIds.indexOf(item.getFieldValue('Task ID')) === -1
       )
