@@ -21,7 +21,6 @@ sound_issues:
     timing:
       "#type": textfield
       "#title": Timing
-      "#required": true
     issue:
       "#type": webform_radios_other
       "#options":
@@ -29,7 +28,6 @@ sound_issues:
         Volume: "Low volume or changing volume"
         Reverberation: Reverberation
       "#title": Issue
-      "#required": true
     description:
       "#type": textarea
       "#title": Description
@@ -40,7 +38,7 @@ sound_issues:
 sound_quality_rating:
   "#type": radios
   "#title": "Sound Quality Rating"
-  "#options": sound_quality_rating_2
+  "#options": sound_quality_rating
   "#options_display": side_by_side
   "#required": true
   "#states":
@@ -69,14 +67,26 @@ can_be_dropped:
 comments:
   "#type": textarea
   "#title": Comments
-uploaded:
-  "#type": checkbox
-  "#title": "The Output File is already uploaded"
-  "#required": true
-  "#states":
-    visible:
-      ':input[name="task_action"]':
-        value: Edit
+uploaded_group:
+  "#type": container
+  uploaded:
+    "#type": radios
+    "#title": "The Output File is already uploaded"
+    "#required": true
+    "#options": yes_no
+    "#options_display": side_by_side
+    "#states":
+      visible:
+        ':input[name="task_action"]':
+          value: Edit
+  reason_for_not_uploading:
+    "#type": textarea
+    "#title": Specify the reason why you have not uploaded the file
+    "#required": true
+    "#states":
+      visible:
+        ':input[name="uploaded"]':
+          value: No
 filled_by:
   "#type": container
   filled_by_label:
