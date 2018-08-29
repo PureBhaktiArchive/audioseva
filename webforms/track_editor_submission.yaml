@@ -59,8 +59,8 @@ can_be_dropped:
   "#type": radios
   "#title": "Can this part be dropped?"
   "#options":
-    Yes: "<b>Yes</b> - this part is indeed unwanted"
-    No: "<b>No</b> - this part should be reconsidered"
+    "Yes": "<b>Yes</b> - this part is indeed unwanted"
+    "No": "<b>No</b> - this part should be reconsidered"
   "#required": true
   "#states":
     visible:
@@ -76,7 +76,7 @@ uploaded:
   "#states":
     visible:
       ':input[name="task_action"]':
-        value: "Edit"
+        value: Edit
 filled_by:
   "#type": container
   filled_by_label:
