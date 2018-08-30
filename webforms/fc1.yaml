@@ -1,0 +1,53 @@
+file_name:
+  "#type": textfield
+  "#title": "Audio File Name"
+  "#prepopulate": true
+  "#required": true
+unwanted_parts:
+  "#type": custom_composite
+  "#title": "Unwanted parts"
+  "#multiple__sorting": false
+  "#element":
+    timing:
+      "#type": textfield
+      "#title": Timing
+      "#required": true
+    type:
+      "#type": webform_radios_other
+      "#options":
+        "blank space": "Blank space"
+        glitch: Glitch
+        irrelevant: "Irrelevant part"
+      "#title": Type
+      "#required": true
+    comment:
+      "#type": textarea
+      "#title": Comment
+any_parts_that_have_been_cut_too_much_and_sound_abrupt:
+  "#type": custom_composite
+  "#title": "Any parts that have been cut too much and sound abrupt"
+  "#multiple__sorting": false
+  "#element":
+    timing:
+      "#type": textfield
+      "#title": Timing
+      "#required": true
+    comment:
+      "#type": textarea
+      "#title": Comment
+      "#required": true
+compare_the_sound_quality_with_the_source_file:
+  "#type": radios_other
+  "#title": "Compare the sound quality with the source file"
+  "#options":
+    same: Same
+    worse: "Edited file is of a worse quality"
+    better: "Edited file is of a better quality"
+  "#options_display": side_by_side
+  "#required": true
+sound_quality_rating:
+  "#type": radios
+  "#title": "Sound Quality Rating"
+  "#options": sound_quality_rating
+  "#options_display": side_by_side
+  "#required": true
