@@ -1,0 +1,22 @@
+<div style="color:red; font-weight:bold;">
+  <p>{{if(1.uploaded = "No"; "Not uploaded. Reason: " + 1.reason_for_not_uploading)}}</p>
+  <p>{{if(1.changed != 1.completed; "This is an updated submission.")}}</p>
+  <p>{{if(23.rowId; ; "Task “" + 1.task_id + "” is not allotted.")}}</p>
+  <p>{{if(23.columntename != 1.name; " File is allotted to another TE - " + 23.columntename + ".")}}</p>
+  <p>{{if(23.columnstatus != "Given" & 23.columnstatus != "WIP"; " Status of the task is - " + 23.columnstatus + ".")}}</p>  
+</div>
+
+<a href="http://purebhakti.info/audioseva/form/track-editing-fidelity-check?task_id={{urlEncode(1.task_id)}}&name={{urlEncode(1.name)}}&email_address={{urlEncode(1.email_address)}}">Track
+  Editing Fidelity Check Submission Form</a>
+
+<p><b>Task ID:</b> {{1.task_id}}</p>
+<p><b>Action:</b> {{23.columnaction}}</p>
+<p><b>Task Definition:</b><br>{{replace(23.columntaskdefinition; newline; "<br>")}}</p>
+<p><b>Source File Links:</b><br>{{23.columnsourcefile1link}}<br>{{23.columnsourcefile2link}}<br>{{23.columnsourcefile3link}}</p>
+<p><b>Edited File Link:</b> {{23.columneditedfilelink}}</p>
+<p><b>Sound Quality Rating:</b> {{1.sound_quality_rating}}</p>
+<p><b>Sound Issues:</b><br>{{replace(30.text; newline; "<br>"}}</p>
+<p><b>Comments:</b> {{1.comments}}</p>
+<p><b>Total Duration of Edited File:</b> {{1.duration}}</p>
+<p><b>Can Be Dropped:</b> {{1.can_be_dropped}}</p>
+<p><b>Filled By:</b> {{1.name}}, {{1.email_address}}</p>
