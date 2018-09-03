@@ -97,6 +97,12 @@
       </div>
 
     </form>
+
+    <div id="confirmation-message" class="col-sm-offset-2 col-sm-10" v-show="submissionStatus === 'complete'">
+      <div class="alert alert-success" role="alert">
+        TFC allotted successfully. <button type="button" class="btn btn-default" @click="window.close()">Close</button>
+      </div>
+    </div>    
   </div>
 </template>
 
