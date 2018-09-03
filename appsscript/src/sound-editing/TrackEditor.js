@@ -93,7 +93,7 @@ export class TrackEditor extends Devotee {
     emailTemplate.task = task;
 
     AudioSevaMailer.sendEmail({
-      subject: `TE Submission - ${this.name} - ${copiedFile.getName()}`,
+      subject: `TE Submission - ${taskId} - ${this.name}`,
       replyTo: this.emailAddress,
       htmlBody: emailTemplate.evaluate().getContent()
     });
