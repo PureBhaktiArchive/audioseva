@@ -54,7 +54,7 @@
 
     <div id="confirmation-message" class="col-sm-offset-2 col-sm-10" v-show="submissionStatus === 'complete'">
       <div class="alert alert-success" role="alert">
-        TFC allotted successfully. <button type="button" class="btn btn-default" @click="window.close()">Close</button>
+        TFC allotted successfully.
       </div>
     </div>    
 
@@ -103,9 +103,10 @@ export default {
     allot() {
       this.submissionStatus = "inProgress";
       this.$http
-        .post(process.env.VUE_APP_SCRIPT_URL, this.allotment, {
-          params: { path: "te/fc/allot" }
-        })
+        .post(
+          "https://hook.integromat.com/s39wn6bn2wxcp6u8jth6tgyh6tcpm5be",
+          this.allotment
+        )
         .then(
           () => {
             this.submissionStatus = "complete";
