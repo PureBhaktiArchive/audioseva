@@ -75,6 +75,7 @@
               <pre class="p-1 shadow-sm">{{ task.definition }}</pre>
             </div>
           </div>
+          <span v-if="tasks.length === 0">No tasks in this list</span>
         </div>
         <span class="form-control-static col-sm-10" v-else>Loading…</span>
       </div>
@@ -98,11 +99,11 @@
 
     </form>
 
-    <div id="confirmation-message" class="col-sm-offset-2 col-sm-10" v-show="submissionStatus === 'complete'">
-      <div class="alert alert-success" role="alert">
-        TFC allotted successfully. <button type="button" class="btn btn-default" @click="window.close()">Close</button>
-      </div>
-    </div>    
+    <div class="alert alert-success col-sm-offset-2 col-sm-10" role="alert" v-show="submissionStatus === 'complete'">
+      <h4 class="alert-heading">TFC allotted succesfully</h4>
+      <p class="mb-0"><button type="button" class="btn btn-link" @click="reset">Make another allotment</button></p>
+    </div>
+
   </div>
 </template>
 
@@ -172,11 +173,15 @@ export default {
           () => {
             this.submissionStatus = "complete";
           },
-          () => {}
+          response => {
+            alert(response.text());
+          }
         );
     },
     reset() {
-      Object.assign(this.$data, this.$options.data());
+      Object.assign(this.$data.allotment, this.$options.data().allotment);
+      Object.assign(this.$data.filter, this.$options.data().filter);
+      this.submissionStatus = null;
     }
   },
   watch: {
