@@ -6,6 +6,7 @@ import Router from "vue-router";
 import Home from "./views/Home.vue";
 import QCAllotment from "@/views/QCAllotment";
 import TEAllotment from "@/views/TEAllotment";
+import TFCAllotment from "@/views/TFCAllotment";
 
 Vue.use(Router);
 
@@ -22,6 +23,11 @@ export default new Router({
       path: "/te",
       name: "TE",
       component: TEAllotment
+    },
+    {
+      path: "/te/fc/allot",
+      name: "TFC Allotment",
+      component: TFCAllotment
     },
     {
       path: "/qc",

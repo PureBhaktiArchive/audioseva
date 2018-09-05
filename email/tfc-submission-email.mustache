@@ -2,19 +2,26 @@
   <p>{{if(1.changed != 1.completed; "This is an updated submission.")}}</p>
   <p>{{if(23.rowId; ; "Task “" + 1.task_id + "” is not allotted.")}}</p>
   <p>{{if(23.columnfcname != 1.name; " File is allotted to another FC - " + 23.columnfcname + ".")}}</p>
-  <p>{{if(23.columnstatus != "WIP"; " Status of the task is - " + 23.columnstatus + ".")}}</p>  
+  <p>{{if(23.columnstatus = "Done"; " Status of the task is Done. Submitted data is not saved into Task!")}}</p>  
 </div>
+
+<p>Hare Krsna! Dandavat Pranams.</p>
+<p>Below are the details of the <b>Track Editing Fidelity Check (TFC)</b> feedback.</p>
+
+<p><b>Please re-edit the file and upload it again. Also please update your submission here:</b> <a href="{{23.columnteupdatelink}}">Track  Editing Fidelity Check Submission Form</a></p>
+
+<p>Please refer the details of the task for the TE as well as the TE inputs below.</p>
+
+
+<p style="color: red;font-weight: bold">DETAILS OF THE TASK:</p>
 
 <p><b>Task ID:</b> {{1.task_id}}</p>
 <p><b>Action:</b> {{23.columnaction}}</p>
 <p><b>Task Definition:</b><br>{{replace(23.columntaskdefinition; newline; "<br>")}}</p>
-<p><b>Source File Links:</b><br>{{23.columnsourcefile1link}}<br>{{23.columnsourcefile2link}}<br>{{23.columnsourcefile3link}}</p>
 <p><b>Edited File Link:</b> {{23.columneditedfilelink}}</p>
-<p><b>Sound Quality Rating:</b> {{23.columnsoundqualityrating}}</p>
-<p><b>Sound Issues:</b><br>{{replace(23.columncommentsforse; newline; "<br>"}}</p>
-<p><b>TE Comments:</b> {{23.columntecomments}}</p>
-<p><b>Total Duration of Edited File:</b> {{23.columntotaldurationofeditedfile}}</p>
-<p><b>TE:</b> {{23.columntename}}</p>
+<p><b>Source File Links:</b><br>{{23.columnsourcefile1link}}<br>{{23.columnsourcefile2link}}<br>{{23.columnsourcefile3link}}</p>
+
+<p style="color: red;font-weight: bold">FC INPUTS:</p>
 
 <p><b>Unwanted Parts:</b><br>{{replace(19.text; newline; "<br>"}}</p>
 <p><b>Parts Cut Too Much:</b><br>{{replace(22.text; newline; "<br>"}}</p>
@@ -23,5 +30,13 @@
 <p><b>Sound Quality Comparison:</b> {{1.sound_quality_comparison}}</p>
 <p><b>FC Sound Quality Rating:</b> {{1.sound_quality_rating}}</p>
 <p><b>FC Comments:</b> {{1.comments}}</p>
+<p><b>FC Name:</b> {{1.name}}
 
-<p><b>FC:</b> {{1.name}}, {{1.email_address}}</p>
+<p style="color: red;font-weight: bold">TE INPUTS:</p>
+
+<p><b>Sound Quality Rating:</b> {{23.columnsoundqualityrating}}</p>
+<p><b>Sound Issues:</b><br>{{replace(23.columncommentsforse; newline; "<br>"}}</p>
+<p><b>TE Comments:</b> {{23.columntecomments}}</p>
+<p><b>Total Duration of Edited File:</b> {{23.columntotaldurationofeditedfile}}</p>
+<p><b>TE:</b> {{23.columntename}}</p>
+

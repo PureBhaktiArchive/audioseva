@@ -10,26 +10,7 @@
       <div class="form-group row">
         <label for="track-editor" class="col-sm-2 control-label">Track Editor</label>
         <div class="col-col-sm-offset-2 col-sm-10">
-          <v-select name="track-editor" required :options="devotees.trackEditors" v-model="allotment.trackEditor" label="name">
-            <template slot="option" slot-scope="option">
-              <div>
-                <div class="row">
-                  <div class="col-md-4">
-                    <strong>{{option.name}}</strong>
-                  </div>
-                  <div class="col-md-4">{{option.emailAddress}}</div>
-                </div>
-              </div>
-            </template>
-          </v-select>
-        </div>
-      </div>
-
-      <!-- Fidelity Check -->
-      <div class="form-group row">
-        <label for="fc" class="col-sm-2 control-label">Fidelity Checker</label>
-        <div class="col-sm-10">
-          <v-select name="fc" required :options="devotees.fcs" v-model="allotment.fc" label="name">
+          <v-select name="track-editor" required :options="trackEditors" v-model="allotment.trackEditor" label="name">
             <template slot="option" slot-scope="option">
               <div>
                 <div class="row">
@@ -122,10 +103,7 @@ export default {
       "https://script.google.com/macros/s/AKfycbzA-Ymekm0TYYqns8Z22GGBNkfI43lRyv6ofYx8CEyWU0Sao9Ll/"
   },
   data: () => ({
-    devotees: {
-      trackEditors: [],
-      fcs: []
-    },
+    trackEditors: [],
     lists: null,
     tasks: null,
     filter: {
@@ -133,7 +111,6 @@ export default {
     },
     allotment: {
       trackEditor: null,
-      fc: null,
       tasks: [],
       comment: null
     },
@@ -144,14 +121,7 @@ export default {
     this.$http
       .jsonp("exec", { params: { path: "te/devotees", role: "TE" } })
       .then(response => {
-        this.devotees.trackEditors = response.body;
-      });
-
-    // Getting FCs
-    this.$http
-      .jsonp("exec", { params: { path: "te/devotees", role: "FC" } })
-      .then(response => {
-        this.devotees.fcs = response.body;
+        this.trackEditors = response.body;
       });
 
     // Getting lists
