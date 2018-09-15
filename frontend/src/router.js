@@ -4,9 +4,11 @@
 import Vue from "vue";
 import Router from "vue-router";
 import Home from "./views/Home.vue";
-import QCAllotment from "@/views/QCAllotment";
+import CDRAllotment from "@/views/CDRAllotment";
+import SQRAllotment from "@/views/SQRAllotment";
 import TEAllotment from "@/views/TEAllotment";
 import TFCAllotment from "@/views/TFCAllotment";
+import QCAllotment from "@/views/QCAllotment";
 
 Vue.use(Router);
 
@@ -18,6 +20,16 @@ export default new Router({
       path: "/",
       name: "home",
       component: Home
+    },
+    {
+      path: "/cdr/allot",
+      name: "cdr-allotment",
+      component: CDRAllotment
+    },
+    {
+      path: "/sqr/allot",
+      name: "sqr-allotment",
+      component: SQRAllotment
     },
     {
       path: "/te",
