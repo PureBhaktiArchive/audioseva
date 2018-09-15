@@ -1,0 +1,159 @@
+unable_to_play_or_download_box:
+  '#type': details
+  '#title': 'CLICK HERE if you are unable to play or download the audio'
+  '#attributes':
+    class:
+      - panel-warning
+  unable_to_play_or_download:
+    '#type': checkbox
+    '#title': 'I’m unable to play or download the audio'
+  audio_problem_description:
+    '#type': textarea
+    '#title': 'Describe the problem'
+    '#required': true
+    '#states':
+      visible:
+        ':input[name="unable_to_play_or_download"]':
+          checked: true
+cancellation_box:
+  '#type': details
+  '#title': 'CLICK HERE if the allotted lecture in not in your preferred language'
+  '#attributes':
+    class:
+      - panel-info
+  '#states':
+    visible:
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+  not_preferred_language:
+    '#type': checkbox
+    '#title': 'The allotted lecture is not in my preferred language'
+  reallot_label:
+    '#type': label
+    '#title': 'Please let us know which language it is in below. We will allot you new lectures shortly.'
+    '#states':
+      visible:
+        ':input[name="not_preferred_language"]':
+          checked: true
+tip:
+  '#type': markup
+  '#markup': 'Tip: It might be convenient for some devotees to note the lecture details for each field on paper first, while hearing the lecture and then enter into the Online Submission Form.'
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+audio_file_name:
+  '#type': textfield
+  '#title': 'A. Audio File Name'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>Generally, this field will be pre-filled in the form. But in exceptional cases, if it isn’t, please copy and paste the original audio file name, exactly as it is received from the Audio Seva Team by email.</li>
+    </ul>
+  '#autocomplete': 'off'
+  '#readonly': true
+  '#prepopulate': true
+  '#required': true
+  '#unique': true
+  '#unique_error': 'Sound Quality Report was already submitted for “%value” audio file. Please contact your coordinator.'
+sound_issues:
+  '#type': custom_composite
+  '#title': 'Sound Issues'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>TODO</li>
+    </ul>
+  '#multiple__header': false
+  '#multiple__sorting': false
+  '#element':
+    timing:
+      '#type': textfield
+      '#title': Timing
+    issue:
+      '#type': webform_radios_other
+      '#options':
+        'Background noise': 'Background noise'
+        Volume: 'Low volume or changing volume'
+        Reverberation: Reverberation
+      '#title': Issue
+    description:
+      '#type': textarea
+      '#title': Description
+sound_quality_rating:
+  '#type': radios
+  '#title': 'Sound Quality Rating'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>TODO</li>
+    </ul>
+  '#options': sound_quality_rating
+  '#options_display': side_by_side
+  '#required': true
+duration_group:
+  '#type': container
+  duration_label:
+    '#type': label
+    '#title': 'Total Duration of the Recording'
+  duration_box:
+    '#type': flexbox
+    '#attributes':
+      style: 'margin:0; padding:0;'
+    beginning:
+      '#type': textfield
+      '#title': Beginning
+      '#more_title': Guidelines
+      '#more': TODO
+      '#placeholder': 'Enter the timing in (h:)mm:ss format'
+      '#autocomplete': 'off'
+      '#required': true
+      '#pattern': '(\d:)?\d{1,2}:\d{1,2}'
+    ending:
+      '#type': textfield
+      '#title': Ending
+      '#placeholder': 'Enter the timing in (h:)mm:ss format'
+      '#autocomplete': 'off'
+      '#required': true
+      '#pattern': '(\d:)?\d{1,2}:\d{1,2}'
+comments:
+  '#type': textarea
+  '#title': Comments
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>TODO</li>
+    </ul>
+filled_by:
+  '#type': container
+  filled_by_label:
+    '#type': label
+    '#title': 'Q. Filled By'
+  name:
+    '#type': textfield
+    '#title': Name
+    '#required': true
+    '#more_title': Guidelines
+    '#more': |
+      <ul>
+      	<li>This field will be pre-filled along with you email address.</li>
+      	<li>In case it is blank, please write your name here, along with city or country and fill your registered email address in the next text box.</li>
+      </ul>
+    '#prepopulate': true
+    '#readonly': true
+  email_address:
+    '#type': email
+    '#title': 'Email Address'
+    '#title_display': inline
+    '#readonly': true
+    '#required': true
+    '#prepopulate': true
+actions:
+  '#type': webform_actions
+  '#title': 'Submit button(s)'
+  '#states':
+    disabled:
+      ':input[name="audio_file_name"]':
+        empty: true
