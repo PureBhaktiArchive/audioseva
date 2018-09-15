@@ -1,4 +1,5 @@
 import { SoundEditingAPI } from '../sound-editing/API';
+import { Devotee } from '../Devotee';
 
 // function getCachedOutput(source, key, expiration) {
 //   const cache = CacheService.getScriptCache();
@@ -20,6 +21,15 @@ function findSource(path) {
 
     case 'te/devotees':
       return SoundEditingAPI.getDevotees;
+
+    // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=devotees&role=Listening%20service
+    case 'devotees':
+      return parameter =>
+        Devotee.getByRole(parameter.role).map(devotee => ({
+          emailAddress: devotee.emailAddress,
+          name: devotee.name,
+          languages: devotee.languages
+        }));
 
     default:
       return null;
