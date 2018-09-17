@@ -1,5 +1,6 @@
 import { SoundEditingAPI } from '../sound-editing/API';
 import { Devotee } from '../Devotee';
+import { SQRBackend } from '../SQRBackend';
 
 // function getCachedOutput(source, key, expiration) {
 //   const cache = CacheService.getScriptCache();
@@ -30,6 +31,14 @@ function findSource(path) {
           name: devotee.name,
           languages: devotee.languages
         }));
+
+    // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=sqr/lists
+    case 'sqr/lists':
+      return SQRBackend.getLists;
+
+    // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=sqr/files&list=ML1&language=Hindi&count=50
+    case 'sqr/files':
+      return parameter => SQRBackend.getFiles(parameter.list, parameter.language, parameter.count);
 
     default:
       return null;

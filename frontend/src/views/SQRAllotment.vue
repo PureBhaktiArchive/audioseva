@@ -141,6 +141,29 @@ export default {
         this.lists = response.body;
       });
   },
+  watch: {
+    filter: {
+      deep: true,
+      handler: function() {
+        this.files = null;
+        this.allotment.files = [];
+
+        if (this.filter.list == null) return;
+
+        this.$http
+          .jsonp("exec", {
+            params: {
+              path: "sqr/files",
+              list: this.filter.list,
+              language: this.filter.language
+            }
+          })
+          .then(response => {
+            this.files = response.body;
+          });
+      }
+    }
+  },
   methods: {
     allot() {
       this.submissionStatus = "inProgress";
@@ -159,28 +182,6 @@ export default {
       Object.assign(this.$data.allotment, this.$options.data().allotment);
       Object.assign(this.$data.filter, this.$options.data().filter);
       this.submissionStatus = null;
-    }
-  },
-  watch: {
-    filter: {
-      deep: true,
-      handler: function() {
-        this.files = null;
-        this.allotment.files = [];
-
-        if (this.filter.list == null) return;
-
-        this.$http
-          .jsonp("exec", {
-            params: {
-              path: "sqr/files",
-              list: this.filter.list
-            }
-          })
-          .then(response => {
-            this.files = response.body;
-          });
-      }
     }
   }
 };
