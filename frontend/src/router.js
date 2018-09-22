@@ -1,50 +1,67 @@
 /*
  * sri sri guru gauranga jayatah
  */
+
+import firebase from "firebase/app";
+
 import Vue from "vue";
 import Router from "vue-router";
-import Home from "./views/Home.vue";
-import CDRAllotment from "@/views/CDRAllotment";
-import SQRAllotment from "@/views/SQRAllotment";
-import TEAllotment from "@/views/TEAllotment";
-import TFCAllotment from "@/views/TFCAllotment";
-import QCAllotment from "@/views/QCAllotment";
 
 Vue.use(Router);
 
-export default new Router({
+export const router = new Router({
   mode: "history",
   routes: [
     { path: "*", redirect: "/" },
     {
+      path: "/login",
+      meta: { guestOnly: true },
+      component: () => import("@/views/Login")
+    },
+    {
       path: "/",
-      name: "home",
-      component: Home
-    },
-    {
-      path: "/cdr/allot",
-      name: "cdr-allotment",
-      component: CDRAllotment
-    },
-    {
-      path: "/sqr/allot",
-      name: "sqr-allotment",
-      component: SQRAllotment
-    },
-    {
-      path: "/te",
-      name: "TE",
-      component: TEAllotment
-    },
-    {
-      path: "/te/fc/allot",
-      name: "TFC Allotment",
-      component: TFCAllotment
-    },
-    {
-      path: "/qc",
-      name: "qc",
-      component: QCAllotment
+      meta: { requireAuth: true },
+      component: () => import("@/views/Dashboard"),
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/Home")
+        },
+        {
+          path: "cr/allot",
+          component: () => import("@/views/CRAllotment")
+        },
+        {
+          path: "sqr/allot",
+          component: () => import("@/views/SQRAllotment")
+        },
+        {
+          path: "te/allot",
+          component: () => import("@/views/TEAllotment")
+        },
+        {
+          path: "te/fc/allot",
+          component: () => import("@/views/TFCAllotment")
+        },
+        {
+          path: "/qc/allot",
+          component: () => import("@/views/QCAllotment")
+        }
+      ]
     }
   ]
+});
+
+router.beforeEach((to, from, next) => {
+  let currentUser = firebase.auth().currentUser;
+  let requireAuth = to.matched.some(record => record.meta.requireAuth);
+  let guestOnly = to.matched.some(record => record.meta.guestOnly);
+
+  if (requireAuth && !currentUser)
+    next({
+      path: "/login",
+      query: { redirect: to.fullPath }
+    });
+  else if (guestOnly && currentUser) next("/");
+  else next();
 });

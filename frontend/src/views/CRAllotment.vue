@@ -3,7 +3,7 @@
  */
 <template>
   <div>
-    <h1>Content Details Reporting</h1>
+    <h1>Content Reporting</h1>
     <form @submit.stop.prevent="allot" v-show="submissionStatus != 'complete'">
 
       <!-- Devotee -->
@@ -103,7 +103,7 @@
 
 <script>
 export default {
-  name: "ListeningAllotment",
+  name: "Content Reporting Allotment",
   http: {
     root:
       "https://script.google.com/macros/s/AKfycbzA-Ymekm0TYYqns8Z22GGBNkfI43lRyv6ofYx8CEyWU0Sao9Ll/"
