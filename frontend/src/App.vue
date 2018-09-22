@@ -1,7 +1,25 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="sidebar" app>
-      <v-list>
+    <v-navigation-drawer v-model="sidebar" app v-if="currentUser">
+      <v-toolbar flat class="transparent">
+        <v-list class="pa-0">
+          <v-list-tile avatar>
+            <v-list-tile-avatar>
+              <img :src="currentUser.photoURL">
+            </v-list-tile-avatar>
+            <v-list-tile-content>
+              <v-list-tile-title>{{currentUser.displayName}}</v-list-tile-title>
+            </v-list-tile-content>
+            <v-list-tile-action>
+              <v-btn icon ripple @click="signOut">
+                <v-icon>fas fa-sign-out-alt</v-icon>
+              </v-btn>
+            </v-list-tile-action>
+          </v-list-tile>
+        </v-list>
+      </v-toolbar>
+      <v-list dense>
+        <v-divider></v-divider>
         <v-list-tile
           v-for="item in sidebarItems"
           :key="item.title"
@@ -11,28 +29,24 @@
           </v-list-tile-action>
           <v-list-tile-content>{{ item.title }}</v-list-tile-content>
         </v-list-tile>
+        <v-divider></v-divider>
+        <v-list-tile @click="signOut" v-if="currentUser">
+          <v-list-tile-action>
+            <v-icon left>fas fa-sign-out-alt</v-icon>
+          </v-list-tile-action>
+          <v-list-tile-content>SignOut</v-list-tile-content>
+        </v-list-tile>
       </v-list>
     </v-navigation-drawer>
 
     <v-toolbar app>
-      <v-toolbar-side-icon @click="sidebar = !sidebar">
+      <v-toolbar-side-icon @click="sidebar = !sidebar" v-if="currentUser">
       </v-toolbar-side-icon>
       <v-toolbar-title>
         <router-link to="/" tag="span" style="cursor: pointer">
           {{ appTitle }}
         </router-link>
       </v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-toolbar-items class="hidden-xs-only">
-        <v-btn
-          flat
-          v-for="item in toolbarItems"
-          :key="item.title"
-          :to="item.path">
-          <v-icon left>{{ item.icon }}</v-icon>
-          {{ item.title }}
-        </v-btn>
-      </v-toolbar-items>
     </v-toolbar>
     
     <v-content>
@@ -43,6 +57,8 @@
 </template>
 
 <script>
+import { mapState, mapActions } from "vuex";
+
 export default {
   data() {
     return {
@@ -69,9 +85,14 @@ export default {
           path: "/qc/allot",
           icon: this.$vuetify.icons.quality
         }
-      ],
-      toolbarItems: []
+      ]
     };
+  },
+  computed: {
+    ...mapState("user", ["currentUser"])
+  },
+  methods: {
+    ...mapActions("user", ["signOut"])
   }
 };
 </script>

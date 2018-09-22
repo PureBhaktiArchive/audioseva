@@ -1,12 +1,16 @@
 /*
  * sri sri guru gauranga jayatah
  */
+
+import fb from "@/firebaseApp";
+
 import Vue from "vue";
 import VueResource from "vue-resource";
 
 import App from "./App.vue";
-import router from "./router";
-import store from "./store";
+
+import { router } from "@/router";
+import { store } from "@/store";
 
 import Vuetify from "vuetify";
 import "vuetify/dist/vuetify.min.css";
@@ -23,10 +27,12 @@ Vue.use(Vuetify, {
   }
 });
 
-Vue.config.productionTip = false;
+var unsubscribe = fb.auth().onAuthStateChanged(() => {
+  new Vue({
+    router,
+    store,
+    render: h => h(App)
+  }).$mount("#app");
 
-new Vue({
-  router,
-  store,
-  render: h => h(App)
-}).$mount("#app");
+  unsubscribe();
+});
