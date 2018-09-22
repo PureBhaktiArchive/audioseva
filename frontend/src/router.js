@@ -16,22 +16,18 @@ export default new Router({
     { path: "*", redirect: "/" },
     {
       path: "/",
-      name: "home",
       component: Home
     },
     {
-      path: "/te",
-      name: "TE",
+      path: "/te/allot",
       component: TEAllotment
     },
     {
       path: "/te/fc/allot",
-      name: "TFC Allotment",
       component: TFCAllotment
     },
     {
-      path: "/qc",
-      name: "qc",
+      path: "/qc/allot",
       component: QCAllotment
     }
   ]

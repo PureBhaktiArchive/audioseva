@@ -2,21 +2,26 @@
  * sri sri guru gauranga jayatah
  */
 import Vue from "vue";
-import Octicon from "vue-octicon/components/Octicon.vue";
-import vSelect from "vue-select";
 import VueResource from "vue-resource";
 
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 
-import "../node_modules/bootstrap/scss/bootstrap.scss";
-import "vue-octicon/icons";
+import Vuetify from "vuetify";
+import "vuetify/dist/vuetify.min.css";
 
-Vue.component("octicon", Octicon);
-Vue.component("v-select", vSelect);
+import "@babel/polyfill";
 
 Vue.use(VueResource);
+Vue.use(Vuetify, {
+  iconfont: "fa",
+  icons: {
+    listening: "fas fa-headphones",
+    track: "fas fa-cut",
+    quality: "fas fa-check"
+  }
+});
 
 Vue.config.productionTip = false;
 
