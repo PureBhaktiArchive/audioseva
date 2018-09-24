@@ -4,91 +4,65 @@
 <template>
   <div>
     <h1>Content Reporting</h1>
-    <form @submit.stop.prevent="allot" v-show="submissionStatus != 'complete'">
+    <v-form @submit.stop.prevent="allot" v-show="submissionStatus != 'complete'">
+      <v-container fluid>
+        <v-autocomplete v-model="allotment.devotee" :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''" :items="devotees" item-text="name" label="Select a devotee" persistent-hint return-object clearable dense>
+        </v-autocomplete>
 
-      <!-- Devotee -->
-      <div class="form-group row">
-        <label for="devotee" class="col-sm-2 control-label">Devotee</label>
-        <div class="col-col-sm-offset-2 col-sm-10">
-          <v-select name="devotee" required :options="devotees" v-model="allotment.devotee" label="name">
-            <template slot="option" slot-scope="option">
-              <div>
-                <div class="row">
-                  <div class="col-md-4">
-                    <strong>{{option.name}}</strong>
-                  </div>
-                  <div class="col-md-4">{{option.emailAddress}}</div>
-                </div>
-              </div>
-            </template>
-          </v-select>
+        <!-- Language -->
+        <v-radio-group v-model="filter.language" label="Langauge" row>
+          <v-radio v-for="language in languages" :key="language" :label="language" :value="language"></v-radio>
+        </v-radio-group>
+
+        <!-- List -->
+        <v-radio-group v-model="filter.list" :mandatory="true" :loading="!lists" label="List" row>
+          <v-radio v-for="list in lists" :key="list" :label="list" :value="list"></v-radio>
+        </v-radio-group>
+
+        <!-- Files -->
+        <v-container fluid v-show="files != null || filter.language && filter.list">
+          <v-checkbox v-for="file in files" :key="file.filename" v-model="allotment.files" :label="file.filename" :value="file" :loading="!files"></v-checkbox>
+        </v-container>
+      </v-container>
+    </v-form>
+
+    <div class="form-group row" v-show="files != null || filter.language && filter.list">
+      <label for="files" class="col-sm-2 control-label">Files</label>
+      <div class="col-sm-10" v-if="files">
+        <div class="form-check" v-for="file in files" :key="file.filename">
+          <input class="form-check-input" type="checkbox" v-model="allotment.files" :id="'file-' + file.filename" :value="file" />
+          <label class="form-check-label" :for="'file-' + file.filename">
+            <code>{{ file.filename }}</code>
+            <span>{{ file.notes }}</span>
+          </label>
         </div>
-        <div class="col-sm-offset-2 col-sm-10" v-if="allotment.devotee != null">Devotee languages: <strong>{{ allotment.devotee.languages.join(', ')}}</strong></div>
+        <span v-if="files.length === 0">No {{filter.language}} files in {{filter.list}} list</span>
       </div>
+      <span class="form-control-static col-sm-10" v-else>Loading…</span>
+    </div>
 
-      <!-- Language -->
-      <div class="form-group row">
-        <label class="col-sm-2 control-label">Language</label>
-        <div class="col-sm-10">
-          <div class="form-check form-check-inline" v-for="language in languages" :key="language">
-            <input class="form-check-input" type="radio" v-model="filter.language" :value="language" name="language" :id="'language' + language" required>
-            <label class="form-check-label" :for="'language' + language">{{ language }}</label>
-          </div>
-        </div>
+    <!-- Comment -->
+    <div class="form-group row">
+      <label for="comment" class="col-sm-2 control-label">Comment</label>
+      <div class="col-sm-10">
+        <textarea v-model="allotment.comment" class="form-control" rows="3"></textarea>
       </div>
+    </div>
 
-      <!-- List -->
-      <div class="form-group row">
-        <label class="col-sm-2 control-label">List</label>
-        <div class="col-sm-10">
-          <template v-if="lists">
-            <div class="form-check form-check-inline" v-for="list in lists" :key="list">
-              <input class="form-check-input" type="radio" v-model="filter.list" :value="list" name="list" :id="'list' + list" required>
-              <label class="form-check-label" :for="'list' + list">{{ list }}</label>
-            </div>
-          </template>
-          <p class="form-control-static" v-else>Loading…</p>
-        </div>
+    <!-- Buttons -->
+    <div class="form-group row">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="submit" class="btn btn-primary" :disabled="submissionStatus === 'inProgress'">Allot
+          <span class="glyphicon glyphicon-refresh rotate" aria-hidden="true" v-show="submissionStatus === 'inProgress'"></span>
+        </button>
       </div>
-
-      <!-- Files -->
-      <div class="form-group row" v-show="files != null || filter.language && filter.list">
-        <label for="files" class="col-sm-2 control-label">Files</label>
-        <div class="col-sm-10" v-if="files">
-          <div class="form-check" v-for="file in files" :key="file.filename">
-            <input class="form-check-input" type="checkbox" v-model="allotment.files" :id="'file-' + file.filename" :value="file" />
-            <label class="form-check-label" :for="'file-' + file.filename">
-              <code>{{ file.filename }}</code>
-              <span>{{ file.notes }}</span>
-            </label>
-          </div>
-          <span v-if="files.length === 0">No {{filter.language}} files in {{filter.list}} list</span>
-        </div>
-        <span class="form-control-static col-sm-10" v-else>Loading…</span>
-      </div>
-
-      <!-- Comment -->
-      <div class="form-group row">
-        <label for="comment" class="col-sm-2 control-label">Comment</label>
-        <div class="col-sm-10">
-          <textarea v-model="allotment.comment" class="form-control" rows="3"></textarea>
-        </div>
-      </div>
-
-      <!-- Buttons -->
-      <div class="form-group row">
-        <div class="col-sm-offset-2 col-sm-10">
-          <button type="submit" class="btn btn-primary" :disabled="submissionStatus === 'inProgress'">Allot
-            <span class="glyphicon glyphicon-refresh rotate" aria-hidden="true" v-show="submissionStatus === 'inProgress'"></span>
-          </button>
-        </div>
-      </div>
-
-    </form>
+    </div>
 
     <div class="alert alert-success col-sm-offset-2 col-sm-10" role="alert" v-show="submissionStatus === 'complete'">
       <h4 class="alert-heading">Allotted succesfully</h4>
-      <p class="mb-0"><button type="button" class="btn btn-link" @click="reset">Make another allotment</button></p>
+      <p class="mb-0">
+        <button type="button" class="btn btn-link" @click="reset">Make another allotment</button>
+      </p>
     </div>
 
   </div>
@@ -103,7 +77,7 @@
 
 <script>
 export default {
-  name: "Content Reporting Allotment",
+  name: "CRAllotment",
   http: {
     root:
       "https://script.google.com/macros/s/AKfycbzA-Ymekm0TYYqns8Z22GGBNkfI43lRyv6ofYx8CEyWU0Sao9Ll/"
@@ -112,7 +86,7 @@ export default {
     devotees: [],
     languages: ["English", "Hindi", "Bengali"],
     lists: null,
-    files: null,
+    files: [],
     filter: {
       language: null,
       list: null
@@ -125,7 +99,7 @@ export default {
     submissionStatus: null
   }),
   mounted: function() {
-    // Getting TEs
+    // Getting devotees
     this.$http
       .jsonp("exec", {
         params: { path: "devotees", role: "Listening service" }
@@ -136,7 +110,7 @@ export default {
 
     // Getting lists
     this.$http
-      .jsonp("exec", { params: { path: "cdr/lists" } })
+      .jsonp("exec", { params: { path: "cr/lists" } })
       .then(response => {
         this.lists = response.body;
       });
@@ -173,8 +147,9 @@ export default {
         this.$http
           .jsonp("exec", {
             params: {
-              path: "cdr/files",
-              list: this.filter.list
+              path: "cr/files",
+              list: this.filter.list,
+              language: this.filter.language
             }
           })
           .then(response => {
