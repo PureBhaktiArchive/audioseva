@@ -1,0 +1,122 @@
+task_id:
+  "#type": hidden
+  "#title": "Task ID"
+  "#prepopulate": true
+output_file_name:
+  "#type": textfield
+  "#title": "Output File Name"
+  "#readonly": true
+  "#prepopulate": true
+task_action:
+  "#type": textfield
+  "#title": "Task Action"
+  "#readonly": true
+  "#prepopulate": true
+sound_issues:
+  "#type": custom_composite
+  "#title": "Comments for SE (Sound Issues)"
+  "#multiple__header": false
+  "#multiple__sorting": false
+  "#element":
+    timing:
+      "#type": textfield
+      "#title": Timing
+    issue:
+      "#type": webform_radios_other
+      "#options":
+        "Background noise": "Background noise"
+        Volume: "Low volume or changing volume"
+        Reverberation: Reverberation
+      "#title": Issue
+    description:
+      "#type": textarea
+      "#title": Description
+  "#states":
+    visible:
+      ':input[name="task_action"]':
+        value: Edit
+sound_quality_rating:
+  "#type": radios
+  "#title": "Sound Quality Rating"
+  "#options": sound_quality_rating
+  "#options_display": side_by_side
+  "#required": true
+  "#states":
+    visible:
+      ':input[name="task_action"]':
+        value: Edit
+duration:
+  "#type": textfield
+  "#title": "Total Duration of Edited File"
+  "#required": true
+  "#states":
+    visible:
+      ':input[name="task_action"]':
+        value: Edit
+can_be_dropped:
+  "#type": radios
+  "#title": "Can this part be dropped?"
+  "#options":
+    "Yes": "<b>Yes</b> - this part is indeed unwanted"
+    "No": "<b>No</b> - this part should be reconsidered"
+  "#required": true
+  "#states":
+    visible:
+      ':input[name="task_action"]':
+        pattern: ^Confirm
+comments:
+  "#type": textarea
+  "#title": Comments
+  "#states":
+    required:
+      ':input[name="can_be_dropped"]':
+        value: No
+uploaded_group:
+  "#type": container
+  "#states":
+    visible:
+      ':input[name="task_action"]':
+        value: Edit
+  uploaded:
+    "#type": radios
+    "#title": "The Output File is already uploaded"
+    "#required": true
+    "#options": yes_no
+    "#options_display": side_by_side
+    "#states":
+      visible:
+        ':input[name="task_action"]':
+          value: Edit
+  reason_for_not_uploading:
+    "#type": textarea
+    "#title": Specify the reason why you have not uploaded the file
+    "#required": true
+    "#states":
+      visible:
+        ':input[name="uploaded"]':
+          value: No
+filled_by:
+  "#type": container
+  filled_by_label:
+    "#type": label
+    "#title": "Filled By"
+  name:
+    "#type": textfield
+    "#title": Name
+    "#required": true
+    "#readonly": true
+    "#prepopulate": true
+  email_address:
+    "#type": email
+    "#title": "Email Address"
+    "#title_display": inline
+    "#required": true
+    "#readonly": true
+    "#prepopulate": true
+actions:
+  "#type": webform_actions
+  "#title": "Submit button(s)"
+  "#states":
+    disabled:
+      ':input[name="task_id"]':
+        empty: true

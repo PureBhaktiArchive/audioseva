@@ -1,0 +1,444 @@
+direct_input:
+  '#type': hidden
+  '#title': 'Direct Input Allowed'
+  '#prepopulate': true
+prefilled_link_should_be_used:
+  '#type': message
+  '#message_type': warning
+  '#message_message': 'Please use &ldquo;Submit with Online Submission Form&rdquo; link from the email.'
+  '#states':
+    visible:
+      ':input[name="direct_input"]':
+        '!value': Haribol
+      ':input[name="tape_number"]':
+        empty: true
+unable_to_play_or_download_box:
+  '#type': details
+  '#title': 'CLICK HERE if you are unable to play or download the audio'
+  '#attributes':
+    class:
+      - panel-warning
+  unable_to_play_or_download:
+    '#type': checkbox
+    '#title': 'I’m unable to play or download the audio'
+  audio_problem_description:
+    '#type': textarea
+    '#title': 'Describe the problem'
+    '#required': true
+    '#states':
+      visible:
+        ':input[name="unable_to_play_or_download"]':
+          checked: true
+cancellation_box:
+  '#type': details
+  '#title': 'CLICK HERE if the allotted lecture in not in your preferred language'
+  '#attributes':
+    class:
+      - panel-info
+  '#states':
+    visible:
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+  not_preferred_language:
+    '#type': checkbox
+    '#title': 'The allotted lecture is not in my preferred language'
+  reallot_label:
+    '#type': label
+    '#title': 'Please let us know which language it is in below. We will allot you new lectures shortly.'
+    '#states':
+      visible:
+        ':input[name="not_preferred_language"]':
+          checked: true
+tip:
+  '#type': markup
+  '#markup': 'Tip: It might be convenient for some devotees to note the lecture details for each field on paper first, while hearing the lecture and then enter into the Online Submission Form.'
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+tape_number:
+  '#type': textfield
+  '#title': 'A. Audio File Name'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>Generally, this field will be pre-filled in the form. But in exceptional cases, if it isn’t, please copy and paste the original audio file name, exactly as it is received from the Audio Seva Team by email.</li>
+    </ul>
+  '#autocomplete': 'off'
+  '#prepopulate': true
+  '#required': true
+  '#states':
+    readonly:
+      ':input[name="direct_input"]':
+        '!value': Haribol
+fused_lecture:
+  '#type': radios
+  '#title': 'B. Fused Lecture'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>While digitizing, multiple recordings on one side of the cassette merge together into one audio file. When you hear the audio, if you notice that there are various lectures with different themes/ dates/ locations etc. in the same audio file, then such an audio
+    		file is to be treated as a Fused lecture. If this is the case, choose ‘Yes’ in this field. Otherwise please choose ‘No’.</li>
+    	<li>Details for each individual recording in the same audio file are to be filled separately in a new form. In such cases, please fill the same Online Submission Form link again, after you press the submit button.</li>
+    	<li>For example, suppose an audio file given to you has two lectures fused in it: first one from 00:00 to 30:20 and the next from 31:00 to 46:00. Then please choose ‘Yes’ in this field and write the beginning and ending timings of each lecture in Field C.
+    		(In this case 00:00 – 30:20, in the first form) Then mention all the details from 00:00 – 30:20 in the first form and submit it. Once you submit, you will be directed to another page with a confirmation message like this:
+        <div class="center-block alert alert-success text-center">
+          <p><strong>Thank you! We have received your submission.&nbsp;</strong></p>
+          <p><strong>For fused lectures, please click the button below to submit the next lecture within the same audio file.</strong></p>
+          <div class="btn btn-primary">Make another submission for fused lectures</div>
+        </div>
+      </li>
+      <li>To fill the details of the next fused lecture in the same audio file, click the button- ‘Make another submission for fused lecture’. You will now be directed to a new submission form with the same audio file name pre-filled, along with your name and email id. Start over again, on the same form, which would now have the same audio file name, with all the other fields blank. Choose ‘Yes’ again for Fused lectures and mention the timings in field C as
+        31:00 – 46:00. Then, in all the remaining fields in this form, mention the details of the lecture from 31:00 – 46:00.</li>
+    </ul>
+  '#prepopulate': true
+  '#options': yes_no
+  '#options_display': side_by_side
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+timing_for_fused_lecture:
+  '#type': textfield
+  '#title': 'C. Timing (only for fused lecture)'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>Please note that this field needs to be filled ONLY in the case of Fused lectures.</li>
+    	<li>Please write the timing when the new lecture begins and ends in min:sec or hr:min:sec format, as applicable.</li>
+    	<li>This will help the Audio Seva Team to separate the individual lectures and archive them with appropriate labeling.</li>
+    </ul>
+  '#prepopulate': true
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+    enabled:
+      ':input[name="fused_lecture"]':
+        value: 'Yes'
+    required:
+      ':input[name="fused_lecture"]':
+        value: 'Yes'
+date:
+  '#type': textfield
+  '#title': 'D. Date'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+      <li>This is taken from the original file name OR from the lecture. Please maintain YYYY-MM-DD format.</li>
+    	<li>Please write the date of the recording if it can be obtained by hearing. For example, at the end of the lecture, some devotee might announce the date or the tithi (lunar day such as ekadasi, pratipata, etc. or special day such as Janmastami, Gaura Purnima,
+    		etc.)</li>
+    	<li>If you are unsure of the date, please put a ‘?’ after the suggestion.</li>
+    	<li>In the case that the date is missing, if any tithi is alluded to in the lecture, please mention it here, as it might help us to arrive at a date by backward calculation. For instance: Srila Gurudeva might say, “Tomorrow is Govardhan Annakuta. We will
+    		have a festival…” Then please mention ‘Tomorrow is Govardhan Annakuta’ here.</li>
+      <li>This field is crucial for organizing the archive as well as identifying duplicates, so any information provided here may help.</li>
+    </ul>
+  '#prepopulate': true
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+location:
+  '#type': textfield
+  '#title': 'E. Location'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>Please specify any information that indicates a place of the recording.</li>
+    	<li>Write the name of the city here. If the city is not known, write the country name here.</li>
+    	<li>Also during a lecture you may ascertain whether it’s in a Matha, during parikrama, etc. Please mention this information here.</li>
+    </ul>
+  '#prepopulate': true
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+category:
+  '#type': radios_other
+  '#title': 'F. Category'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>If you are able to determine whether it is a darsana, lecture, parikrama, walk or conference, please click the appropriate option here.
+    		<ul>
+    			<li><u>Darsana</u>: Comparatively casual talk, Q&amp;A, no prayers at the beginning and/ or end, guests visits, etc.</li>
+    			<li><u>Lecture</u>: Organised katha, with invocation offered at the beginning and/ or end, not much interaction, Srila Gurudeva speaking on a particular topic</li>
+    			<li><u>Parikrama</u>: Visiting specific parikrama spots (‘This is Nanda Baba’s palace, ‘Here Mahaprabhu took sannyasa’, etc.)</li>
+    			<li><u>Walk</u>: Q&amp;A with disciples, informal talk or discussion on specific topics, no invocation at beginning and/ or end, sounds of outdoors like chirping of birds, cars, etc.</li>
+    			<li><u>Conference</u>: A formal forum where various speakers have been invited to discuss about a particular topic. For instance: Rupa Gosvami Conference</li>
+          <li>In case of any other instance, not covered above, please mention in ‘Other’ field.</li>
+        </ul>
+      </li>
+    </ul>
+  '#prepopulate': true
+  '#options':
+    Darsana: Darśana
+    Lecture: Lecture
+    Parikrama: Parikrama
+    Walk: Walk
+    Conference: Conference
+  '#options_display': side_by_side
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+topics:
+  '#type': textarea
+  '#title': 'G. Topics'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>This field is helpful for titling and identifying duplicates.</li>
+    	<li>Please try to mention the important topics which Srila Gurudeva has touched upon in the lecture. If Srila Gurudeva is speaking from a particular scripture (e.g. Srimad Bhagavatam, Madhurya Kadambini, etc.), please mention the same here.</li>
+    	<li>Also mention topics spoken by devotees who Srila Gurudeva requested to speak, along with their names, if possible. (This is not applicable in the case of a conference, as per the category described for # F above)</li>
+    	<li>Details are not to be mentioned. However, this should not be at the cost of missing out on some topic Srila Gurudeva is speaking about. Typically a 45 minute lecture would have 4-6 topics discussed, but if you are unsure whether to leave out a detail,
+    		rather mention it.</li>
+    	<li>Please write each topic on a separate line.</li>
+    	<li>Add a hyphen (-) at the beginning of each line for ease of reading.</li>
+    </ul>
+  '#prepopulate': true
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+gurudeva_timings:
+  '#type': textarea
+  '#title': 'H. Gurudeva Timings'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>Please note down only the minutes when Srila Gurudeva speaks in the recording.</li>
+    	<li>Suppose Srila Gurudeva spoke in the beginning and then didn’t speak between 16:11 and 22:02, please write “1:00 to 16:11 and then 22:02 to 40:09” here.</li>
+    	<li>In the case of question and answer, the timing when the question is asked can be clubbed together as Gurudeva Timings.</li>
+      <li>If only Srila Gurudeva spoke during the entire lecture, OR if he never spoke, please mention it here.</li>
+    </ul>
+  '#prepopulate': true
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+other_speakers:
+  '#type': textarea
+  '#title': 'I. Other Speakers'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>If any speakers other than Srila Gurudeva are speaking, please mention the name and language in which they are speaking</li>
+    	<li>If you are unable to determine who the speaker is, you may write ‘Yes, ?’ here.</li>
+    </ul>
+  '#prepopulate': true
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+kirtana:
+  '#type': textarea
+  '#title': 'J. Kirtana'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>Does the file have one or more kirtanas? If not, write ‘No’ here. If yes, please mention which minute the kirtana starts and stops.</li>
+    	<li>If possible, mention the name of the kirtana</li>
+    	<li>If Srila Gurudeva himself is leading the kirtana, please mention.</li>
+    </ul>
+  '#prepopulate': true
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+abrupt_lecture:
+  '#type': checkboxes_other
+  '#title': 'K. Abrupt lecture'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>If the lecture is beginning or ending abruptly, please choose the appropriate option here.</li>
+    </ul>
+  '#prepopulate': true
+  '#options':
+    Beginning: 'Abrupt in the beginning'
+    End: 'Abrupt in the end'
+  '#options_display': side_by_side
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+suggested_title:
+  '#type': textfield
+  '#title': 'L. Suggested Title'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>Title can be any most important topic that Srila Gurudeva stressed on during the lecture. E.g.: If there are 3 lectures given on verse one, Manah Siksa Verse 1 – honour the brahmanas, Manah Siksa Verse 1 – Dedicatedly chant Diksa mantras could be mentioned
+    		instead of generalizing as Manah Siksa 1</li>
+    	<li>It can also be a line he said in the kathas it is. E.g.: ‘Importance of guru-seva’, ‘No progress without seva’, etc.</li>
+    </ul>
+  '#prepopulate': true
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+lecture_languages:
+  '#type': checkboxes_other
+  '#title': 'M. Lecture Language(s)'
+  '#more_title': Guidelines
+  '#more': |
+    <ul>
+    	<li>Please tick which language(s) Srila Gurudeva is speaking
+    		<ul>
+    			<li>Hindi</li>
+    			<li>English</li>
+    			<li>Bengali</li>
+    			<li>For multiple languages, tick multiple checkboxes.</li>
+    			<li>In case of some other language, please choose ‘Other’ and mention language if possible.</li>
+    		</ul>
+    	</li>
+    </ul>
+  '#prepopulate': true
+  '#options':
+    Hindi: Hindi
+    English: English
+    Bengali: Bengali
+  '#options_display': side_by_side
+  '#states':
+    required:
+      ':input[name="not_preferred_language"]':
+        checked: true
+    visible:
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+sound_quality_group:
+  '#type': container
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+  sound_quality_label:
+    '#type': label
+    '#title': 'N. Sound Issues'
+  sound_issues:
+    '#type': textarea
+    '#title': Details
+    '#more_title': Guidelines
+    '#more': |
+      <ul>
+      	<li>This field is crucial for cleaning up the audio files for enhanced audibility.</li>
+      	<li>If the lecture has some sound issues like too much background noise, or long blank pauses, low sound or some part of the speech needs to be edited, please mention here with comments on what the issue is and minutes where the disturbance occurs.</li>
+        <li>If the lecture is blank after a certain point till the end (or from the beginning till a certain point) please mention this along with the details of the timings.</li>
+        <li>You may mention in as much detail as you think fit.</li>
+        <li>Please choose one of the options below to indicate the overall experience of the sound quality while hearing the lecture.</li>
+      </ul>
+    '#prepopulate': true
+  sound_quality:
+    '#type': radios
+    '#title': 'Summary - how was the sound quality of the overall audio?'
+    '#prepopulate': true
+    '#options':
+      Good: '<b>Good</b> - You can hear Srila Gurudeva clearly with very little or no disturbance'
+      Average: '<b>Average</b> - Srila Gurudeva can be heard clearly but there are background noises or the volumn is low'
+      Bad: '<b>Bad</b> - You can hear Srila Gurudeva but need to strain because of either very low volume, or too much background noise, constant distractions, etc'
+      Inaudible: '<b>Inaudible</b> - You can make out that there is some recording but cannot hear anything clearly'
+      Blank: '<b>Blank</b> - There is no sound at all or just irrelevant sound (like someone forgot to stop recording)'
+    '#required': true
+    '#states':
+      visible:
+        ':input[name="not_preferred_language"]':
+          checked: false
+        ':input[name="unable_to_play_or_download"]':
+          checked: false
+continuation_group:
+  '#type': container
+  '#title': 'O. Continuation'
+  '#states':
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+  continuation_label:
+    '#type': label
+    '#title': 'O. Continuation'
+  is_this_a_continuation_of_another_lecture:
+    '#type': checkbox
+    '#title': 'This is the continuation of a lecture I have worked on'
+    '#more_title': Guidelines
+    '#more': 'If this audio file is a continuation of a lecture from another audio file, mention the file name from which it continues.'
+    '#prepopulate': true
+  audio_file_name_where_the_lecture_starts:
+    '#type': textfield
+    '#title': 'Audio file name from which the lecture continues'
+    '#prepopulate': true
+    '#required': true
+    '#states':
+      visible:
+        ':input[name="is_this_a_continuation_of_another_lecture"]':
+          checked: true
+comments:
+  '#type': textarea
+  '#title': 'P. Comments'
+  '#more_title': Guidelines
+  '#more': 'Please write any other comments you wish to mention about the file, that will help us to categorise / label the lecture properly or provide any other helpful information here.'
+  '#prepopulate': true
+  '#states':
+    visible:
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+filled_by:
+  '#type': container
+  filled_by_label:
+    '#type': label
+    '#title': 'Q. Filled By'
+  name:
+    '#type': textfield
+    '#title': Name
+    '#required': true
+    '#more_title': Guidelines
+    '#more': |
+      <ul>
+      	<li>This field will be pre-filled along with you email address.</li>
+      	<li>In case it is blank, please write your name here, along with city or country and fill your registered email address in the next text box.</li>
+      </ul>
+    '#prepopulate': true
+    '#states':
+      readonly:
+        ':input[name="direct_input"]':
+          '!value': Haribol
+  email_address:
+    '#type': email
+    '#title': 'Email Address'
+    '#title_display': inline
+    '#states':
+      readonly:
+        ':input[name="direct_input"]':
+          '!value': Haribol
+    '#required': true
+    '#prepopulate': true
+actions:
+  '#type': webform_actions
+  '#title': 'Submit button(s)'

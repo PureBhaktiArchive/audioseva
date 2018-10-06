@@ -1,0 +1,17 @@
+<?php
+/**
+* sri sri guru gauranga jayatah
+* Srila Gurudeva ki jaya!
+**/
+
+function listen_page_theme($existing, $type, $theme, $path) {
+  return [
+    'listen_page' => [
+      'variables' => [
+        'audio_src' => NULL,
+      ],
+    ],
+  ];
+}
+
+?>
