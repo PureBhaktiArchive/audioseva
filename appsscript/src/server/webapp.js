@@ -1,5 +1,6 @@
 import { Devotee } from '../Devotee';
 import { CRBackend } from '../CRBackend';
+import { SQRBackend } from '../SQRBackend';
 
 class WebApp {
   static get sources() {
@@ -9,6 +10,12 @@ class WebApp {
 
       // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=cr/files&list=JAG&language=English&count=50
       'cr/files': p => CRBackend.getFiles(p.list, p.language, p.count),
+
+      // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=sqr/lists
+      'sqr/lists': p => WebApp.getCachedContent(p, SQRBackend.getLists),
+
+      // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=sqr/files&list=JAG&language=English&count=50
+      'sqr/files': p => SQRBackend.getFiles(p.list, p.language, p.count),
 
       // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=devotees&role=Listening%20service
       devotees: p =>

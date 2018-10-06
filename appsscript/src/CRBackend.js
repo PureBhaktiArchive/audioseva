@@ -20,8 +20,7 @@ export class CRBackend {
     return CRBackend.allotmentsTable.items
       .filter(item => item.getFieldValue('Status') === '')
       .map(item => item.getFieldValue('List'))
-      .filter((value, index, self) => value !== '' && self.indexOf(value) === index) // Filled and Unique
-      .sort();
+      .filter((value, index, self) => value !== '' && self.indexOf(value) === index); // Filled and Unique
   }
 
   static getFiles(list, language, count) {
@@ -34,6 +33,7 @@ export class CRBackend {
       )
       .map(item => ({
         filename: item.getFieldValue('File Name'),
+        list: item.getFieldValue('List'),
         serial: item.getFieldValue('Serial'),
         notes: item.getFieldValue('Notes'),
         language: item.getFieldValue('Language')

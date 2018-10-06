@@ -2,96 +2,61 @@
  * sri sri guru gauranga jayatah
  */
 <template>
-  <div>
+  <v-container>
     <h1>Sound Quality Reporting</h1>
-    <form @submit.stop.prevent="allot" v-show="submissionStatus != 'complete'">
-
-      <!-- Devotee -->
-      <div class="form-group row">
-        <label for="devotee" class="col-sm-2 control-label">Devotee</label>
-        <div class="col-col-sm-offset-2 col-sm-10">
-          <v-select name="devotee" required :options="devotees" v-model="allotment.devotee" label="name">
-            <template slot="option" slot-scope="option">
-              <div>
-                <div class="row">
-                  <div class="col-md-4">
-                    <strong>{{option.name}}</strong>
-                  </div>
-                  <div class="col-md-4">{{option.emailAddress}}</div>
-                </div>
-              </div>
-            </template>
-          </v-select>
-        </div>
-        <div class="col-sm-offset-2 col-sm-10" v-if="allotment.devotee != null">Devotee languages: <strong>{{ allotment.devotee.languages.join(', ')}}</strong></div>
-      </div>
-
+    <v-form @submit.stop.prevent v-show="submissionStatus != 'complete'" class="pa-3 pt-4">
+      <v-autocomplete
+        v-model="allotment.devotee"
+        :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''"
+        :items="devotees"
+        item-text="name"
+        label="Select a devotee"
+        persistent-hint
+        return-object
+        clearable
+        dense
+      ></v-autocomplete>
       <!-- Language -->
-      <div class="form-group row">
-        <label class="col-sm-2 control-label">Language</label>
-        <div class="col-sm-10">
-          <div class="form-check form-check-inline" v-for="language in languages" :key="language">
-            <input class="form-check-input" type="radio" v-model="filter.language" :value="language" name="language" :id="'language' + language" required>
-            <label class="form-check-label" :for="'language' + language">{{ language }}</label>
-          </div>
-        </div>
-      </div>
-
+      <v-layout row class="py-2">
+        <v-btn-toggle v-model="filter.language">
+          <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
+        </v-btn-toggle>
+      </v-layout>
       <!-- List -->
-      <div class="form-group row">
-        <label class="col-sm-2 control-label">List</label>
-        <div class="col-sm-10">
-          <template v-if="lists">
-            <div class="form-check form-check-inline" v-for="list in lists" :key="list">
-              <input class="form-check-input" type="radio" v-model="filter.list" :value="list" name="list" :id="'list' + list" required>
-              <label class="form-check-label" :for="'list' + list">{{ list }}</label>
-            </div>
-          </template>
-          <p class="form-control-static" v-else>Loading…</p>
-        </div>
-      </div>
-
+      <v-layout row class="py-2">
+        <v-btn-toggle v-model="filter.list" v-if="lists">
+          <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
+        </v-btn-toggle>
+        <p v-else>Loading lists…</p>
+      </v-layout>
       <!-- Files -->
-      <div class="form-group row" v-show="files != null || filter.language && filter.list">
-        <label for="files" class="col-sm-2 control-label">Files</label>
-        <div class="col-sm-10" v-if="files">
-          <div class="form-check" v-for="file in files" :key="file.filename">
-            <input class="form-check-input" type="checkbox" v-model="allotment.files" :id="'file-' + file.filename" :value="file" />
-            <label class="form-check-label" :for="'file-' + file.filename">
-              <code>{{ file.filename }}</code>
-              <span>{{ file.notes }}</span>
-            </label>
-          </div>
-          <span v-if="files.length === 0">No {{filter.language}} files in {{filter.list}} list</span>
-        </div>
-        <span class="form-control-static col-sm-10" v-else>Loading…</span>
-      </div>
-
+      <v-layout v-if="files != null || filter.list">
+        <v-container fluid v-if="files">
+          <v-layout v-if="files.length > 0" align-center v-for="file in files" :key="file.filename">
+            <v-checkbox v-model="allotment.files" :value="file" :loading="!files">
+              <code slot="label">{{ file.filename }}</code>
+            </v-checkbox>
+            <span>{{ file.notes }}</span>
+          </v-layout>
+          <span
+            v-if="files.length === 0"
+          >No spare files found for selected language in {{filter.list}} list.</span>
+        </v-container>
+        <p v-else>Loading files…</p>
+      </v-layout>
+      <p v-else>Choose list and language to select files.</p>
       <!-- Comment -->
-      <div class="form-group row">
-        <label for="comment" class="col-sm-2 control-label">Comment</label>
-        <div class="col-sm-10">
-          <textarea v-model="allotment.comment" class="form-control" rows="3"></textarea>
-        </div>
-      </div>
-
+      <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
       <!-- Buttons -->
-      <div class="form-group row">
-        <div class="col-sm-offset-2 col-sm-10">
-          <button type="submit" class="btn btn-primary" :disabled="submissionStatus === 'inProgress'">Allot
-            <span class="glyphicon glyphicon-refresh rotate" aria-hidden="true" v-show="submissionStatus === 'inProgress'"></span>
-          </button>
-        </div>
-      </div>
-
-    </form>
-
-    <div class="alert alert-success col-sm-offset-2 col-sm-10" role="alert" v-show="submissionStatus === 'complete'">
+      <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
+    </v-form>
+    <v-alert :value="submissionStatus === 'complete'" type="success" transition="scale-transition">
       <h4 class="alert-heading">Allotted succesfully</h4>
-      <p class="mb-0"><button type="button" class="btn btn-link" @click="reset">Make another allotment</button></p>
-    </div>
-
-  </div>
+      <p class="mb-0">
+        <v-btn @click="reset">Make another allotment</v-btn>
+      </p>
+    </v-alert>
+  </v-container>
 </template>
 
 <style>
@@ -125,7 +90,7 @@ export default {
     submissionStatus: null
   }),
   mounted: function() {
-    // Getting TEs
+    // Getting devotees
     this.$http
       .jsonp("exec", {
         params: { path: "devotees", role: "Listening service" }
@@ -168,13 +133,17 @@ export default {
     allot() {
       this.submissionStatus = "inProgress";
       this.$http
-        .post("https://hook.integromat.com/qqqqqqqqqqqqqqqq", this.allotment)
+        .post(
+          "https://hook.integromat.com/to4r9rwrgeu5od4ncgyvs8ce7ewa88q3",
+          this.allotment
+        )
         .then(
           () => {
             this.submissionStatus = "complete";
           },
           response => {
             alert(response.text());
+            this.submissionStatus = "error";
           }
         );
     },
