@@ -1,14 +1,14 @@
 <p>Hare Krsna! Dandavat Pranams!</p>
-<p>Thank you for your interest in the Sound Quality Reporting service. Please read through the guidelines here - http://purebhakti.info/audioseva/sound-editing/guidelines</p>
+<p>Thank you for your interest in the Sound Quality Reporting service. Please read through <a href="https://docs.google.com/document/d/e/2PACX-1vTw1LVkABfm4WapO7-5b8wFc6oUeqFFtIXtPnSc-iTKqSrUZ002KjbKGTgJerChfwKx3MmO3Gc5WpsN/pub">the guidelines</a>.</p>
 <p>The following lectures comprise the current set allotted to you:</p>
 
 <ul>
 {% for file in params.files %}
   <li>
     <strong>{{file.filename}}</strong>
-     
+    &#8194;
     <a href="http://purebhakti.info/audioseva/listen/{{file.filename|urlencode}}">Listen</a>
-     | 
+    &#8194;|&#8194;
     <a href="http://purebhakti.info/audioseva/form/sound-quality-report?audio_file_name={{file.filename|urlencode}}&name={{params.devotee.name|urlencode}}&email_address={{params.devotee.emailAddress|urlencode}}">Submit using Online Submission Form</a>
   </li>
 {% endfor %}
@@ -16,7 +16,7 @@
 
 <p>{{params.comment}}</p>
 
-<p><strong>Please submit the details using the online submission form, which is pre-populated with the Output File Name, your name and email address. It is available in the link ‘Submit using Online Submission Form’ above, next to each task. For each new task, please use the Online Submission Form corresponding to that task from the link provided above.</strong></p>
+<p><strong>Please submit the details using the online submission form, which is pre-populated with the audio file name, your name and email address. It is available in the link ‘Submit using Online Submission Form’ above, next to each lecture. For each new lecture, please use the Online Submission Form corresponding to that lecture from the link provided above.</strong></p>
 <p>Please feel free to clarify any doubts with us.</p>
 <p>Join us on Facebook - https://www.facebook.com/audiosevateam/</p>
 <p>Thank you!</p>
