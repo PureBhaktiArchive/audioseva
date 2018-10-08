@@ -1,111 +1,111 @@
 tip:
-  '#type': markup
-  '#markup': '<small>The immediate <em>seva</em> required is listening to Srila Gurudeva’s lectures and making a few notes in English as per the guidelines. <b>Our goal is to complete this by the end of&nbsp;2018.</b></small>'
-  '#access': false
+  "#type": markup
+  "#markup": "<small>The immediate <em>seva</em> required is listening to Srila Gurudeva’s lectures and making a few notes in English as per the guidelines. <b>Our goal is to complete this by the end of&nbsp;2018.</b></small>"
+  "#access": false
 seva:
-  '#type': checkboxes
-  '#title': 'Your Seva'
-  '#title_display': before
-  '#options':
-    'Listen and note down the topics discussed': |
-      <b>Listening to audio in your language and making notes in English</b><br>
+  "#type": checkboxes
+  "#title": "Your Seva"
+  "#title_display": before
+  "#options":
+    "CR": |
+      <b>Content reporting</b><br>
       <small>Hearing Srila Gurudeva’s lectures and making a few notes as per the guidelines supplied. It is so simple that anyone can do it!</small>
-    'TE': |
+    "TE": |
       <b>Track editing</b><br>
       <small>Cutting out all the ‘unwanted’ parts from the audio track. Only basic knowledge of a sound editing software which helps to cut and merge parts of the sound files is needed.</small>
-    'SE': |
+    "SE": |
       <b>Sound engineering</b><br>
       <small>Improving the overall audibility of the sound file by enhancing Srila Gurudeva’s voice, while reducing background noise, wind, echo and similar factors. Knowledge of an advanced sound editing software will help.</small>
-    'QC': |
+    "QC": |
       <b>Quality checking</b><br>
       <small>Providing feedback on the sound quality of the file edited by the sound engineer. Should have a ‘good ear’ to pick up the subtle nuances of sound and will be trained in giving feedback on sound quality.</small>
-    'FC': |
+    "FC": |
       <b>Fidelity checking</b><br>
       <small>Conducting a final overall fidelity check before the audio file is finalized for the archive.</small>
-  '#options_description_display': help
-  '#other__option_label': 'Other services…'
-  '#other__placeholder': 'Describe any other services would you like to render'
-  '#required': true
+  "#options_description_display": help
+  "#other__option_label": "Other services…"
+  "#other__placeholder": "Describe any other services would you like to render"
+  "#required": true
 experience:
-  '#type': textarea
-  '#title': 'Your experience'
-  '#autocomplete': 'off'
-  '#states':
+  "#type": textarea
+  "#title": "Your experience"
+  "#autocomplete": "off"
+  "#states":
     required:
       ':input[name="seva[SE]"]':
         checked: true
 your_name:
-  '#type': textfield
-  '#title': 'Your name'
-  '#required': true
+  "#type": textfield
+  "#title": "Your name"
+  "#required": true
 country:
-  '#type': select
-  '#title': Country
-  '#options': country_names
-  '#select2': true
-  '#required': true
+  "#type": select
+  "#title": Country
+  "#options": country_names
+  "#select2": true
+  "#required": true
 email:
-  '#type': email
-  '#title': Email
-  '#unique': true
-  '#required': true
+  "#type": email
+  "#title": Email
+  "#unique": true
+  "#required": true
 contact_number:
-  '#type': textfield
-  '#title': 'Mobile phone number (ex. +91 12345 12345)'
-  '#help': 'Please use international format: +91 12345 12345 or +1 (123) 45-67 890 or similar.'
-  '#placeholder': '+91 12345 12345'
-  '#unique': true
-  '#pattern': '^\+\W*((9[976]|8[987530]|6[987]|5[90]|42|3[875]|2[^07])\d|9[0-58]|8[6421]|6[0-6]|5[1-8]|4[^2]|3[960-4]|2[70]|7|1)(\W*\d){2,12}$'
-  '#states':
+  "#type": textfield
+  "#title": "Mobile phone number (ex. +91 12345 12345)"
+  "#help": "Please use international format: +91 12345 12345 or +1 (123) 45-67 890 or similar."
+  "#placeholder": "+91 12345 12345"
+  "#unique": true
+  "#pattern": '^\+\W*((9[976]|8[987530]|6[987]|5[90]|42|3[875]|2[^07])\d|9[0-58]|8[6421]|6[0-6]|5[1-8]|4[^2]|3[960-4]|2[70]|7|1)(\W*\d){2,12}$'
+  "#states":
     required:
       - ':input[name="i_am_available_on_whatsapp"]':
           checked: true
 i_am_available_on_whatsapp:
-  '#type': checkbox
-  '#title': 'I am available on WhatsApp'
-  '#toggle_theme': modern
+  "#type": checkbox
+  "#title": "I am available on WhatsApp"
+  "#toggle_theme": modern
 languages:
-  '#type': checkboxes_other
-  '#title': 'Your Language(s)'
-  '#options': common_languages
-  '#required': true
+  "#type": checkboxes_other
+  "#title": "Your Language(s)"
+  "#options": common_languages
+  "#required": true
 where_did_u_hear_about_this_seva:
-  '#type': radios_other
-  '#title': 'Where did you hear about this seva'
-  '#options':
+  "#type": radios_other
+  "#title": "Where did you hear about this seva"
+  "#options":
     Facebook: Facebook
     WhatsApp: WhatsApp
     Email: Email
-    'From a preacher': 'From a preacher'
-    'From another devotee who is doing the service': 'From another devotee who is doing the service'
-    'From a poster/banner': 'From a poster/banner'
-    'From a friend': 'From a friend'
-  '#options_display': side_by_side
-  '#required': true
+    "From a preacher": "From a preacher"
+    "From another devotee who is doing the service": "From another devotee who is doing the service"
+    "From a poster/banner": "From a poster/banner"
+    "From a friend": "From a friend"
+  "#options_display": side_by_side
+  "#required": true
 recommended_by:
-  '#type': textfield
-  '#title': 'Recommended by'
-  '#states':
+  "#type": textfield
+  "#title": "Recommended by"
+  "#states":
     visible:
       - ':input[name="where_did_u_hear_about_this_seva[radios]"]':
-          value: 'From a preacher'
+          value: "From a preacher"
       - or
       - ':input[name="where_did_u_hear_about_this_seva[radios]"]':
-          value: 'From another devotee who is doing the service'
+          value: "From another devotee who is doing the service"
       - or
       - ':input[name="where_did_u_hear_about_this_seva[radios]"]':
-          value: 'From a friend'
+          value: "From a friend"
 email_warning:
-  '#type': message
-  '#message_type': warning
-  '#message_message': |
+  "#type": message
+  "#message_type": warning
+  "#message_message": |
     <p>Once you register, you will instantly get an email from audioseva@purebhakti.info confirming your registration.</p>
     <p><b>Please Note: If you do not receive this email in the Inbox of the registered email ID, it is likely to have been identified as 'SPAM' by your account.
     In such cases, please look into your SPAM mail and ensure that you mark it as 'Not SPAM' so that you get further mails from us in your Inbox when we allot the lectures to you.</b></p>
 actions:
-  '#type': webform_actions
-  '#title': 'Submit button(s)'
-  '#submit__label': Register
-  '#submit__attributes':
+  "#type": webform_actions
+  "#title": "Submit button(s)"
+  "#submit__label": Register
+  "#submit__attributes":
     class:
       - btn-lg
