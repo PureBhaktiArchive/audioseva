@@ -5,17 +5,7 @@
   <v-container>
     <h1>Sound Quality Reporting</h1>
     <v-form @submit.stop.prevent v-show="submissionStatus != 'complete'" class="pa-3 pt-4">
-      <v-autocomplete
-        v-model="allotment.devotee"
-        :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''"
-        :items="devotees"
-        item-text="name"
-        label="Select a devotee"
-        persistent-hint
-        return-object
-        clearable
-        dense
-      ></v-autocomplete>
+      <v-autocomplete v-model="allotment.devotee" :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''" :items="devotees" item-text="name" label="Select a devotee" persistent-hint return-object clearable dense></v-autocomplete>
       <!-- Language -->
       <v-layout row class="py-2">
         <v-btn-toggle v-model="filter.language">
@@ -38,9 +28,7 @@
             </v-checkbox>
             <span>{{ file.notes }}</span>
           </v-layout>
-          <span
-            v-if="files.length === 0"
-          >No spare files found for selected language in {{filter.list}} list.</span>
+          <span v-if="files.length === 0">No spare files found for selected language in {{filter.list}} list.</span>
         </v-container>
         <p v-else>Loading files…</p>
       </v-layout>
@@ -68,11 +56,7 @@
 
 <script>
 export default {
-  name: "ListeningAllotment",
-  http: {
-    root:
-      "https://script.google.com/macros/s/AKfycbzA-Ymekm0TYYqns8Z22GGBNkfI43lRyv6ofYx8CEyWU0Sao9Ll/"
-  },
+  name: "SQRAllotment",
   data: () => ({
     devotees: [],
     languages: ["English", "Hindi", "Bengali"],
@@ -92,8 +76,8 @@ export default {
   mounted: function() {
     // Getting devotees
     this.$http
-      .jsonp("exec", {
-        params: { path: "devotees", role: "Listening service" }
+      .jsonp(process.env.VUE_APP_SCRIPT_URL, {
+        params: { path: "devotees", role: "CR" }
       })
       .then(response => {
         this.devotees = response.body;
@@ -101,7 +85,7 @@ export default {
 
     // Getting lists
     this.$http
-      .jsonp("exec", { params: { path: "sqr/lists" } })
+      .jsonp(process.env.VUE_APP_SCRIPT_URL, { params: { path: "sqr/lists" } })
       .then(response => {
         this.lists = response.body;
       });
@@ -116,7 +100,7 @@ export default {
         if (this.filter.list == null) return;
 
         this.$http
-          .jsonp("exec", {
+          .jsonp(process.env.VUE_APP_SCRIPT_URL, {
             params: {
               path: "sqr/files",
               list: this.filter.list,
@@ -133,10 +117,7 @@ export default {
     allot() {
       this.submissionStatus = "inProgress";
       this.$http
-        .post(
-          "https://hook.integromat.com/to4r9rwrgeu5od4ncgyvs8ce7ewa88q3",
-          this.allotment
-        )
+        .post(process.env.VUE_APP_SQR_ALLOTMENT_URL, this.allotment)
         .then(
           () => {
             this.submissionStatus = "complete";

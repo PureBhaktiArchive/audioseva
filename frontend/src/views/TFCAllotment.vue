@@ -5,7 +5,6 @@
   <div>
     <h1>TFC Allotment Form</h1>
     <form @submit.stop.prevent="allot" v-show="submissionStatus != 'complete'">
-
       <!-- Fidelity Check -->
       <div class="form-group row">
         <label for="fc" class="col-sm-2 control-label">TFC</label>
@@ -24,16 +23,17 @@
           </v-select>
         </div>
       </div>
-
       <!-- Task -->
       <div class="form-group row">
         <label for="task" class="col-sm-2 control-label">Task</label>
         <div class="col-sm-10">
           <span v-if="allotment.task">{{allotment.task.id}}</span>
-          <span v-else class="text-danger">Task is not defined. Please use the allotment link from the email.</span>
+          <span
+            v-else
+            class="text-danger"
+          >Task is not defined. Please use the allotment link from the email.</span>
         </div>
       </div>
-
       <!-- Comment -->
       <div class="form-group row">
         <label for="comment" class="col-sm-2 control-label">Comment</label>
@@ -41,23 +41,31 @@
           <textarea v-model="allotment.comment" class="form-control" rows="3"></textarea>
         </div>
       </div>
-
       <!-- Buttons -->
       <div class="form-group row">
         <div class="col-sm-offset-2 col-sm-10">
-          <button type="submit" class="btn btn-primary" :disabled="submissionStatus === 'inProgress'">Allot
-            <span class="glyphicon glyphicon-refresh rotate" aria-hidden="true" v-show="submissionStatus === 'inProgress'"></span>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            :disabled="submissionStatus === 'inProgress'"
+          >
+            Allot
+            <span
+              class="glyphicon glyphicon-refresh rotate"
+              aria-hidden="true"
+              v-show="submissionStatus === 'inProgress'"
+            ></span>
           </button>
         </div>
       </div>
     </form>
-
-    <div id="confirmation-message" class="col-sm-offset-2 col-sm-10" v-show="submissionStatus === 'complete'">
-      <div class="alert alert-success" role="alert">
-        TFC allotted successfully.
-      </div>
-    </div>    
-
+    <div
+      id="confirmation-message"
+      class="col-sm-offset-2 col-sm-10"
+      v-show="submissionStatus === 'complete'"
+    >
+      <div class="alert alert-success" role="alert">TFC allotted successfully.</div>
+    </div>
   </div>
 </template>
 
@@ -71,7 +79,6 @@
 <script>
 export default {
   name: "TFC",
-  http: {},
   data: () => ({
     devotees: {
       fcs: []
@@ -103,10 +110,7 @@ export default {
     allot() {
       this.submissionStatus = "inProgress";
       this.$http
-        .post(
-          "https://hook.integromat.com/s39wn6bn2wxcp6u8jth6tgyh6tcpm5be",
-          this.allotment
-        )
+        .post(process.env.VUE_APP_TFC_ALLOTMENT_URL, this.allotment)
         .then(
           () => {
             this.submissionStatus = "complete";
