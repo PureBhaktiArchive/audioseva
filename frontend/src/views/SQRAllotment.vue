@@ -77,7 +77,7 @@ export default {
     // Getting devotees
     this.$http
       .jsonp(process.env.VUE_APP_SCRIPT_URL, {
-        params: { path: "devotees", role: "CR" }
+        params: { path: "devotees", role: "SQR" }
       })
       .then(response => {
         this.devotees = response.body;

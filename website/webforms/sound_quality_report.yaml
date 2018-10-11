@@ -54,9 +54,46 @@ audio_file_name:
   "#required": true
   "#unique": true
   "#unique_error": "Sound Quality Report was already submitted for “%value” audio file. Please contact your coordinator."
+unwanted_parts:
+  "#type": custom_composite
+  "#title": "B. Unwanted parts to be cut"
+  "#more_title": Guidelines
+  "#more": |
+    TODO
+  "#states":
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+  "#multiple__header": false
+  "#multiple__sorting": false
+  "#element":
+    beginning:
+      "#type": textfield
+      "#title": Beginning
+      "#placeholder": "Enter the timing in (h:)mm:ss format"
+      "#autocomplete": "off"
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+    ending:
+      "#type": textfield
+      "#title": Ending
+      "#placeholder": "Enter the timing in (h:)mm:ss format"
+      "#autocomplete": "off"
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+    type:
+      "#type": webform_radios_other
+      "#options":
+        "blank space": "Blank space"
+        glitch: Glitch
+        irrelevant: "Irrelevant part"
+      "#title": Type
+    description:
+      "#type": textarea
+      "#title": Description
 sound_issues:
   "#type": custom_composite
-  "#title": "B. Sound Issues"
+  "#title": "C. Sound Issues"
   "#more_title": Guidelines
   "#more": |
     <ul>
@@ -71,12 +108,18 @@ sound_issues:
   "#multiple__header": false
   "#multiple__sorting": false
   "#element":
-    timing:
+    beginning:
       "#type": textfield
-      "#title": Timing
+      "#title": Beginning
       "#placeholder": "Enter the timing in (h:)mm:ss format"
       "#autocomplete": "off"
-      "#pattern": '(\d:)?\d{1,2}:\d{1,2}'
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+    ending:
+      "#type": textfield
+      "#title": Ending
+      "#placeholder": "Enter the timing in (h:)mm:ss format"
+      "#autocomplete": "off"
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
     issue:
       "#type": webform_radios_other
       "#options":
@@ -89,7 +132,7 @@ sound_issues:
       "#title": Description
 sound_quality_rating:
   "#type": radios
-  "#title": "C. Sound Quality Rating"
+  "#title": "D. Sound Quality Rating"
   "#more_title": Guidelines
   "#more": |
     <ul>
@@ -114,7 +157,7 @@ duration_group:
         checked: false
   duration_label:
     "#type": label
-    "#title": "D. Total Duration of the Recording"
+    "#title": "E. Total Duration of the Recording"
   duration_box:
     "#type": flexbox
     "#attributes":
@@ -122,22 +165,20 @@ duration_group:
     beginning:
       "#type": textfield
       "#title": Beginning
-      "#more_title": Guidelines
-      "#more": TODO
       "#placeholder": "Enter the timing in (h:)mm:ss format"
       "#autocomplete": "off"
       "#required": true
-      "#pattern": '(\d:)?\d{1,2}:\d{1,2}'
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
     ending:
       "#type": textfield
       "#title": Ending
       "#placeholder": "Enter the timing in (h:)mm:ss format"
       "#autocomplete": "off"
       "#required": true
-      "#pattern": '(\d:)?\d{1,2}:\d{1,2}'
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
 comments:
   "#type": textarea
-  "#title": "E. Comments"
+  "#title": "F. Comments"
   "#more_title": Guidelines
   "#more": |
     <ul>
@@ -147,7 +188,7 @@ filled_by:
   "#type": container
   filled_by_label:
     "#type": label
-    "#title": "F. Filled By"
+    "#title": "G. Filled By"
   name:
     "#type": textfield
     "#title": Name
