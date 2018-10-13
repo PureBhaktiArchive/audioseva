@@ -2,10 +2,33 @@
  * sri sri guru gauranga jayatah
  */
 <template>
-  <v-container>
+  <div>
     <h1>Sound Quality Reporting</h1>
-    <v-form @submit.stop.prevent v-show="submissionStatus != 'complete'" class="pa-3 pt-4">
-      <v-autocomplete v-model="allotment.devotee" :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''" :items="devotees" item-text="name" label="Select a devotee" persistent-hint return-object clearable dense></v-autocomplete>
+    <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
+      <v-autocomplete
+        v-model="allotment.devotee"
+        :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''"
+        :items="devotees || []"
+        :loading="devotees === null"
+        item-text="name"
+        label="Select a devotee"
+        persistent-hint
+        return-object
+        clearable
+        dense
+      >
+        <template slot="item" slot-scope="{item}">
+          <template v-if="typeof item !== 'object'">
+            <v-list-tile-content v-text="item"></v-list-tile-content>
+          </template>
+          <template v-else>
+            <v-list-tile-content>
+              <v-list-tile-title v-html="item.name"></v-list-tile-title>
+              <v-list-tile-sub-title v-html="item.emailAddress"></v-list-tile-sub-title>
+            </v-list-tile-content>
+          </template>
+        </template>
+      </v-autocomplete>
       <!-- Language -->
       <v-layout row class="py-2">
         <v-btn-toggle v-model="filter.language">
@@ -20,31 +43,38 @@
         <p v-else>Loading lists…</p>
       </v-layout>
       <!-- Files -->
-      <v-layout v-if="files != null || filter.list">
-        <v-container fluid v-if="files">
-          <v-layout v-if="files.length > 0" align-center v-for="file in files" :key="file.filename">
-            <v-checkbox v-model="allotment.files" :value="file" :loading="!files">
-              <code slot="label">{{ file.filename }}</code>
-            </v-checkbox>
-            <span>{{ file.notes }}</span>
-          </v-layout>
-          <span v-if="files.length === 0">No spare files found for selected language in {{filter.list}} list.</span>
-        </v-container>
+      <template v-if="filter.list && filter.language">
+        <template v-if="files">
+          <template v-if="files.length > 0">
+            <v-layout align-center v-for="file in files" :key="file.filename">
+              <v-checkbox v-model="allotment.files" :value="file" :loading="!files">
+                <code slot="label">{{ file.filename }}</code>
+              </v-checkbox>
+              <span>{{ file.notes }}</span>
+            </v-layout>
+          </template>
+          <p v-else>No spare files found for selected language in {{filter.list}} list.</p>
+        </template>
         <p v-else>Loading files…</p>
-      </v-layout>
+      </template>
       <p v-else>Choose list and language to select files.</p>
       <!-- Comment -->
       <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
       <!-- Buttons -->
       <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
     </v-form>
-    <v-alert :value="submissionStatus === 'complete'" type="success" transition="scale-transition">
+    <v-alert
+      v-else
+      :value="submissionStatus === 'complete'"
+      type="success"
+      transition="scale-transition"
+    >
       <h4 class="alert-heading">Allotted succesfully</h4>
       <p class="mb-0">
         <v-btn @click="reset">Make another allotment</v-btn>
       </p>
     </v-alert>
-  </v-container>
+  </div>
 </template>
 
 <style>
@@ -58,7 +88,7 @@
 export default {
   name: "SQRAllotment",
   data: () => ({
-    devotees: [],
+    devotees: null,
     languages: ["English", "Hindi", "Bengali"],
     lists: null,
     files: null,
