@@ -24,7 +24,10 @@ export class Devotee {
   }
 
   get languages() {
-    return this.item.getFieldValue('Languages').split(',');
+    return this.item
+      .getFieldValue('Languages')
+      .split(',')
+      .map(language => language.trim());
   }
 
   static get devoteesTable() {

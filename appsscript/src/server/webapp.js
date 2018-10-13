@@ -17,7 +17,7 @@ class WebApp {
       // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=sqr/files&list=JAG&language=English&count=50
       'sqr/files': p => SQRBackend.getFiles(p.list, p.language, p.count),
 
-      // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=devotees&role=Listening%20service
+      // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=devotees&role=CR
       devotees: p =>
         WebApp.getCachedContent(p, () =>
           Devotee.getByRole(p.role).map(devotee => ({
