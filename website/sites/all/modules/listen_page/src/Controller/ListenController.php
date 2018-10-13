@@ -32,16 +32,22 @@ class ListenController extends ControllerBase {
 
   private function audio_url($file_name) {
     $list = preg_match('/^(\w+)-.+$/', $file_name, $matches) ? $matches[1] : "ML1";
-
-    $real_file_name = rawurldecode(str_replace('ML2-', '', $file_name)); // ML2 prefix is artificial, files are without it.
+    $encoded_file_name = rawurldecode($file_name);
 
     switch ($list) {
-      case "UMA":
-      case "SHA":
-        return "https://storage.googleapis.com/audio-seva/mp3/$list/$file_name.mp3";
-      default:
+      case "BR":
+      case "DK":
+      case "ISK":
+      case "JAG":
+      case "ML1":
+      case "ML2":
+      case "PV":
+      case "SER":
+        $encoded_file_name = str_replace('ML2-', '', $encoded_file_name); // ML2 prefix is artificial, files are without it.
         $folder = $list === "ML1" ? "Hindi" : $list;
-        return "https://vraja.info/All_mp3/newcapture/$folder/$real_file_name.mp3";
+        return "https://vraja.info/All_mp3/newcapture/$folder/$encoded_file_name.mp3";
+      default:
+        return "https://storage.googleapis.com/audio-seva/mp3/$list/$encoded_file_name.mp3";
     }
   }
 
@@ -51,5 +57,9 @@ class ListenController extends ControllerBase {
         '#theme' => 'listen_page',
         '#audio_src' => $this->audio_url($file_name),
       ];
+  }
+
+  public function page_test($file_name) {
+    return $this->page($file_name);
   }
 }
