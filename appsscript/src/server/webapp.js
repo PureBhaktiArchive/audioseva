@@ -19,13 +19,11 @@ class WebApp {
 
       // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=devotees&role=CR
       devotees: p =>
-        WebApp.getCachedContent(p, () =>
-          Devotee.getByRole(p.role).map(devotee => ({
-            emailAddress: devotee.emailAddress,
-            name: devotee.name,
-            languages: devotee.languages
-          }))
-        )
+        Devotee.getByRole(p.role).map(devotee => ({
+          emailAddress: devotee.emailAddress,
+          name: devotee.name,
+          languages: devotee.languages
+        }))
     };
   }
 
