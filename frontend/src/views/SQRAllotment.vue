@@ -111,6 +111,11 @@ export default {
       })
       .then(response => {
         this.devotees = response.body;
+        if (this.$route.query.emailAddress) {
+          this.allotment.devotee = this.devotees.find(
+            devotee => devotee.emailAddress === this.$route.query.emailAddress
+          );
+        }
       });
 
     // Getting lists
@@ -121,6 +126,14 @@ export default {
       });
   },
   watch: {
+    "allotment.devotee": function(newValue) {
+      if (newValue == null) return;
+
+      for (let language of this.languages) {
+        if (newValue.languages.includes(language))
+          this.filter.language = language;
+      }
+    },
     filter: {
       deep: true,
       handler: function() {
