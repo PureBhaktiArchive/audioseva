@@ -31,23 +31,26 @@ class ListenController extends ControllerBase {
   }
 
   private function audio_url($file_name) {
+    $seva = \Drupal::request()->query->get('seva') ?: 'cr';
+    $type = $seva === 'cr' ? 'mp3': 'flac';
+    $folder = $type === 'mp3' ? 'mp3': 'source';
+
     $list = preg_match('/^(\w+)-.+$/', $file_name, $matches) ? $matches[1] : "ML1";
+
     $encoded_file_name = rawurldecode($file_name);
+    if ($type === 'mp3')
+      $encoded_file_name = str_replace('ML2-', '', $encoded_file_name); // ML2 prefix is artificial, files are without it.
 
     switch ($list) {
       case "BR":
       case "DK":
       case "ISK":
       case "JAG":
-      case "ML1":
-      case "ML2":
       case "PV":
       case "SER":
-        $encoded_file_name = str_replace('ML2-', '', $encoded_file_name); // ML2 prefix is artificial, files are without it.
-        $folder = $list === "ML1" ? "Hindi" : $list;
-        return "https://vraja.info/All_mp3/newcapture/$folder/$encoded_file_name.mp3";
+        return "https://vraja.info/All_mp3/newcapture/$list/$encoded_file_name.$type";
       default:
-        return "https://storage.googleapis.com/audio-seva/mp3/$list/$encoded_file_name.mp3";
+        return "https://storage.googleapis.com/audio-seva/$folder/$list/$encoded_file_name.$type";
     }
   }
 
