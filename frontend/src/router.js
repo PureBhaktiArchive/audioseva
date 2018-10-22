@@ -28,6 +28,14 @@ export const router = new Router({
           component: () => import("@/views/Home")
         },
         {
+          path: "cr/allot",
+          component: () => import("@/views/CRAllotment")
+        },
+        {
+          path: "sqr/allot",
+          component: () => import("@/views/SQRAllotment")
+        },
+        {
           path: "te/allot",
           component: () => import("@/views/TEAllotment")
         },

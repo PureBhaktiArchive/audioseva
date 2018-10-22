@@ -66,8 +66,13 @@ export default {
       sidebar: false,
       sidebarItems: [
         {
-          title: "Allot Listening",
-          path: "/cdr/allot",
+          title: "Allot Content Reporting",
+          path: "/cr/allot",
+          icon: this.$vuetify.icons.listening
+        },
+        {
+          title: "Allot Sound Quality Reporting",
+          path: "/sqr/allot",
           icon: this.$vuetify.icons.listening
         },
         {

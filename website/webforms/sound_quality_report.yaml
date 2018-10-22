@@ -1,159 +1,237 @@
+prefilled_link_should_be_used:
+  "#type": message
+  "#message_type": warning
+  "#message_message": "Please use &ldquo;Submit with Online Submission Form&rdquo; link from the email."
+  "#states":
+    visible:
+      ':input[name="audio_file_name"]':
+        empty: true
 unable_to_play_or_download_box:
-  '#type': details
-  '#title': 'CLICK HERE if you are unable to play or download the audio'
-  '#attributes':
+  "#type": details
+  "#title": "CLICK HERE if you are unable to play or download the audio"
+  "#attributes":
     class:
       - panel-warning
   unable_to_play_or_download:
-    '#type': checkbox
-    '#title': 'I’m unable to play or download the audio'
+    "#type": checkbox
+    "#title": "I’m unable to play or download the audio"
   audio_problem_description:
-    '#type': textarea
-    '#title': 'Describe the problem'
-    '#required': true
-    '#states':
+    "#type": label
+    "#title": "Please describe the problem below in the Comments field. We will allot you new lectures shortly."
+    "#states":
       visible:
         ':input[name="unable_to_play_or_download"]':
           checked: true
 cancellation_box:
-  '#type': details
-  '#title': 'CLICK HERE if the allotted lecture in not in your preferred language'
-  '#attributes':
+  "#type": details
+  "#title": "CLICK HERE if the allotted lecture in not in your preferred language"
+  "#attributes":
     class:
       - panel-info
-  '#states':
+  "#states":
     visible:
       ':input[name="unable_to_play_or_download"]':
         checked: false
   not_preferred_language:
-    '#type': checkbox
-    '#title': 'The allotted lecture is not in my preferred language'
+    "#type": checkbox
+    "#title": "The allotted lecture is not in my preferred language"
   reallot_label:
-    '#type': label
-    '#title': 'Please let us know which language it is in below. We will allot you new lectures shortly.'
-    '#states':
+    "#type": label
+    "#title": "Please let us know which language it is in below in the Comments field. We will allot you new lectures shortly."
+    "#states":
       visible:
         ':input[name="not_preferred_language"]':
           checked: true
-tip:
-  '#type': markup
-  '#markup': 'Tip: It might be convenient for some devotees to note the lecture details for each field on paper first, while hearing the lecture and then enter into the Online Submission Form.'
-  '#states':
+audio_file_name:
+  "#type": textfield
+  "#title": "A. Audio File Name"
+  "#more_title": Guidelines
+  "#more": |
+    This field will be pre-filled in the form.
+  "#autocomplete": "off"
+  "#readonly": true
+  "#prepopulate": true
+  "#required": true
+  "#unique": true
+  "#unique_error": "Sound Quality Report was already submitted for “%value” audio file. Please contact your coordinator."
+unwanted_parts:
+  "#type": custom_composite
+  "#title": "B. Unwanted parts to be cut"
+  "#more_title": Guidelines
+  "#more": |
+    For each unwanted part you identify, please fill details in one such block
+    Please note: The timing is to be filled in (h:)mm:ss format. Also, please mention the Beginning and Ending time for each such unwanted part. For e.g. If from 20 minutes and 10 seconds to 21 minutes and 20 seconds there is an abrupt blank space, please write 20:10 in the ‘Beginning field’ and 21:20 in the Ending field. Choose ‘Blank Space’ in Type and provide a relevant details in the Description field. For the next unwanted part, please add another such block.
+    <ul>
+      <li>Add block by clicking on the green button ‘Add’. You can also choose to add more than one such blocks by entering a number in the field next to the ‘Add’ button.</li>
+      <li>Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right and delete one block by clicking on the red ‘-’ button on the right.</li>
+    </ul>
+  "#states":
     visible:
       ':input[name="not_preferred_language"]':
         checked: false
       ':input[name="unable_to_play_or_download"]':
         checked: false
-audio_file_name:
-  '#type': textfield
-  '#title': 'A. Audio File Name'
-  '#more_title': Guidelines
-  '#more': |
-    <ul>
-    	<li>Generally, this field will be pre-filled in the form. But in exceptional cases, if it isn’t, please copy and paste the original audio file name, exactly as it is received from the Audio Seva Team by email.</li>
-    </ul>
-  '#autocomplete': 'off'
-  '#readonly': true
-  '#prepopulate': true
-  '#required': true
-  '#unique': true
-  '#unique_error': 'Sound Quality Report was already submitted for “%value” audio file. Please contact your coordinator.'
-sound_issues:
-  '#type': custom_composite
-  '#title': 'Sound Issues'
-  '#more_title': Guidelines
-  '#more': |
-    <ul>
-    	<li>TODO</li>
-    </ul>
-  '#multiple__header': false
-  '#multiple__sorting': false
-  '#element':
-    timing:
-      '#type': textfield
-      '#title': Timing
-    issue:
-      '#type': webform_radios_other
-      '#options':
-        'Background noise': 'Background noise'
-        Volume: 'Low volume or changing volume'
-        Reverberation: Reverberation
-      '#title': Issue
-    description:
-      '#type': textarea
-      '#title': Description
-sound_quality_rating:
-  '#type': radios
-  '#title': 'Sound Quality Rating'
-  '#more_title': Guidelines
-  '#more': |
-    <ul>
-    	<li>TODO</li>
-    </ul>
-  '#options': sound_quality_rating
-  '#options_display': side_by_side
-  '#required': true
-duration_group:
-  '#type': container
-  duration_label:
-    '#type': label
-    '#title': 'Total Duration of the Recording'
-  duration_box:
-    '#type': flexbox
-    '#attributes':
-      style: 'margin:0; padding:0;'
+  "#multiple__header": false
+  "#multiple__sorting": false
+  "#element":
     beginning:
-      '#type': textfield
-      '#title': Beginning
-      '#more_title': Guidelines
-      '#more': TODO
-      '#placeholder': 'Enter the timing in (h:)mm:ss format'
-      '#autocomplete': 'off'
-      '#required': true
-      '#pattern': '(\d:)?\d{1,2}:\d{1,2}'
+      "#type": textfield
+      "#title": Beginning
+      "#placeholder": "Enter the timing in (h:)mm:ss format"
+      "#autocomplete": "off"
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
     ending:
-      '#type': textfield
-      '#title': Ending
-      '#placeholder': 'Enter the timing in (h:)mm:ss format'
-      '#autocomplete': 'off'
-      '#required': true
-      '#pattern': '(\d:)?\d{1,2}:\d{1,2}'
-comments:
-  '#type': textarea
-  '#title': Comments
-  '#more_title': Guidelines
-  '#more': |
+      "#type": textfield
+      "#title": Ending
+      "#placeholder": "Enter the timing in (h:)mm:ss format"
+      "#autocomplete": "off"
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+    type:
+      "#type": webform_radios_other
+      "#options":
+        "blank space": "Blank space"
+        glitch: Glitch
+        irrelevant: "Irrelevant part"
+      "#title": Type
+    description:
+      "#type": textarea
+      "#title": Description
+sound_issues:
+  "#type": custom_composite
+  "#title": "C. Sound Issues"
+  "#more_title": Guidelines
+  "#more": |
+    For every issue you wish to report for the SE’s attention, please fill this part as follows.
     <ul>
-    	<li>TODO</li>
+      <li>Enter the Beginning and Ending timing of the section in (h:)mm:ss format. Choose the specific issue from the options listed or enter a different issue by selecting ‘Other’. Please describe the issue in the ‘Description’ field.</li>
+      <li>For instance, from 20:20 - 21:34 if there is loud noise of roadside vehicles, making it difficult to hear what Srila Gurudeva is speaking, then please write ‘20:20’ in the Beginning field and ‘21:34’ in the Ending field. Choose the option ‘Background noise’ in Type and in ‘Description’ field, write ‘Sound of vehicles honking and general traffic noise.’</li>
+      <li>To add another comment for the SE, add another such block by clicking on the green button ‘Add’. You can also choose to add more than one such blocks by entering a number in the field next to the ‘Add’ button.</li>
+      <li>Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right and delete one block by clicking on the red ‘-’ button on the right.</li>
+    </ul>
+  "#states":
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+  "#multiple__header": false
+  "#multiple__sorting": false
+  "#element":
+    beginning:
+      "#type": textfield
+      "#title": Beginning
+      "#placeholder": "Enter the timing in (h:)mm:ss format"
+      "#autocomplete": "off"
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+    ending:
+      "#type": textfield
+      "#title": Ending
+      "#placeholder": "Enter the timing in (h:)mm:ss format"
+      "#autocomplete": "off"
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+    issue:
+      "#type": webform_radios_other
+      "#options":
+        "Background noise": "Background noise"
+        Volume: "Low volume or changing volume"
+        Reverberation: Reverberation
+      "#title": Issue
+    description:
+      "#type": textarea
+      "#title": Description
+sound_quality_rating:
+  "#type": radios
+  "#title": "D. Sound Quality Rating"
+  "#more_title": Guidelines
+  "#more": |
+    Please rate the overall sound quality of the allotted file by selecting one of the options: Good, Average, Bad. The basis of rating will be the audibility of Srila Gurudeva’s voice. In other words, if you find it difficult or strenuous to understand what Srila Gurudeva is speaking, due to too much background noise or volume being too low and so on, please choose ‘Bad’. On the other hand, if the audio is clear, with no background noise and good volume, please choose ‘Good.’ In cases where you can hear Srila Gurudeva well but there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.
+  "#options": sound_quality_rating
+  "#options_display": side_by_side
+  "#required": true
+  "#states":
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+duration_group:
+  "#type": container
+  "#states":
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
+  duration_label:
+    "#type": label
+    "#title": "E. Total Duration of the Recording"
+  duration_box:
+    "#type": flexbox
+    "#attributes":
+      style: "margin:0; padding:0;"
+    beginning:
+      "#type": textfield
+      "#title": Beginning
+      "#placeholder": "Enter the timing in (h:)mm:ss format"
+      "#autocomplete": "off"
+      "#required": true
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+      "#more_title": Guidelines
+      "#more": |
+        Here, we simply want to know how much the tape has relevant recording. In other words, whether any part of the sound file is blank or inaudible and hence to be discarded. Usually such parts are present towards the end of the file. There might be small parts 5-7 min long in between two lecture recordings, but these can be ignored. Please write the beginning and ending timings of the overall recording in this field in (h:)mm:ss format.
+      "#states":
+        visible:
+          ':input[name="not_preferred_language"]':
+            checked: false
+          ':input[name="unable_to_play_or_download"]':
+            checked: false
+    ending:
+      "#type": textfield
+      "#title": Ending
+      "#placeholder": "Enter the timing in (h:)mm:ss format"
+      "#autocomplete": "off"
+      "#required": true
+      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+      "#states":
+        visible:
+          ':input[name="not_preferred_language"]':
+            checked: false
+          ':input[name="unable_to_play_or_download"]':
+            checked: false
+comments:
+  "#type": textarea
+  "#title": "F. Comments"
+  "#more_title": Guidelines
+  "#more": |
+    <ul>
+      <li>Is there any issue with the overall sound quality? E.g. Background hum throughout, vehicle sound throughout the tape, sound of the fan or wind, low volume, etc. Please provide these details here.</li>
+      <li>Any other comments you wish to provide can be filled here.</li>
     </ul>
 filled_by:
-  '#type': container
+  "#type": container
   filled_by_label:
-    '#type': label
-    '#title': 'Q. Filled By'
+    "#type": label
+    "#title": "G. Filled By"
   name:
-    '#type': textfield
-    '#title': Name
-    '#required': true
-    '#more_title': Guidelines
-    '#more': |
-      <ul>
-      	<li>This field will be pre-filled along with you email address.</li>
-      	<li>In case it is blank, please write your name here, along with city or country and fill your registered email address in the next text box.</li>
-      </ul>
-    '#prepopulate': true
-    '#readonly': true
+    "#type": textfield
+    "#title": Name
+    "#required": true
+    "#more_title": Guidelines
+    "#more": |
+      This field will be pre-filled along with you email address.
+    "#prepopulate": true
+    "#readonly": true
   email_address:
-    '#type': email
-    '#title': 'Email Address'
-    '#title_display': inline
-    '#readonly': true
-    '#required': true
-    '#prepopulate': true
+    "#type": email
+    "#title": "Email Address"
+    "#title_display": inline
+    "#readonly": true
+    "#required": true
+    "#prepopulate": true
 actions:
-  '#type': webform_actions
-  '#title': 'Submit button(s)'
-  '#states':
+  "#type": webform_actions
+  "#title": "Submit button(s)"
+  "#states":
     disabled:
       ':input[name="audio_file_name"]':
         empty: true

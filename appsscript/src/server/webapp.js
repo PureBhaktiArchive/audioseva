@@ -1,37 +1,54 @@
-import { SoundEditingAPI } from '../sound-editing/API';
+import { Devotee } from '../Devotee';
+import { CRBackend } from '../CRBackend';
+import { SQRBackend } from '../SQRBackend';
 
-// function getCachedOutput(source, key, expiration) {
-//   const cache = CacheService.getScriptCache();
-//   const cached = cache.get(key);
-//   if (cached != null) return cached;
+class WebApp {
+  static get sources() {
+    return {
+      // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=cr/lists
+      'cr/lists': p => WebApp.getCachedContent(p, CRBackend.getLists),
 
-//   const output = JSON.stringify(source());
-//   cache.put(key, output, expiration || 3600);
-//   return output;
-// }
+      // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=cr/files&list=JAG&language=English&count=50
+      'cr/files': p => CRBackend.getFiles(p.list, p.language, p.count),
 
-function findSource(path) {
-  switch (path) {
-    case 'te/lists':
-      return SoundEditingAPI.getLists;
+      // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=sqr/lists
+      'sqr/lists': p => WebApp.getCachedContent(p, SQRBackend.getLists),
 
-    case 'te/tasks':
-      return SoundEditingAPI.getTasks;
+      // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=sqr/files&list=JAG&language=English&count=50
+      'sqr/files': p => SQRBackend.getFiles(p.list, p.language, p.count),
 
-    case 'te/devotees':
-      return SoundEditingAPI.getDevotees;
+      // https://script.google.com/macros/s/AKfycbyZInNo4Pk8cQebNJ2a9HP-LQiv2vDhq-7q10HQmbyo/dev?path=devotees&role=CR
+      devotees: p =>
+        Devotee.getByRole(p.role).map(devotee => ({
+          emailAddress: devotee.emailAddress,
+          name: devotee.name,
+          languages: devotee.languages
+        }))
+    };
+  }
 
-    default:
-      return null;
+  static getCachedContent(parameter, source, expiration) {
+    const cache = CacheService.getScriptCache();
+    let content = cache.get(parameter.path);
+    if (content != null) return content;
+
+    content = JSON.stringify(source());
+    cache.put(parameter.path, content, expiration || 3600);
+    return content;
+  }
+
+  static getOutput(e) {
+    let content = WebApp.sources[e.parameter.path](e.parameter);
+
+    if (typeof content !== 'string' && !(content instanceof String))
+      content = JSON.stringify(content);
+
+    return ContentService.createTextOutput(
+      e.parameter.callback ? `${e.parameter.callback}(${content})` : content
+    ).setMimeType(
+      e.parameter.callback ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON
+    );
   }
 }
 
-export const doGet = e => {
-  const output = JSON.stringify(findSource(e.parameter.path)(e.parameter));
-
-  return ContentService.createTextOutput(
-    e.parameter.callback ? `${e.parameter.callback}(${output})` : output
-  ).setMimeType(
-    e.parameter.callback ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON
-  );
-};
+export const doGet = e => WebApp.getOutput(e);
