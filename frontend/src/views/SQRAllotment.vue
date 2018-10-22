@@ -85,6 +85,8 @@
 </style>
 
 <script>
+import fb from "firebase";
+
 export default {
   name: "SQRAllotment",
   data: () => ({
@@ -136,23 +138,33 @@ export default {
     },
     filter: {
       deep: true,
-      handler: function() {
+      handler: async function() {
         this.files = null;
         this.allotment.files = [];
 
         if (this.filter.list == null) return;
 
-        this.$http
-          .jsonp(process.env.VUE_APP_SCRIPT_URL, {
-            params: {
-              path: "sqr/files",
-              list: this.filter.list,
-              language: this.filter.language
-            }
-          })
-          .then(response => {
-            this.files = response.body;
-          });
+        const fetchData = await fb
+          .database()
+          .ref(`sqr/files/${this.filter.list}`)
+          .once("value");
+        const files = fetchData.val();
+
+        if (files) {
+          // Filter and convert to array of objects since firebase gives us object of objects.
+          this.files = Object.entries(files).reduce(
+            (filteredItems, [filename, { status, languages, notes }]) => {
+              if (
+                status === "Spare" &&
+                languages.includes(this.filter.language)
+              ) {
+                filteredItems.push({ filename, status, languages, notes });
+              }
+              return filteredItems;
+            },
+            []
+          );
+        }
       }
     }
   },
