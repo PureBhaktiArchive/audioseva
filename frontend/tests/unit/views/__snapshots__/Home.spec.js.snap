@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Home.vue renders props.msg when passed 1`] = `
+exports[`Home.vue should render 1`] = `
 <v-container
   fluid=""
 >
