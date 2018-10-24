@@ -138,7 +138,7 @@ export default {
     },
     filter: {
       deep: true,
-      handler: async function() {
+      handler: function() {
         this.files = null;
         this.allotment.files = [];
 
