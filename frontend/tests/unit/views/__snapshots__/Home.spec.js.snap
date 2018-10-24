@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Home.vue should render 1`] = `
+<v-container
+  fluid=""
+>
+  <v-layout
+    row=""
+    wrap=""
+  >
+    <v-flex
+      class="text-xs-center"
+      mt-5=""
+      xs12=""
+    >
+      <h1>
+        Welcome to Audio Seva Backend
+      </h1>
+    </v-flex>
+  </v-layout>
+</v-container>
+`;
