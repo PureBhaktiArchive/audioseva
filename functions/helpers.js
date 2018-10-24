@@ -1,3 +1,13 @@
+let options = { 
+    method: 'POST',
+    url: 'https://api.sendinblue.com/v3/emailCampaigns/1/sendTest',
+    body: { emailTo: [] },
+    headers: {
+        'api-key': ''
+    },
+    json: true 
+};
+
 
 let checkValidity = filePath => (filePath.startsWith("mp3/") && filePath.endsWith(".mp3"))
 
@@ -26,4 +36,13 @@ exports.storeFileNameToDB = (filePath, db) => {
             return 1;
         }).catch(err => console.log(err));
     }
+}
+
+exports.sendEmail = (emailAddress, request, sendInBlueSecretKey) => {
+    options.headers['api-key'] = sendInBlueSecretKey;
+    options.body.emailTo.push(emailAddress);
+
+    request(options, function (error, response, body) {
+        if (error) console.log(error);
+    });
 }

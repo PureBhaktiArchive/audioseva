@@ -1,9 +1,9 @@
 
-exports.handleCurrentlyUploadedFiles = (response, bucket, db, callback) => {
+exports.handleCurrentlyUploadedFiles = (response, bucket, db, storeFileNameToDB) => {
     bucket.getFiles().then(files => {
         files.forEach(innerFilesObject => {
             innerFilesObject.forEach(file => {
-                callback(file.name, db);
+                storeFileNameToDB(file.name, db);
             })
         });
 
