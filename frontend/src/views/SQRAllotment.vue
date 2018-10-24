@@ -85,7 +85,7 @@
 </style>
 
 <script>
-import fb from "firebase";
+import fb from "@/firebaseApp";
 
 export default {
   name: "SQRAllotment",
@@ -144,27 +144,16 @@ export default {
 
         if (this.filter.list == null) return;
 
-        const fetchData = await fb
-          .database()
-          .ref(`sqr/files/${this.filter.list}`)
-          .once("value");
-        const files = fetchData.val();
-
-        if (files) {
-          // Filter and convert to array of objects since firebase gives us object of objects.
-          this.files = Object.entries(files).reduce(
-            (filteredItems, [filename, { status, languages, notes }]) => {
-              if (
-                status === "Spare" &&
-                languages.includes(this.filter.language)
-              ) {
-                filteredItems.push({ filename, status, languages, notes });
-              }
-              return filteredItems;
-            },
-            []
-          );
-        }
+        this.$bindAsArray(
+          "sqrFiles",
+          fb
+            .database()
+            .ref(`sqr/files/${this.filter.list}`)
+            .orderByChild("status")
+            .equalTo("Spare"),
+          null, // cancel callback not used
+          this.filterSelectedFiles
+        );
       }
     }
   },
@@ -187,6 +176,24 @@ export default {
       Object.assign(this.$data.allotment, this.$options.data().allotment);
       Object.assign(this.$data.filter, this.$options.data().filter);
       this.submissionStatus = null;
+    },
+    filterSelectedFiles() {
+      if (this.sqrFiles) {
+        this.files = this.sqrFiles.reduce(
+          (filteredItems, { status, languages, notes, ...other }) => {
+            if (languages.includes(this.filter.language)) {
+              filteredItems.push({
+                status,
+                languages,
+                notes,
+                filename: other[".key"]
+              });
+            }
+            return filteredItems;
+          },
+          []
+        );
+      }
     }
   }
 };
