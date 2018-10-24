@@ -16,36 +16,36 @@ export const router = new Router({
     {
       path: "/login",
       meta: { guestOnly: true },
-      component: () => import("@/views/Login")
+      component: () => import("@/views/Login.vue")
     },
     {
       path: "/",
       meta: { requireAuth: true },
-      component: () => import("@/views/Dashboard"),
+      component: () => import("@/views/Dashboard.vue"),
       children: [
         {
           path: "",
-          component: () => import("@/views/Home")
+          component: () => import("@/views/Home.vue")
         },
         {
           path: "cr/allot",
-          component: () => import("@/views/CRAllotment")
+          component: () => import("@/views/CRAllotment.vue")
         },
         {
           path: "sqr/allot",
-          component: () => import("@/views/SQRAllotment")
+          component: () => import("@/views/SQRAllotment.vue")
         },
         {
           path: "te/allot",
-          component: () => import("@/views/TEAllotment")
+          component: () => import("@/views/TEAllotment.vue")
         },
         {
           path: "te/fc/allot",
-          component: () => import("@/views/TFCAllotment")
+          component: () => import("@/views/TFCAllotment.vue")
         },
         {
           path: "/qc/allot",
-          component: () => import("@/views/QCAllotment")
+          component: () => import("@/views/QCAllotment.vue")
         }
       ]
     }
