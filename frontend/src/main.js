@@ -15,9 +15,12 @@ import { store } from "@/store";
 import Vuetify from "vuetify";
 import "vuetify/dist/vuetify.min.css";
 
+import VueFire from "vuefire";
+
 import "@babel/polyfill";
 
 Vue.use(VueResource);
+Vue.use(VueFire);
 Vue.use(Vuetify, {
   iconfont: "fa",
   icons: {
@@ -31,6 +34,7 @@ var unsubscribe = fb.auth().onAuthStateChanged(() => {
   new Vue({
     router,
     store,
+    firebase: {},
     render: h => h(App)
   }).$mount("#app");
 
