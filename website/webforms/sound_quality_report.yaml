@@ -54,9 +54,29 @@ audio_file_name:
   "#required": true
   "#unique": true
   "#unique_error": "Sound Quality Report was already submitted for “%value” audio file. Please contact your coordinator."
+sound_quality_rating:
+  "#type": radios
+  "#title": "B. Sound Quality Rating"
+  "#more_title": Guidelines
+  "#more": |
+    Please rate the overall sound quality of the allotted file by selecting one of the options: Good, Average, Bad. The basis of rating will be the audibility of Srila Gurudeva’s voice. In other words, if you find it difficult or strenuous to understand what Srila Gurudeva is speaking, due to too much background noise or volume being too low and so on, please choose ‘Bad’. On the other hand, if the audio is clear, with no background noise and good volume, please choose ‘Good.’ In cases where you can hear Srila Gurudeva well but there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.
+  "#options":
+    Good: "<b>Good</b> - You can hear Srila Gurudeva clearly with very little or no disturbance"
+    Average: "<b>Average</b> - Srila Gurudeva can be heard clearly but there are background noises or the volumn is low"
+    Bad: "<b>Bad</b> - You can hear Srila Gurudeva but need to strain because of either very low volume, or too much background noise, constant distractions, etc"
+    Inaudible: "<b>Entire file is Inaudible</b> - You can make out that there is some recording but cannot hear anything clearly"
+    Blank: "<b>Entire file is Blank</b> - There is no sound at all or just irrelevant sound (like someone forgot to stop recording)"
+  "#options_display": side_by_side
+  "#required": true
+  "#states":
+    visible:
+      ':input[name="not_preferred_language"]':
+        checked: false
+      ':input[name="unable_to_play_or_download"]':
+        checked: false
 unwanted_parts:
   "#type": custom_composite
-  "#title": "B. Unwanted parts to be cut"
+  "#title": "C. Unwanted parts to be cut"
   "#more_title": Guidelines
   "#more": |
     For each unwanted part you identify, please fill details in one such block
@@ -71,6 +91,12 @@ unwanted_parts:
         checked: false
       ':input[name="unable_to_play_or_download"]':
         checked: false
+    invisible:
+      - ':input[name="sound_quality_rating"]':
+          value: Blank
+      - or
+      - ':input[name="sound_quality_rating"]':
+          value: Inaudible
   "#multiple__header": false
   "#multiple__sorting": false
   "#element":
@@ -98,7 +124,7 @@ unwanted_parts:
       "#title": Description
 sound_issues:
   "#type": custom_composite
-  "#title": "C. Sound Issues"
+  "#title": "D. Sound Issues"
   "#more_title": Guidelines
   "#more": |
     For every issue you wish to report for the SE’s attention, please fill this part as follows.
@@ -114,6 +140,12 @@ sound_issues:
         checked: false
       ':input[name="unable_to_play_or_download"]':
         checked: false
+    invisible:
+      - ':input[name="sound_quality_rating"]':
+          value: Blank
+      - or
+      - ':input[name="sound_quality_rating"]':
+          value: Inaudible
   "#multiple__header": false
   "#multiple__sorting": false
   "#element":
@@ -139,21 +171,6 @@ sound_issues:
     description:
       "#type": textarea
       "#title": Description
-sound_quality_rating:
-  "#type": radios
-  "#title": "D. Sound Quality Rating"
-  "#more_title": Guidelines
-  "#more": |
-    Please rate the overall sound quality of the allotted file by selecting one of the options: Good, Average, Bad. The basis of rating will be the audibility of Srila Gurudeva’s voice. In other words, if you find it difficult or strenuous to understand what Srila Gurudeva is speaking, due to too much background noise or volume being too low and so on, please choose ‘Bad’. On the other hand, if the audio is clear, with no background noise and good volume, please choose ‘Good.’ In cases where you can hear Srila Gurudeva well but there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.
-  "#options": sound_quality_rating
-  "#options_display": side_by_side
-  "#required": true
-  "#states":
-    visible:
-      ':input[name="not_preferred_language"]':
-        checked: false
-      ':input[name="unable_to_play_or_download"]':
-        checked: false
 duration_group:
   "#type": container
   "#states":
@@ -162,6 +179,12 @@ duration_group:
         checked: false
       ':input[name="unable_to_play_or_download"]':
         checked: false
+    invisible:
+      - ':input[name="sound_quality_rating"]':
+          value: Blank
+      - or
+      - ':input[name="sound_quality_rating"]':
+          value: Inaudible
   duration_label:
     "#type": label
     "#title": "E. Total Duration of the Recording"
@@ -185,6 +208,12 @@ duration_group:
             checked: false
           ':input[name="unable_to_play_or_download"]':
             checked: false
+        invisible:
+          - ':input[name="sound_quality_rating"]':
+              value: Blank
+          - or
+          - ':input[name="sound_quality_rating"]':
+              value: Inaudible
     ending:
       "#type": textfield
       "#title": Ending
@@ -198,6 +227,12 @@ duration_group:
             checked: false
           ':input[name="unable_to_play_or_download"]':
             checked: false
+        invisible:
+          - ':input[name="sound_quality_rating"]':
+              value: Blank
+          - or
+          - ':input[name="sound_quality_rating"]':
+              value: Inaudible
 comments:
   "#type": textarea
   "#title": "F. Comments"
