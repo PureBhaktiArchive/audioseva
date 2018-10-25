@@ -27,3 +27,12 @@ exports.storeFileNameToDB = (filePath, db) => {
         }).catch(err => console.log(err));
     }
 }
+
+exports.removeFileNameFromDB = (db, dbPath) => {
+    let ref = db.ref(dbPath);
+    ref.remove()
+        .then(() => console.log("Deleted."))
+        .catch(error => console.log(error));
+}
+
+
