@@ -1,8 +1,8 @@
 
-exports.handleNewUploads = (object, db, callback) => {
+exports.handleNewUploads = (object, db, storeFileNameToDB) => {
     const filePath = object.name;
     
-    callback(filePath, db);
+    storeFileNameToDB(filePath, db);
 
     return Promise.resolve(1);
 }

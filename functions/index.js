@@ -13,7 +13,7 @@ const db = admin.database();
 
 //Functions
 const importMp3IntoSQR = require('./src/importMp3IntoSQR');
-const importCurrentMP3IntoSQR = require('./src/importCurrentMP3IntoSQR');
+const syncStorageToDB = require('./src/syncStorageToDB');
 
 // Helper Functions
 // 1. storeFileNameToDB( filePath, db_object )
@@ -25,7 +25,9 @@ exports.importMP3IntoSQR = functions.storage.object().onFinalize( object => {
 });
 
 
-exports.importCurrentMP3IntoSQR = functions.https.onRequest((req, res) => {
-    return importCurrentMP3IntoSQR.handleCurrentlyUploadedFiles(res, bucket, db, helpers.storeFileNameToDB);
+exports.syncStorageToDB = functions.https.onRequest((req, res) => {
+    syncStorageToDB.handleCurrentlyUploadedFiles(bucket, db, helpers.storeFileNameToDB);
+    syncStorageToDB.removeNonExistingMp3DBEntries(bucket, db, helpers.removeFileNameFromDB);
+    return res.send(`Started Execution, the process is now Running in the background`);
 });
 
