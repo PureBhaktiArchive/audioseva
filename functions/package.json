@@ -12,7 +12,7 @@
   "dependencies": {
     "firebase-admin": "~6.0.0",
     "firebase-functions": "^2.0.3",
-    "request": "^2.88.0"
+    "sib-api-v3-sdk": "^7.0.3"
   },
   "devDependencies": {
     "eslint": "^4.12.0",
