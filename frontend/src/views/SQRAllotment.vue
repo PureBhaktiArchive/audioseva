@@ -47,7 +47,7 @@
         <template v-if="files">
           <template v-if="files.length > 0">
             <v-layout align-center v-for="file in files" :key="file.filename">
-              <v-checkbox v-model="allotment.files" :value="file" :loading="!files">
+              <v-checkbox v-model="allotment.files" :value="file.filename" :loading="!files">
                 <code slot="label">{{ file.filename }}</code>
               </v-checkbox>
               <span>{{ file.notes }}</span>
@@ -158,19 +158,14 @@ export default {
     }
   },
   methods: {
-    allot() {
+    async allot() {
       this.submissionStatus = "inProgress";
-      this.$http
-        .post(process.env.VUE_APP_SQR_ALLOTMENT_URL, this.allotment)
-        .then(
-          () => {
-            this.submissionStatus = "complete";
-          },
-          response => {
-            alert(response.text());
-            this.submissionStatus = "error";
-          }
-        );
+      await fb
+        .database()
+        .ref("sqr/allotments")
+        .push()
+        .set(this.allotment);
+      this.submissionStatus = "complete";
     },
     reset() {
       Object.assign(this.$data.allotment, this.$options.data().allotment);
