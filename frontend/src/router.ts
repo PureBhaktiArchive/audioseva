@@ -32,6 +32,10 @@ export const router = new Router({
           component: () => import("@/views/CRAllotment.vue")
         },
         {
+          path: "sqr/",
+          component: () => import("@/views/SQRFiles.vue")
+        },
+        {
           path: "sqr/allot",
           component: () => import("@/views/SQRAllotment.vue")
         },
