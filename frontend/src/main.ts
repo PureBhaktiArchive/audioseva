@@ -30,6 +30,8 @@ Vue.use(Vuetify, {
   }
 });
 
+export const db = fb.database();
+
 var unsubscribe = fb.auth().onAuthStateChanged(() => {
   new Vue({
     router,
