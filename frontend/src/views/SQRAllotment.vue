@@ -85,6 +85,8 @@
 </style>
 
 <script>
+import fb from "@/firebaseApp";
+
 export default {
   name: "SQRAllotment",
   data: () => ({
@@ -142,17 +144,16 @@ export default {
 
         if (this.filter.list == null) return;
 
-        this.$http
-          .jsonp(process.env.VUE_APP_SCRIPT_URL, {
-            params: {
-              path: "sqr/files",
-              list: this.filter.list,
-              language: this.filter.language
-            }
-          })
-          .then(response => {
-            this.files = response.body;
-          });
+        this.$bindAsArray(
+          "sqrFiles",
+          fb
+            .database()
+            .ref(`sqr/files/${this.filter.list}`)
+            .orderByChild("status")
+            .equalTo("Spare"),
+          null, // cancel callback not used
+          this.filterSelectedFiles
+        );
       }
     }
   },
@@ -175,6 +176,24 @@ export default {
       Object.assign(this.$data.allotment, this.$options.data().allotment);
       Object.assign(this.$data.filter, this.$options.data().filter);
       this.submissionStatus = null;
+    },
+    filterSelectedFiles() {
+      if (this.sqrFiles) {
+        this.files = this.sqrFiles.reduce(
+          (filteredItems, { status, languages, notes, ...other }) => {
+            if (languages.includes(this.filter.language)) {
+              filteredItems.push({
+                status,
+                languages,
+                notes,
+                filename: other[".key"]
+              });
+            }
+            return filteredItems;
+          },
+          []
+        );
+      }
     }
   }
 };
