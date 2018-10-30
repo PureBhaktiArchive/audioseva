@@ -86,6 +86,8 @@
 
 <script>
 import fb from "@/firebaseApp";
+// need this to use timestamp
+import firebase from "firebase";
 
 export default {
   name: "SQRAllotment",
@@ -159,12 +161,30 @@ export default {
   },
   methods: {
     async allot() {
+      const { list } = this.filter;
+      const {
+        devotee: { name, emailAddress },
+        ...other
+      } = this.allotment;
+
       this.submissionStatus = "inProgress";
+      const allotmentData = {
+        ...other,
+        devotee: {
+          name,
+          emailAddress
+        },
+        list,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        user: fb.auth().currentUser.email
+      };
+
       await fb
         .database()
         .ref("sqr/allotments")
         .push()
-        .set(this.allotment);
+        .set(allotmentData);
+
       this.submissionStatus = "complete";
     },
     reset() {
