@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "audio-seva"
+    "default": "audio-seva",
+    "development": "audio-seva-team-test"
   }
 }
