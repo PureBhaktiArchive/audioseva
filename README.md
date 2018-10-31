@@ -9,7 +9,7 @@ $ firebase functions:config:set audioseva.storage_bucket="THE STORAGE BUCKET URL
 $ firebase functions:config:set audioseva.send_in_blue.key="sendInBlue secret Key"
 # Coordinator details
 $ firebase functions:config:set audioseva.coordinator.templateid=NUMBER
-$ firebase functions:config:set audioseva.coordinator.email='EMAIL
+$ firebase functions:config:set audioseva.coordinator.email='EMAIL'
 $ firebase functions:config:set audioseva.coordinator.name='NAME'
 ```
 

@@ -31,13 +31,12 @@ exports.UpdateFilesOnNewAllotment = function  (snapshot, db, updateFile) {
                     });
             return 1;
         }).catch(err => console.log(err));
-        // updateFile(db, file_ref, { status: 'Given' }, newDocKey);
     });
 
     return 1;    
 }
 
-exports.sendEmailOnFileAllotment = function  (coordinatorConfig, old, _new, new_snapshot, sendEmail) {
+exports.sendEmailOnFileAllotment = function  (coordinatorConfig, old, _new, new_snapshot, alloted_before, sendEmail) {
 
     if(!old.filesAlloted && _new.filesAlloted)
         if (_new.devotee)
@@ -50,7 +49,7 @@ exports.sendEmailOnFileAllotment = function  (coordinatorConfig, old, _new, new_
                 let devotee = _new.devotee;
                 let comment = _new.comment;
                 let date = new Date();
-                let repeated = false;
+                let repeated = alloted_before;
 
                 sendEmail(
                     email,
@@ -61,7 +60,7 @@ exports.sendEmailOnFileAllotment = function  (coordinatorConfig, old, _new, new_
                         devotee,
                         comment,
                         date: `${date.getUTCDate() + 1}.${date.getUTCMonth() + 1}`,
-                        repeated // set to True for now -- to be changed later
+                        repeated
                     }                    
                 );
                 return new_snapshot.ref.child('mailSent').set(true);
