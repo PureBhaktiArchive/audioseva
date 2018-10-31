@@ -33,7 +33,23 @@ exports.sendEmailOnFileAllotment = functions.database.ref('/sqr/allotments/{allo
         const _new = change.after.val();        
         let coordinatorConfig = functions.config().audioseva.coordinator;
         
-        SQR_Helper.sendEmailOnFileAllotment(coordinatorConfig, old, _new, change.after, helpers.sendEmail)
+        db.ref('/sqr/allotments').once('value')
+        .then(snapshot => {
+            const allotments = snapshot.val();
+            let alloted_num = 0, alloted_before = false;
+            for(let key in allotments) {
+                let allotment = allotments[key];
+                if(allotment.devotee)
+                    if(allotment.devotee.emailAddress)
+                        if(allotment.devotee.emailAddress === _new.devotee.emailAddress)
+                            alloted_before++;
+            }
+            if (alloted_before > 1)
+                alloted_before = true;
+            SQR_Helper.sendEmailOnFileAllotment(coordinatorConfig, old, _new, change.after, alloted_before, helpers.sendEmail)
+            return 1;
+        }).catch(err => console.log(err));
+        
         return 1;
 });
 
@@ -72,7 +88,7 @@ exports.importMP3IntoSQR = functions.storage.object().onFinalize( object => {
 
 
 /////////////////////////////////////////////////
-//          Add MP3 name to DB (Storage Upload Trigger)
+//          SQR Submission Processing (DB create Trigger)
 //
 //      1. Add the webform data to a SQR submissions DB path
 //      2. Update the allotment to reflect the current state of the audio file
@@ -81,7 +97,7 @@ exports.importMP3IntoSQR = functions.storage.object().onFinalize( object => {
 //          3.2 the data of the file in the submission
 //          3.3 the list of all the files alloted to the devotee of the current submission
 //          3.4 a boolean value indicating whether this is the first submission of this devotee or not
-//              Function --> removeNonExistingMp3DBEntries
+//              Function --> processSubmissions
 /////////////////////////////////////////////////
 
 
@@ -92,11 +108,10 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
         let audioFileStatus = 'WIP';
         
 
-        if(original.cancellation) {
-            audioFileStatus = original.cancellation.notPreferredLanguage === true ? 'Spare' : 'WIP';
-            if(audioFileStatus === 'WIP')
-                audioFileStatus = original.cancellation.audioProblem === true ? 'Audio Problem' : 'WIP';
-        }
+        if(original.not_preferred_language) 
+            audioFileStatus = 'Spare';        
+        else if(original.unable_to_play_or_download)
+            audioFileStatus = 'Audio Problem';
         
 
         // 1. Add the webform data to a SQR submissions DB path
@@ -131,9 +146,13 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
 
         // 2. Update the allotment
         let allotmentUpdates = { status: audioFileStatus };
+
+        // in case 1 & 2 add the comments to the notes
         if (audioFileStatus !== 'WIP')
             allotmentUpdates.notes = original.comments;
-        if(audioFileStatus !== 'Spare')
+        
+        // if the audio has a problem then REMOVE the devotee from the file allotment
+        if(audioFileStatus === 'audioProblem')
             allotmentUpdates.devotee = {};
 
         db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).update(allotmentUpdates);
@@ -145,7 +164,12 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
         let coordinator = functions.config().audioseva.coordinator;
         // 3. Notify the coordinator
         // 3.1 Get the submitted audio file data
-        db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).once('value')
+
+        //  EXTRACTING the list name first from the file_name
+        let list = original.audio_file_name.match(/^[^-]*[^ -]/g)[0];
+        let file_name = original.audio_file_name.slice( list.length + 1, original.audio_file_name.length );
+        
+        db.ref(`/sqr/files/${list}/${file_name}`).once('value')
         .then(snapshot => {
             if(snapshot.exists()) {
                 let fileData = snapshot.val();
