@@ -7,7 +7,6 @@
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
       <v-autocomplete
         v-model="allotment.devotee"
-        :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''"
         :items="devotees || []"
         :loading="devotees === null"
         item-text="name"
@@ -87,6 +86,8 @@
 <script>
 import fb from "@/firebaseApp";
 
+const filteredStatus = ["Lost", "Opted out", "Incorrect", "Duplicate"];
+
 export default {
   name: "SQRAllotment",
   data: () => ({
@@ -107,18 +108,40 @@ export default {
   }),
   mounted: function() {
     // Getting devotees
-    this.$http
-      .jsonp(process.env.VUE_APP_SCRIPT_URL, {
-        params: { path: "devotees", role: "SQR" }
-      })
-      .then(response => {
-        this.devotees = response.body;
-        if (this.$route.query.emailAddress) {
-          this.allotment.devotee = this.devotees.find(
-            devotee => devotee.emailAddress === this.$route.query.emailAddress
-          );
-        }
-      });
+    this.$bindAsArray(
+      "devotees",
+      fb.database().ref("sqr/registrations"),
+      null,
+      () => {
+        this.devotees = this.devotees.reduce(
+          (filteredDevotees, { status, roles, emailAddress, ...other }) => {
+            if (!filteredStatus.includes(status) && roles.includes("SQR")) {
+              const devotee = { status, roles, emailAddress, ...other };
+              filteredDevotees.push(devotee);
+              if (this.$route.query.emailAddress) {
+                this.allotment.devotee = devotee;
+              }
+            }
+            return filteredDevotees;
+          },
+          []
+        );
+      }
+    );
+
+    // replaced by above code
+    // this.$http
+    //   .jsonp(process.env.VUE_APP_SCRIPT_URL, {
+    //     params: { path: "devotees", role: "SQR" }
+    //   })
+    //   .then(response => {
+    //     this.devotees = response.body;
+    //     if (this.$route.query.emailAddress) {
+    //       this.allotment.devotee = this.devotees.find(
+    //         devotee => devotee.emailAddress === this.$route.query.emailAddress
+    //       );
+    //     }
+    //   });
 
     // Getting lists
     this.$http
