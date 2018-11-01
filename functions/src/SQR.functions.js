@@ -7,8 +7,6 @@ const db = admin.database();
 const helpers = require('./../helpers');
 
 
-
-const SQR_Helper = require('./SQR_Helper');
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
 //      1. Mark the files in the database --> { status: "Given" }
@@ -20,33 +18,63 @@ const SQR_Helper = require('./SQR_Helper');
 
 exports.updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
     .onCreate((snapshot, context) => {
-        return SQR_Helper.UpdateFilesOnNewAllotment(
-                snapshot, 
-                db,
-                helpers.updateFile
-            );
+        const original = snapshot.val();
+        let newDocKey = snapshot.key;
+        original.files.forEach(file => {
+            let file_ref = db.ref(`/sqr/files/${original.list}/${file}`);
+            file_ref.child("status").once('value')
+            .then(snapshot => {
+                if (snapshot.exists())
+                    file_ref.update(
+                        {
+                            status: 'Given',
+                            allotment: {
+                                timestampGiven: new Date().getTime(),
+                                timestampDone: null,
+                                devotee: original.devotee
+                            }
+                        }, err => {
+                            if (!err)
+                                db.ref(`/sqr/allotments/${newDocKey}`).update({ filesAlloted: true });
+                        });
+                return 1;
+            }).catch(err => console.log(err));
+        });
+
+        return 1;
 });
 
 exports.sendEmailOnFileAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
     .onUpdate((change, context) => {
         const old = change.before.val();
         const _new = change.after.val();        
-        let coordinatorConfig = functions.config().audioseva.coordinator;
+        let coordinatorConfig = functions.config().coordinator;
         
-        db.ref('/sqr/allotments').once('value')
+        db.ref('/sqr/allotments').orderByChild('devotee/name')
+        .equalTo(_new.devotee.emailAddress).once('value')
         .then(snapshot => {
             const allotments = snapshot.val();
-            let alloted_num = 0, alloted_before = false;
-            for(let key in allotments) {
-                let allotment = allotments[key];
-                if(allotment.devotee)
-                    if(allotment.devotee.emailAddress)
-                        if(allotment.devotee.emailAddress === _new.devotee.emailAddress)
-                            alloted_before++;
-            }
-            if (alloted_before > 1)
-                alloted_before = true;
-            SQR_Helper.sendEmailOnFileAllotment(coordinatorConfig, old, _new, change.after, alloted_before, helpers.sendEmail)
+            ////////////////
+            // sending mail
+            ///////////////
+            if (!old.filesAlloted && _new.filesAlloted)
+                if (_new.devotee)
+                    if (_new.devotee.emailAddress) {
+                        let date = new Date();
+                        helpers.sendEmail(
+                            _new.devotee.emailAddress, //email
+                            [{ email: coordinatorConfig.email, name: coordinatorConfig.name }], //bcc
+                            coordinatorConfig.templateid, //templateId
+                            { //parameters
+                                files: _new.files,
+                                devotee: _new.devotee,
+                                comment: _new.comment,
+                                date: `${date.getUTCDate() + 1}.${date.getUTCMonth() + 1}`,
+                                repeated: Object.keys(allotments).length > 1
+                            }                    
+                        );
+                        return new_snapshot.ref.child('mailSent').set(true);
+                    }
             return 1;
         }).catch(err => console.log(err));
         
@@ -57,16 +85,46 @@ exports.sendEmailOnFileAllotment = functions.database.ref('/sqr/allotments/{allo
 /////////////////////////////////////////////////
 //          Sync Storage to DB (HTTP Trigger)
 //
-//      1. Add the currently uploaded MP3s into the DB
-//              Function --> handleCurrentlyUploadedFiles
+//      1. Add the currently uploaded MP3s into the DB (handleCurrentlyUploadedFiles)
 //
-//      2. Remove DB entries for MP3s that don't exist
-//              Function --> removeNonExistingMp3DBEntries
+//      2. Remove DB entries for MP3s that don't exist (removeNonExistingMp3DBEntries)
 /////////////////////////////////////////////////
 
 exports.syncStorageToDB = functions.https.onRequest((req, res) => {
-    SQR_Helper.handleCurrentlyUploadedFiles(bucket, db, helpers.storeFileNameToDB);
-    SQR_Helper.removeNonExistingMp3DBEntries(bucket, db, helpers.removeFileNameFromDB);
+    ///////////////////////////////////////////////////////
+    //      1. Add the currently uploaded MP3s into the DB
+    ///////////////////////////////////////////////////////
+    bucket.getFiles().then(files => {
+        files.forEach(innerFilesObject => {
+            innerFilesObject.forEach(file => {
+                helpers.storeFileNameToDB(file.name, db);
+            })
+        });
+        return 1;
+    }).catch(err => console.log(err));
+
+    ///////////////////////////////////////////////////////
+    //      2. Remove DB entries for MP3s that don't exist
+    ///////////////////////////////////////////////////////
+    let ref = db.ref(`/sqr/files`);
+    ref.once("value").then(filesSnapshot => {
+        let files = filesSnapshot.val();
+        for (let list in files) {
+            for (let file in files[list]) {                
+                bucket.file(`/mp3/${list}/${file}.mp3`).exists((err, exists) => {
+                    if (err) console.log(err);
+                    else if (!exists)  
+                        if (files[list][file]) 
+                            //removing should be done only if the `status` is `Spare`
+                            if (files[list][file].status === 'Spare') {
+                                helpers.removeFromDB(db, `/sqr/files/${list}/${file}`)
+                            }
+                });
+            }
+        }
+        return 1;
+    }).catch(err => console.log(err));
+
     return res.send(`Started Execution, the process is now Running in the background`);
 });
 
@@ -83,7 +141,20 @@ exports.syncStorageToDB = functions.https.onRequest((req, res) => {
 
 
 exports.importMP3IntoSQR = functions.storage.object().onFinalize( object => {
-    return SQR_Helper.handleNewUploads(object, db, helpers);
+    const filePath = object.name;
+    
+    if(helpers.checkValidMP3(filePath)){
+        let ref = db.ref( helpers.createMP3DBRef(filePath, 'sqr') );
+        //check if the file already exists in the RT db
+        ref.child("status").once('value')
+        .then(snapshot => {
+            if (!snapshot.exists()) ref.set({status: "Spare"});
+            else console.log("Existing");
+            return 1;
+        }).catch(err => console.log(err));
+    }
+
+    return 1;
 });
 
 
@@ -108,9 +179,9 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
         let audioFileStatus = 'WIP';
         
 
-        if(original.not_preferred_language) 
+        if (original.not_preferred_language) 
             audioFileStatus = 'Spare';        
-        else if(original.unable_to_play_or_download)
+        else if (original.unable_to_play_or_download)
             audioFileStatus = 'Audio Problem';
         
 
@@ -144,34 +215,38 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
 
 
 
-        // 2. Update the allotment
-        let allotmentUpdates = { status: audioFileStatus };
+        // 2. Update the allotment ( first get the previous NOTES )
+        db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).once('value')
+        .then(snapshot => {
+            let allotmentUpdates = { status: audioFileStatus };
 
-        // in case 1 & 2 add the comments to the notes
-        if (audioFileStatus !== 'WIP')
-            allotmentUpdates.notes = original.comments;
+            // in case 1 & 2 add the comments to the notes
+            if (audioFileStatus !== 'WIP')
+                allotmentUpdates.notes = `${snapshot.val().notes}\n${original.comments}`;
+            
+            // if the audio has a problem then REMOVE the devotee from the file allotment
+            if (audioFileStatus === 'audioProblem')
+                allotmentUpdates.devotee = {};
+
+            db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).update(allotmentUpdates);            
+        })
+
         
-        // if the audio has a problem then REMOVE the devotee from the file allotment
-        if(audioFileStatus === 'audioProblem')
-            allotmentUpdates.devotee = {};
-
-        db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).update(allotmentUpdates);
 
 
 
 
         // Coordinator object example { templateid: 3, email:'a@a.a', name: 'Aj' }
-        let coordinator = functions.config().audioseva.coordinator;
+        let coordinator = functions.config().coordinator;
         // 3. Notify the coordinator
         // 3.1 Get the submitted audio file data
 
         //  EXTRACTING the list name first from the file_name
-        let list = original.audio_file_name.match(/^[^-]*[^ -]/g)[0];
-        let file_name = original.audio_file_name.slice( list.length + 1, original.audio_file_name.length );
+        let list = helpers.extractListFromFilename(original.audio_file_name);
         
-        db.ref(`/sqr/files/${list}/${file_name}`).once('value')
+        db.ref(`/sqr/files/${list}/${original.audio_file_name}`).once('value')
         .then(snapshot => {
-            if(snapshot.exists()) {
+            if (snapshot.exists()) {
                 let fileData = snapshot.val();
 
                 // 3.2 Get the devotee's Allotments in ('given' || 'WIP') state
@@ -179,7 +254,7 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
                 // state of ('given' || 'WIP')
                 db.ref(`/sqr/files`).once('value')
                 .then(snapshot => {
-                    if(snapshot.exists()) {
+                    if (snapshot.exists()) {
                         let devoteeAllotmentsSet = [];
                         let lists = snapshot.val();
                         for (let key in lists) {
@@ -187,24 +262,18 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
                             for (let key in list) {
                                 let file = list[key];
                                 if (file.allotment)
-                                    if(file.allotment.devotee.emailAddress === original.email_address 
+                                    if (file.allotment.devotee.emailAddress === original.email_address 
                                         && ['Given', 'WIP'].indexOf(file.status) > -1)
                                         devoteeAllotmentsSet.push(file);
                             }
                         }
 
                         // 3.3 checking if the First Submission or not
-                        let submissionNo = 0;
-                        db.ref(`/sqr/submissions`).once('value')
+                        db.ref(`/sqr/submissions`).orderByChild('devotee/emailAddress')
+                            .equalTo(original.email_address).once('value')
                         .then(snapshot => {
-                            if(snapshot.exists()) {
+                            if (snapshot.exists()) {
                                 let submissions = snapshot.val();
-                                for (let key in submissions) {
-                                    let submission = submissions[key];
-                                    if (submission.devotee)
-                                        if(submission.devotee.emailAddress === original.email_address)
-                                            submissionNo++;
-                                }
 
                                 // Sending the notification Email Finally
                                 helpers.sendEmail(
@@ -215,7 +284,7 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
                                         submission,
                                         fileData,
                                         devoteeAllotmentsSet,
-                                        isFirstSubmission: submissionNo <= 1                                        
+                                        isFirstSubmission: Object.keys(submissions).length <= 1                                        
                                     }
                                 );
                             }                    

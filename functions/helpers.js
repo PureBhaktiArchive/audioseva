@@ -1,6 +1,6 @@
 const functions = require('firebase-functions');
 let SibApiV3Sdk = require('sib-api-v3-sdk');
-const sendInBlueSecretKey = functions.config().audioseva.send_in_blue.key;
+const sendInBlueSecretKey = functions.config().send_in_blue.key;
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 let apiKey = defaultClient.authentications['api-key'];
 apiKey.apiKey = sendInBlueSecretKey;
@@ -8,6 +8,20 @@ apiKey.apiKey = sendInBlueSecretKey;
 
 
 exports.checkValidMP3 = filePath => (filePath.startsWith("mp3/") && filePath.endsWith(".mp3"))
+
+exports.createMP3DBRef = (filePath, _module) => {
+    const parts = filePath.split('/');
+        
+    const list = parts[1];
+    const mp3 = parts[2];
+    let file_name = mp3.slice(0, -4);
+
+    return `/${_module}/files/${list}/${file_name}`;
+}
+
+exports.extractListFromFilename = (fileName) => {
+    return fileName.match(/^[^-]*[^ -]/g)[0];
+}
 
 
 exports.removeFromDB = (db, dbPath) => {
@@ -30,7 +44,7 @@ exports.sendEmail = (to, bcc, templateId, params) => {
     };
 
     apiInstance.sendTransacEmail(sendEmail).then(function(data) {
-        console.log('API called successfully. Returned data: ');
+        console.log(sendEmail); // to, bcc, template id, all other parameters
         console.log(data);
         return 1;
     }, err => console.log(err)).catch(err => console.log(err));

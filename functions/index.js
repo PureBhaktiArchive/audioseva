@@ -5,8 +5,8 @@ const admin = require("firebase-admin");
 try {
     admin.initializeApp({
         credential: admin.credential.applicationDefault(),
-        databaseURL: functions.config().audioseva.database_url,
-        storageBucket: functions.config().audioseva.storage_bucket
+        databaseURL: functions.config().database_url,
+        storageBucket: functions.config().storage_bucket
     });
 } catch (err) { console.log(err) }
 
