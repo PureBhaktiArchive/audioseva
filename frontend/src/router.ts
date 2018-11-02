@@ -39,6 +39,10 @@ export const router = new Router({
           ]
         },
         {
+          path: "sqr/statistics",
+          component: () => import("@/views/SQRFileStatistics.vue")
+        },
+        {
           path: "sqr/allot",
           component: () => import("@/views/SQRAllotment.vue")
         },

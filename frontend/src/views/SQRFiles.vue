@@ -2,6 +2,7 @@
   <div>
     <v-select placeholder="Select list" :items="lists" v-on:change="selectedList = $event"></v-select>
     <s-q-r-data-table :files="files"></s-q-r-data-table>
+
   </div>
 </template>
 
