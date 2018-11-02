@@ -47,7 +47,7 @@
         <template v-if="files">
           <template v-if="files.length > 0">
             <v-layout align-center v-for="file in files" :key="file.filename">
-              <v-checkbox v-model="allotment.files" :value="file" :loading="!files">
+              <v-checkbox v-model="allotment.files" :value="file.filename" :loading="!files">
                 <code slot="label">{{ file.filename }}</code>
               </v-checkbox>
               <span>{{ file.notes }}</span>
@@ -86,6 +86,8 @@
 
 <script>
 import fb from "@/firebaseApp";
+// need this to use timestamp
+import firebase from "firebase";
 
 export default {
   name: "SQRAllotment",
@@ -158,19 +160,32 @@ export default {
     }
   },
   methods: {
-    allot() {
+    async allot() {
+      const { list } = this.filter;
+      const {
+        devotee: { name, emailAddress },
+        ...other
+      } = this.allotment;
+
       this.submissionStatus = "inProgress";
-      this.$http
-        .post(process.env.VUE_APP_SQR_ALLOTMENT_URL, this.allotment)
-        .then(
-          () => {
-            this.submissionStatus = "complete";
-          },
-          response => {
-            alert(response.text());
-            this.submissionStatus = "error";
-          }
-        );
+      const allotmentData = {
+        ...other,
+        devotee: {
+          name,
+          emailAddress
+        },
+        list,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        user: fb.auth().currentUser.email
+      };
+
+      await fb
+        .database()
+        .ref("sqr/allotments")
+        .push()
+        .set(allotmentData);
+
+      this.submissionStatus = "complete";
     },
     reset() {
       Object.assign(this.$data.allotment, this.$options.data().allotment);
