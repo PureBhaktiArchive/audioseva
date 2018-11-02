@@ -49,6 +49,7 @@ exports.sendEmailOnFileAllotment = functions.database.ref('/sqr/allotments/{allo
         const old = change.before.val();
         const _new = change.after.val();        
         let coordinatorConfig = functions.config().coordinator;
+        let templateId = functions.config().sqr.allotment.templateid;
         
         db.ref('/sqr/allotments').orderByChild('devotee/name')
         .equalTo(_new.devotee.emailAddress).once('value')
@@ -64,7 +65,7 @@ exports.sendEmailOnFileAllotment = functions.database.ref('/sqr/allotments/{allo
                         helpers.sendEmail(
                             _new.devotee.emailAddress, //email
                             [{ email: coordinatorConfig.email, name: coordinatorConfig.name }], //bcc
-                            coordinatorConfig.templateid, //templateId
+                            templateId,
                             { //parameters
                                 files: _new.files,
                                 devotee: _new.devotee,
@@ -228,16 +229,14 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
             if (audioFileStatus === 'audioProblem')
                 allotmentUpdates.devotee = {};
 
-            db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).update(allotmentUpdates);            
-        })
-
-        
-
-
+            db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).update(allotmentUpdates);
+            return 1;
+        }).catch(err => console.log(err));
 
 
         // Coordinator object example { templateid: 3, email:'a@a.a', name: 'Aj' }
-        let coordinator = functions.config().coordinator;
+        let coordinator = functions.config().sqr.coordinator;
+        let templateId = functions.config().sqr.allotment.templateid;
         // 3. Notify the coordinator
         // 3.1 Get the submitted audio file data
 
@@ -277,9 +276,9 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
 
                                 // Sending the notification Email Finally
                                 helpers.sendEmail(
-                                    coordinator.email,
+                                    coordinator.email_address,
                                     [{ email: coordinator.email, name: coordinator.name }],
-                                    coordinator.templateid,
+                                    templateId,
                                     {
                                         submission,
                                         fileData,
