@@ -13,7 +13,7 @@ const helpers = require('./../helpers');
 //              Function --> UpdateFilesOnNewAllotment
 //
 //      2. Send an email to the devotee to notify them of the new allotments
-//              Function --> sendEmailOnFileAllotment
+//              Function --> sendEmailOnNewAllotment
 /////////////////////////////////////////////////
 
 exports.updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
@@ -44,38 +44,42 @@ exports.updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments/{all
         return 1;
 });
 
-exports.sendEmailOnFileAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
+exports.sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
     .onUpdate((change, context) => {
         const old = change.before.val();
-        const _new = change.after.val();        
+        const newAllotment = change.after.val();        
         let coordinatorConfig = functions.config().coordinator;
         let templateId = functions.config().sqr.allotment.templateid;
         
-        db.ref('/sqr/allotments').orderByChild('devotee/name')
-        .equalTo(_new.devotee.emailAddress).once('value')
+
+        // Sends a notification to the devotee 
+        // of the files he's allotted.
+        db.ref('/sqr/allotments').orderByChild('devotee/emailAddress')
+        .equalTo(newAllotment.devotee.emailAddress).once('value')
         .then(snapshot => {
             const allotments = snapshot.val();
             ////////////////
             // sending mail
             ///////////////
-            if (!old.filesAlloted && _new.filesAlloted)
-                if (_new.devotee)
-                    if (_new.devotee.emailAddress) {
-                        let date = new Date();
-                        helpers.sendEmail(
-                            _new.devotee.emailAddress, //email
-                            [{ email: coordinatorConfig.email, name: coordinatorConfig.name }], //bcc
-                            templateId,
-                            { //parameters
-                                files: _new.files,
-                                devotee: _new.devotee,
-                                comment: _new.comment,
-                                date: `${date.getUTCDate() + 1}.${date.getUTCMonth() + 1}`,
-                                repeated: Object.keys(allotments).length > 1
-                            }                    
-                        );
-                        return new_snapshot.ref.child('mailSent').set(true);
-                    }
+            if (!old.filesAlloted && newAllotment.filesAlloted && newAllotment.devotee)
+                if (newAllotment.devotee.emailAddress) {
+                    let date = new Date();
+                    let utcMsec = date.getTime() + (date.getTimezoneOffset() * 60000);
+                    let localDate = new Date( utcMsec + ( 3600000 * coordinatorConfig.timeZoneOffset ) );
+                    helpers.sendEmail(
+                        newAllotment.devotee.emailAddress, //to
+                        [{ email: coordinatorConfig.email_address }], //bcc
+                        templateId,
+                        { //parameters
+                            files: newAllotment.files,
+                            devotee: newAllotment.devotee,
+                            comment: newAllotment.comment,
+                            date: `${localDate.getDate() + 1}.${date.getMonth() + 1}`,
+                            repeated: Object.keys(allotments).length > 1
+                        }                    
+                    );
+                    return change.after.ref.child('mailSent').set(true);
+                }
             return 1;
         }).catch(err => console.log(err));
         
@@ -134,14 +138,10 @@ exports.syncStorageToDB = functions.https.onRequest((req, res) => {
 //          Add MP3 name to DB (Storage Upload Trigger)
 //
 //      1. Add a newly MP3 name to the database
-//              Function --> handleCurrentlyUploadedFiles
-//
-//      2. Remove DB entries for MP3s that don't exist
-//              Function --> removeNonExistingMp3DBEntries
 /////////////////////////////////////////////////
 
 
-exports.importMP3IntoSQR = functions.storage.object().onFinalize( object => {
+exports.importFilesFromStorage = functions.storage.object().onFinalize( object => {
     const filePath = object.name;
     
     if(helpers.checkValidMP3(filePath)){
@@ -249,47 +249,29 @@ exports.processSubmissions = functions.database.ref('/webforms/sqr/{submission_i
                 let fileData = snapshot.val();
 
                 // 3.2 Get the devotee's Allotments in ('given' || 'WIP') state
-                // Using the /sqr/files here instead of /sqr/allotmens to be able to check for the 
-                // state of ('given' || 'WIP')
-                db.ref(`/sqr/files`).once('value')
+                // TO BE ADDED LATER
+                // Currently passing an empty array
+
+                // 3.3 checking if the First Submission or not
+                db.ref(`/sqr/submissions`).orderByChild('devotee/emailAddress')
+                .equalTo(original.email_address).once('value')
                 .then(snapshot => {
                     if (snapshot.exists()) {
-                        let devoteeAllotmentsSet = [];
-                        let lists = snapshot.val();
-                        for (let key in lists) {
-                            let list = lists[key];
-                            for (let key in list) {
-                                let file = list[key];
-                                if (file.allotment)
-                                    if (file.allotment.devotee.emailAddress === original.email_address 
-                                        && ['Given', 'WIP'].indexOf(file.status) > -1)
-                                        devoteeAllotmentsSet.push(file);
+                        let submissions = snapshot.val();
+
+                        // Sending the notification Email Finally
+                        helpers.sendEmail(
+                            coordinator.email_address,
+                            [{ email: coordinator.email }],
+                            templateId,
+                            {
+                                submission,
+                                fileData,
+                                devoteeAllotmentsSet: [],
+                                isFirstSubmission: Object.keys(submissions).length <= 1                                        
                             }
-                        }
-
-                        // 3.3 checking if the First Submission or not
-                        db.ref(`/sqr/submissions`).orderByChild('devotee/emailAddress')
-                            .equalTo(original.email_address).once('value')
-                        .then(snapshot => {
-                            if (snapshot.exists()) {
-                                let submissions = snapshot.val();
-
-                                // Sending the notification Email Finally
-                                helpers.sendEmail(
-                                    coordinator.email_address,
-                                    [{ email: coordinator.email, name: coordinator.name }],
-                                    templateId,
-                                    {
-                                        submission,
-                                        fileData,
-                                        devoteeAllotmentsSet,
-                                        isFirstSubmission: Object.keys(submissions).length <= 1                                        
-                                    }
-                                );
-                            }                    
-                            return 1;
-                        }).catch(err => console.log(err));
-                    }                    
+                        );
+                    }                       
                     return 1;
                 }).catch(err => console.log(err));
             }                    

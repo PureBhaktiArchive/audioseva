@@ -44,7 +44,7 @@ exports.sendEmail = (to, bcc, templateId, params) => {
     };
 
     apiInstance.sendTransacEmail(sendEmail).then(function(data) {
-        console.log(sendEmail); // to, bcc, template id, all other parameters
+        // Message sending result
         console.log(data);
         return 1;
     }, err => console.log(err)).catch(err => console.log(err));
