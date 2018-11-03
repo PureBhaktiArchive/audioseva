@@ -1,16 +1,17 @@
 
 const functions = require('firebase-functions');
 const admin = require("firebase-admin");
+const adminConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 
 try {
     admin.initializeApp({
         credential: admin.credential.applicationDefault(),
-        databaseURL: functions.config().sqr.database_url,
-        storageBucket: functions.config().sqr.storage_bucket
+        databaseURL: adminConfig.databaseURL,
+        storageBucket: adminConfig.storageBucket
     });
 } catch (err) { console.log(err) }
 
-//
+
 /*********************************************
 **
 **  ** Loads the Functions from their modules **
@@ -22,6 +23,7 @@ try {
 **          and the VALUE = all the functions in the loaded file name
 **
 **      Example --> exports = { SQR: { updateFilesOnNewAllotment: [Function], ... } }
+**      On Cloud Fucntions this will appear as SQR-updateFilesOnNewAllotment
 **
 **********************************************/
 const glob = require('glob');
@@ -29,7 +31,5 @@ const functionFiles = glob.sync('./src/*.functions.js', { cwd: __dirname });
 
 functionFiles.forEach((file, index) => {
     const filename = file.split('/').pop().slice(0, -13); // remove the trailing ".functions.js"
-    console.log(require(file));
-    // exports[filename] = require(file);
+    exports[filename] = require(file);
 });
-
