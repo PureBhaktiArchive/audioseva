@@ -1,33 +1,33 @@
+const admin = require("firebase-admin");
+const adminConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 
-const functions = require('firebase-functions');
-var admin = require("firebase-admin");
+try {
+    admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+        databaseURL: adminConfig.databaseURL,
+        storageBucket: adminConfig.storageBucket
+    });
+} catch (err) { console.log(err) }
 
-admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-    databaseURL: functions.config().audioseva.database_url,
-    storageBucket: functions.config().audioseva.storage_bucket
+
+/*********************************************
+**
+**  ** Loads the Functions from their modules **
+**      1. Iterates over all the files ending with '.functions.js' in the "src" directory
+**      2. Extracts the file name and chops off the trailing '.functions.js'
+**      3. Loads the file
+**      4. Adds to the exports object a new object 
+**          with the KEY = file name
+**          and the VALUE = all the functions in the loaded file name
+**
+**      Example --> exports = { SQR: { updateFilesOnNewAllotment: [Function], ... } }
+**      On Cloud Fucntions this will appear as SQR-updateFilesOnNewAllotment
+**
+**********************************************/
+const glob = require('glob');
+const functionFiles = glob.sync('./src/*.functions.js', { cwd: __dirname });
+
+functionFiles.forEach((file, index) => {
+    const filename = file.split('/').pop().slice(0, -13); // remove the trailing ".functions.js"
+    exports[filename] = require(file);
 });
-
-const bucket = admin.storage().bucket();
-const db = admin.database();
-
-//Functions
-const importMp3IntoSQR = require('./src/importMp3IntoSQR');
-const syncStorageToDB = require('./src/syncStorageToDB');
-
-// Helper Functions
-// 1. storeFileNameToDB( filePath, db_object )
-const helpers = require('./helpers');
-
-
-exports.importMP3IntoSQR = functions.storage.object().onFinalize( object => {
-    return importMp3IntoSQR.handleNewUploads(object, db, helpers.storeFileNameToDB);
-});
-
-
-exports.syncStorageToDB = functions.https.onRequest((req, res) => {
-    syncStorageToDB.handleCurrentlyUploadedFiles(bucket, db, helpers.storeFileNameToDB);
-    syncStorageToDB.removeNonExistingMp3DBEntries(bucket, db, helpers.removeFileNameFromDB);
-    return res.send(`Started Execution, the process is now Running in the background`);
-});
-
