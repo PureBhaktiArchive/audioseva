@@ -7,9 +7,9 @@ apiKey.apiKey = sendInBlueSecretKey;
 
 
 
-exports.checkValidMP3 = filePath => (filePath.startsWith("mp3/") && filePath.endsWith(".mp3"))
+export const checkValidMP3 = filePath => (filePath.startsWith("mp3/") && filePath.endsWith(".mp3"))
 
-exports.createMP3DBRef = (filePath, _module) => {
+export const createMP3DBRef = (filePath, _module) => {
     const parts = filePath.split('/');
         
     const list = parts[1];
@@ -19,12 +19,26 @@ exports.createMP3DBRef = (filePath, _module) => {
     return `/${_module}/files/${list}/${file_name}`;
 }
 
-exports.extractListFromFilename = (fileName) => {
+export const extractListFromFilename = (fileName) => {
     return fileName.match(/^[^-]*[^ -]/g)[0];
 }
 
 
-exports.removeFromDB = (db, dbPath) => {
+export const storeFileNameToDB = (filePath, db, _module) => {
+    if(checkValidMP3(filePath)) {
+        let ref = db.ref(createMP3DBRef(filePath, _module));
+
+        //checking if the file already exists in the RT db
+        ref.child("status").once('value')
+        .then(snapshot => {
+            if(!snapshot.exists())
+                ref.set({status: "Spare"});
+            return 1;
+        }).catch(err => console.log(err));
+    }
+}
+
+export const removeFromDB = (db, dbPath) => {
     let ref = db.ref(dbPath);
     ref.remove()
         .then(() => console.log("Deleted."))
@@ -32,9 +46,9 @@ exports.removeFromDB = (db, dbPath) => {
 }
 
 
-exports.sendEmail = (to, bcc, templateId, params) => {
+export const sendEmail = (to, bcc, templateId, params) => {
     let apiInstance = new SibApiV3Sdk.SMTPApi();
-    sendEmail = new SibApiV3Sdk.SendSmtpEmail();
+    let sendEmail = new SibApiV3Sdk.SendSmtpEmail();
 
     sendEmail = {
         to: [{ email: to }], // add a name prop if it fails to send
