@@ -11,8 +11,11 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.0.0-rc.1",
+    "@types/lodash": "^4.14.117",
     "firebase": "^5.4.0",
     "firebaseui": "^3.4.0",
+    "lodash": "^4.17.11",
+    "moment": "^2.22.2",
     "vue": "^2.5.16",
     "vue-class-component": "^6.0.0",
     "vue-property-decorator": "^7.0.0",
