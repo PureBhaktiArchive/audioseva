@@ -8,6 +8,7 @@
       <v-autocomplete
         v-model="allotment.devotee"
         :items="devotees || []"
+        :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''"
         :loading="devotees === null"
         item-text="name"
         label="Select a devotee"
@@ -110,7 +111,7 @@ export default {
     // Getting devotees
     this.$bindAsArray(
       "devotees",
-      fb.database().ref("sqr/registrations"),
+      fb.database().ref("/registrations"),
       null,
       () => {
         this.devotees = this.devotees.reduce(
@@ -128,20 +129,6 @@ export default {
         );
       }
     );
-
-    // replaced by above code
-    // this.$http
-    //   .jsonp(process.env.VUE_APP_SCRIPT_URL, {
-    //     params: { path: "devotees", role: "SQR" }
-    //   })
-    //   .then(response => {
-    //     this.devotees = response.body;
-    //     if (this.$route.query.emailAddress) {
-    //       this.allotment.devotee = this.devotees.find(
-    //         devotee => devotee.emailAddress === this.$route.query.emailAddress
-    //       );
-    //     }
-    //   });
 
     // Getting lists
     this.$http
