@@ -1,58 +1,81 @@
 <template>
-  <v-data-table :headers="headers" :items="files">
+  <v-data-table :headers="headers" :items="items" v-bind="datatableProps">
     <template
       slot="items"
-      slot-scope="{
-        item: {
-          daysPassed = 'missing days passed',
-          dateGiven = 'missing date given',
-          notes = '',
-          languages = [],
-          status = 'Spare',
-          devotee = 'missing devotee',
-          emailAddress = 'missing email',
-          dateDone = 'N/A',
-          followUp = 'N/A',
-          ['.key']: fileName
-        }
-      }"
+      slot-scope="{ item }"
     >
-      <td>{{ daysPassed }}</td>
-      <td>{{ dateGiven }}</td>
-      <td>{{ notes }}</td>
-      <td>{{ languages.join(", ") }}</td>
-      <td>{{ status }}</td>
-      <td>{{ fileName }}</td>
-      <td>{{ devotee }}</td>
-      <td>{{ emailAddress }}</td>
-      <td>{{ dateDone }}</td>
-      <td>{{ followUp }}</td>
+      <td v-for="( value , key, index) in headers" :key="index">
+        {{ getItem(item, value) }}
+      </td>
+    </template>
+
+    <template slot="footer">
+      <slot name="sqrFooter"></slot>
     </template>
   </v-data-table>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
+import _ from "lodash";
 import { ISQRFile } from "@/types/SQRDataTable";
+
+interface IAnyObject {
+  [key: string]: any;
+}
 
 @Component({
   name: "SQRDataTable"
 })
 export default class SQRDataTable extends Vue {
-  @Prop() files!: ISQRFile[];
+  // separator for array.join
+  @Prop({ default: ", " })
+  separator!: string;
 
-  headers = [
-    { text: "Days Passed", value: "allotment.daysPassed" },
-    { text: "Date Given", value: "allotment.dateGiven" },
-    { text: "Notes", value: "notes" },
-    { text: "Languages", value: "languages" },
-    { text: "Status", value: "status" },
-    { text: "File Name", value: "filename" },
-    { text: "Devotee", value: "devotee" },
-    { text: "Email Address", value: "emailAddress" },
-    { text: "Date Done", value: "dateDone" },
-    { text: "Follow Up", value: "followup" }
-  ];
+  // Callback for missing value in call columns
+  @Prop({ default: () => (_value: any) => "" })
+  missingFileCb!: (value: any) => any;
+
+  // Callback for custom value per property
+  @Prop({ default: () => ({}) })
+  computedValue!: { [key: string]: (value: string, item: any) => any };
+
+  // Items for v-data-table component
+  @Prop() items!: any[];
+
+  // Props for v-data-table component
+  @Prop({ default: () => {} })
+  datatableProps!: IAnyObject;
+
+  // Headers for v-data-table component
+  @Prop({
+    default: () => [
+      { text: "Days Passed", value: "allotment.daysPassed" },
+      { text: "Date Given", value: "allotment.timestampGiven" },
+      { text: "Notes", value: "notes" },
+      { text: "Languages", value: "languages" },
+      { text: "Status", value: "status" },
+      { text: "File Name", value: ".key" },
+      { text: "Devotee", value: "allotment.devotee.name" },
+      { text: "Email Address", value: "allotment.devotee.emailAddress" },
+      { text: "Date Done", value: "allotment.timestampDone" },
+      { text: "Follow Up", value: "allotment.followup" }
+    ]
+  })
+  headers!: IAnyObject[];
+
+  getItem(item: any, { value }: { value: string }) {
+    if (Array.isArray(item[value])) {
+      return _.get(item, value).join(this.separator);
+    }
+    // display value based on cb from parent
+    if (this.computedValue[value]) return this.computedCb(value, item);
+    return _.get(item, value, this.missingFileCb(value));
+  }
+
+  computedCb(value: string, item: any) {
+    return this.computedValue[value](value, item);
+  }
 }
 </script>
 

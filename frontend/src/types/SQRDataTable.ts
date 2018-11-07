@@ -14,6 +14,28 @@ export interface ISQRFile {
   status: Status;
   languages: string[];
   notes: string;
+  filename: string;
+  allotment: ISQRFileAllotment;
+}
+
+export interface IFileByStatus {
+  list: string;
+  GRAND?: number;
+  WIP?: number;
+  Spare?: number;
+  Given?: number;
+}
+
+export interface ISpareByLanguage {
+  English?: string;
+  Bengali?: string;
+  Hindi?: string;
+}
+
+export interface ISQRFileVueFire {
+  status: Status;
+  languages: string[];
+  notes: string;
   [".key"]: string;
   allotment: ISQRFileAllotment;
 }
