@@ -1,5 +1,5 @@
-const functions = require('firebase-functions');
-let SibApiV3Sdk = require('sib-api-v3-sdk');
+import * as functions from 'firebase-functions';
+import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 const sendInBlueSecretKey = functions.config().send_in_blue.key;
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 let apiKey = defaultClient.authentications['api-key'];
@@ -24,17 +24,16 @@ export const extractListFromFilename = (fileName) => {
 }
 
 
-export const storeFileNameToDB = (filePath, db, _module) => {
+export const storeFileNameToDB = async (filePath, db, _module) => {
     if(checkValidMP3(filePath)) {
         let ref = db.ref(createMP3DBRef(filePath, _module));
 
         //checking if the file already exists in the RT db
-        ref.child("status").once('value')
-        .then(snapshot => {
-            if(!snapshot.exists())
-                ref.set({status: "Spare"});
-            return 1;
-        }).catch(err => console.log(err));
+        let snapshot = await ref.child("status").once('value')
+
+        if(!snapshot.exists()) {
+            ref.set({status: "Spare"});
+        }
     }
 }
 
