@@ -31,32 +31,30 @@ export const updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments
 .onCreate((snapshot, context) => {
     const original = snapshot.val();
     let newDocKey = snapshot.key;
-    original.files.forEach(file => {
+    original.files.forEach(async file => {
         let file_ref = db.ref(`/sqr/files/${original.list}/${file}`);
-        file_ref.child("status").once('value')
-        .then(snapshot => {
-            if (snapshot.exists())
-                file_ref.update(
-                    {
-                        status: 'Given',
-                        allotment: {
-                            timestampGiven: new Date().getTime(),
-                            timestampDone: null,
-                            devotee: original.devotee
-                        }
-                    }, err => {
-                        if (!err)
-                            db.ref(`/sqr/allotments/${newDocKey}`).update({ filesAlloted: true });
-                    });
-            return 1;
-        }).catch(err => console.log(err));
+        const snapshot = await file_ref.child("status").once('value');
+        if(snapshot.exists()) {
+            file_ref.update(
+            {
+                status: 'Given',
+                allotment: {
+                    timestampGiven: new Date().getTime(),
+                    timestampDone: null,
+                    devotee: original.devotee
+                }
+            }, err => {
+                if (!err)
+                    db.ref(`/sqr/allotments/${newDocKey}`).update({ filesAlloted: true });
+            });
+        }
     });
 
     return 1;
 });
 
 export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
-.onUpdate((change, context) => {
+.onUpdate(async (change, context) => {
     const old = change.before.val();
     const newAllotment = change.after.val();        
     let coordinatorConfig = functions.config().coordinator;
@@ -65,33 +63,32 @@ export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{
 
     // Sends a notification to the devotee 
     // of the files he's allotted.
-    db.ref('/sqr/allotments').orderByChild('devotee/emailAddress')
-    .equalTo(newAllotment.devotee.emailAddress).once('value')
-    .then(snapshot => {
-        const allotments = snapshot.val();
-        ////////////////
-        // sending mail
-        ///////////////
-        if (!old.filesAlloted && newAllotment.filesAlloted && newAllotment.devotee)
-            if (newAllotment.devotee.emailAddress) {
-                let date = new Date();
-                let utcMsec = date.getTime() + (date.getTimezoneOffset() * 60000);
-                let localDate = new Date( utcMsec + ( 3600000 * coordinatorConfig.timeZoneOffset ) );
-                helpers.sendEmail(
-                    newAllotment.devotee.emailAddress, //to
-                    [{ email: coordinatorConfig.email_address }], //bcc
-                    templateId,
-                    { //parameters
-                        files: newAllotment.files,
-                        devotee: newAllotment.devotee,
-                        comment: newAllotment.comment,
-                        date: `${localDate.getDate() + 1}.${date.getMonth() + 1}`,
-                        repeated: Object.keys(allotments).length > 1
-                    }                    
-                );
-                change.after.ref.child('mailSent').set(true).catch(err => console.log(err));
-            }
-    }).catch(err => console.log(err));
+    let allotmentSnapshot = await db.ref('/sqr/allotments').orderByChild('devotee/emailAddress')
+    .equalTo(newAllotment.devotee.emailAddress).once('value');
+
+    const allotments = allotmentSnapshot.val();
+    ////////////////
+    // sending mail
+    ///////////////
+    if (!old.filesAlloted && newAllotment.filesAlloted && newAllotment.devotee)
+        if (newAllotment.devotee.emailAddress) {
+            let date = new Date();
+            let utcMsec = date.getTime() + (date.getTimezoneOffset() * 60000);
+            let localDate = new Date( utcMsec + ( 3600000 * coordinatorConfig.timeZoneOffset ) );
+            helpers.sendEmail(
+                newAllotment.devotee.emailAddress, //to
+                [{ email: coordinatorConfig.email_address }], //bcc
+                templateId,
+                { //parameters
+                    files: newAllotment.files,
+                    devotee: newAllotment.devotee,
+                    comment: newAllotment.comment,
+                    date: `${localDate.getDate() + 1}.${date.getMonth() + 1}`,
+                    repeated: Object.keys(allotments).length > 1
+                }                    
+            );
+            change.after.ref.child('mailSent').set(true).catch(err => console.log(err));
+        }
     
     return 1;
 });
@@ -105,33 +102,33 @@ export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{
 //      2. Remove DB entries for MP3s that don't exist (removeNonExistingMp3DBEntries)
 /////////////////////////////////////////////////
 
-exports.syncStorageToDB = functions.https.onRequest((req, res) => {
+exports.syncStorageToDB = functions.https.onRequest( async (req, res) => {
     ///////////////////////////////////////////////////////
     //      1. Add the currently uploaded MP3s into the DB
     ///////////////////////////////////////////////////////
-    bucket.getFiles().then(files => {
-        files.forEach(innerFilesObject => {
-            innerFilesObject.forEach(file => {
-                helpers.storeFileNameToDB(file.name, db, 'sqr');
-            })
+    const bucketFiles = await bucket.getFiles();
+    bucketFiles.forEach(innerFilesObject => {
+        innerFilesObject.forEach(file => {
+            helpers.storeFileNameToDB(file.name, db, 'sqr');
         });
-    }).catch(err => console.log(err));
+    });
 
     ///////////////////////////////////////////////////////
     //      2. Remove DB entries for MP3s that don't exist
     ///////////////////////////////////////////////////////
-    db.ref(`/sqr/files`).once("value").then(filesSnapshot => {
-        let files = filesSnapshot.val();
-        for (let list in files)
-            for (let file in files[list])
-                bucket.file(`/mp3/${list}/${file}.mp3`).exists().then(exists => {
-                    // **Found** in DB but not in STORAGE
-                    // Removing should be done only if the `status` is `Spare`
-                    if (!exists[0] && files[list][file].status === 'Spare') 
-                        helpers.removeFromDB(db, `/sqr/files/${list}/${file}`)
-                });
+    const filesSnapshot = await db.ref(`/sqr/files`).once("value");
+    let files = filesSnapshot.val();
 
-    }).catch(err => console.log(err));
+    for (let list in files) {
+        for (let file in files[list]) {
+            const existingBucketFiles = await bucket.file(`/mp3/${list}/${file}.mp3`).exists();
+            // **Found** in DB but not in STORAGE
+            // Removing should be done only if the `status` is `Spare`
+            if (!existingBucketFiles[0] && files[list][file].status === 'Spare') 
+                helpers.removeFromDB(db, `/sqr/files/${list}/${file}`)
+        }
+    }
+
 
     return res.send(`Started Execution, the process is now Running in the background`);
 });
@@ -154,7 +151,7 @@ exports.syncStorageToDB = functions.https.onRequest((req, res) => {
 
 
 export const processSubmissions = functions.database.ref('/webforms/sqr/{submission_id}')
-.onCreate((snapshot, context) => {
+.onCreate(async (snapshot, context) => {
     const original = snapshot.val();
 
     let audioFileStatus = 'WIP';    
@@ -193,21 +190,16 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
     db.ref(`/sqr/submissions/${original.serial}`).update(submission);
 
     // 2. Update the allotment ( first get the previous NOTES )
-    db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).once('value')
-    .then(snapshot => {
-        let allotmentUpdates = { status: audioFileStatus };
+    const filesSnapshot = await db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).once('value');
+    let allotmentUpdates = { status: audioFileStatus };
+    // in case 1 & 2 add the comments to the notes
+    if (audioFileStatus !== 'WIP')
+        allotmentUpdates['notes'] = `${filesSnapshot.val().notes}\n${original.comments}`;
+    // if the audio has a problem then REMOVE the devotee from the file allotment
+    if (audioFileStatus === 'audioProblem')
+        allotmentUpdates['devotee'] = {};
+    db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).update(allotmentUpdates);
 
-        // in case 1 & 2 add the comments to the notes
-        if (audioFileStatus !== 'WIP')
-            allotmentUpdates['notes'] = `${snapshot.val().notes}\n${original.comments}`;
-        
-        // if the audio has a problem then REMOVE the devotee from the file allotment
-        if (audioFileStatus === 'audioProblem')
-            allotmentUpdates['devotee'] = {};
-
-        db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).update(allotmentUpdates);
-        return 1;
-    }).catch(err => console.log(err));
 
 
     // Coordinator object example { templateid: 3, email:'a@a.a', name: 'Aj' }
@@ -219,43 +211,40 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
     //  EXTRACTING the list name first from the file_name
     let list = helpers.extractListFromFilename(original.audio_file_name);
     
-    db.ref(`/sqr/files/${list}/${original.audio_file_name}`).once('value')
-    .then(snapshot => {
-        if (snapshot.exists()) {
-            let fileData = snapshot.val();
+    let fileSnapshot = await db.ref(`/sqr/files/${list}/${original.audio_file_name}`).once('value')
 
-            /////////////////////////////////////////////////////////////
-            //
-            // 3.2 Get the devotee's Allotments in ('given' || 'WIP') state
-            // TO BE ADDED LATER
-            // Currently passing an empty array
-            //
-            /////////////////////////////////////////////////////////////
+    if (fileSnapshot.exists()) {
+        let fileData = fileSnapshot.val();
 
-            // 3.3 checking if the First Submission or not
-            db.ref(`/sqr/submissions`).orderByChild('devotee/emailAddress')
-            .equalTo(original.email_address).once('value')
-            .then(snapshot => {
-                if (snapshot.exists()) {
-                    let submissions = snapshot.val();
+        /////////////////////////////////////////////////////////////
+        //
+        // 3.2 Get the devotee's Allotments in ('given' || 'WIP') state
+        // TO BE ADDED LATER
+        // Currently passing an empty array
+        //
+        /////////////////////////////////////////////////////////////
 
-                    // Sending the notification Email Finally
-                    helpers.sendEmail(
-                        coordinator.email_address,
-                        [{ email: coordinator.email }],
-                        templateId,
-                        {
-                            submission,
-                            fileData,
-                            devoteeAllotmentsSet: [],
-                            isFirstSubmission: Object.keys(submissions).length <= 1                                        
-                        }
-                    );
-                }                       
-                return 1;
-            }).catch(err => console.log(err));
+        // 3.3 checking if the First Submission or not
+        let submissionSnapshot = await db.ref(`/sqr/submissions`).orderByChild('devotee/emailAddress')
+        .equalTo(original.email_address).once('value');
+
+        if (submissionSnapshot.exists()) {
+            let submissions = submissionSnapshot.val();
+
+            // Sending the notification Email Finally
+            helpers.sendEmail(
+                coordinator.email_address,
+                [{ email: coordinator.email }],
+                templateId,
+                {
+                    submission,
+                    fileData,
+                    devoteeAllotmentsSet: [],
+                    isFirstSubmission: Object.keys(submissions).length <= 1                                        
+                }
+            );
         }
-    }).catch(err => console.log(err));
+    }
     
     return 1;
 });
