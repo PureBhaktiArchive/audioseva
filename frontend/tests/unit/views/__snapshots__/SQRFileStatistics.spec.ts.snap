@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SQRFileStatistics should extract files: file count by status 1`] = `
+Object {
+  "GRAND": 4,
+  "Given": 1,
+  "Spare": 3,
+}
+`;
+
+exports[`SQRFileStatistics should extract files: files by status 1`] = `
+Array [
+  Object {
+    "GRAND": 2,
+    "Spare": 2,
+    "list": "list1",
+  },
+  Object {
+    "GRAND": 2,
+    "Given": 1,
+    "Spare": 1,
+    "list": "list2",
+  },
+]
+`;
+
+exports[`SQRFileStatistics should extract files: spare by language 1`] = `
+Object {
+  "Bengali": 1,
+  "English": 2,
+}
+`;
+
+exports[`SQRFileStatistics should get doneStatistics 1`] = `
+Object {
+  "Oct 22": 1,
+  "Oct 23": 1,
+  "Oct 24": 1,
+  "Oct 25": 1,
+  "today": 2,
+}
+`;

@@ -71,8 +71,8 @@ export default {
           icon: this.$vuetify.icons.listening
         },
         {
-          title: "Allot Sound Quality Reporting",
-          path: "/sqr/allot",
+          title: "SQR",
+          path: "/sqr",
           icon: this.$vuetify.icons.listening
         },
         {

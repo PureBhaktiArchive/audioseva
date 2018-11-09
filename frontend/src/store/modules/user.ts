@@ -16,10 +16,10 @@ export default {
     currentUser: null
   },
   getters: {
-    isSignedIn: state => state.currentUser !== null
+    isSignedIn: (state: any) => state.currentUser !== null
   },
   mutations: {
-    setCurrentUser: (state, user) => {
+    setCurrentUser: (state: any, user: any) => {
       state.currentUser = user;
       if (!user)
         router.push({

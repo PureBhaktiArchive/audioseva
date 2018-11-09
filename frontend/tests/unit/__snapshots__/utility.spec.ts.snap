@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`utility getLastDays 1`] = `
+Array [
+  "2018-11-01T08:53:15.699Z",
+  "2018-11-02T08:53:15.699Z",
+  "2018-11-03T08:53:15.699Z",
+  "2018-11-04T09:53:15.699Z",
+  "2018-11-05T09:53:15.699Z",
+  "today",
+]
+`;
+
+exports[`utility mergeDoneStatistics 1`] = `
+Object {
+  "Nov 01": 0,
+  "Nov 02": 0,
+  "Nov 03": 0,
+  "Nov 04": 0,
+  "Nov 05": 1,
+  "today": 1,
+}
+`;
