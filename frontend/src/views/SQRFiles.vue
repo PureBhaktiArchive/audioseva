@@ -1,13 +1,21 @@
 <template>
   <div>
-    <div :style="{ marginBottom: '8px' }">
-      <router-link to="sqr/statistics">SQR Statistics</router-link>
+    <header>
+      <h1>SQR</h1>
+    </header>
+    <div class="nav-wrapper">
+      <div>
+        <v-btn-toggle v-model="selectedButton" mandatory>
+          <v-btn v-for="(value, key, index) in lists" :key="index">
+            {{ value }}
+          </v-btn>
+        </v-btn-toggle>
+      </div>
+      <div class="d-flex" :style="{ alignItems: 'center' }">
+        <router-link :style="{ padding: '0 8px' }" to="sqr/statistics">SQR Statistics</router-link>
+        <router-link to="sqr/allot">Allot</router-link>
+      </div>
     </div>
-    <v-btn-toggle v-model="selectedButton" mandatory>
-      <v-btn v-for="(value, key, index) in lists" :key="index">
-        {{ value }}
-      </v-btn>
-    </v-btn-toggle>
     <s-q-r-data-table
       :datatableProps="{ pagination }"
       :computedValue="computedCb"
@@ -21,7 +29,7 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 import _ from "lodash";
 import { db } from "@/main";
 import SQRDataTable from "@/components/SQRDataTable.vue";
-import { getDayDifference } from "@/utility";
+import { getDayDifference, formatTimestamp } from "@/utility";
 
 @Component({
   name: "SQRFiles",
@@ -46,7 +54,9 @@ export default class SQRFiles extends Vue {
         return getDayDifference(dateGiven);
       }
       return "";
-    }
+    },
+    "allotment.timestampGiven": formatTimestamp,
+    "allotment.timestampDone": formatTimestamp
   };
 
   mounted() {
@@ -66,13 +76,14 @@ export default class SQRFiles extends Vue {
       db.ref(`sqr/files/${this.lists[this.selectedButton]}`)
     );
   }
-
-  // @Watch("selectedList")
-  // handleChange() {
-  //   this.$bindAsArray("files", db.ref(`sqr/files/${this.selectedList}`));
-  // }
 }
 </script>
 
 <style scoped>
+.nav-wrapper {
+  margin-bottom: 8px;
+  justify-content: space-between;
+  display: flex;
+  flex-direction: row;
+}
 </style>

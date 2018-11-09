@@ -21,7 +21,7 @@ exports[`Home.vue should render 1`] = `
         color="primary"
         to="sqr"
       >
-        SQR Files
+        SQR
       </v-btn>
     </v-flex>
   </v-layout>

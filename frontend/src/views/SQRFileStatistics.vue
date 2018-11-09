@@ -1,5 +1,8 @@
 <template>
   <div>
+    <header>
+      <h1>SQR Statistics</h1>
+    </header>
     <files-by-status :countByStatus="fileCountByStatus" :items="filesByStatus"></files-by-status>
     <done-statistics :doneStatistics="doneStatistics"></done-statistics>
     <spare-by-language :spareByLanguage="spareByLanguage"></spare-by-language>
@@ -13,15 +16,12 @@ import fb from "@/firebaseApp";
 import {
   ISQRFileVueFire,
   ISpareByLanguage,
-  IFileByStatus
+  IFileByStatus,
+  ICount
 } from "@/types/SQRDataTable";
 import FilesByStatus from "@/components/SQRStatistics/FilesByStatus.vue";
 import DoneStatistics from "@/components/SQRStatistics/DoneStatistics.vue";
 import SpareByLanguage from "@/components/SQRStatistics/SpareByLanguage.vue";
-
-interface ICount {
-  [key: string]: number;
-}
 
 @Component({
   name: "SQRFileStatistics",
