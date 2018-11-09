@@ -16,6 +16,13 @@ exports[`Home.vue should render 1`] = `
       <h1>
         Welcome to Audio Seva Backend
       </h1>
+       
+      <v-btn
+        color="primary"
+        to="sqr"
+      >
+        SQR
+      </v-btn>
     </v-flex>
   </v-layout>
 </v-container>
