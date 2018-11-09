@@ -39,7 +39,7 @@ export default class SQRDataTable extends Vue {
   @Prop({ default: ", " })
   separator!: string;
 
-  // Callback for missing value in call columns
+  // Callback for missing value in all columns
   @Prop({ default: () => (value: any) => "" })
   missingFileCb!: (value: any) => any;
 
