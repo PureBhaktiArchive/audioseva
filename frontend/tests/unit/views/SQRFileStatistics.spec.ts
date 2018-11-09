@@ -82,9 +82,9 @@ describe('SQRFileStatistics', () => {
       }
     };
     const wrapper = shallowMount(SQRFileStatistics, {
-      mocks: {
+      data: () => ({
         doneFiles
-      },
+      }),
       methods: {
         fetchLists: () => null
       }

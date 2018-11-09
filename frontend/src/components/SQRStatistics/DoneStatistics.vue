@@ -9,6 +9,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import SQRDataTable from "../SQRDataTable.vue";
+import { mergeDoneStatistics } from "@/utility";
 
 @Component({
   name: "DoneStatistics",
@@ -18,8 +19,7 @@ export default class DoneStatistics extends Vue {
   @Prop() doneStatistics!: { [key: string]: number };
 
   get statsArray() {
-    if (this.doneStatistics) return Object.entries(this.doneStatistics);
-    return [];
+    return Object.entries(mergeDoneStatistics(this.doneStatistics));
   }
 
   headers = [{ value: "doneText" }, { value: "statistic" }];

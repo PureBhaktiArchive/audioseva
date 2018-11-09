@@ -6,7 +6,7 @@
     <v-layout row wrap>
       <v-flex xs12 class="text-xs-center" mt-5>
         <h1>Welcome to Audio Seva Backend</h1>
-        <v-btn to="sqr" color="primary">SQR Files</v-btn>
+        <v-btn to="sqr" color="primary">SQR</v-btn>
       </v-flex>
     </v-layout>
   </v-container>

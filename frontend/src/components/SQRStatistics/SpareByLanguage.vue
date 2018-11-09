@@ -8,6 +8,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import SQRDataTable from "../SQRDataTable.vue";
+import { mergeLanguageStatistics } from "@/utility";
 
 @Component({
   name: "SpareByLanguage",
@@ -19,8 +20,7 @@ export default class SpareByLanguage extends Vue {
   headers = [{ value: "language" }, { value: "statistic" }];
 
   get statsArray() {
-    if (this.spareByLanguage) return Object.entries(this.spareByLanguage);
-    return [];
+    return Object.entries(mergeLanguageStatistics(this.spareByLanguage));
   }
 
   get statistics() {

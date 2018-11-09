@@ -10,6 +10,10 @@ interface ISQRFileAllotment {
   dateDone: string;
 }
 
+export interface ICount {
+  [key: string]: number;
+}
+
 export interface ISQRFile {
   status: Status;
   languages: string[];

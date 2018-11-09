@@ -1,5 +1,11 @@
 <template>
-  <v-data-table :headers="headers" :items="items" v-bind="datatableProps">
+  <v-data-table
+    :headers="headers"
+    :pagination.sync="pagination"
+    hide-actions
+    :items="items"
+    v-bind="datatableProps"
+  >
     <template
       slot="items"
       slot-scope="{ item }"
@@ -18,7 +24,6 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
 import _ from "lodash";
-import { ISQRFile } from "@/types/SQRDataTable";
 
 interface IAnyObject {
   [key: string]: any;
@@ -28,12 +33,14 @@ interface IAnyObject {
   name: "SQRDataTable"
 })
 export default class SQRDataTable extends Vue {
+  pagination = { rowsPerPage: -1 };
+
   // separator for array.join
   @Prop({ default: ", " })
   separator!: string;
 
   // Callback for missing value in call columns
-  @Prop({ default: () => (_value: any) => "" })
+  @Prop({ default: () => (value: any) => "" })
   missingFileCb!: (value: any) => any;
 
   // Callback for custom value per property
@@ -44,7 +51,7 @@ export default class SQRDataTable extends Vue {
   @Prop() items!: any[];
 
   // Props for v-data-table component
-  @Prop({ default: () => {} })
+  @Prop({ default: () => ({}) })
   datatableProps!: IAnyObject;
 
   // Headers for v-data-table component
