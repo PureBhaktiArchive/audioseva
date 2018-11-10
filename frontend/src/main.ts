@@ -26,7 +26,8 @@ Vue.use(Vuetify, {
   icons: {
     listening: "fas fa-headphones",
     track: "fas fa-cut",
-    quality: "fas fa-check"
+    quality: "fas fa-check",
+    musicNotes: "fas fa-music"
   }
 });
 

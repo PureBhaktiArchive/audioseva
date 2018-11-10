@@ -69,11 +69,12 @@ export default class SQRDataTable extends Vue {
   }
 
   getItem(item: any, { value }: { value: string }) {
+    // display value based on cb from parent
+    if (this.computedValue[value]) return this.computedCb(value, item);
+
     if (Array.isArray(item[value])) {
       return _.get(item, value).join(this.separator);
     }
-    // display value based on cb from parent
-    if (this.computedValue[value]) return this.computedCb(value, item);
     return _.get(item, value, this.missingFileCb(value));
   }
 
