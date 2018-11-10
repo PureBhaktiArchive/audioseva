@@ -76,6 +76,11 @@ export default {
           icon: this.$vuetify.icons.listening
         },
         {
+          title: "SE",
+          path: "/se",
+          icon: this.$vuetify.icons.musicNotes
+        },
+        {
           title: "Allot TE",
           path: "/te/allot",
           icon: this.$vuetify.icons.track
