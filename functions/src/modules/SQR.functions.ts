@@ -1,6 +1,9 @@
 import * as functions from 'firebase-functions';
 import * as  admin from 'firebase-admin';
 
+import { google } from "googleapis";
+const GoogleSpreadsheet = require("google-spreadsheet");
+
 const bucket = admin.storage().bucket();
 const db = admin.database();
 import * as helpers from './../helpers';
@@ -247,4 +250,74 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
     }
     
     return 1;
+});
+
+
+/////////////////////////////////////////////////
+//          Import Submission and Allotments from a Spreadsheet(Http Triggered)
+//
+//      1. Parses a google spreadsheet
+//      2. Looks for two sheets --> Allotments & Submissions
+//      3. Loads their data into the equivalent Firebase database paths
+/////////////////////////////////////////////////
+export const importSpreadSheetData = functions.https.onRequest( async (req, res) => {
+    const auth = await google.auth.getClient({
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+    });
+    
+    const spreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1e0rYguPua_0Rtd--uNLKkGotNw-CPM44TlBS5hthdfQ/edit#gid=477553865';
+    // extracting the spreadsheet ID from the url
+    const spreadsheetId = new RegExp("/spreadsheets/d/([a-zA-Z0-9-_]+)").exec(spreadsheetUrl)[1];
+    const spreadsheet = new GoogleSpreadsheet(spreadsheetId);
+
+    const token = await auth.getAccessToken();
+    spreadsheet.setAuthToken(token);
+
+    spreadsheet.getInfo((err, data) => {
+        if (!err) {
+            data.worksheets.forEach(worksheet => {
+                if(worksheet.title === "Submissions")
+                    worksheet.getRows({ }, (err, rows) => {
+                        rows.forEach(row => {
+                            let documentID = row['submissionserial'];
+                            db.ref(`/sqr/submissions/s${documentID}`)
+                                .set({
+                                    devotee: {
+                                        name: row['devotee'],
+                                        emailAddress: row['email'],
+                                    },
+                                    fileName: row['audiofilename'],
+                                    changed: row['changed'],
+                                    completed: row['completed'],
+                                    created: row['created'],
+                                    comments: row['comments'],
+                                    soundissues: row['soundissues'],
+                                    soundqualityrating: row['soundqualityrating'],
+                                    unwantedparts: row['unwantedparts'],
+                                });
+                        })
+                    });
+
+                
+                if(worksheet.title === "Allotments")
+                    worksheet.getRows({}, (err, rows) => {
+                        rows.forEach(row => {
+                            db.ref(`/sqr/submissions`)
+                            .push({
+                                devotee: {
+                                    name: row['devotee'],
+                                    emailAddress: row['email'],
+                                },
+                                files: [ row['filename'] ],
+                                list: row['list'],
+                                comment: row['notes']
+                            });
+                        });
+                        
+                    });
+            });
+        }
+    });
+    
+    res.status(200).send(`Function was called successfully, check the Logs on Firebase to find out if something went wrong`);
 });
