@@ -57,16 +57,19 @@ export default class SQRDataTable extends Vue {
   // Headers for v-data-table component
   @Prop({
     default: () => [
-      { text: "Days Passed", value: "allotment.daysPassed" },
-      { text: "Date Given", value: "allotment.timestampGiven" },
+      { text: "Days Passed", value: "daysPassed" },
+      { text: "Date Given", value: "soundQualityReporting.timestampGiven" },
       { text: "Notes", value: "notes" },
       { text: "Languages", value: "languages" },
-      { text: "Status", value: "status" },
+      { text: "Status", value: "soundQualityReporting.status" },
       { text: "File Name", value: ".key" },
-      { text: "Devotee", value: "allotment.devotee.name" },
-      { text: "Email Address", value: "allotment.devotee.emailAddress" },
-      { text: "Date Done", value: "allotment.timestampDone" },
-      { text: "Follow Up", value: "allotment.followup" }
+      { text: "Devotee", value: "soundQualityReporting.assignee.name" },
+      {
+        text: "Email Address",
+        value: "soundQualityReporting.assignee.emailAddress"
+      },
+      { text: "Date Done", value: "soundQualityReporting.timestampDone" },
+      { text: "Follow Up", value: "soundQualityReporting.followUp" }
     ]
   })
   headers!: IAnyObject[];
