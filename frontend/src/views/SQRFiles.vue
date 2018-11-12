@@ -40,7 +40,6 @@ import { getDayDifference, formatTimestamp } from "@/utility";
 export default class SQRFiles extends Vue {
   lists: string[] = [];
   sqrFileLists: any[] = [];
-  selectedList: string = "";
   files: any[] = [];
 
   selectedButton: number = 0;
@@ -48,22 +47,27 @@ export default class SQRFiles extends Vue {
   pagination = { rowsPerPage: -1 };
 
   computedCb = {
-    "allotment.daysPassed": (value: string, item: any) => {
-      const dateGiven = _.get(item, "allotment.timestampGiven", false);
+    daysPassed: (value: string, item: any) => {
+      const dateGiven = _.get(
+        item,
+        "soundQualityReporting.timestampGiven",
+        false
+      );
       if (dateGiven) {
         return getDayDifference(dateGiven);
       }
       return "";
     },
-    "allotment.timestampGiven": formatTimestamp,
-    "allotment.timestampDone": formatTimestamp
+    "soundQualityReporting.status": (value: string, item: any) => {
+      return _.get(item, value, "Spare");
+    },
+    "soundQualityReporting.timestampGiven": formatTimestamp,
+    "soundQualityReporting.timestampDone": formatTimestamp
   };
 
   mounted() {
-    this.$bindAsArray("sqrFileLists", db.ref("sqr/files/"), null, () => {
-      this.lists = this.sqrFileLists.map(item => {
-        return item[".key"];
-      });
+    this.$bindAsArray("sqrFileLists", db.ref("files/"), null, () => {
+      this.lists = this.sqrFileLists.map(list => list[".key"]);
       // load initial table data after lists load
       this.handleButtonClick();
     });
@@ -73,7 +77,7 @@ export default class SQRFiles extends Vue {
   handleButtonClick() {
     this.$bindAsArray(
       "files",
-      db.ref(`sqr/files/${this.lists[this.selectedButton]}`)
+      db.ref(`/files/${this.lists[this.selectedButton]}`)
     );
   }
 }
