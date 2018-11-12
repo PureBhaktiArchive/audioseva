@@ -17,6 +17,7 @@
       </div>
     </div>
     <s-q-r-data-table
+      :headers="headers"
       :datatableProps="{ pagination }"
       :computedValue="computedCb"
       :items="files"
@@ -45,6 +46,22 @@ export default class SQRFiles extends Vue {
   selectedButton: number = 0;
 
   pagination = { rowsPerPage: -1 };
+
+  headers = [
+    { text: "Days Passed", value: "daysPassed" },
+    { text: "Date Given", value: "soundQualityReporting.timestampGiven" },
+    { text: "Notes", value: "notes" },
+    { text: "Languages", value: "languages" },
+    { text: "Status", value: "soundQualityReporting.status" },
+    { text: "File Name", value: ".key" },
+    { text: "Devotee", value: "soundQualityReporting.assignee.name" },
+    {
+      text: "Email Address",
+      value: "soundQualityReporting.assignee.emailAddress"
+    },
+    { text: "Date Done", value: "soundQualityReporting.timestampDone" },
+    { text: "Follow Up", value: "soundQualityReporting.followUp" }
+  ];
 
   computedCb = {
     daysPassed: (value: string, item: any) => {
