@@ -4,23 +4,48 @@
       <h1>SQR</h1>
     </header>
     <div class="nav-wrapper">
+      <!-- lists -->
       <div>
-        <v-btn-toggle v-model="selectedButton" mandatory>
-          <v-btn v-for="(value, key, index) in lists" :key="index">
-            {{ value }}
-          </v-btn>
-        </v-btn-toggle>
+        <div v-if="isLoadingLists">
+          <div class="elevation-1 pa-1">
+            <span :style="{ marginRight: '4px' }">loading lists</span>
+            <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
+          </div>
+        </div>
+        <div v-else>
+          <v-btn-toggle v-model="selectedButton" mandatory>
+            <v-btn v-for="(value, key, index) in lists" :key="index">
+              {{ value }}
+            </v-btn>
+          </v-btn-toggle>
+        </div>
       </div>
+
+      <!-- Side links -->
       <div class="d-flex" :style="{ alignItems: 'center' }">
         <router-link :style="{ padding: '0 8px' }" to="sqr/statistics">SQR Statistics</router-link>
         <router-link to="sqr/allot">Allot</router-link>
       </div>
     </div>
-    <s-q-r-data-table
-      :datatableProps="{ pagination }"
-      :computedValue="computedCb"
-      :items="files"
-    ></s-q-r-data-table>
+
+    <!-- Only show table if there's at least one list available -->
+    <div v-if="lists.length">
+      <s-q-r-data-table
+        :headers="headers"
+        :datatableProps="{ pagination, loading: isLoadingFiles }"
+        :computedValue="computedCb"
+        :items="files"
+        :styles="{ '.key': { 'font-weight-bold': true }}"
+      >
+        <template slot="sqrNoData">
+          <div>
+            <div :style="{ justifyContent: 'center' }" class="d-flex" v-if="isLoadingFiles">
+              <v-progress-circular indeterminate></v-progress-circular>
+            </div>
+          </div>
+        </template>
+      </s-q-r-data-table>
+    </div>
   </div>
 </template>
 
@@ -39,41 +64,67 @@ import { getDayDifference, formatTimestamp } from "@/utility";
 })
 export default class SQRFiles extends Vue {
   lists: string[] = [];
-  sqrFileLists: any[] = [];
-  selectedList: string = "";
   files: any[] = [];
+  isLoadingLists = false;
+  isLoadingFiles = false;
 
   selectedButton: number = 0;
 
   pagination = { rowsPerPage: -1 };
 
+  headers = [
+    { text: "Days Passed", value: "daysPassed" },
+    { text: "Date Given", value: "soundQualityReporting.timestampGiven" },
+    { text: "Notes", value: "notes" },
+    { text: "Languages", value: "languages" },
+    { text: "Status", value: "soundQualityReporting.status" },
+    { text: "File Name", value: ".key" },
+    { text: "Assignee", value: "soundQualityReporting.assignee.name" },
+    {
+      text: "Email Address",
+      value: "soundQualityReporting.assignee.emailAddress"
+    },
+    { text: "Date Done", value: "soundQualityReporting.timestampDone" },
+    { text: "Follow Up", value: "soundQualityReporting.followUp" }
+  ];
+
   computedCb = {
-    "allotment.daysPassed": (value: string, item: any) => {
-      const dateGiven = _.get(item, "allotment.timestampGiven", false);
+    daysPassed: (value: string, item: any) => {
+      const dateGiven = _.get(
+        item,
+        "soundQualityReporting.timestampGiven",
+        false
+      );
       if (dateGiven) {
         return getDayDifference(dateGiven);
       }
       return "";
     },
-    "allotment.timestampGiven": formatTimestamp,
-    "allotment.timestampDone": formatTimestamp
+    "soundQualityReporting.status": (value: string, item: any) => {
+      return _.get(item, value, "Spare");
+    },
+    "soundQualityReporting.timestampGiven": formatTimestamp,
+    "soundQualityReporting.timestampDone": formatTimestamp
   };
 
-  mounted() {
-    this.$bindAsArray("sqrFileLists", db.ref("sqr/files/"), null, () => {
-      this.lists = this.sqrFileLists.map(item => {
-        return item[".key"];
-      });
-      // load initial table data after lists load
-      this.handleButtonClick();
-    });
+  async mounted() {
+    this.isLoadingLists = true;
+    const response: any = await this.$http.get(
+      `${process.env.VUE_APP_FIREBASE_DATABASE_URL}/files.json?shallow=true`
+    );
+    this.lists = Object.keys(response.body);
+    this.isLoadingLists = false;
+    this.handleButtonClick();
   }
 
   @Watch("selectedButton")
   handleButtonClick() {
+    this.isLoadingFiles = true;
     this.$bindAsArray(
       "files",
-      db.ref(`sqr/files/${this.lists[this.selectedButton]}`)
+      db.ref(`/files/${this.lists[this.selectedButton]}`),
+      null,
+      () => (this.isLoadingFiles = false)
     );
   }
 }
