@@ -157,7 +157,11 @@ export default {
 
         this.$bindAsArray(
           "sqrFiles",
-          fb.database().ref(`files/${this.filter.list}`),
+          fb
+            .database()
+            .ref(`files/${this.filter.list}`)
+            .orderByChild("soundQualityReporting/status")
+            .equalTo("Spare"),
           null, // cancel callback not used
           this.filterSelectedFiles
         );
@@ -198,19 +202,8 @@ export default {
     filterSelectedFiles() {
       if (this.sqrFiles) {
         this.files = this.sqrFiles.reduce(
-          (
-            filteredItems,
-            {
-              soundQualityReporting: { status } = { status: "Spare" },
-              languages,
-              notes,
-              ...other
-            }
-          ) => {
-            if (
-              languages.includes(this.filter.language) &&
-              status === "Spare"
-            ) {
+          (filteredItems, { languages, notes, ...other }) => {
+            if (languages.includes(this.filter.language)) {
               filteredItems.push({
                 languages,
                 notes,
