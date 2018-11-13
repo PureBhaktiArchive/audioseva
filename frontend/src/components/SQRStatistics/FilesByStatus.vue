@@ -2,9 +2,9 @@
   <div>
     <s-q-r-data-table
       :missingFileCb="missingValueCb"
-      v-if="items && items.length"
       :items="items"
       :headers="headers"
+      :datatableProps="{ loading: isLoading }"
     >
       <template slot="sqrFooter">
         <td
@@ -37,6 +37,7 @@ export default class FilesByStatus extends Vue {
 
   @Prop() items: any;
   @Prop() countByStatus!: { [key: string]: number };
+  @Prop() isLoading!: boolean;
 
   missingValueCb() {
     return 0;
