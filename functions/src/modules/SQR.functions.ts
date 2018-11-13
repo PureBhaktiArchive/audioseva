@@ -3,6 +3,7 @@ import * as  admin from 'firebase-admin';
 
 import { google } from "googleapis";
 const GoogleSpreadsheet = require("google-spreadsheet");
+import { promisify } from 'es6-promisify';
 
 const bucket = admin.storage().bucket();
 const db = admin.database();
@@ -265,56 +266,65 @@ export const importSpreadSheetData = functions.https.onRequest( async (req, res)
         scopes: ["https://www.googleapis.com/auth/spreadsheets"]
     });
     
-    const spreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1e0rYguPua_0Rtd--uNLKkGotNw-CPM44TlBS5hthdfQ/edit#gid=477553865';
-    // extracting the spreadsheet ID from the url
-    const spreadsheetId = new RegExp("/spreadsheets/d/([a-zA-Z0-9-_]+)").exec(spreadsheetUrl)[1];
+    
+    const spreadsheetId = functions.config().sqr.spreadsheetId;
     const spreadsheet = new GoogleSpreadsheet(spreadsheetId);
 
     const token = await auth.getAccessToken();
     spreadsheet.setAuthToken(token);
 
-    spreadsheet.getInfo((err, data) => {
-        if (!err) {
-            data.worksheets.forEach(worksheet => {
-                if(worksheet.title === "Submissions")
-                    worksheet.getRows({ }, (err, rows) => {
-                        rows.forEach(row => {
-                            let documentID = row['submissionserial'];
-                            db.ref(`/sqr/submissions/s${documentID}`)
-                                .set({
-                                    devotee: {
-                                        name: row['devotee'],
-                                        emailAddress: row['email'],
-                                    },
-                                    fileName: row['audiofilename'],
-                                    changed: row['changed'],
-                                    completed: row['completed'],
-                                    created: row['created'],
-                                    comments: row['comments'],
-                                    soundissues: row['soundissues'],
-                                    soundqualityrating: row['soundqualityrating'],
-                                    unwantedparts: row['unwantedparts'],
-                                });
-                        })
-                    });
+    const getInfo = promisify(spreadsheet.getInfo);
+    let data = await getInfo();
 
-                
-                if(worksheet.title === "Allotments")
-                    worksheet.getRows({}, (err, rows) => {
-                        rows.forEach(row => {
-                            db.ref(`/sqr/submissions`)
-                            .push({
-                                devotee: {
-                                    name: row['devotee'],
-                                    emailAddress: row['email'],
-                                },
-                                files: [ row['filename'] ],
-                                list: row['list'],
-                                comment: row['notes']
-                            });
-                        });
-                        
-                    });
+
+    data.worksheets.forEach(async worksheet => {
+        const getRows = promisify(worksheet.getRows);
+
+        if(worksheet.title === "Submissions") {
+            let rows = await getRows({});
+            rows.forEach(row => {
+                let documentID = row['submissionserial'];
+                let spreadsheetRow = {
+                    author: {
+                        name: row['name'],
+                        emailAddress: row['emailAddress'],
+                    },
+                    fileName: row['audiofilename'],
+                    changed: row['changed'],
+                    completed: row['completed'],
+                    created: row['created'],
+                    comments: row['comments'],
+                    soundissues: row['soundissues'],
+                    soundqualityrating: row['soundqualityrating'],
+                    unwantedparts: row['unwantedparts'],
+                    duration: {
+                        beginning: row['beginning'],
+                        ending: row['ending'],
+                    }
+                };
+
+                db.ref(`/sqr/submissions/${documentID}`).set(spreadsheetRow);
+            })
+        }
+        
+        if(worksheet.title === "Allotments"){
+            let rows = await getRows({});
+            rows.forEach(row => {
+                let spreadsheetRow = {
+                    asignee: {
+                        name: row['devotee'],
+                        emailAddress: row['email'],
+                    },
+                    // ***** Temporary ***** until I know where this `user` email should be read from
+                    user: row['email'],
+                    files: [ row['filename'] ],
+                    list: row['list'],
+                    comment: row['notes'],
+                    // ***** Temporary ***** until I know where this `timestamp` should be read from
+                    timestamp: new Date().getTime()
+                };
+
+                db.ref(`/sqr/allotments`).push(spreadsheetRow);
             });
         }
     });
