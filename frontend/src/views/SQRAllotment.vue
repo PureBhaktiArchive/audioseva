@@ -109,7 +109,7 @@ export default {
     },
     submissionStatus: null
   }),
-  mounted: function() {
+  mounted: async function() {
     // Getting devotees
     this.$bindAsArray(
       "devotees",
@@ -133,11 +133,10 @@ export default {
     );
 
     // Getting lists
-    this.$http
-      .jsonp(process.env.VUE_APP_SCRIPT_URL, { params: { path: "sqr/lists" } })
-      .then(response => {
-        this.lists = response.body;
-      });
+    const response = await this.$http.get(
+      `${process.env.VUE_APP_FIREBASE_DATABASE_URL}/files.json?shallow=true`
+    );
+    this.lists = Object.keys(response.body);
   },
   watch: {
     "allotment.devotee": function(newValue) {
@@ -158,11 +157,7 @@ export default {
 
         this.$bindAsArray(
           "sqrFiles",
-          fb
-            .database()
-            .ref(`sqr/files/${this.filter.list}`)
-            .orderByChild("status")
-            .equalTo("Spare"),
+          fb.database().ref(`files/${this.filter.list}`),
           null, // cancel callback not used
           this.filterSelectedFiles
         );
@@ -205,10 +200,20 @@ export default {
     filterSelectedFiles() {
       if (this.sqrFiles) {
         this.files = this.sqrFiles.reduce(
-          (filteredItems, { status, languages, notes, ...other }) => {
-            if (languages.includes(this.filter.language)) {
+          (
+            filteredItems,
+            {
+              soundQualityReporting: { status } = { status: "Spare" },
+              languages,
+              notes,
+              ...other
+            }
+          ) => {
+            if (
+              languages.includes(this.filter.language) &&
+              status === "Spare"
+            ) {
               filteredItems.push({
-                status,
                 languages,
                 notes,
                 filename: other[".key"]
