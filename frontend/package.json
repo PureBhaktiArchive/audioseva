@@ -12,6 +12,7 @@
   "dependencies": {
     "@babel/polyfill": "^7.0.0-rc.1",
     "@types/lodash": "^4.14.117",
+    "@types/node": "^10.12.6",
     "firebase": "^5.4.0",
     "firebaseui": "^3.4.0",
     "lodash": "^4.17.11",

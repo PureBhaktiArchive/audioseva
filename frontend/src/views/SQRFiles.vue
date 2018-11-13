@@ -82,12 +82,12 @@ export default class SQRFiles extends Vue {
     "soundQualityReporting.timestampDone": formatTimestamp
   };
 
-  mounted() {
-    this.$bindAsArray("sqrFileLists", db.ref("files/"), null, () => {
-      this.lists = this.sqrFileLists.map(list => list[".key"]);
-      // load initial table data after lists load
-      this.handleButtonClick();
-    });
+  async mounted() {
+    const response: any = await this.$http.get(
+      `${process.env.VUE_APP_FIREBASE_DATABASE_URL}/files.json?shallow=true`
+    );
+    this.lists = Object.keys(response.body);
+    this.handleButtonClick();
   }
 
   @Watch("selectedButton")
