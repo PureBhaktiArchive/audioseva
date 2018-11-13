@@ -166,7 +166,6 @@ export default {
   },
   methods: {
     async allot() {
-      const { list } = this.filter;
       const {
         devotee: { name, emailAddress },
         ...other
@@ -175,11 +174,10 @@ export default {
       this.submissionStatus = "inProgress";
       const allotmentData = {
         ...other,
-        devotee: {
+        assignee: {
           name,
           emailAddress
         },
-        list,
         timestamp: firebase.database.ServerValue.TIMESTAMP,
         user: fb.auth().currentUser.email
       };
