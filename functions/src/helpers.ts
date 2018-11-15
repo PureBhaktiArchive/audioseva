@@ -7,6 +7,30 @@ apiKey.apiKey = sendInBlueSecretKey;
 
 
 
+/////////////////////////////////////////
+//  Groups an array by a particular index
+//
+//  example cars = [ { make: 'audi', year: '2012' }, 
+//                   { make: 'ford', year: '2015' },
+//                   { make: 'audi', year: '2018' } 
+//                 ]
+//
+//  groupListBy( cars, "make" )
+//      output: {   audi: [ { make: 'audi', year: '2012' },
+//                          { make: 'audi', year: '2018' } ],
+//
+//                  ford: [{ make: 'ford', year: '2015' }]
+//              }
+/////////////////////////////////////////
+export const groupListBy = (array, index) => {
+    return array.reduce((r, a) => {
+        r[a[index]] = r[a[index]] || [];
+        r[a[index]].push(a);
+        return r;
+    }, Object.create(null));
+};
+
+
 export const checkValidMP3 = filePath => (filePath.startsWith("mp3/") && filePath.endsWith(".mp3"))
 
 export const createMP3DBRef = (filePath, _module) => {
