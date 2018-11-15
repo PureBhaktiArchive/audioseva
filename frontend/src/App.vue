@@ -76,7 +76,7 @@ export default {
           icon: this.$vuetify.icons.listening
         },
         {
-          title: "SE",
+          title: "Sound Engineering",
           path: "/se",
           icon: this.$vuetify.icons.musicNotes
         },
