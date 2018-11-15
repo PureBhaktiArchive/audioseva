@@ -14,7 +14,7 @@ import * as helpers from './../helpers';
 export const importFilesFromStorage = functions.storage.object()
 .onFinalize( object => {
     const filePath = object.name;
-    helpers.storeFileNameToDB(filePath, db, 'sqr');
+    helpers.storeFileToDB(filePath, db, 'soundQualityReporting');
     return 1;
 });
 
@@ -101,22 +101,21 @@ export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{
 //
 //      2. Remove DB entries for MP3s that don't exist (removeNonExistingMp3DBEntries)
 /////////////////////////////////////////////////
-
-exports.syncStorageToDB = functions.https.onRequest( async (req, res) => {
+export const syncStorageToDB = functions.https.onRequest( async (req, res) => {
     ///////////////////////////////////////////////////////
     //      1. Add the currently uploaded MP3s into the DB
     ///////////////////////////////////////////////////////
     const bucketFiles = await bucket.getFiles();
     bucketFiles.forEach(innerFilesObject => {
         innerFilesObject.forEach(file => {
-            helpers.storeFileNameToDB(file.name, db, 'sqr');
+            helpers.storeFileToDB(file.name, db, 'soundQualityReporting');
         });
     });
 
     ///////////////////////////////////////////////////////
     //      2. Remove DB entries for MP3s that don't exist
     ///////////////////////////////////////////////////////
-    const filesSnapshot = await db.ref(`/sqr/files`).once("value");
+    const filesSnapshot = await db.ref(`/files`).once("value");
     let files = filesSnapshot.val();
 
     for (let list in files) {
@@ -124,15 +123,14 @@ exports.syncStorageToDB = functions.https.onRequest( async (req, res) => {
             const existingBucketFiles = await bucket.file(`/mp3/${list}/${file}.mp3`).exists();
             // **Found** in DB but not in STORAGE
             // Removing should be done only if the `status` is `Spare`
-            if (!existingBucketFiles[0] && files[list][file].status === 'Spare') 
-                helpers.removeFromDB(db, `/sqr/files/${list}/${file}`)
+            if (!existingBucketFiles[0] && files[list][file]['soundQualityReporting'].status === 'Spare') 
+                helpers.removeFromDB(db, `/files/${list}/${file}`)
+
         }
     }
 
-
     return res.send(`Started Execution, the process is now Running in the background`);
 });
-
 
 
 
