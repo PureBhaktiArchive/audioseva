@@ -16,7 +16,7 @@ export const createMP3DBRef = (filePath, _module) => {
     const mp3 = parts[2];
     let file_name = mp3.slice(0, -4);
 
-    return `/${_module}/files/${list}/${file_name}`;
+    return `/files/${list}/${file_name}`;
 }
 
 export const extractListFromFilename = (fileName) => {
@@ -24,7 +24,7 @@ export const extractListFromFilename = (fileName) => {
 }
 
 
-export const storeFileNameToDB = async (filePath, db, _module) => {
+export const storeFileToDB = async (filePath, db, _module) => {
     if(checkValidMP3(filePath)) {
         let ref = db.ref(createMP3DBRef(filePath, _module));
 
@@ -32,7 +32,47 @@ export const storeFileNameToDB = async (filePath, db, _module) => {
         let snapshot = await ref.child("status").once('value')
 
         if(!snapshot.exists()) {
-            ref.set({status: "Spare"});
+            ref.set({
+                languages: ['test'],
+                languagesConfirmed: false,
+                notes: 'test',
+                soundQualityReporting: {
+                    status: 'Spare',
+                    followUp: 'test',
+                    timestampDone: 'test',
+                    timestampGiven: 'test',
+                    asignee: {
+                        name: 'test',
+                        emailAddress: 'test'
+                    }
+                },
+                contentReporting: {
+                    status: 'Spare',
+                    followUp: 'test',
+                    timestampDone: 'test',
+                    timestampGiven: 'test',
+                    asignee: {
+                        name: 'test',
+                        emailAddress: 'test'
+                    },
+                    soundQualitySubmission: {
+                        fileName: 'test',
+                        soundQualityRating: 'test',
+                        unwantedParts: 'test',
+                        soundIssues: 'test',
+                        duration: 'test',
+                        comments: 'test',
+                        author: {
+                            name: 'test',
+                            email_address: 'test'
+                        },
+                        token: 'test',
+                        created: 'test',
+                        completed: 'test',
+                        changed: 'test',
+                    }
+                }                
+            });
         }
     }
 }
