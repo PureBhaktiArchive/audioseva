@@ -11,7 +11,18 @@
       slot-scope="{ item }"
     >
       <td v-for="( value , key, index) in headers" :class="getStyles(value)" :key="index">
-        {{ getItem(item, value) }}
+        <template v-if="computedComponent[value.value]">
+          <s-q-r-table-data
+            :item="item"
+            :value="value.value"
+            :Component="computedComponent[value.value]"
+            :componentData="getComponentData(value)"
+          >
+          </s-q-r-table-data>
+        </template>
+        <template v-else>
+          {{ getItem(item, value) }}
+        </template>
       </td>
     </template>
 
@@ -28,13 +39,15 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
 import _ from "lodash";
+import SQRTableData from "@/components/SQRTableData";
 
 interface IAnyObject {
   [key: string]: any;
 }
 
 @Component({
-  name: "SQRDataTable"
+  name: "SQRDataTable",
+  components: { SQRTableData }
 })
 export default class SQRDataTable extends Vue {
   pagination = { rowsPerPage: -1 };
@@ -54,6 +67,13 @@ export default class SQRDataTable extends Vue {
   @Prop({ default: () => ({}) })
   computedValue!: { [key: string]: (value: string, item: any) => any };
 
+  // Pass item and value to component for additional control
+  @Prop({ default: () => ({}) })
+  computedComponent!: { [key: string]: any };
+
+  @Prop({ default: () => ({}) })
+  componentData!: { [key: string]: any };
+
   // Items for v-data-table component
   @Prop() items!: any[];
 
@@ -66,6 +86,10 @@ export default class SQRDataTable extends Vue {
 
   getStyles({ value }: { value: string }) {
     return this.styles[value] || {};
+  }
+
+  getComponentData(value: string) {
+    return _.get(this.componentData, value, {});
   }
 
   getItem(item: any, { value }: { value: string }) {
