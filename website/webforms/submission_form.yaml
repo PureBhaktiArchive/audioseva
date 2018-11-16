@@ -113,6 +113,13 @@ duration_group:
   duration_label:
     "#type": label
     "#title": "C. Timing (only for fused lecture)"
+  timing_format_description:
+    "#type": processed_text
+    "#wrapper_attributes":
+      style: "margin-bottom: 0px;"
+    "#text": |
+      <p>Enter the timing in (h:)mm:ss format</p>
+    "#format": full_html
   duration_box:
     "#type": flexbox
     "#attributes":
