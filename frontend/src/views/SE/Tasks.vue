@@ -72,7 +72,8 @@ export default class Tasks extends Vue {
 
   styles = {
     ".key": {
-      "font-weight-bold": true
+      "font-weight-bold": true,
+      "text-no-wrap": true
     }
   };
 
@@ -81,18 +82,16 @@ export default class Tasks extends Vue {
   };
 
   headers = [
-    { text: "Days passed", value: "daysPassed", width: 50, sortable: true },
-    { text: "Date given", value: "restoration.timestampGiven", width: 100 },
-    { text: "Status", value: "restoration.status", width: 50 },
+    { text: "Days passed", value: "daysPassed" },
+    { text: "Date given", value: "restoration.timestampGiven" },
+    { text: "Status", value: "restoration.status" },
     {
       text: "Task ID",
-      value: ".key",
-      width: 150
+      value: ".key"
     },
     {
       text: "Duration",
-      value: "duration",
-      width: 100
+      value: "duration"
     },
     {
       text: "Sound Issues",
@@ -100,15 +99,13 @@ export default class Tasks extends Vue {
     },
     {
       text: "Assignee",
-      value: "restoration.assignee.name",
-      width: 100
+      value: "restoration.assignee.name"
     },
     {
       text: "Email Address",
-      value: "restoration.assignee.emailAddress",
-      width: 100
+      value: "restoration.assignee.emailAddress"
     },
-    { text: "Date Done", value: "restoration.timestampDone", width: 100 },
+    { text: "Date Done", value: "restoration.timestampDone" },
     { text: "Follow Up", value: "restoration.followUp" }
   ];
 
@@ -144,4 +141,7 @@ export default class Tasks extends Vue {
 </script>
 
 <style scoped>
+>>> thead tr:first-child th:first-child {
+  white-space: normal;
+}
 </style>
