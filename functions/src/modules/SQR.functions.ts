@@ -26,9 +26,9 @@ export const updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments
         
         let sqrResult = await sqrRef.update({
             status: 'Given',
-            allotment: {
-                timestampGiven: new Date().getTime(),
-                timestampDone: Math.round((new Date()).getTime() / 1000),
+            allotment: {                
+                timestampGiven: Math.round((new Date()).getTime() / 1000),
+                timestampDone: null,
                 assignee: allotment.assignee
             }
         });
