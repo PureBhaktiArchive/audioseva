@@ -5,48 +5,46 @@ const bucket = admin.storage().bucket();
 const db = admin.database();
 import * as helpers from './../helpers';
 
-/////////////////////////////////////////////////
-//
-//   Add MP3 name to DB (Storage Upload Trigger)
-//
-/////////////////////////////////////////////////
-
-export const importFilesFromStorage = functions.storage.object()
-.onFinalize( object => {
-    const filePath = object.name;
-    helpers.storeFileNameToDB(filePath, db, 'sqr');
-    return 1;
-});
 
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
 //      1. Mark the files in the database --> { status: "Given" }
-//              Function --> UpdateFilesOnNewAllotment
+//              Function --> updateFilesOnNewAllotment
 //
-//      2. Send an email to the devotee to notify them of the new allotments
+//      2. Send an email to the assignee to notify them of the new allotments
 //              Function --> sendEmailOnNewAllotment
 /////////////////////////////////////////////////
-
 export const updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
 .onCreate((snapshot, context) => {
-    const original = snapshot.val();
+    const allotment = snapshot.val();
     let newDocKey = snapshot.key;
-    original.files.forEach(async file => {
-        let file_ref = db.ref(`/sqr/files/${original.list}/${file}`);
-        const snapshot = await file_ref.child("status").once('value');
-        if(snapshot.exists()) {
-            file_ref.update(
-            {
-                status: 'Given',
-                allotment: {
-                    timestampGiven: new Date().getTime(),
-                    timestampDone: null,
-                    devotee: original.devotee
-                }
-            }, err => {
-                if (!err)
-                    db.ref(`/sqr/allotments/${newDocKey}`).update({ filesAlloted: true });
-            });
+
+    // loop through the FILES array in the NEW ALLOTMENT object
+    // and update their corresponding file objects
+    allotment.files.forEach(async file => {
+        let sqrRef = db.ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
+        
+        let sqrError = await sqrRef.update({
+            status: 'Given',
+            assignee: allotment.assignee,
+            timestampGiven: Math.round((new Date()).getTime() / 1000),
+            timestampDone: null,
+        });
+
+        if (sqrError == undefined) { // if Successful FILE Update, update the ALLOTMENT accordingly
+
+            // case 1 -- the allotmnet is read from the spreadsheet
+            if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
+                db.ref(`/sqr/allotments/${newDocKey}`).update({ 
+                    filesAlloted: true,
+                });
+
+            // case 2 -- the allotmnet is inputted manually
+            else
+                db.ref(`/sqr/allotments/${newDocKey}`).update({ 
+                    filesAlloted: true,
+                    sendNotificationEmail: true
+                });
         }
     });
 
@@ -92,47 +90,6 @@ export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{
     
     return 1;
 });
-
-
-/////////////////////////////////////////////////
-//          Sync Storage to DB (HTTP Trigger)
-//
-//      1. Add the currently uploaded MP3s into the DB (handleCurrentlyUploadedFiles)
-//
-//      2. Remove DB entries for MP3s that don't exist (removeNonExistingMp3DBEntries)
-/////////////////////////////////////////////////
-
-exports.syncStorageToDB = functions.https.onRequest( async (req, res) => {
-    ///////////////////////////////////////////////////////
-    //      1. Add the currently uploaded MP3s into the DB
-    ///////////////////////////////////////////////////////
-    const bucketFiles = await bucket.getFiles();
-    bucketFiles.forEach(innerFilesObject => {
-        innerFilesObject.forEach(file => {
-            helpers.storeFileNameToDB(file.name, db, 'sqr');
-        });
-    });
-
-    ///////////////////////////////////////////////////////
-    //      2. Remove DB entries for MP3s that don't exist
-    ///////////////////////////////////////////////////////
-    const filesSnapshot = await db.ref(`/sqr/files`).once("value");
-    let files = filesSnapshot.val();
-
-    for (let list in files) {
-        for (let file in files[list]) {
-            const existingBucketFiles = await bucket.file(`/mp3/${list}/${file}.mp3`).exists();
-            // **Found** in DB but not in STORAGE
-            // Removing should be done only if the `status` is `Spare`
-            if (!existingBucketFiles[0] && files[list][file].status === 'Spare') 
-                helpers.removeFromDB(db, `/sqr/files/${list}/${file}`)
-        }
-    }
-
-
-    return res.send(`Started Execution, the process is now Running in the background`);
-});
-
 
 
 

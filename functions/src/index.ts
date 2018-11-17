@@ -23,5 +23,6 @@ try {
 **
 **********************************************/
 import * as SQR from './modules/SQR.functions';
+import * as ReportingSync from './modules/reporting.sync.functions';
 
-export { SQR };
+export { SQR, ReportingSync };
