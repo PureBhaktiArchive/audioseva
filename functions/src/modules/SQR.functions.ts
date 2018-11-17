@@ -5,35 +5,59 @@ const bucket = admin.storage().bucket();
 const db = admin.database();
 import * as helpers from './../helpers';
 
+
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
 //      1. Mark the files in the database --> { status: "Given" }
-//              Function --> UpdateFilesOnNewAllotment
+//              Function --> updateFilesOnNewAllotment
 //
-//      2. Send an email to the devotee to notify them of the new allotments
+//      2. Send an email to the assignee to notify them of the new allotments
 //              Function --> sendEmailOnNewAllotment
 /////////////////////////////////////////////////
-
 export const updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
 .onCreate((snapshot, context) => {
-    const original = snapshot.val();
+    const allotment = snapshot.val();
     let newDocKey = snapshot.key;
-    original.files.forEach(async file => {
-        let file_ref = db.ref(`/sqr/files/${original.list}/${file}`);
-        const snapshot = await file_ref.child("status").once('value');
-        if(snapshot.exists()) {
-            file_ref.update(
-            {
-                status: 'Given',
-                allotment: {
-                    timestampGiven: new Date().getTime(),
-                    timestampDone: null,
-                    devotee: original.devotee
-                }
-            }, err => {
-                if (!err)
-                    db.ref(`/sqr/allotments/${newDocKey}`).update({ filesAlloted: true });
-            });
+
+    // loop through the FILES array in the NEW ALLOTMENT object
+    // and update their corresponding file objects
+    allotment.files.forEach(async file => {
+        let sqrRef = db.ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
+        let contentRef = db.ref(`/files/${allotment.list}/${file}/contentReporting`);
+        
+        let sqrResult = await sqrRef.update({
+            status: 'Given',
+            allotment: {
+                timestampGiven: new Date().getTime(),
+                timestampDone: null,
+                assignee: allotment.assignee
+            }
+        });
+
+        let contentResult = await contentRef.update({
+            status: 'Given',
+            allotment: {
+                timestampGiven: new Date().getTime(),
+                timestampDone: null,
+                assignee: allotment.assignee
+            }
+        });
+
+
+        if (!sqrResult && !contentResult) { // if Successful FILE Update, update the ALLOTMENT accordingly
+
+            // case 1 -- the allotmnet is read from the spreadsheet
+            if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
+                db.ref(`/sqr/allotments/${newDocKey}`).update({ 
+                    filesAlloted: true,
+                });
+
+            // case 2 -- the allotmnet is inputted manually
+            else
+                db.ref(`/sqr/allotments/${newDocKey}`).update({ 
+                    filesAlloted: true,
+                    sendNotificationEmail: true
+                });
         }
     });
 
