@@ -7,18 +7,6 @@ apiKey.apiKey = sendInBlueSecretKey;
 
 
 
-export const checkValidMP3 = filePath => (filePath.startsWith("mp3/") && filePath.endsWith(".mp3"))
-
-export const createMP3DBRef = (filePath, _module) => {
-    const parts = filePath.split('/');
-        
-    const list = parts[1];
-    const mp3 = parts[2];
-    let file_name = mp3.slice(0, -4);
-
-    return `/files/${list}/${file_name}`;
-}
-
 export const extractListFromFilename = (fileName) => {
     return fileName.match(/^[^-]*[^ -]/g)[0];
 }
