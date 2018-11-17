@@ -5,6 +5,23 @@ const bucket = admin.storage().bucket();
 const db = admin.database();
 import * as helpers from './../helpers';
 
+
+///////////////////////////////////
+//   Sync-Related Helper Functions
+///////////////////////////////////
+
+const checkValidMP3 = filePath => (filePath.startsWith("mp3/") && filePath.endsWith(".mp3"))
+
+const createMP3DBRef = (filePath) => {
+    const parts = filePath.split('/');
+        
+    const list = parts[1];
+    const mp3 = parts[2];
+    let file_name = mp3.slice(0, -4);
+
+    return `/files/${list}/${file_name}`;
+}
+
 /////////////////////////////////////////////////
 //
 //   Add MP3 name to DB (Storage Upload Trigger)
@@ -14,16 +31,15 @@ import * as helpers from './../helpers';
 export const importFilesFromStorage = functions.storage.object()
 .onFinalize( object => {
     const filePath = object.name;
-    if (!helpers.checkValidMP3(filePath))
+    if (!checkValidMP3(filePath))
         return 1;
     
-    let mpo3Ref = db.ref(helpers.createMP3DBRef(filePath));
+    let fileRef = db.ref(createMP3DBRef(filePath));
 
-    mpo3Ref.set({
-        soundQualityReporting: { status: 'Spare' }, contentReporting: { status: 'Spare' }
+    fileRef.set({
+        soundQualityReporting: { status: 'Spare', }, 
+        contentReporting: { status: 'Spare' }
     });
-
-    // helpers.storeFileToDB(filePath, db, ['soundQualityReporting', 'contentReporting']);
     return 1;
 });
 
@@ -43,12 +59,12 @@ export const syncStorageToDB = functions.https.onRequest( async (req, res) => {
     const bucketFiles = await bucket.getFiles();
     bucketFiles.forEach(innerFilesObject => {
         innerFilesObject.forEach(file => {
-            if (!helpers.checkValidMP3(file.name))
+            if (!checkValidMP3(file.name))
                 return;
             
-            let mpo3Ref = db.ref(helpers.createMP3DBRef(file.name));
+            let fileRef = db.ref(createMP3DBRef(file.name));
 
-            mpo3Ref.set({
+            fileRef.set({
                 soundQualityReporting: { status: 'Spare' }, contentReporting: { status: 'Spare' }
             });
         });

@@ -24,17 +24,14 @@ export const updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments
     allotment.files.forEach(async file => {
         let sqrRef = db.ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
         
-        let sqrResult = await sqrRef.update({
+        let sqrError = await sqrRef.update({
             status: 'Given',
-            allotment: {                
-                timestampGiven: Math.round((new Date()).getTime() / 1000),
-                timestampDone: null,
-                assignee: allotment.assignee
-            }
+            assignee: allotment.assignee,
+            timestampGiven: Math.round((new Date()).getTime() / 1000),
+            timestampDone: null,
         });
 
-
-        if (!sqrResult) { // if Successful FILE Update, update the ALLOTMENT accordingly
+        if (sqrError == undefined) { // if Successful FILE Update, update the ALLOTMENT accordingly
 
             // case 1 -- the allotmnet is read from the spreadsheet
             if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
