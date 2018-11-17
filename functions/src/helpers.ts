@@ -24,67 +24,6 @@ export const extractListFromFilename = (fileName) => {
 }
 
 
-export const storeFileToDB = async (filePath, db, _module) => {
-    if(checkValidMP3(filePath)) {
-        let ref = db.ref(createMP3DBRef(filePath, _module));
-
-        //checking if the file already exists in the RT db
-        let snapshot = await ref.child("status").once('value')
-
-        if(!snapshot.exists()) {
-            ref.set({
-                languages: ['test'],
-                languagesConfirmed: false,
-                notes: 'test',
-                soundQualityReporting: {
-                    status: 'Spare',
-                    followUp: 'test',
-                    timestampDone: 'test',
-                    timestampGiven: 'test',
-                    asignee: {
-                        name: 'test',
-                        emailAddress: 'test'
-                    }
-                },
-                contentReporting: {
-                    status: 'Spare',
-                    followUp: 'test',
-                    timestampDone: 'test',
-                    timestampGiven: 'test',
-                    asignee: {
-                        name: 'test',
-                        emailAddress: 'test'
-                    },
-                    soundQualitySubmission: {
-                        fileName: 'test',
-                        soundQualityRating: 'test',
-                        unwantedParts: 'test',
-                        soundIssues: 'test',
-                        duration: 'test',
-                        comments: 'test',
-                        author: {
-                            name: 'test',
-                            email_address: 'test'
-                        },
-                        token: 'test',
-                        created: 'test',
-                        completed: 'test',
-                        changed: 'test',
-                    }
-                }                
-            });
-        }
-    }
-}
-
-export const removeFromDB = (db, dbPath) => {
-    let ref = db.ref(dbPath);
-    ref.remove()
-        .then(() => console.log("Deleted."))
-        .catch(error => console.log(error));
-}
-
-
 export const sendEmail = (to, bcc, templateId, params) => {
     let apiInstance = new SibApiV3Sdk.SMTPApi();
     let sendEmail = new SibApiV3Sdk.SendSmtpEmail();
