@@ -23,28 +23,18 @@ export const updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments
     // and update their corresponding file objects
     allotment.files.forEach(async file => {
         let sqrRef = db.ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
-        let contentRef = db.ref(`/files/${allotment.list}/${file}/contentReporting`);
         
         let sqrResult = await sqrRef.update({
             status: 'Given',
             allotment: {
                 timestampGiven: new Date().getTime(),
-                timestampDone: null,
-                assignee: allotment.assignee
-            }
-        });
-
-        let contentResult = await contentRef.update({
-            status: 'Given',
-            allotment: {
-                timestampGiven: new Date().getTime(),
-                timestampDone: null,
+                timestampDone: Math.round((new Date()).getTime() / 1000),
                 assignee: allotment.assignee
             }
         });
 
 
-        if (!sqrResult && !contentResult) { // if Successful FILE Update, update the ALLOTMENT accordingly
+        if (!sqrResult) { // if Successful FILE Update, update the ALLOTMENT accordingly
 
             // case 1 -- the allotmnet is read from the spreadsheet
             if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
