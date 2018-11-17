@@ -7,41 +7,8 @@ apiKey.apiKey = sendInBlueSecretKey;
 
 
 
-export const checkValidMP3 = filePath => (filePath.startsWith("mp3/") && filePath.endsWith(".mp3"))
-
-export const createMP3DBRef = (filePath, _module) => {
-    const parts = filePath.split('/');
-        
-    const list = parts[1];
-    const mp3 = parts[2];
-    let file_name = mp3.slice(0, -4);
-
-    return `/${_module}/files/${list}/${file_name}`;
-}
-
 export const extractListFromFilename = (fileName) => {
     return fileName.match(/^[^-]*[^ -]/g)[0];
-}
-
-
-export const storeFileNameToDB = async (filePath, db, _module) => {
-    if(checkValidMP3(filePath)) {
-        let ref = db.ref(createMP3DBRef(filePath, _module));
-
-        //checking if the file already exists in the RT db
-        let snapshot = await ref.child("status").once('value')
-
-        if(!snapshot.exists()) {
-            ref.set({status: "Spare"});
-        }
-    }
-}
-
-export const removeFromDB = (db, dbPath) => {
-    let ref = db.ref(dbPath);
-    ref.remove()
-        .then(() => console.log("Deleted."))
-        .catch(error => console.log(error));
 }
 
 
