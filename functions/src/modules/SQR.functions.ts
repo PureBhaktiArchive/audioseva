@@ -5,6 +5,7 @@ const bucket = admin.storage().bucket();
 const db = admin.database();
 import * as helpers from './../helpers';
 
+let emailTemplates = {};
 
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
@@ -204,4 +205,88 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
     }
     
     return 1;
+});
+
+
+/////////////////////////////////////////////////
+//          Update Email Templates on sendInBlue 
+//          in response to changes of the templates
+//          on FB (Storage Triggered)
+//
+/////////////////////////////////////////////////
+
+export const updateEmailTemplates = functions.storage.object()
+.onFinalize(async object => {
+
+    const path = require('path');
+    const os = require('os');
+    const fs = require('fs');
+
+    const filePath = object.name;
+    // slice(0, -5) to get rid of the trailing '.html' extension
+    const fileName = filePath.split('/')[2].slice(0, -5);
+    const tempLocalFile = path.join(os.tmpdir(), fileName);
+    
+    
+    if (!filePath.startsWith('email/templates')) 
+        return 1;
+
+    let emailRef = bucket.file(object.name);
+    await emailRef.download({ destination: tempLocalFile });
+    
+    // Use the following to upate the template on SendInBlue
+    let htmlContent = fs.readFileSync(tempLocalFile, 'utf-8');
+
+    
+    //////////////////////////////////////////
+    // 1. Get the template ID (sendInBlue ID)
+    //////////////////////////////////////////
+
+    let templateNode = await db.ref('/email/templates').orderByKey()
+    .equalTo(fileName).once('value');
+
+    let template = templateNode.val();
+
+    if (template.exists()) {
+        await helpers.updateTemplate(template.id, htmlContent);
+        /////////////////////////////////////////////////////////////////
+        // 2. Send a test Email confirming it has been updated correctly
+        /////////////////////////////////////////////////////////////////
+        let { params, config } = template.sample;
+        let { id } = template;
+        await helpers.sendEmail(config.to, config.bcc, id, params);
+    } 
+    else {
+        let subject = 'WHERE CAN I GET subject FROM'; // mandatory
+        let id = await helpers.createTemplate(fileName, htmlContent, subject);
+        await db.ref(`/email/templates/${fileName}`).push({
+            id,
+            lastUpdated: new Date(),
+            version: 1
+            // Need some way to fill `sample`
+        });
+        /////////////////////////////////////////////////////////////////
+        // 2. Send a test Email confirming it has been updated correctly
+        /////////////////////////////////////////////////////////////////
+        // WAITING TO KNOW SOURCE OF params`, `config`        
+    }    
+    return 1;
+});
+
+
+
+export const sendNotificationEmail = functions.database.ref('/email/notifications}')
+.onCreate(async (snapshot, context) => {
+    const data = snapshot.val();
+    const templateName = snapshot.key;
+
+    let id;
+    if (Object.keys(emailTemplates).indexOf(templateName) > -1)
+        id = emailTemplates[templateName].id;
+    else 
+        id = await helpers.getTemplateId(templateName)
+
+    await helpers.sendEmail(data.to, data.bcc, id, data.params);
+
+    return snapshot.ref.update({ sent: true });
 });
