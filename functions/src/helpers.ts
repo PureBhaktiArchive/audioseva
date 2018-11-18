@@ -6,66 +6,8 @@ let apiKey = defaultClient.authentications['api-key'];
 apiKey.apiKey = sendInBlueSecretKey;
 
 
-
-/////////////////////////////////////////
-//  Groups an array by a particular index
-//
-//  example cars = [ { make: 'audi', year: '2012' }, 
-//                   { make: 'ford', year: '2015' },
-//                   { make: 'audi', year: '2018' } 
-//                 ]
-//
-//  groupListBy( cars, "make" )
-//      output: {   audi: [ { make: 'audi', year: '2012' },
-//                          { make: 'audi', year: '2018' } ],
-//
-//                  ford: [{ make: 'ford', year: '2015' }]
-//              }
-/////////////////////////////////////////
-export const groupListBy = (array, index) => {
-    return array.reduce((r, a) => {
-        r[a[index]] = r[a[index]] || [];
-        r[a[index]].push(a);
-        return r;
-    }, Object.create(null));
-};
-
-
-export const checkValidMP3 = filePath => (filePath.startsWith("mp3/") && filePath.endsWith(".mp3"))
-
-export const createMP3DBRef = (filePath, _module) => {
-    const parts = filePath.split('/');
-        
-    const list = parts[1];
-    const mp3 = parts[2];
-    let file_name = mp3.slice(0, -4);
-
-    return `/${_module}/files/${list}/${file_name}`;
-}
-
 export const extractListFromFilename = (fileName) => {
     return fileName.match(/^[^-]*[^ -]/g)[0];
-}
-
-
-export const storeFileNameToDB = async (filePath, db, _module) => {
-    if(checkValidMP3(filePath)) {
-        let ref = db.ref(createMP3DBRef(filePath, _module));
-
-        //checking if the file already exists in the RT db
-        let snapshot = await ref.child("status").once('value')
-
-        if(!snapshot.exists()) {
-            ref.set({status: "Spare"});
-        }
-    }
-}
-
-export const removeFromDB = (db, dbPath) => {
-    let ref = db.ref(dbPath);
-    ref.remove()
-        .then(() => console.log("Deleted."))
-        .catch(error => console.log(error));
 }
 
 

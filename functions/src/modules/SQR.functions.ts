@@ -4,65 +4,52 @@ import * as  admin from 'firebase-admin';
 import { google } from "googleapis";
 const GoogleSpreadsheet = require("google-spreadsheet");
 import { promisify } from 'es6-promisify';
+const lodash = require('lodash');
 
 const bucket = admin.storage().bucket();
 const db = admin.database();
 import * as helpers from './../helpers';
 
-/////////////////////////////////////////////////
-//
-//   Add MP3 name to DB (Storage Upload Trigger)
-//
-/////////////////////////////////////////////////
-
-export const importFilesFromStorage = functions.storage.object()
-.onFinalize( object => {
-    const filePath = object.name;
-    helpers.storeFileNameToDB(filePath, db, 'sqr');
-    return 1;
-});
 
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
 //      1. Mark the files in the database --> { status: "Given" }
-//              Function --> UpdateFilesOnNewAllotment
+//              Function --> updateFilesOnNewAllotment
 //
-//      2. Send an email to the devotee to notify them of the new allotments
+//      2. Send an email to the assignee to notify them of the new allotments
 //              Function --> sendEmailOnNewAllotment
 /////////////////////////////////////////////////
-
 export const updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
 .onCreate((snapshot, context) => {
     const allotment = snapshot.val();
     let newDocKey = snapshot.key;
+
+    // loop through the FILES array in the NEW ALLOTMENT object
+    // and update their corresponding file objects
     allotment.files.forEach(async file => {
-        let file_ref = db.ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
-        const snapshot = await file_ref.child("status").once('value');
-        if(snapshot.exists()) {
-            file_ref.update({
-                status: 'Given',
-                allotment: {
-                    timestampGiven: new Date().getTime(),
-                    timestampDone: null,
-                    asignee: allotment.asignee
-                }
-            }, (err) => {
-                if (!err) { // if Successful FILE Update, update the ALLOTMENT accordingly
+        let sqrRef = db.ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
+        
+        let sqrError = await sqrRef.update({
+            status: 'Given',
+            assignee: allotment.assignee,
+            timestampGiven: Math.round((new Date()).getTime() / 1000),
+            timestampDone: null,
+        });
 
-                    // case 1 -- the allotmnet is read from the spreadsheet
-                    if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
-                        db.ref(`/sqr/allotments/${newDocKey}`).update({ 
-                            filesAlloted: true,
-                        });
+        if (sqrError == undefined) { // if Successful FILE Update, update the ALLOTMENT accordingly
 
-                    // case 2 -- the allotmnet is inputted manually
-                    else
-                        db.ref(`/sqr/allotments/${newDocKey}`).update({ 
-                            filesAlloted: true,
-                            sendNotificationEmail: true
-                        });
-                }
-            });
+            // case 1 -- the allotmnet is read from the spreadsheet
+            if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
+                db.ref(`/sqr/allotments/${newDocKey}`).update({ 
+                    filesAlloted: true,
+                });
+
+            // case 2 -- the allotmnet is inputted manually
+            else
+                db.ref(`/sqr/allotments/${newDocKey}`).update({ 
+                    filesAlloted: true,
+                    sendNotificationEmail: true
+                });
         }
     });
 
@@ -77,29 +64,29 @@ export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{
     let templateId = functions.config().sqr.allotment.templateid;
     
 
-    // Sends a notification to the asignee 
+    // Sends a notification to the assignee 
     // of the files he's allotted.
-    let allotmentSnapshot = await db.ref('/sqr/allotments').orderByChild('asignee/emailAddress')
-    .equalTo(newAllotment.asignee.emailAddress).once('value');
+    let allotmentSnapshot = await db.ref('/sqr/allotments').orderByChild('assignee/emailAddress')
+    .equalTo(newAllotment.assignee.emailAddress).once('value');
 
     const allotments = allotmentSnapshot.val();
     ////////////////
     // sending mail ( only if sendNotificationEmail is TRUE )
     //                        sendNotificationEmail is FASLE if the record is read from the spreadsheet
     ///////////////
-    if (!old.filesAlloted && newAllotment.filesAlloted && newAllotment.asignee && newAllotment.sendNotificationEmail) {
-        if (newAllotment.asignee.emailAddress) {
+    if (!old.filesAlloted && newAllotment.filesAlloted && newAllotment.assignee && newAllotment.sendNotificationEmail) {
+        if (newAllotment.assignee.emailAddress) {
             console.log("Sending Mail")
             let date = new Date();
             let utcMsec = date.getTime() + (date.getTimezoneOffset() * 60000);
             let localDate = new Date( utcMsec + ( 3600000 * coordinatorConfig.timeZoneOffset ) );
             helpers.sendEmail(
-                newAllotment.asignee.emailAddress, //to
+                newAllotment.assignee.emailAddress, //to
                 [{ email: coordinatorConfig.email_address }], //bcc
                 templateId,
                 {   //parameter list
                     files: newAllotment.files,
-                    asignee: newAllotment.asignee,
+                    assignee: newAllotment.assignee,
                     comment: newAllotment.comment,
                     date: `${localDate.getDate() + 1}.${date.getMonth() + 1}`,
                     repeated: Object.keys(allotments).length > 1
@@ -113,47 +100,6 @@ export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{
     
     return 1;
 });
-
-
-/////////////////////////////////////////////////
-//          Sync Storage to DB (HTTP Trigger)
-//
-//      1. Add the currently uploaded MP3s into the DB (handleCurrentlyUploadedFiles)
-//
-//      2. Remove DB entries for MP3s that don't exist (removeNonExistingMp3DBEntries)
-/////////////////////////////////////////////////
-
-exports.syncStorageToDB = functions.https.onRequest( async (req, res) => {
-    ///////////////////////////////////////////////////////
-    //      1. Add the currently uploaded MP3s into the DB
-    ///////////////////////////////////////////////////////
-    const bucketFiles = await bucket.getFiles();
-    bucketFiles.forEach(innerFilesObject => {
-        innerFilesObject.forEach(file => {
-            helpers.storeFileNameToDB(file.name, db, 'sqr');
-        });
-    });
-
-    ///////////////////////////////////////////////////////
-    //      2. Remove DB entries for MP3s that don't exist
-    ///////////////////////////////////////////////////////
-    const filesSnapshot = await db.ref(`/sqr/files`).once("value");
-    let files = filesSnapshot.val();
-
-    for (let list in files) {
-        for (let file in files[list]) {
-            const existingBucketFiles = await bucket.file(`/mp3/${list}/${file}.mp3`).exists();
-            // **Found** in DB but not in STORAGE
-            // Removing should be done only if the `status` is `Spare`
-            if (!existingBucketFiles[0] && files[list][file].status === 'Spare') 
-                helpers.removeFromDB(db, `/sqr/files/${list}/${file}`)
-        }
-    }
-
-
-    return res.send(`Started Execution, the process is now Running in the background`);
-});
-
 
 
 
@@ -282,8 +228,7 @@ export const importSpreadSheetData = functions.https.onRequest( async (req, res)
     const auth = await google.auth.getClient({
         scopes: ["https://www.googleapis.com/auth/spreadsheets"]
     });
-    
-    
+        
     const spreadsheetId = functions.config().sqr.spreadsheetId;
     const spreadsheet = new GoogleSpreadsheet(spreadsheetId);
 
@@ -293,86 +238,93 @@ export const importSpreadSheetData = functions.https.onRequest( async (req, res)
     const getInfo = promisify(spreadsheet.getInfo);
     let data = await getInfo();
 
+    let AllotmentsSheet, SubmissionsSheet;
 
-    data.worksheets.forEach(async worksheet => {
-        const getRows = promisify(worksheet.getRows);
+    data.worksheets.forEach(worksheet => {
+        if (worksheet.title === "Submissions") 
+            SubmissionsSheet = worksheet;
+        if (worksheet.title === "Allotments")
+            AllotmentsSheet = worksheet;
+    });
 
-        if(worksheet.title === "Submissions") {
-            let rows = await getRows({});
-            rows.forEach(row => {
-                let documentID = row['submissionserial'];
-                let spreadsheetRow = {
-                    author: {
-                        name: row['name'],
-                        emailAddress: row['emailAddress'],
+    const getSubmissions = promisify(SubmissionsSheet.getRows);
+    
+    // submissions = Submissions sheet rows
+    const submissions = await getSubmissions();
+    submissions.forEach(row => {
+        let serial = row['submissionserial'];
+        let submission = {
+            author: {
+                name: row['name'],
+                emailAddress: row['emailAddress'],
+            },
+            fileName: row['audiofilename'],
+            changed: row['changed'],
+            completed: row['completed'],
+            created: row['created'],
+            comments: row['comments'],
+            soundissues: row['soundissues'],
+            soundqualityrating: row['soundqualityrating'],
+            unwantedparts: row['unwantedparts'],
+            duration: {
+                beginning: new Date(row['beginning']).getTime() / 1000,
+                ending:  new Date(row['ending']).getTime() / 1000,
+            }
+        };
+
+        db.ref(`/sqr/submissions/${serial}`).set(submission);
+    });
+
+
+    const getAllotments = promisify(AllotmentsSheet.getRows);
+    // alllotments = Allotments sheet rows
+    const allotments = await getAllotments();
+   
+        
+    // Grouping all the files allotted on one day under a single `Allotment Node` in the db
+
+    // 1 Group by ASSIGNEEs
+    let Assignees = lodash.groupBy(allotments, "devotee");
+
+    // 2 Group by ASSIGNEEs/Dates
+    let AssigneesDates = {};
+    for (let i in Assignees)
+        AssigneesDates[i] = lodash.groupBy(Assignees[i], "dategiven");
+
+    // 3 Group by ASSIGNEEs/DATEs/LISTs
+    let AssigneesDatesLists = {};
+    for (let assignee in AssigneesDates) {
+        AssigneesDatesLists[assignee] = {};
+        for (let date in AssigneesDates[assignee])
+            AssigneesDatesLists[assignee][date] = lodash.groupBy(AssigneesDates[assignee][date], "list")
+    }
+
+    // Adding the allotments
+    for (let assignee in AssigneesDatesLists) {
+        for (let date in AssigneesDatesLists[assignee]) {
+            let dayFiles = [];
+            for (let list in AssigneesDatesLists[assignee][date] ) {
+                
+                // Collecting all of the files on a list under a single day in an array
+                AssigneesDatesLists[assignee][date][list].forEach(item => {
+                    dayFiles.push(item['filename']);
+                })
+                
+                let allotment = {
+                    assignee: {
+                        name: assignee,
+                        emailAddress: Assignees[assignee][0]['email'],
                     },
-                    fileName: row['audiofilename'],
-                    changed: row['changed'],
-                    completed: row['completed'],
-                    created: row['created'],
-                    comments: row['comments'],
-                    soundissues: row['soundissues'],
-                    soundqualityrating: row['soundqualityrating'],
-                    unwantedparts: row['unwantedparts'],
-                    duration: {
-                        beginning: row['beginning'],
-                        ending: row['ending'],
-                    }
+                    files: dayFiles,
+                    list,
+                    timestamp: new Date(date).getTime() / 1000,
+                    sendNotificationEmail: false, // Don't send emails if the document is read from the spreadsheet
                 };
 
-                db.ref(`/sqr/submissions/${documentID}`).set(spreadsheetRow);
-            })
-        }
-        
-        if(worksheet.title === "Allotments"){
-            let rows = await getRows({});
-
-            // Group all the files allotted on one day under a single `Allotment Node` in the db
-
-            // 1 Group by ASSIGNEEs
-            let assignees = helpers.groupListBy(rows, "devotee");
-
-            // 2 Group by ASSIGNEEs/Dates
-            let AssigneesDates = {};
-            for (let i in assignees)
-                AssigneesDates[i] = helpers.groupListBy(assignees[i], "dategiven");
-
-            // 3 Group by ASSIGNEEs/DATEs/LISTs
-            let AssigneesDatesLists = {};
-            for (let assignee in AssigneesDates) {
-                AssigneesDatesLists[assignee] = {};
-                for (let date in AssigneesDates[assignee])
-                    AssigneesDatesLists[assignee][date] = helpers.groupListBy(AssigneesDates[assignee][date], "list")
-            }
-
-            // Adding the allotments
-            for (let assignee in AssigneesDatesLists) {
-                for (let date in AssigneesDatesLists[assignee]) {
-                    let dayFiles = [];
-                    for (let list in AssigneesDatesLists[assignee][date] ) {
-                        
-                        // Collecting all of the files on a list under a single day in an array
-                        AssigneesDatesLists[assignee][date][list].forEach(item => {
-                            dayFiles.push(item['filename']);
-                        })
-                        
-                        let allotment = {
-                            asignee: {
-                                name: assignee,
-                                emailAddress: assignees[assignee][0]['email'],
-                            },
-                            files: dayFiles,
-                            list,
-                            timestamp: date,
-                            sendNotificationEmail: false, // Don't send emails if the document is read from the spreadsheet
-                        };
-
-                        db.ref(`/sqr/allotments`).push(allotment);
-                    }
-                }
+                db.ref(`/sqr/allotments`).push(allotment);
             }
         }
-    });
-    
+    }
+
     res.status(200).send(`Function was called successfully, check the Logs on Firebase to find out if something went wrong`);
 });
