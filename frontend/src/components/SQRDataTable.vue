@@ -10,9 +10,13 @@
       slot="items"
       slot-scope="{ item }"
     >
-      <td v-for="( value , key, index) in headers" :key="index">
+      <td v-for="( value , key, index) in headers" :class="getStyles(value)" :key="index">
         {{ getItem(item, value) }}
       </td>
+    </template>
+
+    <template slot="no-data">
+      <slot name="sqrNoData"></slot>
     </template>
 
     <template slot="footer">
@@ -39,6 +43,9 @@ export default class SQRDataTable extends Vue {
   @Prop({ default: ", " })
   separator!: string;
 
+  @Prop({ default: () => ({}) })
+  styles!: { [key: string]: boolean };
+
   // Callback for missing value in all columns
   @Prop({ default: () => (value: any) => "" })
   missingFileCb!: (value: any) => any;
@@ -55,21 +62,11 @@ export default class SQRDataTable extends Vue {
   datatableProps!: IAnyObject;
 
   // Headers for v-data-table component
-  @Prop({
-    default: () => [
-      { text: "Days Passed", value: "allotment.daysPassed" },
-      { text: "Date Given", value: "allotment.timestampGiven" },
-      { text: "Notes", value: "notes" },
-      { text: "Languages", value: "languages" },
-      { text: "Status", value: "status" },
-      { text: "File Name", value: ".key" },
-      { text: "Devotee", value: "allotment.devotee.name" },
-      { text: "Email Address", value: "allotment.devotee.emailAddress" },
-      { text: "Date Done", value: "allotment.timestampDone" },
-      { text: "Follow Up", value: "allotment.followup" }
-    ]
-  })
-  headers!: IAnyObject[];
+  @Prop() headers!: IAnyObject[];
+
+  getStyles({ value }: { value: string }) {
+    return this.styles[value] || {};
+  }
 
   getItem(item: any, { value }: { value: string }) {
     if (Array.isArray(item[value])) {

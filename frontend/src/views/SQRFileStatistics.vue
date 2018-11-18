@@ -3,7 +3,12 @@
     <header>
       <h1>SQR Statistics</h1>
     </header>
-    <files-by-status :countByStatus="fileCountByStatus" :items="filesByStatus"></files-by-status>
+    <files-by-status
+      :isLoading="isLoadingFiles"
+      :countByStatus="fileCountByStatus"
+      :items="filesByStatus"
+    >
+    </files-by-status>
     <done-statistics :doneStatistics="doneStatistics"></done-statistics>
     <spare-by-language :spareByLanguage="spareByLanguage"></spare-by-language>
   </div>
@@ -29,6 +34,7 @@ import SpareByLanguage from "@/components/SQRStatistics/SpareByLanguage.vue";
 })
 export default class SQRFileStatistics extends Vue {
   lists!: { [key: string]: { [key: string]: ISQRFileVueFire } };
+  isLoadingFiles: boolean = false;
   doneFiles: any = null;
   doneStatistics: ICount = {};
   filesByStatus: IFileByStatus[] = [];
@@ -45,10 +51,11 @@ export default class SQRFileStatistics extends Vue {
   }
 
   fetchLists() {
+    this.isLoadingFiles = true;
     const date = new Date();
     this.$bindAsObject(
       "lists",
-      fb.database().ref("sqr/files"),
+      fb.database().ref("files"),
       null,
       this.extractFiles
     );
@@ -91,38 +98,44 @@ export default class SQRFileStatistics extends Vue {
         // file count by list
         _.set(statusByList, listStatusTotal, Object.keys(list).length);
 
-        _.forIn(list, ({ status, languages }) => {
-          const listStatus = `${listName}.${status}`;
+        _.forIn(
+          list,
+          ({
+            soundQualityReporting: { status } = { status: "Spare" },
+            languages
+          }) => {
+            const listStatus = `${listName}.${status}`;
 
-          // spare files by language
-          if (status === "Spare") {
-            _.forEach(languages, (language: string) => {
-              _.set(
-                spareByLanguage,
-                language,
-                _.get(spareByLanguage, language, 0) + 1
-              );
-            });
+            // spare files by language
+            if (status === "Spare") {
+              _.forEach(languages, (language: string) => {
+                _.set(
+                  spareByLanguage,
+                  language,
+                  _.get(spareByLanguage, language, 0) + 1
+                );
+              });
+            }
+            // total file count per status, used in footer for GRAND
+            _.set(
+              fileCountByStatus,
+              status,
+              _.get(fileCountByStatus, status as string, 0) + 1
+            );
+            // total file count
+            _.set(
+              fileCountByStatus,
+              "GRAND",
+              _.get(fileCountByStatus, "GRAND", 0) + 1
+            );
+            // file count per list per status
+            _.set(
+              statusByList,
+              listStatus,
+              _.get(statusByList, listStatus, 0) + 1
+            );
           }
-          // total file count per status, used in footer for GRAND
-          _.set(
-            fileCountByStatus,
-            status,
-            _.get(fileCountByStatus, status as string, 0) + 1
-          );
-          // total file count
-          _.set(
-            fileCountByStatus,
-            "GRAND",
-            _.get(fileCountByStatus, "GRAND", 0) + 1
-          );
-          // file count per list per status
-          _.set(
-            statusByList,
-            listStatus,
-            _.get(statusByList, listStatus, 0) + 1
-          );
-        });
+        );
       }
     });
     this.fileCountByStatus = fileCountByStatus;
@@ -131,6 +144,7 @@ export default class SQRFileStatistics extends Vue {
       list
     }));
     this.spareByLanguage = spareByLanguage;
+    this.isLoadingFiles = false;
   }
 }
 </script>

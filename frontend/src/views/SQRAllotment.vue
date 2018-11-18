@@ -109,7 +109,7 @@ export default {
     },
     submissionStatus: null
   }),
-  mounted: function() {
+  mounted: async function() {
     // Getting devotees
     this.$bindAsArray(
       "devotees",
@@ -133,11 +133,10 @@ export default {
     );
 
     // Getting lists
-    this.$http
-      .jsonp(process.env.VUE_APP_SCRIPT_URL, { params: { path: "sqr/lists" } })
-      .then(response => {
-        this.lists = response.body;
-      });
+    const response = await this.$http.get(
+      `${process.env.VUE_APP_FIREBASE_DATABASE_URL}/files.json?shallow=true`
+    );
+    this.lists = Object.keys(response.body);
   },
   watch: {
     "allotment.devotee": function(newValue) {
@@ -160,8 +159,8 @@ export default {
           "sqrFiles",
           fb
             .database()
-            .ref(`sqr/files/${this.filter.list}`)
-            .orderByChild("status")
+            .ref(`files/${this.filter.list}`)
+            .orderByChild("soundQualityReporting/status")
             .equalTo("Spare"),
           null, // cancel callback not used
           this.filterSelectedFiles
@@ -171,7 +170,6 @@ export default {
   },
   methods: {
     async allot() {
-      const { list } = this.filter;
       const {
         devotee: { name, emailAddress },
         ...other
@@ -180,11 +178,10 @@ export default {
       this.submissionStatus = "inProgress";
       const allotmentData = {
         ...other,
-        devotee: {
+        assignee: {
           name,
           emailAddress
         },
-        list,
         timestamp: firebase.database.ServerValue.TIMESTAMP,
         user: fb.auth().currentUser.email
       };
@@ -205,10 +202,9 @@ export default {
     filterSelectedFiles() {
       if (this.sqrFiles) {
         this.files = this.sqrFiles.reduce(
-          (filteredItems, { status, languages, notes, ...other }) => {
+          (filteredItems, { languages, notes, ...other }) => {
             if (languages.includes(this.filter.language)) {
               filteredItems.push({
-                status,
                 languages,
                 notes,
                 filename: other[".key"]

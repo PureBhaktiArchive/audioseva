@@ -36,10 +36,20 @@ export interface ISpareByLanguage {
   Hindi?: string;
 }
 
-export interface ISQRFileVueFire {
+interface ISQR {
   status: Status;
+  assignee: {
+    emailAddress: string;
+    name: string;
+  },
+  timestampGiven: number;
+  timestampDone: number;
+  followUp: string
+}
+
+export interface ISQRFileVueFire {
   languages: string[];
   notes: string;
   [".key"]: string;
-  allotment: ISQRFileAllotment;
+  soundQualityReporting: ISQR;
 }
