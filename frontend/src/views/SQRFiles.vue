@@ -30,21 +30,21 @@
 
     <!-- Only show table if there's at least one list available -->
     <div v-if="lists.length">
-      <s-q-r-data-table
+      <data-table
         :headers="headers"
         :datatableProps="{ pagination, loading: isLoadingFiles }"
         :computedValue="computedCb"
         :items="files"
         :styles="{ '.key': { 'font-weight-bold': true }}"
       >
-        <template slot="sqrNoData">
+        <template slot="table-no-data">
           <div>
             <div :style="{ justifyContent: 'center' }" class="d-flex" v-if="isLoadingFiles">
               <v-progress-circular indeterminate></v-progress-circular>
             </div>
           </div>
         </template>
-      </s-q-r-data-table>
+      </data-table>
     </div>
   </div>
 </template>
@@ -53,13 +53,13 @@
 import { Component, Vue, Watch } from "vue-property-decorator";
 import _ from "lodash";
 import { db } from "@/main";
-import SQRDataTable from "@/components/SQRDataTable.vue";
+import DataTable from "@/components/DataTable.vue";
 import { getDayDifference, formatTimestamp } from "@/utility";
 
 @Component({
   name: "SQRFiles",
   components: {
-    SQRDataTable
+    DataTable
   }
 })
 export default class SQRFiles extends Vue {

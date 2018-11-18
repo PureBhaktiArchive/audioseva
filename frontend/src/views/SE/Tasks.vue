@@ -17,7 +17,7 @@
       </v-btn-toggle>
     </div>
     <div v-if="lists.length">
-      <s-q-r-data-table
+      <data-table
         :computedComponent="computedComponent"
         :computedValue="computedCb"
         :headers="headers"
@@ -25,12 +25,12 @@
         :styles="styles"
         :datatableProps="{ loading: isLoadingTasks }"
       >
-        <template slot="sqrNoData">
+        <template slot="table-no-data">
           <div :style="{ justifyContent: 'center' }" class="d-flex" v-if="isLoadingTasks">
             <v-progress-circular indeterminate></v-progress-circular>
           </div>
         </template>
-      </s-q-r-data-table>
+      </data-table>
     </div>
   </div>
 </template>
@@ -40,14 +40,14 @@ import { Component, Watch, Vue } from "vue-property-decorator";
 import _ from "lodash";
 import moment from "moment";
 import fb from "@/firebaseApp";
-import SQRDataTable from "@/components/SQRDataTable.vue";
+import DataTable from "@/components/DataTable.vue";
 import SoundIssuesList from "@/components/SE/SoundIssuesList.vue";
 import { ITasks } from "@/types/SE";
 import { formatTimestamp, getDayDifference } from "@/utility";
 
 @Component({
   name: "Tasks",
-  components: { SQRDataTable, SoundIssuesList }
+  components: { DataTable, SoundIssuesList }
 })
 export default class Tasks extends Vue {
   tasks: ITasks[] = [];

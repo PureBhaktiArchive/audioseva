@@ -1,12 +1,12 @@
 <template>
   <div>
-    <s-q-r-data-table
+    <data-table
       :missingFileCb="missingValueCb"
       :items="items"
       :headers="headers"
       :datatableProps="{ loading: isLoading }"
     >
-      <template slot="sqrFooter">
+      <template slot="table-footer">
         <td
           :style="{ borderTop: 'double', backgroundColor: 'lightgray'}"
           v-for="( value , key, index) in headers" :key="index"
@@ -14,17 +14,17 @@
           {{ getFooterData(value) }}
         </td>
       </template>
-    </s-q-r-data-table>
+    </data-table>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import SQRDataTable from "../SQRDataTable.vue";
+import DataTable from "../DataTable.vue";
 
 @Component({
   name: "FilesByStatus",
-  components: { SQRDataTable }
+  components: { DataTable }
 })
 export default class FilesByStatus extends Vue {
   headers = [
