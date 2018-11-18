@@ -12,13 +12,13 @@
     >
       <td v-for="( value , key, index) in headers" :class="getStyles(value)" :key="index">
         <template v-if="computedComponent[value.value]">
-          <s-q-r-table-data
+          <table-data
             :item="item"
             :value="value.value"
             :Component="computedComponent[value.value]"
             :componentData="getComponentData(value)"
           >
-          </s-q-r-table-data>
+          </table-data>
         </template>
         <template v-else>
           {{ getItem(item, value) }}
@@ -27,11 +27,11 @@
     </template>
 
     <template slot="no-data">
-      <slot name="sqrNoData"></slot>
+      <slot name="table-no-data"></slot>
     </template>
 
     <template slot="footer">
-      <slot name="sqrFooter"></slot>
+      <slot name="table-footer"></slot>
     </template>
   </v-data-table>
 </template>
@@ -39,17 +39,17 @@
 <script lang="ts">
 import { Component, Vue, Prop } from "vue-property-decorator";
 import _ from "lodash";
-import SQRTableData from "@/components/SQRTableData";
+import TableData from "@/components/TableData";
 
 interface IAnyObject {
   [key: string]: any;
 }
 
 @Component({
-  name: "SQRDataTable",
-  components: { SQRTableData }
+  name: "DataTable",
+  components: { TableData }
 })
-export default class SQRDataTable extends Vue {
+export default class DataTable extends Vue {
   pagination = { rowsPerPage: -1 };
 
   // separator for array.join

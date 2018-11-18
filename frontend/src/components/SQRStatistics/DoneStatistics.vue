@@ -1,19 +1,19 @@
 <template>
   <div>
     <span class=".font-weight-medium">Done statistics:</span>
-    <s-q-r-data-table :datatableProps="{ hideHeaders: true }" :items="statistics" :headers="headers">
-    </s-q-r-data-table>
+    <data-table :datatableProps="{ hideHeaders: true }" :items="statistics" :headers="headers">
+    </data-table>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import SQRDataTable from "../SQRDataTable.vue";
+import DataTable from "../DataTable.vue";
 import { mergeDoneStatistics } from "@/utility";
 
 @Component({
   name: "DoneStatistics",
-  components: { SQRDataTable }
+  components: { DataTable }
 })
 export default class DoneStatistics extends Vue {
   @Prop() doneStatistics!: { [key: string]: number };

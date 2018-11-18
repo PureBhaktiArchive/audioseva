@@ -1,9 +1,9 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "SQRTableData"
+  name: "TableData"
 })
-export default class SQRTableData extends Vue {
+export default class TableData extends Vue {
   @Prop() component!: any;
 
   @Prop() componentData!: { [key: string]: any };
