@@ -224,6 +224,26 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
 //      2. Looks for two sheets --> Allotments & Submissions
 //      3. Loads their data into the equivalent Firebase database paths
 /////////////////////////////////////////////////
+
+
+// Helper Function
+//      splits an array into a bunch of arrays 
+//      GROUPED BY a 
+//              composite key ( 2nd parameter: values )
+
+let groupByMulti = (list, values, context) => {
+    if (!values.length) {
+      return list;
+    }
+    var byFirst = lodash.groupBy(list, values[0], context),
+        rest    = values.slice(1);
+    for (var prop in byFirst) {
+      byFirst[prop] = groupByMulti(byFirst[prop], rest, context);
+    }
+    return byFirst;
+}
+
+
 export const importSpreadSheetData = functions.https.onRequest( async (req, res) => {
     const auth = await google.auth.getClient({
         scopes: ["https://www.googleapis.com/auth/spreadsheets"]
@@ -253,6 +273,24 @@ export const importSpreadSheetData = functions.https.onRequest( async (req, res)
     const submissions = await getSubmissions();
     submissions.forEach(row => {
         let serial = row['submissionserial'];
+
+        const regex = /(.*?)–(.*):(.*)—(.*)/g;
+        let soundissuesMatch = regex.exec(row['soundissues']);
+        let unwantedpartsMatch = regex.exec(row['unwantedparts']);
+        
+        let soundissues = {
+            beginning: soundissuesMatch[1],
+            ending: soundissuesMatch[2],
+            type: soundissuesMatch[3],
+            description: soundissuesMatch[4]
+        },
+        unwantedparts = {
+            beginning: unwantedpartsMatch[1],
+            ending: unwantedpartsMatch[2],
+            type: unwantedpartsMatch[3],
+            description: unwantedpartsMatch[4]
+        };
+
         let submission = {
             author: {
                 name: row['name'],
@@ -263,9 +301,9 @@ export const importSpreadSheetData = functions.https.onRequest( async (req, res)
             completed: row['completed'],
             created: row['created'],
             comments: row['comments'],
-            soundissues: row['soundissues'],
+            soundissues,
             soundqualityrating: row['soundqualityrating'],
-            unwantedparts: row['unwantedparts'],
+            unwantedparts,
             duration: {
                 beginning: new Date(row['beginning']).getTime() / 1000,
                 ending:  new Date(row['ending']).getTime() / 1000,
@@ -281,39 +319,26 @@ export const importSpreadSheetData = functions.https.onRequest( async (req, res)
     const allotments = await getAllotments();
    
         
-    // Grouping all the files allotted on one day under a single `Allotment Node` in the db
-
-    // 1 Group by ASSIGNEEs
-    let Assignees = lodash.groupBy(allotments, "devotee");
-
-    // 2 Group by ASSIGNEEs/Dates
-    let AssigneesDates = {};
-    for (let i in Assignees)
-        AssigneesDates[i] = lodash.groupBy(Assignees[i], "dategiven");
-
-    // 3 Group by ASSIGNEEs/DATEs/LISTs
-    let AssigneesDatesLists = {};
-    for (let assignee in AssigneesDates) {
-        AssigneesDatesLists[assignee] = {};
-        for (let date in AssigneesDates[assignee])
-            AssigneesDatesLists[assignee][date] = lodash.groupBy(AssigneesDates[assignee][date], "list")
-    }
+    // Group all the files allotted on one day under a single `Allotment Node` in the db
+    // Group by ASSIGNEEs/DATEs/LISTs
+    
+    let groupedAllotments = groupByMulti(allotments, ['devotee', 'dategiven', 'list'], {});
 
     // Adding the allotments
-    for (let assignee in AssigneesDatesLists) {
-        for (let date in AssigneesDatesLists[assignee]) {
+    for (let assignee in groupedAllotments) {
+        for (let date in groupedAllotments[assignee]) {
             let dayFiles = [];
-            for (let list in AssigneesDatesLists[assignee][date] ) {
+            for (let list in groupedAllotments[assignee][date] ) {
                 
                 // Collecting all of the files on a list under a single day in an array
-                AssigneesDatesLists[assignee][date][list].forEach(item => {
+                groupedAllotments[assignee][date][list].forEach(item => {
                     dayFiles.push(item['filename']);
-                })
+                });
                 
                 let allotment = {
                     assignee: {
                         name: assignee,
-                        emailAddress: Assignees[assignee][0]['email'],
+                        emailAddress: groupedAllotments[assignee][date][list][0]['email'],
                     },
                     files: dayFiles,
                     list,
