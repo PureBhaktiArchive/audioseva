@@ -4,6 +4,7 @@ import * as  admin from 'firebase-admin';
 const bucket = admin.storage().bucket();
 const db = admin.database();
 import * as helpers from './../helpers';
+import * as emailHelper from './email.functions';
 
 let emailTemplates = {};
 
@@ -74,18 +75,18 @@ export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{
             let date = new Date();
             let utcMsec = date.getTime() + (date.getTimezoneOffset() * 60000);
             let localDate = new Date( utcMsec + ( 3600000 * coordinatorConfig.timeZoneOffset ) );
-            helpers.sendEmail(
-                newAllotment.devotee.emailAddress, //to
-                [{ email: coordinatorConfig.email_address }], //bcc
-                templateId,
-                { //parameters
+            db.ref(`/email/notifications`).push({
+                template: templateId,
+                to: newAllotment.assignee.emailAddress,
+                bcc: [{ email: coordinatorConfig.email_address }],
+                params: {
                     files: newAllotment.files,
-                    devotee: newAllotment.devotee,
+                    assignee: newAllotment.assignee,
                     comment: newAllotment.comment,
                     date: `${localDate.getDate() + 1}.${date.getMonth() + 1}`,
                     repeated: Object.keys(allotments).length > 1
-                }                    
-            );
+                }     
+            });
             change.after.ref.child('mailSent').set(true).catch(err => console.log(err));
         }
     
@@ -190,17 +191,17 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
             let submissions = submissionSnapshot.val();
 
             // Sending the notification Email Finally
-            helpers.sendEmail(
-                coordinator.email_address,
-                [{ email: coordinator.email }],
-                templateId,
-                {
+            db.ref(`/email/notifications`).push({
+                template: templateId,
+                to: coordinator.email_address,
+                bcc: [{ email: coordinator.email }],
+                params: {
                     submission,
                     fileData,
-                    devoteeAllotmentsSet: [],
+                    assigneeAllotmentsSet: [],
                     isFirstSubmission: Object.keys(submissions).length <= 1                                        
                 }
-            );
+            });
         }
     }
     
@@ -214,65 +215,71 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
 //          on FB (Storage Triggered)
 //
 /////////////////////////////////////////////////
+const path = require('path');
+const os = require('os');
+const fs = require('fs');
 
-export const updateEmailTemplates = functions.storage.object()
-.onFinalize(async object => {
-
-    const path = require('path');
-    const os = require('os');
-    const fs = require('fs');
-
-    const filePath = object.name;
-    // slice(0, -5) to get rid of the trailing '.html' extension
-    const fileName = filePath.split('/')[2].slice(0, -5);
-    const tempLocalFile = path.join(os.tmpdir(), fileName);
-    
+const updateEmailTemplates = async (filePath) => {
+    // slice(0, -5) to get rid of the trailing '.mustache' extension
+    const fileName = filePath.split('/')[2].slice(0, -9);    
     
     if (!filePath.startsWith('email/templates')) 
-        return 1;
+        return;
 
-    let emailRef = bucket.file(object.name);
-    await emailRef.download({ destination: tempLocalFile });
-    
-    // Use the following to upate the template on SendInBlue
-    let htmlContent = fs.readFileSync(tempLocalFile, 'utf-8');
-
-    
-    //////////////////////////////////////////
     // 1. Get the template ID (sendInBlue ID)
-    //////////////////////////////////////////
-
     let templateNode = await db.ref('/email/templates').orderByKey()
-    .equalTo(fileName).once('value');
-
+                                .equalTo(fileName).once('value');
     let template = templateNode.val();
 
     if (template.exists()) {
-        await helpers.updateTemplate(template.id, htmlContent);
-        /////////////////////////////////////////////////////////////////
+        
+        const tempLocalFile = path.join(os.tmpdir(), fileName);
+        let emailRef = bucket.file(filePath);    
+        await emailRef.download({ destination: tempLocalFile });
+
+        // Use the following to upate the template on SendInBlue
+        let htmlContent = fs.readFileSync(tempLocalFile, 'utf-8');
+        let { newTemplate, sender, bcc, subject, sample } = template;
+        let id;
+
+        if (newTemplate) {
+            id = await emailHelper.createTemplate(fileName, htmlContent, subject);
+            await db.ref(`/email/templates/${fileName}`).push({
+                id,
+                lastUpdated: new Date(),
+                version: 1,
+                sample
+            });
+        }            
+        else {
+            id = await emailHelper.getTemplateId(fileName);
+            await emailHelper.updateTemplate(id, htmlContent);
+            await db.ref(`/email/templates/${template.key}`)
+                .update({ lastUpdated: new Date() });
+        }
+
         // 2. Send a test Email confirming it has been updated correctly
-        /////////////////////////////////////////////////////////////////
-        let { params, config } = template.sample;
-        let { id } = template;
-        await helpers.sendEmail(config.to, config.bcc, id, params);
-    } 
-    else {
-        let subject = 'WHERE CAN I GET subject FROM'; // mandatory
-        let id = await helpers.createTemplate(fileName, htmlContent, subject);
-        await db.ref(`/email/templates/${fileName}`).push({
-            id,
-            lastUpdated: new Date(),
-            version: 1
-            // Need some way to fill `sample`
+        db.ref(`/email/notifications`).push({
+            template: fileName,
+            to: sender.email,
+            bcc,
+            params: sample.params
         });
-        /////////////////////////////////////////////////////////////////
-        // 2. Send a test Email confirming it has been updated correctly
-        /////////////////////////////////////////////////////////////////
-        // WAITING TO KNOW SOURCE OF params`, `config`        
-    }    
+    } else 
+        console.log("Template metadata doesn't exist.");
+}
+
+export const updateTemplatesOnTemplateUpload = functions.storage.object()
+.onFinalize(object => { // called when either a NEW object is created, or when an object is overwritten
+    updateEmailTemplates(object.name);
     return 1;
 });
 
+export const updateTemplatesOnMetadataChange = functions.database.ref('/email/templates}')
+.onUpdate(async (change, context) => {    
+    updateEmailTemplates(change.after.key);
+    return 1;
+});
 
 
 export const sendNotificationEmail = functions.database.ref('/email/notifications}')
@@ -284,9 +291,9 @@ export const sendNotificationEmail = functions.database.ref('/email/notification
     if (Object.keys(emailTemplates).indexOf(templateName) > -1)
         id = emailTemplates[templateName].id;
     else 
-        id = await helpers.getTemplateId(templateName)
+        id = await emailHelper.getTemplateId(templateName)
 
-    await helpers.sendEmail(data.to, data.bcc, id, data.params);
+    await emailHelper.sendEmail(data.to, data.bcc, id, data.params);
 
     return snapshot.ref.update({ sent: true });
 });
