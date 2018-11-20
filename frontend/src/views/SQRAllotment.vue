@@ -8,7 +8,7 @@
       <v-autocomplete
         v-model="allotment.devotee"
         :items="devotees || []"
-        :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''"
+        :hint="devoteeHint"
         :loading="devotees === null"
         item-text="name"
         label="Select a devotee"
@@ -88,6 +88,7 @@
 import fb from "@/firebaseApp";
 // need this to use timestamp
 import firebase from "firebase";
+import _ from "lodash";
 
 const filteredStatus = ["Lost", "Opted out", "Incorrect", "Duplicate"];
 
@@ -113,13 +114,17 @@ export default {
     // Getting devotees
     this.$bindAsArray(
       "devotees",
-      fb.database().ref("/registrations"),
+      fb
+        .database()
+        .ref("/users")
+        .orderByChild("roles/SQR")
+        .equalTo(true),
       null,
       () => {
         this.devotees = this.devotees.reduce(
-          (filteredDevotees, { status, roles, emailAddress, ...other }) => {
-            if (!filteredStatus.includes(status) && roles.includes("SQR")) {
-              const devotee = { status, roles, emailAddress, ...other };
+          (filteredDevotees, { status, emailAddress, ...other }) => {
+            if (!filteredStatus.includes(status)) {
+              const devotee = { status, emailAddress, ...other };
               filteredDevotees.push(devotee);
               if (this.$route.query.emailAddress) {
                 this.allotment.devotee = devotee;
@@ -138,13 +143,21 @@ export default {
     );
     this.lists = Object.keys(response.body);
   },
+  computed: {
+    devoteeHint: function() {
+      const languages = _.get(this.allotment, "devotee.languages", {});
+      const hint = Object.keys(languages).join(", ");
+      return hint ? `Languages: ${hint}` : "";
+    }
+  },
   watch: {
     "allotment.devotee": function(newValue) {
       if (newValue == null) return;
 
       for (let language of this.languages) {
-        if (newValue.languages.includes(language))
+        if (newValue.languages[language]) {
           this.filter.language = language;
+        }
       }
     },
     filter: {
@@ -203,7 +216,7 @@ export default {
       if (this.sqrFiles) {
         this.files = this.sqrFiles.reduce(
           (filteredItems, { languages, notes, ...other }) => {
-            if (languages.includes(this.filter.language)) {
+            if (languages && languages.includes(this.filter.language)) {
               filteredItems.push({
                 languages,
                 notes,

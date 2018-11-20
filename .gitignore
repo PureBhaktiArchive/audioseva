@@ -23,3 +23,9 @@ yarn-error.log*
 *.sw*
 
 .directory
+
+/functions/lib
+
+// config for local functions
+audio-seva-team*.json
+.runtimeconfig.json
