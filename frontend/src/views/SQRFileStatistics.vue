@@ -23,7 +23,7 @@ import {
   ISpareByLanguage,
   IFileByStatus,
   ICount
-} from "@/types/SQRDataTable";
+} from "@/types/DataTable";
 import FilesByStatus from "@/components/SQRStatistics/FilesByStatus.vue";
 import DoneStatistics from "@/components/SQRStatistics/DoneStatistics.vue";
 import SpareByLanguage from "@/components/SQRStatistics/SpareByLanguage.vue";

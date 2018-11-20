@@ -1,6 +1,6 @@
 import _ from "lodash";
 import moment from "moment";
-import { ICount } from "@/types/SQRDataTable";
+import { ICount } from "@/types/DataTable";
 
 export function getDayDifference(date: number) {
   return moment().diff(date, "days");
