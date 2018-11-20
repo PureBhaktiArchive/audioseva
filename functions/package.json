@@ -10,8 +10,12 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "es6-promisify": "^6.0.1",
     "firebase-admin": "~6.0.0",
     "firebase-functions": "^2.0.3",
+    "google-spreadsheet": "^2.0.6",
+    "googleapis": "^35.0.0",
+    "lodash": "^4.17.11",
     "sib-api-v3-sdk": "^7.0.3"
   },
   "devDependencies": {

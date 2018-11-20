@@ -6,7 +6,6 @@ let apiKey = defaultClient.authentications['api-key'];
 apiKey.apiKey = sendInBlueSecretKey;
 
 
-
 export const extractListFromFilename = (fileName) => {
     return fileName.match(/^[^-]*[^ -]/g)[0];
 }
