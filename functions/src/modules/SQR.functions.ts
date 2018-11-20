@@ -1,12 +1,13 @@
 import * as functions from 'firebase-functions';
 import * as  admin from 'firebase-admin';
 
-const bucket = admin.storage().bucket();
+import { google } from "googleapis";
+const GoogleSpreadsheet = require("google-spreadsheet");
+import { promisify } from 'es6-promisify';
+const lodash = require('lodash');
+
 const db = admin.database();
 import * as helpers from './../helpers';
-import * as emailHelper from './email.functions';
-
-let emailTemplates = {};
 
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
@@ -53,6 +54,7 @@ export const updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments
     return 1;
 });
 
+
 export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
 .onUpdate(async (change, context) => {
     const old = change.before.val();
@@ -61,17 +63,18 @@ export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{
     let templateId = functions.config().sqr.allotment.templateid;
     
 
-    // Sends a notification to the devotee 
+    // Sends a notification to the assignee 
     // of the files he's allotted.
-    let allotmentSnapshot = await db.ref('/sqr/allotments').orderByChild('devotee/emailAddress')
-    .equalTo(newAllotment.devotee.emailAddress).once('value');
+    let allotmentSnapshot = await db.ref('/sqr/allotments').orderByChild('assignee/emailAddress')
+    .equalTo(newAllotment.assignee.emailAddress).once('value');
 
     const allotments = allotmentSnapshot.val();
     ////////////////
-    // sending mail
+    // sending mail ( only if sendNotificationEmail is TRUE )
+    //                        sendNotificationEmail is FASLE if the record is read from the spreadsheet
     ///////////////
-    if (!old.filesAlloted && newAllotment.filesAlloted && newAllotment.devotee)
-        if (newAllotment.devotee.emailAddress) {
+    if (!old.filesAlloted && newAllotment.filesAlloted && newAllotment.assignee && newAllotment.sendNotificationEmail) {
+        if (newAllotment.assignee.emailAddress) {
             let date = new Date();
             let utcMsec = date.getTime() + (date.getTimezoneOffset() * 60000);
             let localDate = new Date( utcMsec + ( 3600000 * coordinatorConfig.timeZoneOffset ) );
@@ -89,10 +92,10 @@ export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{
             });
             change.after.ref.child('mailSent').set(true).catch(err => console.log(err));
         }
+    }
     
     return 1;
 });
-
 
 
 /////////////////////////////////////////////////
@@ -198,7 +201,7 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
                 params: {
                     submission,
                     fileData,
-                    assigneeAllotmentsSet: [],
+                    currentSet: [],
                     isFirstSubmission: Object.keys(submissions).length <= 1                                        
                 }
             });
@@ -210,90 +213,138 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
 
 
 /////////////////////////////////////////////////
-//          Update Email Templates on sendInBlue 
-//          in response to changes of the templates
-//          on FB (Storage Triggered)
+//          Import Submission and Allotments from a Spreadsheet(Http Triggered)
 //
+//      1. Parses a google spreadsheet
+//      2. Looks for two sheets --> Allotments & Submissions
+//      3. Loads their data into the equivalent Firebase database paths
 /////////////////////////////////////////////////
-const path = require('path');
-const os = require('os');
-const fs = require('fs');
 
-const updateEmailTemplates = async (filePath) => {
-    // slice(0, -5) to get rid of the trailing '.mustache' extension
-    const fileName = filePath.split('/')[2].slice(0, -9);    
-    
-    if (!filePath.startsWith('email/templates')) 
-        return;
 
-    // 1. Get the template ID (sendInBlue ID)
-    let templateNode = await db.ref('/email/templates').orderByKey()
-                                .equalTo(fileName).once('value');
-    let template = templateNode.val();
+// Helper Function
+//      splits an array into a bunch of arrays 
+//      GROUPED BY a 
+//              composite key ( 2nd parameter: values )
 
-    if (template.exists()) {
-        
-        const tempLocalFile = path.join(os.tmpdir(), fileName);
-        let emailRef = bucket.file(filePath);    
-        await emailRef.download({ destination: tempLocalFile });
-
-        // Use the following to upate the template on SendInBlue
-        let htmlContent = fs.readFileSync(tempLocalFile, 'utf-8');
-        let { newTemplate, sender, bcc, subject, sample } = template;
-        let id;
-
-        if (newTemplate) {
-            id = await emailHelper.createTemplate(fileName, htmlContent, subject);
-            await db.ref(`/email/templates/${fileName}`).push({
-                id,
-                lastUpdated: new Date(),
-                version: 1,
-                sample
-            });
-        }            
-        else {
-            id = await emailHelper.getTemplateId(fileName);
-            await emailHelper.updateTemplate(id, htmlContent);
-            await db.ref(`/email/templates/${template.key}`)
-                .update({ lastUpdated: new Date() });
-        }
-
-        // 2. Send a test Email confirming it has been updated correctly
-        db.ref(`/email/notifications`).push({
-            template: fileName,
-            to: sender.email,
-            bcc,
-            params: sample.params
-        });
-    } else 
-        console.log("Template metadata doesn't exist.");
+let groupByMulti = (list, values, context) => {
+    if (!values.length) {
+      return list;
+    }
+    var byFirst = lodash.groupBy(list, values[0], context),
+        rest    = values.slice(1);
+    for (var prop in byFirst) {
+      byFirst[prop] = groupByMulti(byFirst[prop], rest, context);
+    }
+    return byFirst;
 }
 
-export const updateTemplatesOnTemplateUpload = functions.storage.object()
-.onFinalize(object => { // called when either a NEW object is created, or when an object is overwritten
-    updateEmailTemplates(object.name);
-    return 1;
-});
 
-export const updateTemplatesOnMetadataChange = functions.database.ref('/email/templates}')
-.onUpdate(async (change, context) => {    
-    updateEmailTemplates(change.after.key);
-    return 1;
-});
+export const importSpreadSheetData = functions.https.onRequest( async (req, res) => {
+    const auth = await google.auth.getClient({
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"]
+    });
+        
+    const spreadsheetId = functions.config().sqr.spreadsheetId;
+    const spreadsheet = new GoogleSpreadsheet(spreadsheetId);
+
+    const token = await auth.getAccessToken();
+    spreadsheet.setAuthToken(token);
+
+    const getInfo = promisify(spreadsheet.getInfo);
+    let data = await getInfo();
+
+    let AllotmentsSheet, SubmissionsSheet;
+
+    data.worksheets.forEach(worksheet => {
+        if (worksheet.title === "Submissions") 
+            SubmissionsSheet = worksheet;
+        if (worksheet.title === "Allotments")
+            AllotmentsSheet = worksheet;
+    });
+
+    const getSubmissions = promisify(SubmissionsSheet.getRows);
+    
+    // submissions = Submissions sheet rows
+    const submissions = await getSubmissions();
+    submissions.forEach(row => {
+        let serial = row['submissionserial'];
+
+        const regex = /(.*?)–(.*):(.*)—(.*)/g;
+        let soundissuesMatch = regex.exec(row['soundissues']);
+        let unwantedpartsMatch = regex.exec(row['unwantedparts']);
+        
+        let soundissues = {
+            beginning: soundissuesMatch[1],
+            ending: soundissuesMatch[2],
+            type: soundissuesMatch[3],
+            description: soundissuesMatch[4]
+        },
+        unwantedparts = {
+            beginning: unwantedpartsMatch[1],
+            ending: unwantedpartsMatch[2],
+            type: unwantedpartsMatch[3],
+            description: unwantedpartsMatch[4]
+        };
+
+        let submission = {
+            author: {
+                name: row['name'],
+                emailAddress: row['emailAddress'],
+            },
+            fileName: row['audiofilename'],
+            changed: row['changed'],
+            completed: row['completed'],
+            created: row['created'],
+            comments: row['comments'],
+            soundissues,
+            soundqualityrating: row['soundqualityrating'],
+            unwantedparts,
+            duration: {
+                beginning: new Date(row['beginning']).getTime() / 1000,
+                ending:  new Date(row['ending']).getTime() / 1000,
+            }
+        };
+
+        db.ref(`/sqr/submissions/${serial}`).set(submission);
+    });
 
 
-export const sendNotificationEmail = functions.database.ref('/email/notifications}')
-.onCreate(async (snapshot, context) => {
-    const data = snapshot.val();
-    const templateName = snapshot.key;
+    const getAllotments = promisify(AllotmentsSheet.getRows);
+    // alllotments = Allotments sheet rows
+    const allotments = await getAllotments();
+   
+        
+    // Group all the files allotted on one day under a single `Allotment Node` in the db
+    // Group by ASSIGNEEs/DATEs/LISTs
+    
+    let groupedAllotments = groupByMulti(allotments, ['devotee', 'dategiven', 'list'], {});
 
-    let id;
-    if (Object.keys(emailTemplates).indexOf(templateName) > -1)
-        id = emailTemplates[templateName].id;
-    else 
-        id = await emailHelper.getTemplateId(templateName)
+    // Adding the allotments
+    for (let assignee in groupedAllotments) {
+        for (let date in groupedAllotments[assignee]) {
+            let dayFiles = [];
+            for (let list in groupedAllotments[assignee][date] ) {
+                
+                // Collecting all of the files on a list under a single day in an array
+                groupedAllotments[assignee][date][list].forEach(item => {
+                    dayFiles.push(item['filename']);
+                });
+                
+                let allotment = {
+                    assignee: {
+                        name: assignee,
+                        emailAddress: groupedAllotments[assignee][date][list][0]['email'],
+                    },
+                    files: dayFiles,
+                    list,
+                    timestamp: new Date(date).getTime() / 1000,
+                    sendNotificationEmail: false, // Don't send emails if the document is read from the spreadsheet
+                };
 
-    await emailHelper.sendEmail(data.to, data.bcc, id, data.params);
+                db.ref(`/sqr/allotments`).push(allotment);
+            }
+        }
+    }
 
-    return snapshot.ref.update({ sent: true });
+    res.status(200).send(`Function was called successfully, check the Logs on Firebase to find out if something went wrong`);
 });

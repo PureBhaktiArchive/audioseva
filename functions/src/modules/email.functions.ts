@@ -1,65 +1,100 @@
 import * as functions from 'firebase-functions';
-import * as SibApiV3Sdk from 'sib-api-v3-sdk';
-const sendInBlueSecretKey = functions.config().send_in_blue.key;
-const defaultClient = SibApiV3Sdk.ApiClient.instance;
-let apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = sendInBlueSecretKey;
+import * as  admin from 'firebase-admin';
 
-const apiInstance = new SibApiV3Sdk.SMTPApi();
+const bucket = admin.storage().bucket();
+const db = admin.database();
+import * as helpers from './../helpers';
 
-export const sendEmail = async (to, bcc, templateId, params) => {
-    let sendEmail = new SibApiV3Sdk.SendSmtpEmail();
+const path = require('path');
+const os = require('os');
+const fs = require('fs');
 
-    sendEmail = {
-        to: [{ email: to }],
-        bcc,
-        templateId,
-        params
-    };
 
-    let sendingResult = await apiInstance.sendTransacEmail(sendEmail);
-    console.log(sendingResult);
-}
-
-export const updateTemplate = async (templateId, html) => {
-    let updatedTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
-
-    updatedTemplate.htmlContent = html;
-
-    let updateResult = await apiInstance.updateSmtpTemplate(templateId, updatedTemplate);
-    console.log(updateResult);
-
-}
+let emailTemplates = {};
 
 
 
-export const createTemplate = async (templateName, html, subject) => {
-    let smtpTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
-
-    smtpTemplate.templateName = templateName;
-    smtpTemplate.htmlContent = html;
-    smtpTemplate.subject = subject;
-    smtpTemplate.sender = {
-      email: functions.config().coordinator.email_address // ASSUMED Until a comment is made upon it
-    };
-    smtpTemplate.isActive = true;
-
-    let result = await apiInstance.createSmtpTemplate(smtpTemplate);
-    return result['id'];
-}
+/////////////////////////////////////////////////
+//          Update Email Templates on sendInBlue 
+//          in response to 
+//          1. changes of the templates on FB (Storage Triggered)
+//          2. changes of its metadata ( DB Update Trigger )
+//
+/////////////////////////////////////////////////
 
 
-export const getTemplateId = async (templateName) => {
-    var opts = { 'templateStatus': true };
+const updateEmailTemplates = async (filePath) => {
+    // slice(0, -9) to get rid of the trailing '.mustache' extension
+    const fileName = filePath.split('/')[2].slice(0, -9);
+    const tempLocalFile = path.join(os.tmpdir(), fileName);
     
-    let result = await apiInstance.getSmtpTemplates(opts)
-    let { templates } = result;    
-    for (let i = 0; i < templates.length; i++) {
-        if (templates[i]['name'] === templateName)
-            return templates[i]['id'];
+    
+    if (!filePath.startsWith('email/templates')) 
+        return;
+
+    let emailRef = bucket.file(filePath);
+    
+    await emailRef.download({ destination: tempLocalFile });
+    
+    // Use the following to upate the template on SendInBlue
+    let htmlContent = fs.readFileSync(tempLocalFile, 'utf-8');
+
+    
+    // 1. Get the template ID (sendInBlue ID)
+    let templateNode = await db.ref('/email/templates').orderByKey()
+                                .equalTo(fileName).once('value');
+    let template = templateNode.val();
+
+    if (!template.exists()) {
+        console.log("Template metadata doesn't exist.");
+        return;
     }
+    
+    let { sender, subject } = template;
+
+    let id = helpers.getTemplateId(fileName);
+    
+    if (+id === -1) { // New Template
+        id = await helpers.createTemplate(fileName, sender, htmlContent, subject);
+        await db.ref(`/email/templates/${fileName}`)
+                .update({ lastUpdated: new Date() });
+    }            
+    else {
+        await helpers.updateTemplate(id, htmlContent);
+        await db.ref(`/email/templates/${template.key}`)
+                .update({ lastUpdated: new Date() });
+    }
+
+    // 2. Send a test Email confirming it has been updated correctly
+    helpers.sendTestTemplate(id, sender.email);        
 }
 
+export const updateTemplatesOnTemplateUpload = functions.storage.object()
+.onFinalize(object => { // called when either a NEW object is created, or when an object is overwritten
+    updateEmailTemplates(object.name);
+    return 1;
+});
+
+export const updateTemplatesOnMetadataChange = functions.database.ref('/email/templates}')
+.onUpdate(async (change, context) => {    
+    updateEmailTemplates(change.after.key);
+    return 1;
+});
 
 
-  
+
+export const sendNotificationEmail = functions.database.ref('/email/notifications}')
+.onCreate(async (snapshot, context) => {
+    const data = snapshot.val();
+    const templateName = snapshot.key;
+
+    let id;
+    if (Object.keys(emailTemplates).indexOf(templateName) > -1)
+        id = emailTemplates[templateName].id;
+    else 
+        id = await helpers.getTemplateId(templateName)
+
+    await helpers.sendEmail(data.to, data.bcc, id, data.params);
+
+    return snapshot.ref.update({ sent: true });
+});
