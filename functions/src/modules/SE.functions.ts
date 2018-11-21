@@ -38,7 +38,9 @@ export const updateNotifyOnNewAllotment = functions.database
     const { taskIds } = allotment;
     const tasks = [];
     taskIds.forEach(async taskId => {
-        const list = taskId.split('-')[0];
+        const regex = /(\w+)-(\d+)-(\d+)/g;
+        let taskIdMatch = regex.exec(taskId);
+        const list = taskIdMatch[1];
 
         await db.ref(`/sound-editing/tasks/${list}/${taskId}/restoration`).update({
             status: 'Given',
