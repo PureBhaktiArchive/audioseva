@@ -4,6 +4,7 @@ The main credentials, **databaseURL** & the **storageBucket** are automatically 
   
 ```sh
 # each arg must have at least 2-part key (e.g foo.bar)
+$ firebase functions:config:set website.base_url="Base url of the website"
 $ firebase functions:config:set send_in_blue.key="sendInBlue secret Key"
 # Coordinator details
 $ firebase functions:config:set sqr.allotment.templateid=NUMBER
@@ -24,4 +25,17 @@ The following command will run a **predeploy** script to make the conversion and
 
 ```sh
 $ npm run deploy
+```
+
+# DB Rules!
+In order for the sound editing function to run properly, you have to add the following under the main `rules` object in the **DB rules** page.
+
+```
+"sound-editing": {
+    "restoration": {
+        "allotments": {
+            ".indexOn": ["assignee/emailAddress"]
+        },
+    }
+}
 ```
