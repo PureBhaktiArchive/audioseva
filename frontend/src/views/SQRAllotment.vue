@@ -126,7 +126,7 @@ export default {
             if (!filteredStatus.includes(status)) {
               const devotee = { status, emailAddress, ...other };
               filteredDevotees.push(devotee);
-              if (this.$route.query.emailAddress) {
+              if (this.$route.query.emailAddress === emailAddress) {
                 this.allotment.devotee = devotee;
               }
             }
