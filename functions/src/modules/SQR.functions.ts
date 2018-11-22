@@ -197,7 +197,6 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
             db.ref(`/email/notifications`).push({
                 template: templateId,
                 to: coordinator.email_address,
-                bcc: [{ email: coordinator.email }],
                 params: {
                     submission,
                     fileData,
