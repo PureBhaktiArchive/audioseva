@@ -2,6 +2,8 @@ import _ from "lodash";
 import moment from "moment";
 import { ICount } from "@/types/DataTable";
 
+export const filteredStatus = ["Lost", "Opted out", "Incorrect", "Duplicate"];
+
 export function getDayDifference(date: number) {
   return moment().diff(date, "days");
 }
