@@ -1,29 +1,29 @@
 import * as functions from 'firebase-functions';
 import * as  admin from 'firebase-admin';
 
+// SendInBlue Helper Imports
+import * as SibApiV3Sdk from 'sib-api-v3-sdk';
+const sendInBlueSecretKey = functions.config().send_in_blue.key;
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
+let apiKey = defaultClient.authentications['api-key'];
+apiKey.apiKey = sendInBlueSecretKey;
+const apiInstance = new SibApiV3Sdk.SMTPApi();
+
+
 const bucket = admin.storage().bucket();
 const db = admin.database();
-import * as helpers from './../helpers';
 
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
 
+// used for caching in `sendNotificationEmail` function
 let emailTemplates = {};
 
 
 
-
 // SendInBlue Helper Functions
-import * as SibApiV3Sdk from 'sib-api-v3-sdk';
-const sendInBlueSecretKey = functions.config().send_in_blue.key;
-const defaultClient = SibApiV3Sdk.ApiClient.instance;
-let apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = sendInBlueSecretKey;
-
-const apiInstance = new SibApiV3Sdk.SMTPApi();
-
 export const sendEmail = async (to, bcc, replyTo, templateId, params) => {
     let smtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
