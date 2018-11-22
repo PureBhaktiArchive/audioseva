@@ -24,5 +24,6 @@ try {
 **********************************************/
 import * as SQR from './modules/SQR.functions';
 import * as ReportingSync from './modules/reporting.sync.functions';
+import * as Authorization from "./modules/Authorization.functions";
 
-export { SQR, ReportingSync };
+export { SQR, ReportingSync, Authorization };
