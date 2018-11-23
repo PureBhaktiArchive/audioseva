@@ -166,8 +166,10 @@ export const sendNotificationEmail = functions.database.ref('/email/notification
     let id;
     if (Object.keys(emailTemplates).indexOf(templateName) > -1)
         id = emailTemplates[templateName].id;
-    else 
-        id = await getTemplateId(templateName)
+    else {
+        id = await getTemplateId(templateName);
+        emailTemplates[templateName] = { id };
+    }
 
     if (!data['sentTimestamp'])
         await sendEmail(data.to, data.bcc, data.replyTo, id, data.params);
