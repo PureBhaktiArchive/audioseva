@@ -80,13 +80,6 @@ export const getTemplateId = async (templateName) => {
 }
 
 
-export const sendTestTemplate = async (templateId) => {
-    let testEmail = new SibApiV3Sdk.SendTestEmail();
-    await apiInstance.sendTestTemplate(templateId, testEmail);
-
-}
-
-
 
 
 /////////////////////////////////////////////////
@@ -141,7 +134,8 @@ const updateEmailTemplates = async (filePath) => {
     }
 
     // 2. Send a test Email confirming it has been updated correctly
-    sendTestTemplate(id);        
+    let testEmail = new SibApiV3Sdk.SendTestEmail();
+    await apiInstance.sendTestTemplate(id, testEmail);
 }
 
 export const updateTemplatesOnTemplateUpload = functions.storage.object()
@@ -171,8 +165,10 @@ export const sendNotificationEmail = functions.database.ref('/email/notification
         emailTemplates[templateName] = { id };
     }
 
-    if (!data['sentTimestamp'])
+    if (!data['sentTimestamp']) {
         await sendEmail(data.to, data.bcc, data.replyTo, id, data.params);
-
-    return snapshot.ref.update({ sentTimestamp: Math.round((new Date()).getTime() / 1000) });
+        await snapshot.ref.update({ sentTimestamp: admin.database.ServerValue.TIMESTAMP });
+    }
+        
+    return 1;
 });
