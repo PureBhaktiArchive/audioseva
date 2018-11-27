@@ -5,13 +5,13 @@
       <v-autocomplete
         v-model="allotment.assignee"
         return-object
-        :items="users"
+        :items="users || []"
         item-text="name"
         label="Select a user"
         clearable
         dense
       >
-        <template slot="item" slot-scope="{item}">
+        <template slot="item" slot-scope="{ item }">
           <template v-if="typeof item !== 'object'">
             <v-list-tile-content v-text="item"></v-list-tile-content>
           </template>
@@ -26,20 +26,29 @@
 
       <!-- Lists -->
       <v-layout row class="py-2">
-        <v-btn-toggle v-model="selectedList" mandatory v-if="lists">
-          <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
-        </v-btn-toggle>
-        <p v-else>Loading lists…</p>
+        <template v-if="lists">
+          <v-btn-toggle v-model="selectedList" mandatory v-if="lists.length">
+            <v-btn flat v-for="list in lists" :key="list" :value="list">{{ list }}</v-btn>
+          </v-btn-toggle>
+          <p v-else>no lists</p>
+        </template>
+        <div v-else class="elevation-1 pa-1">
+          <span :style="{ marginRight: '4px' }">loading lists</span>
+          <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
+        </div>
       </v-layout>
 
       <!-- Tasks -->
-      <template v-if="lists.length">
-        <template v-if="tasks.length">
+      <div v-if="isLoadingTasks">
+        <v-progress-circular indeterminate></v-progress-circular>
+      </div>
+      <div v-else>
+        <div v-if="tasks.length">
           <v-layout align-center v-for="task in tasks" :key="task['.key']">
             <div :style="{ width: '60%' }">
               <v-checkbox v-model="allotment.tasks" :value="task['.key']">
                 <div slot="label">
-                  <v-badge :color="soundQualityRating[task.soundQualityRating]">
+                  <v-badge :color="soundQualityRatingColor[task.soundQualityRating]">
                     <div slot="badge"></div>
                     <code>{{ task[".key"] }}</code>
                   </v-badge>
@@ -50,20 +59,10 @@
               <sound-issues-list :item="task"></sound-issues-list>
             </div>
           </v-layout>
-        </template>
-        <template v-else>
-          <div>
-            <div v-if="isLoadingTasks">loading tasks</div>
-            <div v-else>no tasks for this list</div>
-          </div>
-        </template>
-      </template>
-      <template v-else>
-        <div>
-          <div v-if="isLoadingLists">loading lists</div>
-          <div v-else>no lists</div>
         </div>
-      </template>
+        <p v-else>no tasks</p>
+      </div>
+
       <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
       <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">submit</v-btn>
     </v-form>
@@ -86,19 +85,20 @@ import { Component, Mixins, Watch } from "vue-property-decorator";
 import firebase from "firebase";
 import fb from "@/firebaseApp";
 import UsersByRole from "@/mixins/UsersByRole";
-import Lists from "@/mixins/Lists";
+import FirebaseShallowQuery from "@/mixins/FirebaseShallowQuery";
 import SoundIssuesList from "@/components/SE/SoundIssuesList.vue";
+import { ISoundEditingAllotment } from "@/types/Allotment";
 
 @Component({
   name: "Allotment",
   components: { SoundIssuesList }
 })
-export default class Allotment extends Mixins<UsersByRole, Lists>(
+export default class Allotment extends Mixins<
   UsersByRole,
-  Lists
-) {
-  allotment = {
-    assignee: {},
+  FirebaseShallowQuery
+>(UsersByRole, FirebaseShallowQuery) {
+  allotment: ISoundEditingAllotment = {
+    assignee: null,
     tasks: [],
     comment: ""
   };
@@ -106,11 +106,10 @@ export default class Allotment extends Mixins<UsersByRole, Lists>(
   submissionStatus: string = "";
   usersRole = "SE";
   tasks: any[] = [];
-  isLoadingLists: boolean = false;
-  isLoadingTasks: boolean = false;
+  isLoadingTasks: boolean = true;
   listsBasePath: string = "/sound-editing/tasks";
 
-  soundQualityRating = {
+  soundQualityRatingColor = {
     Bad: "red",
     Average: "yellow",
     Good: "green"
@@ -122,12 +121,13 @@ export default class Allotment extends Mixins<UsersByRole, Lists>(
   }
 
   async fetchLists() {
-    this.isLoadingLists = true;
+    this.lists = null;
     await this.getLists();
-    this.isLoadingLists = false;
     // set default selected list
-    if (this.lists.length) {
+    if (Array.isArray(this.lists) && this.lists.length) {
       this.selectedList = this.lists[0];
+    } else {
+      this.isLoadingTasks = false;
     }
   }
 
@@ -147,7 +147,7 @@ export default class Allotment extends Mixins<UsersByRole, Lists>(
     const {
       assignee: { emailAddress, name },
       ...other
-    } = this.allotment;
+    } = this.allotmentt;
     const data = {
       ...other,
       assignee: {
@@ -155,8 +155,10 @@ export default class Allotment extends Mixins<UsersByRole, Lists>(
         name
       },
       timestamp: firebase.database.ServerValue.TIMESTAMP,
+      // @ts-ignore
       user: fb.auth().currentUser.email
     };
+
     await fb
       .database()
       .ref("/sound-editing/restoration/allotments")
