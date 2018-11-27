@@ -1,14 +1,16 @@
 import { Component, Vue } from "vue-property-decorator";
 import fb from "@/firebaseApp";
-import { filteredStatus } from "@/utility";
+
+const filteredStatus = ["Lost", "Opted out", "Incorrect", "Duplicate"];
 
 @Component
 export default class UserByRole extends Vue {
-  users: any[] = [];
+  users: any[] | null = null;
   usersBindName: string = "users";
-  usersRole: string = "";
+  usersRole: string | null = null;
 
   getUsers() {
+    if (!this.usersRole) throw new Error("Must select a role");
     this.$bindAsArray(
         this.usersBindName,
         fb
@@ -22,13 +24,15 @@ export default class UserByRole extends Vue {
   }
 
   filterUsers() {
-    this.users = this.users.reduce((users, { status, ...other }) => {
-      const user = { status, ...other };
-      if (!filteredStatus.includes(status)) {
-        users.push(user);
-      }
-      if (this.$route.query.emailAddress === other.emailAddress) this.allotment.assignee = user;
-      return users;
-    }, [])
+    if (this.users) {
+      this.users = this.users.reduce((users, { status, ...other }) => {
+        const user = { status, ...other };
+        if (!filteredStatus.includes(status)) {
+          users.push(user);
+        }
+        if (this.$route.query.emailAddress === other.emailAddress) this.allotment.assignee = user;
+        return users;
+      }, [])
+    }
   }
 }
