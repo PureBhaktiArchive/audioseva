@@ -46,7 +46,7 @@ export const processNewAllotment = functions.database
         await db.ref(`/sound-editing/tasks/${list}/${taskId}/restoration`).update({
             status: 'Given',
             assignee: allotment.assignee,
-            timestampGiven: Math.round((new Date()).getTime() / 1000),
+            timestampGiven: admin.database.ServerValue.TIMESTAMP,
         });
 
         // Getting the tasks list to be used when notifying the assignee (Step 3)
