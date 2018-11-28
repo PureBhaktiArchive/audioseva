@@ -6,10 +6,8 @@ const GoogleSpreadsheet = require("google-spreadsheet");
 import { promisify } from 'es6-promisify';
 const lodash = require('lodash');
 
-const bucket = admin.storage().bucket();
 const db = admin.database();
 import * as helpers from './../helpers';
-
 
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
@@ -32,7 +30,7 @@ export const updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments
         let sqrError = await sqrRef.update({
             status: 'Given',
             assignee: allotment.assignee,
-            timestampGiven: Math.round((new Date()).getTime() / 1000),
+            timestampGiven: admin.database.ServerValue.TIMESTAMP,
             timestampDone: null,
         });
 
@@ -56,6 +54,7 @@ export const updateFilesOnNewAllotment = functions.database.ref('/sqr/allotments
     return 1;
 });
 
+
 export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
 .onUpdate(async (change, context) => {
     const old = change.before.val();
@@ -76,31 +75,27 @@ export const sendEmailOnNewAllotment = functions.database.ref('/sqr/allotments/{
     ///////////////
     if (!old.filesAlloted && newAllotment.filesAlloted && newAllotment.assignee && newAllotment.sendNotificationEmail) {
         if (newAllotment.assignee.emailAddress) {
-            console.log("Sending Mail")
             let date = new Date();
             let utcMsec = date.getTime() + (date.getTimezoneOffset() * 60000);
             let localDate = new Date( utcMsec + ( 3600000 * coordinatorConfig.timeZoneOffset ) );
-            helpers.sendEmail(
-                newAllotment.assignee.emailAddress, //to
-                [{ email: coordinatorConfig.email_address }], //bcc
-                templateId,
-                {   //parameter list
+            db.ref(`/email/notifications`).push({
+                template: templateId,
+                to: newAllotment.assignee.emailAddress,
+                bcc: [{ email: coordinatorConfig.email_address }],
+                params: {
                     files: newAllotment.files,
                     assignee: newAllotment.assignee,
                     comment: newAllotment.comment,
                     date: `${localDate.getDate() + 1}.${date.getMonth() + 1}`,
                     repeated: Object.keys(allotments).length > 1
-                }                    
-            );
+                }     
+            });
             change.after.ref.child('mailSent').set(true).catch(err => console.log(err));
         }
-    } else {
-        console.log("Not Sending mail");
     }
     
     return 1;
 });
-
 
 
 /////////////////////////////////////////////////
@@ -199,17 +194,16 @@ export const processSubmissions = functions.database.ref('/webforms/sqr/{submiss
             let submissions = submissionSnapshot.val();
 
             // Sending the notification Email Finally
-            helpers.sendEmail(
-                coordinator.email_address,
-                [{ email: coordinator.email }],
-                templateId,
-                {
+            db.ref(`/email/notifications`).push({
+                template: templateId,
+                to: coordinator.email_address,
+                params: {
                     submission,
                     fileData,
-                    devoteeAllotmentsSet: [],
+                    currentSet: [],
                     isFirstSubmission: Object.keys(submissions).length <= 1                                        
                 }
-            );
+            });
         }
     }
     
@@ -342,7 +336,7 @@ export const importSpreadSheetData = functions.https.onRequest( async (req, res)
                     },
                     files: dayFiles,
                     list,
-                    timestamp: new Date(date).getTime() / 1000,
+                    timestamp: admin.database.ServerValue.TIMESTAMP,
                     sendNotificationEmail: false, // Don't send emails if the document is read from the spreadsheet
                 };
 

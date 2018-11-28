@@ -16,15 +16,13 @@ export const uploadProcessing = functions.storage.object()
 
     const filePath = object.name;
     
-    if (object.name.slice(-4).toLowerCase() !== 'flac') {
-        console.error("Something is wrong with the file extension!")
-        return -1;
-    }
-
     const filePathRegex = /sound-editing\/restored\/(\w+)\/(\w+)/g;
 
-    if (!filePath.match(filePathRegex)) {
-        console.error("Something is wrong with the file path!")
+    if (!filePath.match(filePathRegex)) 
+        return -1;    
+
+    if (object.contentType === 'audio/flac') {
+        console.error("Something is wrong with the file extension!")
         return -1;
     }
     
@@ -34,14 +32,13 @@ export const uploadProcessing = functions.storage.object()
 
 
     // 1. Send a notification to the coordinator
-    const coordinator = functions.config().coordinator; // TO
     const taskRef = await db.ref(`/sound-editing/tasks/${list}/${taskId}`).once('value');
     const task = taskRef.val();
     const replyTo = task.restoration.assignee.emailAddress;
 
     db.ref(`/email/notifications`).push({
         template: 'se-upload',
-        to: coordinator.emailAddress,
+        to: functions.config().coordinator.emailAddress,
         replyTo,
         params: { task }
     });
@@ -50,11 +47,11 @@ export const uploadProcessing = functions.storage.object()
     // 2. Update the Task
     let taskRestorationUpdate = {
         status: 'Uploaded',
-        timestampLastVersion: Math.round((new Date()).getTime() / 1000)
+        timestampLastVersion: admin.database.ServerValue.TIMESTAMP
     };
 
     if (!task.restoration.timestampFirstVersion)
-        taskRestorationUpdate['timestampFirstVersion'] = Math.round((new Date()).getTime() / 1000);
+        taskRestorationUpdate['timestampFirstVersion'] = admin.database.ServerValue.TIMESTAMP;
 
 
     return taskRef.ref.child('restoration').update(taskRestorationUpdate);    
