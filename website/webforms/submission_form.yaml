@@ -129,7 +129,6 @@ duration_group:
       "#title": Beginning
       "#placeholder": "Enter the timing in (h:)mm:ss format"
       "#autocomplete": "off"
-      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
       "#more_title": Guidelines
       "#more": |
         <ul>
@@ -154,7 +153,6 @@ duration_group:
       "#title": Ending
       "#placeholder": "Enter the timing in (h:)mm:ss format"
       "#autocomplete": "off"
-      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
       "#states":
         visible:
           ':input[name="not_preferred_language"]':
