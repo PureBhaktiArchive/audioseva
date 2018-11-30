@@ -18,6 +18,7 @@ export const router = new Router({
       meta: { guestOnly: true },
       component: () => import("@/views/Login.vue")
     },
+    { path: "/sound-editing/upload/:uploadCode", component: () => import("@/views/SoundEditingUpload.vue") },
     {
       path: "/",
       meta: { requireAuth: true },
