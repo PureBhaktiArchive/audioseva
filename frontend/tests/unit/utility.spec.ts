@@ -1,5 +1,5 @@
 import moment from "moment";
-import { getDayDifference, getLastDays, mergeDoneStatistics, formatTimestamp } from "@/utility";
+import { getDayDifference, getLastDays, mergeDoneStatistics, formatTimestamp, validateFlacFile } from "@/utility";
 
 describe('utility', function () {
   beforeEach(() => {
@@ -28,7 +28,7 @@ describe('utility', function () {
     expect(results).toMatchSnapshot();
   });
 
-  test.only("formatTimestamp", () => {
+  test("formatTimestamp", () => {
     moment.now = () => +new Date(1541497995699);
     const item = {
       allotment: {
@@ -37,5 +37,14 @@ describe('utility', function () {
     };
     const results = formatTimestamp("allotment.timestampGiven", item);
     expect(results).toEqual("6.11.2018");
-  })
+  });
+
+  it("should validateFlacFile", () => {
+    const fileName = "list1-001-1optionalcomment.flac";
+    expect(validateFlacFile({ name: fileName, type: "audio/flac" })).toBeTruthy();
+  });
+
+  it.only("should throw error if bad validateFlacFile", () => {
+    expect(() => validateFlacFile("wda")).toThrow()
+  });
 });
