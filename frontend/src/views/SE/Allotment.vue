@@ -1,13 +1,13 @@
 <template>
   <div>
-    <h1>Sound Engineering</h1>
+    <h1>Sound Engineering Allotment</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus !== 'complete'">
       <v-autocomplete
         v-model="allotment.assignee"
         return-object
         :items="users || []"
         item-text="name"
-        label="Select a user"
+        label="Select an assignee"
         clearable
         dense
       >
@@ -25,13 +25,13 @@
       </v-autocomplete>
 
       <!-- Lists -->
-      <v-layout row class="py-2">
-        <template v-if="lists">
+      <v-layout class="py-2">
+        <div v-if="lists">
           <v-btn-toggle v-model="selectedList" mandatory v-if="lists.length">
             <v-btn flat v-for="list in lists" :key="list" :value="list">{{ list }}</v-btn>
           </v-btn-toggle>
           <p v-else>no lists</p>
-        </template>
+        </div>
         <div v-else class="elevation-1 pa-1">
           <span :style="{ marginRight: '4px' }">loading lists</span>
           <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
@@ -48,10 +48,10 @@
             <div :style="{ width: '60%' }">
               <v-checkbox v-model="allotment.tasks" :value="task['.key']">
                 <div slot="label">
-                  <v-badge :color="soundQualityRatingColor[task.soundQualityRating]">
-                    <div slot="badge"></div>
-                    <code>{{ task[".key"] }}</code>
-                  </v-badge>
+                  <code class="mr-2">{{ task[".key"] }}</code>
+                  <v-chip :color="soundQualityRatingColor[task.soundQualityRating]">
+                    <span class="white--text">{{ task.soundQualityRating }}</span>
+                  </v-chip>
                 </div>
               </v-checkbox>
             </div>
