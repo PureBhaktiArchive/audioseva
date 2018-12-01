@@ -83,10 +83,13 @@ export default class Upload extends Vue {
         .equalTo(this.user.emailAddress)
         .once("value");
       const response = snapshot.val();
-      if (!response || response.restoration.status === "Done") {
-        return "Invalid task";
+      if (!response) {
+        this.emitFileError(file, "Task must be assigned to user");
+      } else if (response.restoration.status === "Done") {
+        this.emitFileError(file, "Task is marked as done");
+      } else {
+        this.uploadFile(`sound-editing/restored/${list}/${taskId}.flac`, file);
       }
-      this.uploadFile(`sound-editing/restored/${list}/${taskId}.flac`, file);
     }
   }
 
