@@ -20,15 +20,29 @@
       </v-toolbar>
       <v-list dense>
         <v-divider></v-divider>
-        <v-list-tile
-          v-for="item in sidebarItems"
+        <v-list-group
+          v-for="(item, index) in sidebarItems"
           :key="item.title"
-          :to="item.path">
-          <v-list-tile-action>
-            <v-icon>{{ item.icon }}</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-content>{{ item.title }}</v-list-tile-content>
-        </v-list-tile>
+          no-action
+          :prepend-icon="item.icon"
+          :value="index === 0"
+          >
+            <v-list-tile slot="activator">
+              <v-list-tile-content>
+                <v-list-tile-title>{{ item.title }}</v-list-tile-title>
+              </v-list-tile-content>
+            </v-list-tile>
+
+            <v-list-tile
+              v-for="nav in subNavigation"
+              :key="`${item.title}-${nav}`"
+              :to="`${item.path}/${nav.toLowerCase()}`"
+            >
+              <v-list-tile-content>
+                <v-list-tile-title>{{ nav }}</v-list-tile-title>
+              </v-list-tile-content>
+            </v-list-tile>
+        </v-list-group>
         <v-divider></v-divider>
         <v-list-tile @click="signOut" v-if="currentUser">
           <v-list-tile-action>
@@ -64,12 +78,8 @@ export default {
     return {
       appTitle: "Audio Seva Backend",
       sidebar: false,
+      subNavigation: ["Allot", "Statistics"],
       sidebarItems: [
-        {
-          title: "Allot Content Reporting",
-          path: "/cr/allot",
-          icon: this.$vuetify.icons.listening
-        },
         {
           title: "SQR",
           path: "/sqr",
@@ -79,21 +89,6 @@ export default {
           title: "Sound Engineering",
           path: "/se",
           icon: this.$vuetify.icons.sound
-        },
-        {
-          title: "Allot TE",
-          path: "/te/allot",
-          icon: this.$vuetify.icons.track
-        },
-        {
-          title: "Allot TFC",
-          path: "/te/fc/allot",
-          icon: this.$vuetify.icons.quality
-        },
-        {
-          title: "Allot QC",
-          path: "/qc/allot",
-          icon: this.$vuetify.icons.quality
         }
       ]
     };
