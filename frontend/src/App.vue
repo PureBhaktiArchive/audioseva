@@ -36,11 +36,11 @@
             <v-list-tile
               v-for="nav in subNavigation"
               :key="`${item.title}-${nav}`"
-              :to="`${item.path}${nav === 'base' ? '' : `/${nav.toLowerCase()}`}`"
+              :to="`${item.path}${nav === 'List' ? '' : `/${nav.toLowerCase()}`}`"
               exact
             >
               <v-list-tile-content>
-                <v-list-tile-title>{{ nav === 'base' ? item.title : nav }}</v-list-tile-title>
+                <v-list-tile-title>{{ nav }}</v-list-tile-title>
               </v-list-tile-content>
             </v-list-tile>
         </v-list-group>
@@ -79,7 +79,7 @@ export default {
     return {
       appTitle: "Audio Seva Backend",
       sidebar: false,
-      subNavigation: ["base", "Allot", "Statistics"],
+      subNavigation: ["List", "Allot", "Statistics"],
       sidebarItems: [
         {
           title: "SQR",
