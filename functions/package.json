@@ -16,7 +16,8 @@
     "google-spreadsheet": "^2.0.6",
     "googleapis": "^35.0.0",
     "lodash": "^4.17.11",
-    "sib-api-v3-sdk": "^7.0.3"
+    "sib-api-v3-sdk": "^7.0.3",
+    "uniqid": "^5.0.3"
   },
   "devDependencies": {
     "typescript": "~2.8.3"
