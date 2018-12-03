@@ -44,7 +44,12 @@ describe('utility', function () {
     expect(validateFlacFile({ name: fileName, type: "audio/flac" })).toBeTruthy();
   });
 
-  it.only("should throw error if bad validateFlacFile", () => {
+  it("should validateFlacFile without optional comment", () => {
+    const fileName = "list1-001-1.flac";
+    expect(validateFlacFile({ name: fileName, type: "audio/flac" })).toBeTruthy();
+  });
+
+  it("should throw error if bad validateFlacFile", () => {
     expect(() => validateFlacFile("wda")).toThrow()
   });
 });

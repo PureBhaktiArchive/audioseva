@@ -1,8 +1,7 @@
 <template>
   <div>
     <div v-if="user">
-      <h2>Hello, {{ user.name }}</h2>
-
+      <h2>Uploads page for {{ user.name }}</h2>
       <div>
         <vue-dropzone
           ref="myDropzone"
@@ -12,8 +11,7 @@
           :useCustomSlot="true"
         >
           <div>
-            To upload files you can do one of two things
-            <div>Drag and drop files onto the box or click the box and manually select files.</div>
+            <p>Drop files here to upload or click here to pick the files from your computer.</p>
           </div>
         </vue-dropzone>
       </div>
