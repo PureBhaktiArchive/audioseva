@@ -39,7 +39,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-toolbar app>
+    <v-toolbar app v-if="showHeader">
       <v-toolbar-side-icon @click="sidebar = !sidebar" v-if="currentUser">
       </v-toolbar-side-icon>
       <v-toolbar-title>
@@ -64,6 +64,7 @@ export default {
     return {
       appTitle: "Audio Seva Backend",
       sidebar: false,
+      showHeader: true,
       sidebarItems: [
         {
           title: "Allot Content Reporting",
@@ -103,6 +104,13 @@ export default {
   },
   methods: {
     ...mapActions("user", ["signOut"])
+  },
+  watch: {
+    '$route' (to) {
+      if (to.path.includes("/sound-editing/upload")) {
+        this.showHeader = false;
+      }
+    }
   }
 };
 </script>
