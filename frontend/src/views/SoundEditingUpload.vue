@@ -16,31 +16,21 @@
         </vue-dropzone>
       </div>
       <div>
-        <div v-if="totalUploadCount" :style="{ alignItems: 'center' }" class="d-flex pa-1">
-          <span class="pl-2">
+        <div :style="{ alignItems: 'center' }" class="d-flex pa-1">
+          <span v-if="totalUploadCount" class="pl-2">
             Uploading {{ `${totalUploadCount} item${totalUploadCount > 1 ? 's' : ''}` }}
             | {{ getTotalUploadTime()}}
           </span>
           <div :style="{ justifyContent: 'flex-end', display: 'flex' }">
-            <v-btn @click="cancelAllFiles" color="red">Cancel all</v-btn>
+            <v-btn v-if="completedFileUploads" @click="clearCompletedFiles" color="green">Clear completed</v-btn>
+            <v-btn v-if="totalUploadCount" @click="cancelAllFiles" color="red">Cancel all</v-btn>
           </div>
         </div>
-        <v-divider></v-divider>
+        <v-divider v-if="getFiles().length"></v-divider>
         <v-list two-line>
           <template v-for="[file, status] in getFiles()">
             <div :key="file.upload.uuid">
               <v-list-tile>
-                <v-list-tile-action class="mr-2">
-                  <v-btn
-                    :href="status.downloadUrl || '#'"
-                    :disabled="!status.downloadUrl"
-                    :download="file.name"
-                    icon
-                  >
-                    <v-icon>fas fa-download</v-icon>
-                  </v-btn>
-                </v-list-tile-action>
-
                 <v-list-tile-content>
                   <v-list-tile-sub-title :style="{ color: 'red' }" v-if="status.error">
                     {{ status.error }}
@@ -55,17 +45,14 @@
                   <div v-else>
                     <v-progress-circular
                       :value="status.progress" color="green"
-                      :style="{ marginRight: '8px'}"
+                      :style="{ marginRight: '16px'}"
                     >
                     </v-progress-circular>
                     <v-btn
-                      aria-label="Cancel"
-                      icon
-                      flat
                       color="red"
                       @click="cancelFile(status)"
                       v-if="status.uploading">
-                      <v-icon color="red">fa-ban</v-icon>
+                      Cancel
                     </v-btn>
                   </div>
                 </v-list-tile-action>
@@ -112,6 +99,7 @@ export default class SoundEditingUpload extends Vue {
   userError: any = null;
   files: Map<File, IFileStatus> = new Map();
   totalUploadCount: number = 0;
+  completedFileUploads: number = 0;
 
   $refs!: {
     myDropzone: any;
@@ -165,6 +153,15 @@ export default class SoundEditingUpload extends Vue {
     });
   }
 
+  clearCompletedFiles() {
+    for (let [file, status] of this.files) {
+      if (status.complete) {
+        this.files.delete(file);
+      }
+    }
+    this.completedFileUploads = 0;
+  }
+
   getUser() {
     const {
       params: { uploadCode }
@@ -200,9 +197,9 @@ export default class SoundEditingUpload extends Vue {
         .once("value");
       const response = snapshot.val();
       if (!response) {
-        this.emitFileError(file, "Task must be assigned to user");
+        this.emitFileError(file, "The corresponding task is not assigned to you");
       } else if (response.restoration.status === "Done") {
-        this.emitFileError(file, "Task is marked as done");
+        this.emitFileError(file, "The corresponding task is marked as done");
       } else {
         this.uploadFile(`sound-editing/restored/${list}/${taskId}.flac`, file);
       }
@@ -282,15 +279,20 @@ export default class SoundEditingUpload extends Vue {
             complete: false,
             uploading: false
           });
+        } else if (error.code === "storage/unauthorized") {
+          this.updateFileFields(file, {
+            error: "You are not authorized to upload this file",
+            complete: false,
+            uploading: false
+          });
         } else {
           this.emitFileError(file, error.message);
         }
       },
       async () => {
-        const response = await uploadTask.snapshot.ref.getDownloadURL();
+        this.completedFileUploads += 1;
         this.updateFileFields(file, {
           complete: true,
-          downloadUrl: response,
           uploading: false
         });
       }
