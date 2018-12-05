@@ -43,7 +43,8 @@ export const router = new Router({
           path: "se/",
           component: () => import("@/views/SE/SE.vue"),
           children: [
-            { path: "", component: () => import("@/views/SE/Tasks.vue") }
+            { path: "", component: () => import("@/views/SE/Tasks.vue") },
+            { path: "allot", component: () => import("@/views/SE/Allotment.vue") }
           ]
         },
         {
