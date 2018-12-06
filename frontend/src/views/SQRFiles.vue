@@ -1,7 +1,7 @@
 <template>
   <div>
     <header>
-      <h1>SQR</h1>
+      <h1>Sound Quality Reporting</h1>
     </header>
     <div class="nav-wrapper">
       <!-- lists -->
@@ -23,7 +23,7 @@
 
       <!-- Side links -->
       <div class="d-flex" :style="{ alignItems: 'center' }">
-        <router-link :style="{ padding: '0 8px' }" to="sqr/statistics">SQR Statistics</router-link>
+        <router-link :style="{ padding: '0 8px' }" to="sqr/statistics">Statistics</router-link>
         <router-link to="sqr/allot">Allot</router-link>
       </div>
     </div>
