@@ -34,7 +34,7 @@ export const router = new Router({
         {
           path: "sqr/",
           component: () => import("@/views/SQR.vue"),
-          meta: { activator: true, activatorName: "SQR", menuIcon: "fas fa-headphones" },
+          meta: { activator: true, activatorName: "Sound Quality Reporting", menuIcon: "fas fa-headphones" },
           children: [
             { path: "",
               component: () => import("@/views/SQRFiles.vue"),
