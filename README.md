@@ -1,4 +1,44 @@
 
+# Frontend
+
+## Project setup
+
+```
+npm install
+```
+
+All env variables with FIREBASE in them are taken from the Firebase project.
+Add the following variables into your `.env.development.local` file:
+
+- `VUE_APP_FIREBASE_API_KEY`
+- `VUE_APP_FIREBASE_AUTH_DOMAIN`
+- `VUE_APP_FIREBASE_DATABASE_URL`
+- `VUE_APP_FIREBASE_STORAGE_BUCKET`
+
+### Compiles and hot-reloads for development
+
+```
+npm run serve
+```
+
+### Compiles and minifies for production
+
+```
+npm run build
+```
+
+### Lints and fixes files
+
+```
+npm run lint
+```
+
+### Run your unit tests
+
+```
+npm run test:unit
+```
+
 # Configuring the Firebase Cloud Functions environment!
 The main credentials, **databaseURL** & the **storageBucket** are automatically set up for you, however, other variables have to be set manually before deploying the functions.
   
