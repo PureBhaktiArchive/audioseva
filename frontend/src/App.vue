@@ -62,7 +62,7 @@ import { mapState, mapActions } from "vuex";
 export default {
   data() {
     return {
-      appTitle: "Audio Seva Backend",
+      appTitle: "Audio Seva",
       sidebar: false,
       sidebarItems: [
         {
