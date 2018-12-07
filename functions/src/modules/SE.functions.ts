@@ -100,7 +100,7 @@ export const importSpreadSheetData = functions.https.onRequest( async (req, res)
 
     for (let i = 0; i < data.worksheets.length; i++) {
         let getRows = promisify(data.worksheets[i].getRows);
-        let rows = await getRows({ limit: 150 });
+        let rows = await getRows({});
         
         if (    // checking if the main attributes exist
             rows[0] && 
