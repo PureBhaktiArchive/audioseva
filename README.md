@@ -30,3 +30,5 @@ $ npm run deploy
 # Importing data from a Google spreadsheet
 In order to be able to import files from Google Spreadsheet, you'll have to create a **service account** at 
 https://console.cloud.google.com/apis/credentials .. a **json** file will be created for you, download it and and place it in the **functions** folder under the following name **creds.json**.
+
+After that you'll have to open the **creds.json** and locate the **client_email** and **SHARE** the spreadsheet with this email.
