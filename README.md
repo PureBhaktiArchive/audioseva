@@ -26,3 +26,7 @@ The following command will run a **predeploy** script to make the conversion and
 ```sh
 $ npm run deploy
 ```
+
+# Importing data from a Google spreadsheet
+In order to be able to import files from Google Spreadsheet, you'll have to create a **service account** at 
+https://console.cloud.google.com/apis/credentials .. a **json** file will be created for you, download it and and place it in the **functions** folder under the following name **creds.json**.
