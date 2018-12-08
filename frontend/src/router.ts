@@ -56,7 +56,8 @@ export const router = new Router({
           component: () => import("@/views/SE/SE.vue"),
           meta: { activator: true, activatorName: "Sound Engineering", menuIcon: "fas fa-music" },
           children: [
-            { path: "", component: () => import("@/views/SE/Tasks.vue"), meta: { menuItem: true } }
+            { path: "", component: () => import("@/views/SE/Tasks.vue"), meta: { menuItem: true } },
+            { path: "allot", component: () => import("@/views/SE/Allotment.vue"), meta: { menuItem: true } }
           ]
         },
         {
