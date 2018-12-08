@@ -1,7 +1,7 @@
 <template>
   <div>
     <header>
-      <h1>SQR Statistics</h1>
+      <h1>Sound Quality Reporting Statistics</h1>
     </header>
     <files-by-status
       :isLoading="isLoadingFiles"
