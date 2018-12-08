@@ -503,6 +503,13 @@ filled_by:
           "!value": Haribol
     "#required": true
     "#prepopulate": true
+update_tip:
+  "#type": processed_text
+  "#access_create_roles": {}
+  "#access_view_roles": {}
+  "#text": |
+    <p>Click the “Save” button below to send us the updated submission.</p>
+  "#format": full_html
 actions:
   "#type": webform_actions
   "#title": "Submit button(s)"
