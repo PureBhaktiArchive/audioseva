@@ -19,6 +19,10 @@ export const router = new Router({
       component: () => import("@/views/Login.vue")
     },
     {
+      path: "/sound-editing/:taskId/quality-check/feedback",
+      component: () => import("@/views/QCSubmissionForm.vue")
+    },
+    {
       path: "/",
       meta: { requireAuth: true },
       component: () => import("@/views/Dashboard.vue"),
