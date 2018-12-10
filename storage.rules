@@ -1,0 +1,9 @@
+service firebase.storage {
+  match /b/audio-seva-team-test.appspot.com/o {
+    match /sound-editing/restored/uploads/{uploadCode}/{timeStamp}/{file} {
+      allow write: if request.resource.contentType.matches('audio/mp3') &&
+          request.resource.name.matches('.*\\.mp3');
+      allow read;
+    }
+  }
+}
