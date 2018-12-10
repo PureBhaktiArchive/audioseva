@@ -110,9 +110,8 @@ export const importUserRegistrationData = functions.https.onRequest(
 
                                 // Preparing the values for DB insertion
                                 // Convert the String Date to UNIX Timestamp newCoordniator[2] is the Date's String Format
-                                newUser['timestamp'] = user[2]
-                                    ? new Date(user[2]).getTime()
-                                    : Date.now();
+                                newUser['timestamp'] = new Date(user[2]).getTime();
+
                                 // Convert Languages String to Array Type (Split by Commas)
                                 newUser['languages'] = {};
                                 const langArray = user[8]
