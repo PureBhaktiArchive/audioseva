@@ -32,6 +32,18 @@ export const router = new Router({
           component: () => import("@/views/CRAllotment.vue")
         },
         {
+          path: "users/",
+          component: () => import("@/views/UsersList.vue"),
+          meta: { activator: true, activatorName: "Users", menuIcon: "fas fa-user"},
+          children: [
+            {
+              path: "",
+              component: () => import("@/views/UsersList.vue"),
+              meta: { menuItem: true }
+            }
+          ]
+        },
+        {
           path: "sqr/",
           component: () => import("@/views/SQR.vue"),
           meta: { activator: true, activatorName: "Sound Quality Reporting", menuIcon: "fas fa-headphones" },
