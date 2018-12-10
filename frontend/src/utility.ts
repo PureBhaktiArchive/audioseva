@@ -45,11 +45,11 @@ export const formatTimestamp = (value: string, item: any) => {
   return timestamp ? moment(timestamp).format("D.MM.YYYY") : "";
 };
 
-const taskIdPattern = "\\w+-\\d+-\\d+";
+const taskIdPattern = "^\\w+-\\d+-\\d+";
 
 const taskId = new RegExp(taskIdPattern);
 
-const flacFileFormat = new RegExp(`${taskIdPattern}\\w*.flac`);
+const flacFileFormat = new RegExp(`${taskIdPattern}.flac`);
 
 export const validateFlacFile = ({ name: fileName, type }: any) => {
   const isValidFormat = fileName.match(flacFileFormat);

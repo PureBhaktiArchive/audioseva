@@ -1,70 +1,65 @@
 <template>
   <div>
-    <div v-if="user">
-      <h2>Uploads page for {{ user.name }}</h2>
-      <div>
-        <vue-dropzone
-          ref="myDropzone"
-          id="dropzone"
-          :options="dropzoneOptions"
-          @vdropzone-files-added="filesAdded"
-          :useCustomSlot="true"
-        >
-          <div>
-            <p>Drop files here to upload or click here to pick the files from your computer.</p>
-          </div>
-        </vue-dropzone>
-      </div>
-      <div>
-        <div :style="{ alignItems: 'center' }" class="d-flex pa-1">
+    <h2>Sounds Engineer Upload</h2>
+    <div>
+      <vue-dropzone
+        ref="myDropzone"
+        id="dropzone"
+        :options="dropzoneOptions"
+        @vdropzone-files-added="filesAdded"
+        :useCustomSlot="true"
+      >
+        <div>
+          <p>Drop files here to upload or click here to pick the files from your computer.</p>
+        </div>
+      </vue-dropzone>
+    </div>
+    <div>
+      <div :style="{ alignItems: 'center' }" class="d-flex pa-1">
           <span v-if="totalUploadCount" class="pl-2">
             Uploading {{ `${totalUploadCount} item${totalUploadCount > 1 ? 's' : ''}` }}
             | {{ getTotalUploadTime()}}
           </span>
-          <div :style="{ justifyContent: 'flex-end', display: 'flex' }">
-            <v-btn v-if="completedFileUploads" @click="clearCompletedFiles" color="green">Clear completed</v-btn>
-            <v-btn v-if="totalUploadCount" @click="cancelAllFiles" color="red">Cancel all</v-btn>
-          </div>
+        <div :style="{ justifyContent: 'flex-end', display: 'flex' }">
+          <v-btn v-if="completedFileUploads" @click="clearCompletedFiles" color="green">Clear completed</v-btn>
+          <v-btn v-if="totalUploadCount" @click="cancelAllFiles" color="red">Cancel all</v-btn>
         </div>
-        <v-divider v-if="getFiles().length"></v-divider>
-        <v-list two-line>
-          <template v-for="[file, status] in getFiles()">
-            <div :key="file.upload.uuid">
-              <v-list-tile>
-                <v-list-tile-content>
-                  <v-list-tile-sub-title :style="{ color: 'red' }" v-if="status.error">
-                    {{ status.error }}
-                  </v-list-tile-sub-title>
-                  <v-list-tile-title>
-                    {{ file.name }}
-                  </v-list-tile-title>
-                </v-list-tile-content>
-                <v-list-tile-action :style="{ flexDirection: 'row' }">
-                  <v-btn v-if="status.error" color="red" @click="deleteFile(file)">remove</v-btn>
-                  <v-icon color="green" v-else-if="status.complete">fa-check-circle</v-icon>
-                  <div v-else>
-                    <v-progress-circular
-                      :value="status.progress" color="green"
-                      :style="{ marginRight: '16px'}"
-                    >
-                    </v-progress-circular>
-                    <v-btn
-                      color="red"
-                      @click="cancelFile(status)"
-                      v-if="status.uploading">
-                      Cancel
-                    </v-btn>
-                  </div>
-                </v-list-tile-action>
-              </v-list-tile>
-              <v-divider></v-divider>
-            </div>
-          </template>
-        </v-list>
       </div>
-    </div>
-    <div v-if="userError">
-      <p>{{ userError }}</p>
+      <v-divider v-if="getFiles().length"></v-divider>
+      <v-list two-line>
+        <template v-for="[file, status] in getFiles()">
+          <div :key="file.upload.uuid">
+            <v-list-tile>
+              <v-list-tile-content>
+                <v-list-tile-sub-title :style="{ color: 'red' }" v-if="status.error">
+                  {{ status.error }}
+                </v-list-tile-sub-title>
+                <v-list-tile-title>
+                  {{ file.name }}
+                </v-list-tile-title>
+              </v-list-tile-content>
+              <v-list-tile-action :style="{ flexDirection: 'row' }">
+                <v-btn v-if="status.error" color="red" @click="deleteFile(file)">remove</v-btn>
+                <v-icon color="green" v-else-if="status.complete">fa-check-circle</v-icon>
+                <div v-else>
+                  <v-progress-circular
+                    :value="status.progress" color="green"
+                    :style="{ marginRight: '16px'}"
+                  >
+                  </v-progress-circular>
+                  <v-btn
+                    color="red"
+                    @click="cancelFile(status)"
+                    v-if="status.uploading">
+                    Cancel
+                  </v-btn>
+                </div>
+              </v-list-tile-action>
+            </v-list-tile>
+            <v-divider></v-divider>
+          </div>
+        </template>
+      </v-list>
     </div>
   </div>
 </template>
@@ -112,10 +107,6 @@ export default class SoundEditingUpload extends Vue {
     uploadMultiple: true
   };
 
-  mounted() {
-    this.getUser();
-  }
-
   getFile(file: File): IFileStatus {
     return this.files.get(file) || {};
   }
@@ -162,47 +153,16 @@ export default class SoundEditingUpload extends Vue {
     this.completedFileUploads = 0;
   }
 
-  getUser() {
-    const {
-      params: { uploadCode }
-    } = this.$route;
-    this.$bindAsArray(
-      "user",
-      fb
-        .database()
-        .ref("users")
-        .orderByChild("uploadCode")
-        .equalTo(uploadCode),
-      null,
-      () => {
-        if (this.user.length) {
-          this.user = this.user[0];
-        } else {
-          this.user = null;
-          this.userError = "Can't find user with upload code";
-        }
-      }
-    );
-  }
-
-  async getTask(file: File) {
+  async getTask(file: File, timestamp: number) {
     const taskId = getTaskId(file.name);
     if (taskId) {
-      const list = taskId.split("-")[0];
-      const snapshot = await fb
-        .database()
-        .ref(`sound-editing/tasks/${list}/${taskId}`)
-        .orderByChild("assignee/emailAddress")
-        .equalTo(this.user.emailAddress)
-        .once("value");
-      const response = snapshot.val();
-      if (!response) {
-        this.emitFileError(file, "The corresponding task is not assigned to you");
-      } else if (response.restoration.status === "Done") {
-        this.emitFileError(file, "The corresponding task is marked as done");
-      } else {
-        this.uploadFile(`sound-editing/restored/${list}/${taskId}.flac`, file);
-      }
+      const {
+        params: { uploadCode }
+      } = this.$route;
+      this.uploadFile(
+        `sound-editing/restored/uploads/${uploadCode}/${timestamp}/${taskId}.flac`,
+        file
+      );
     }
   }
 
@@ -210,6 +170,7 @@ export default class SoundEditingUpload extends Vue {
     // when a file is selected by clicking the box "selectedFiles" is an object
     // when files are dropped selectedFiles is an array
     setTimeout(() => this.$refs.myDropzone.removeAllFiles(), 100);
+    const timestamp = new Date().valueOf();
     let files = Array.isArray(selectedFiles)
       ? selectedFiles
       : Object.values(selectedFiles);
@@ -217,7 +178,7 @@ export default class SoundEditingUpload extends Vue {
       this.files.set(file, {});
       try {
         validateFlacFile(file);
-        this.getTask(file);
+        this.getTask(file, timestamp);
       } catch (e) {
         this.emitFileError(file, e.message);
       }
