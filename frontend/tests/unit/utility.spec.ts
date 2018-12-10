@@ -40,16 +40,11 @@ describe('utility', function () {
   });
 
   it("should validateFlacFile", () => {
-    const fileName = "list1-001-1optionalcomment.flac";
-    expect(validateFlacFile({ name: fileName, type: "audio/flac" })).toBeTruthy();
-  });
-
-  it("should validateFlacFile without optional comment", () => {
     const fileName = "list1-001-1.flac";
     expect(validateFlacFile({ name: fileName, type: "audio/flac" })).toBeTruthy();
   });
 
   it("should throw error if bad validateFlacFile", () => {
-    expect(() => validateFlacFile("wda")).toThrow()
+    expect(() => validateFlacFile({ name: "badname.txt" })).toThrowError("File type must be flac")
   });
 });
