@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "sound-editing": {
+        "restoration": {
+            "allotments": {
+                ".indexOn": ["assignee/emailAddress"]
+            }
+      }
+    },
+  }
+}

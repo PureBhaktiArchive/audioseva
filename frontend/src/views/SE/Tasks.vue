@@ -3,19 +3,24 @@
     <header>
       <h1>Sound Engineering</h1>
     </header>
-    <div v-if="isLoadingLists">
-      <div class="elevation-1 pa-1">
-        <span :style="{ marginRight: '4px' }">loading lists</span>
-        <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
+    <v-layout row justify-space-between class="mb-2">
+      <div v-if="isLoadingLists">
+        <div class="elevation-1 pa-1">
+          <span :style="{ marginRight: '4px' }">loading lists</span>
+          <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
+        </div>
       </div>
-    </div>
-    <div v-else>
-      <v-btn-toggle v-model="selectedButton" mandatory>
-        <v-btn v-for="(value, key, index) in lists" :key="index">
-          {{ value }}
-        </v-btn>
-      </v-btn-toggle>
-    </div>
+      <div v-else>
+        <v-btn-toggle v-model="selectedButton" mandatory>
+          <v-btn v-for="(value, key, index) in lists" :key="index">
+            {{ value }}
+          </v-btn>
+        </v-btn-toggle>
+      </div>
+      <div class="align-center d-flex">
+        <router-link to="se/allot">Allot</router-link>
+      </div>
+    </v-layout>
     <div v-if="lists.length">
       <data-table
         :computedComponent="computedComponent"

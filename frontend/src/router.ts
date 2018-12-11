@@ -35,21 +35,31 @@ export const router = new Router({
         {
           path: "sqr/",
           component: () => import("@/views/SQR.vue"),
+          meta: { activator: true, activatorName: "Sound Quality Reporting", menuIcon: "fas fa-headphones" },
           children: [
-            { path: "", component: () => import("@/views/SQRFiles.vue") },
-            { path: "statistics", component: () => import("@/views/SQRFileStatistics.vue") }
+            { path: "",
+              component: () => import("@/views/SQRFiles.vue"),
+              meta: { menuItem: true}
+            },
+            {
+              path: "allot",
+              component: () => import("@/views/SQRAllotment.vue"),
+              meta: { menuItem: true }
+            },
+            { path: "statistics",
+              component: () => import("@/views/SQRFileStatistics.vue"),
+              meta: { menuItem: true }
+            }
           ]
         },
         {
           path: "se/",
           component: () => import("@/views/SE/SE.vue"),
+          meta: { activator: true, activatorName: "Sound Engineering", menuIcon: "fas fa-music" },
           children: [
-            { path: "", component: () => import("@/views/SE/Tasks.vue") }
+            { path: "", component: () => import("@/views/SE/Tasks.vue"), meta: { menuItem: true } },
+            { path: "allot", component: () => import("@/views/SE/Allotment.vue"), meta: { menuItem: true } }
           ]
-        },
-        {
-          path: "sqr/allot",
-          component: () => import("@/views/SQRAllotment.vue")
         },
         {
           path: "te/allot",
