@@ -16,9 +16,23 @@ export const router = new Router({
     {
       path: "/login",
       meta: { guestOnly: true },
-      component: () => import("@/views/Login.vue")
+      component: () => import("@/views/MainLayout.vue"),
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/Login.vue")
+        }
+      ]
     },
-    { path: "/sound-editing/upload/:uploadCode", component: () => import("@/views/SoundEditingUpload.vue") },
+    {
+      path: "/sound-editing/",
+      component: () => import("@/views/AnonymousLayout.vue"),
+      children: [
+        {
+          path: "upload/:uploadCode", component: () => import("@/views/SoundEditingUpload.vue")
+        }
+      ]
+    },
     {
       path: "/",
       meta: { requireAuth: true },
