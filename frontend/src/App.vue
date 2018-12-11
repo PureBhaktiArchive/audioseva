@@ -20,15 +20,22 @@
       </v-toolbar>
       <v-list dense>
         <v-divider></v-divider>
-        <v-list-tile
-          v-for="item in sidebarItems"
-          :key="item.title"
-          :to="item.path">
-          <v-list-tile-action>
-            <v-icon>{{ item.icon }}</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-content>{{ item.title }}</v-list-tile-content>
-        </v-list-tile>
+        <template v-for="(item, index) in routes">
+          <v-list-group
+            :key="index"
+            v-if="item.meta && item.meta.activator"
+            no-action
+            :prepend-icon="item.meta.menuIcon"
+            :value="index === 0"
+          >
+            <v-list-tile slot="activator">
+              <v-list-tile-content>
+                <v-list-tile-title>{{ item.meta.activatorName }}</v-list-tile-title>
+              </v-list-tile-content>
+            </v-list-tile>
+            <menu-links :parentRoute="item" :routes="item.children"></menu-links>
+          </v-list-group>
+        </template>
         <v-divider></v-divider>
         <v-list-tile @click="signOut" v-if="currentUser">
           <v-list-tile-action>
@@ -56,51 +63,36 @@
   </v-app>
 </template>
 
-<script>
+<script lang="ts">
 import { mapState, mapActions } from "vuex";
+import MenuLinks from "@/components/MenuLinks.ts";
 
 export default {
+  components: {
+    MenuLinks
+  },
   data() {
     return {
-      appTitle: "Audio Seva Backend",
+      appTitle: "Audio Seva",
       sidebar: false,
       showHeader: true,
-      sidebarItems: [
-        {
-          title: "Allot Content Reporting",
-          path: "/cr/allot",
-          icon: this.$vuetify.icons.listening
-        },
-        {
-          title: "SQR",
-          path: "/sqr",
-          icon: this.$vuetify.icons.listening
-        },
-        {
-          title: "Sound Engineering",
-          path: "/se",
-          icon: this.$vuetify.icons.sound
-        },
-        {
-          title: "Allot TE",
-          path: "/te/allot",
-          icon: this.$vuetify.icons.track
-        },
-        {
-          title: "Allot TFC",
-          path: "/te/fc/allot",
-          icon: this.$vuetify.icons.quality
-        },
-        {
-          title: "Allot QC",
-          path: "/qc/allot",
-          icon: this.$vuetify.icons.quality
-        }
-      ]
+      navLinks: []
     };
   },
+  mounted() {
+    // @ts-ignore
+    this.navLinks = this.$router.options.routes.find(
+      (route: any) => route.path === "/"
+    ).children;
+  },
   computed: {
-    ...mapState("user", ["currentUser"])
+    ...mapState("user", ["currentUser"]),
+    routes: function(): any {
+      // @ts-ignore
+      return this.navLinks.filter(
+        (route: any) => route.meta && route.meta.activator
+      );
+    }
   },
   methods: {
     ...mapActions("user", ["signOut"])

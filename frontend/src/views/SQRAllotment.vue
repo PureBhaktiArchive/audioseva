@@ -3,13 +3,13 @@
  */
 <template>
   <div>
-    <h1>Sound Quality Reporting</h1>
+    <h1>Sound Quality Reporting Allotment</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
       <v-autocomplete
-        v-model="allotment.devotee"
-        :items="devotees || []"
-        :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''"
-        :loading="devotees === null"
+        v-model="allotment.assignee"
+        :items="users || []"
+        :hint="usersHint"
+        :loading="users === null"
         item-text="name"
         label="Select a devotee"
         persistent-hint
@@ -88,13 +88,14 @@
 import fb from "@/firebaseApp";
 // need this to use timestamp
 import firebase from "firebase";
+import _ from "lodash";
 
 const filteredStatus = ["Lost", "Opted out", "Incorrect", "Duplicate"];
 
 export default {
   name: "SQRAllotment",
   data: () => ({
-    devotees: null,
+    users: null,
     languages: ["English", "Hindi", "Bengali"],
     lists: null,
     files: null,
@@ -103,29 +104,33 @@ export default {
       list: null
     },
     allotment: {
-      devotee: null,
+      assignee: null,
       files: [],
       comment: null
     },
     submissionStatus: null
   }),
   mounted: async function() {
-    // Getting devotees
+    // Getting users
     this.$bindAsArray(
-      "devotees",
-      fb.database().ref("/registrations"),
+      "users",
+      fb
+        .database()
+        .ref("/users")
+        .orderByChild("roles/SQR")
+        .equalTo(true),
       null,
       () => {
-        this.devotees = this.devotees.reduce(
-          (filteredDevotees, { status, roles, emailAddress, ...other }) => {
-            if (!filteredStatus.includes(status) && roles.includes("SQR")) {
-              const devotee = { status, roles, emailAddress, ...other };
-              filteredDevotees.push(devotee);
-              if (this.$route.query.emailAddress) {
-                this.allotment.devotee = devotee;
+        this.users = this.users.reduce(
+          (filteredUsers, { status, emailAddress, ...other }) => {
+            if (!filteredStatus.includes(status)) {
+              const assignee = { status, emailAddress, ...other };
+              filteredUsers.push(assignee);
+              if (this.$route.query.emailAddress === emailAddress) {
+                this.allotment.assignee = assignee;
               }
             }
-            return filteredDevotees;
+            return filteredUsers;
           },
           []
         );
@@ -138,13 +143,21 @@ export default {
     );
     this.lists = Object.keys(response.body);
   },
+  computed: {
+    usersHint: function() {
+      const languages = _.get(this.allotment, "assignee.languages", {});
+      const hint = Object.keys(languages).join(", ");
+      return hint ? `Languages: ${hint}` : "";
+    }
+  },
   watch: {
-    "allotment.devotee": function(newValue) {
+    "allotment.assignee": function(newValue) {
       if (newValue == null) return;
 
       for (let language of this.languages) {
-        if (newValue.languages.includes(language))
+        if (newValue.languages[language]) {
           this.filter.language = language;
+        }
       }
     },
     filter: {
@@ -171,7 +184,7 @@ export default {
   methods: {
     async allot() {
       const {
-        devotee: { name, emailAddress },
+        assignee: { name, emailAddress },
         ...other
       } = this.allotment;
 
@@ -203,7 +216,7 @@ export default {
       if (this.sqrFiles) {
         this.files = this.sqrFiles.reduce(
           (filteredItems, { languages, notes, ...other }) => {
-            if (languages.includes(this.filter.language)) {
+            if (languages && languages.includes(this.filter.language)) {
               filteredItems.push({
                 languages,
                 notes,
