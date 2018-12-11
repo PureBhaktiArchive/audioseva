@@ -153,7 +153,7 @@ export default class SoundEditingUpload extends Vue {
     this.completedFileUploads = 0;
   }
 
-  async getTask(file: File, timestamp: number) {
+  async handleFile(file: File, timestamp: number) {
     const taskId = getTaskId(file.name);
     if (taskId) {
       const {
@@ -178,7 +178,7 @@ export default class SoundEditingUpload extends Vue {
       this.files.set(file, {});
       try {
         validateFlacFile(file);
-        this.getTask(file, timestamp);
+        this.handleFile(file, timestamp);
       } catch (e) {
         this.emitFileError(file, e.message);
       }
@@ -200,16 +200,11 @@ export default class SoundEditingUpload extends Vue {
   }
 
   uploadFile(path: string, file: File) {
-    const metadata = {
-      customMetadata: {
-        fullName: file.name
-      }
-    };
     const uploadTask = fb
       .storage()
       .ref()
       .child(path)
-      .put(file, metadata);
+      .put(file);
     this.updateFileFields(file, {
       uploading: true,
       uploadTask: uploadTask,
