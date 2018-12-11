@@ -142,9 +142,6 @@ duration_group:
             checked: false
           ':input[name="unable_to_play_or_download"]':
             checked: false
-        enabled:
-          ':input[name="fused_lecture"]':
-            value: "Yes"
         required:
           ':input[name="fused_lecture"]':
             value: "Yes"
@@ -159,9 +156,6 @@ duration_group:
             checked: false
           ':input[name="unable_to_play_or_download"]':
             checked: false
-        enabled:
-          ':input[name="fused_lecture"]':
-            value: "Yes"
         required:
           ':input[name="fused_lecture"]':
             value: "Yes"
