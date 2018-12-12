@@ -1,0 +1,9 @@
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{uploadCode}/{file=**} {
+      allow write: if request.resource.contentType.matches('audio/flac') &&
+          request.resource.name.matches('.*\\.flac');
+      allow read;
+    }
+  }
+}

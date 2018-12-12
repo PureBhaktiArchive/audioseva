@@ -91,71 +91,68 @@ export const processNewAllotment = functions.database
 //
 /////////////////////////////////////////////////
 
-export const uploadProcessing = functions.storage.object()
+export const uploadProcessing = functions.storage.bucket(functions.config().sound_editing.restoration.uploads.bucket_name).object()
 .onFinalize(async object => {    
 
     const filePath = object.name;
-
-
-    if (!filePath.startsWith('sound-editing/restored/uploads'))
-        return -1;
+    const seUploadsBucket = admin.storage().bucket(functions.config().sound_editing.restoration.uploads.bucket_name);    
     
-    
-    const filePathRegex = /sound-editing\/restored\/uploads\/(\w+)\/(\w+)\/(\w+\/)*(([\w\d]+)-\d+-?\d+?)\.flac/;
+    const filePathRegex = /(\w+)\/(\w+\/)*(([\w\d]+)-\d+-\d+)\.flac/;
     
     const match = filePathRegex.exec(filePath);
     if (!match) {
-        console.log("Wrong Path -- File will be deleted.");
-        bucket.file(object.name).delete();
+        console.log(`Wrong Path -- ${filePath} will be deleted.`);
+        seUploadsBucket.file(object.name).delete();
         return -1;
     }
 
     const uploadCode = match[1], 
-            timestamp = match[2],
             list = match[match.length - 1], 
             taskId = match[match.length - 2];
     
 
     let supposedAssignee = (await db.ref(`/users`).orderByChild('uploadCode').equalTo(uploadCode).once('value')).val();
     
-
-    
     if (!supposedAssignee.exists()) { 
-        console.log("Wrong Upload code -- File will be deleted.");
-        bucket.file(object.name).delete();
+        console.log(`Wrong Upload code -- ${filePath} will be deleted.`);
+        seUploadsBucket.file(object.name).delete();
         return -1;
     }
 
-    // 1. Send a notification to the coordinator
     const taskRef = await db.ref(`/sound-editing/tasks/${list}/${taskId}`).once('value');
 
     if (!taskRef.exists()) {
-        console.log("Task does not exist -- File will be deleted.");
-        bucket.file(object.name).delete();
+        console.log(`Task does not exist -- ${filePath} will be deleted.`);
+        seUploadsBucket.file(object.name).delete();
         return -1;
     }
 
     const task = taskRef.val();
 
     if (['Revise', 'Spare'].indexOf(task.restoration.status) < 0) {
-        console.log("Incorrect task status (only [Revise OR Spare] is allowed here) -- File will be deleted.");
-        bucket.file(object.name).delete();
+        console.log(`Incorrect task status (only [Revise OR Spare] is allowed here) -- ${filePath} will be deleted.`);
+        seUploadsBucket.file(object.name).delete();
         return -1;
     }
 
-    const coordinator = functions.config().coordinator; // TO
-    const replyTo = task.restoration.assignee.emailAddress;
+
+    // 1. Send a notification to the coordinator
 
     db.ref(`/email/notifications`).push({
         template: 'se-upload',
-        to: coordinator.emailAddress,
-        replyTo,
+        to: functions.config().coordinator.emailAddress,
+        replyTo: task.restoration.assignee.emailAddress,
         params: { task }
     });
 
-    // 2. Upload a copy of the file to `/sound-editing/restored/$list/$taskId.flac`
-    bucket.file(object.name)
-        .copy(bucket.file(`sound-editing/restored/${list}/${taskId}.flac`));
+    // 2. Create a copy of the file under `$list/$taskId.flac` in the RESTORATION bucket
+    //      and DELETE the original file
+    seUploadsBucket.file(object.name).copy(
+        admin.storage().bucket(functions.config().sound_editing.restoration.bucket)
+            .file(`${list}/${taskId}.flac`)
+    );
+    
+    await seUploadsBucket.file(object.name).delete();
 
 
     // 3. Update the Task

@@ -66,3 +66,38 @@ The following command will run a **predeploy** script to make the conversion and
 ```sh
 $ npm run deploy
 ```
+
+# Deploying Firebase Storage Rules!
+First we need to create **target names** using firebase CLI as follows:
+
+```sh
+$ firebase target:apply storage target-name resource-name
+```
+
+where:
+1. **target-name**: is a unique identifier.
+2. **resource-name**: is the name of the bucet on Firebase storage.
+ 
+Then in the **firebase.json** add a new "storage" key with an array of target-names and their associated rule files like the following example:
+
+```json
+{
+  "storage": [{
+    "target": "se_uploads",
+    "rules": "./functions/storage.sound-editing.uploads.rules"
+  }]
+}
+```
+
+Then to deploy the created storage rules, run the following:
+
+```sh
+$ firebase deploy --only storage:target-name
+```
+
+So far the created **target names** are [ se_uploads ], so to reproduce the current environment setup, run the following:
+
+```sh
+$ firebase target:apply storage se_uploads audio-seva-test-uploads
+$ firebase deploy --only storage:se_uploads
+```

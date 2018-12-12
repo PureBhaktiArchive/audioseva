@@ -8,5 +8,9 @@
         "destination": "/index.html"
       }
     ]
-  }
+  },
+  "storage": [{
+    "target": "se_uploads",
+    "rules": "./storage.sound-editing.uploads.rules"
+  }]
 }
