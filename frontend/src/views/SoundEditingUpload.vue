@@ -83,6 +83,8 @@ interface IFileStatus {
   downloadUrl?: string;
 }
 
+const seUpload = fb.storage(process.env.VUE_APP_SOUND_EDITING_UPLOADS_BUCKET);
+
 @Component({
   name: "SoundEditingUpload",
   components: {
@@ -91,7 +93,6 @@ interface IFileStatus {
 })
 export default class SoundEditingUpload extends Vue {
   user: any = null;
-  userError: any = null;
   files: Map<File, IFileStatus> = new Map();
   totalUploadCount: number = 0;
   completedFileUploads: number = 0;
@@ -159,10 +160,7 @@ export default class SoundEditingUpload extends Vue {
       const {
         params: { uploadCode }
       } = this.$route;
-      this.uploadFile(
-        `sound-editing/restored/uploads/${uploadCode}/${timestamp}/${taskId}.flac`,
-        file
-      );
+      this.uploadFile(`${uploadCode}/${timestamp}/${taskId}.flac`, file);
     }
   }
 
@@ -200,8 +198,7 @@ export default class SoundEditingUpload extends Vue {
   }
 
   uploadFile(path: string, file: File) {
-    const uploadTask = fb
-      .storage()
+    const uploadTask = seUpload
       .ref()
       .child(path)
       .put(file);
