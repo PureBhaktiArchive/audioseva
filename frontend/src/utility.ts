@@ -53,13 +53,14 @@ const flacFileFormat = new RegExp(`${taskIdPattern}.flac`);
 
 export const validateFlacFile = ({ name: fileName, type }: any) => {
   const isValidFormat = fileName.match(flacFileFormat);
-  if (isValidFormat && type === "audio/flac") return isValidFormat;
 
-  if (type === "audio/flac") {
-    throw new Error("The file name does not start with task ID");
-  } else {
+  if (type !== "audio/flac") {
     throw new Error("File type must be flac");
   }
+  if (!isValidFormat) {
+    throw new Error("The file name does not start with task ID");
+  }
+  return true;
 };
 
 export const getTaskId = (fileName: string) => {
