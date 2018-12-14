@@ -26,7 +26,7 @@
         v-model="qcForm.soundQualityRating"
         :items="['Good', 'Average', 'Bad']"
         :rules="[v => !!v || 'This field is required']"
-        label="Select quality"
+        label="Sound Quality Rating"
         v-if="qcForm.approved"
       >
       </v-select>
