@@ -29,7 +29,7 @@ export const router = new Router({
       component: () => import("@/views/AnonymousLayout.vue"),
       children: [
         {
-          path: "upload/:uploadCode", component: () => import("@/views/SoundEditingUpload.vue")
+          path: "upload/:uploadCode", component: () => import("@/views/SoundEngineerUpload.vue")
         }
       ]
     },

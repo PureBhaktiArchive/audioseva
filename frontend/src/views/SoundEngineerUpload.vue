@@ -86,12 +86,12 @@ interface IFileStatus {
 const seUpload = fb.storage(process.env.VUE_APP_SOUND_EDITING_UPLOADS_BUCKET);
 
 @Component({
-  name: "SoundEditingUpload",
+  name: "SoundEngineerUpload.vue",
   components: {
     VueDropzone
   }
 })
-export default class SoundEditingUpload extends Vue {
+export default class SoundEngineerUpload extends Vue {
   user: any = null;
   files: Map<File, IFileStatus> = new Map();
   totalUploadCount: number = 0;
