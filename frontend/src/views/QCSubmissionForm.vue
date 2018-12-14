@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="pa-2 elevation-2">
     <h1>Quality Check Submission Form</h1>
     <div :style="{ display: 'flex', justifyContent: 'center' }" v-if="isValidForm === null">
       <p><v-progress-circular indeterminate></v-progress-circular></p>
@@ -31,6 +31,7 @@
       >
       </v-select>
       <v-textarea
+        box
         ref="comments"
         v-model="qcForm.comments"
         :rules="commentRules"
