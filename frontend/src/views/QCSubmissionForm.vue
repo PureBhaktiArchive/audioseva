@@ -76,7 +76,8 @@ export default class QCSubmissionForm extends Vue {
   async submit() {
     if (this.validateForm()) {
       const {
-        params: { taskId }
+        params: { taskId },
+        query: { token }
       } = this.$route;
       await fb
         .database()
@@ -84,6 +85,7 @@ export default class QCSubmissionForm extends Vue {
         .push()
         .set({
           taskId,
+          token,
           ...this.qcForm
         });
       this.submissionComplete = true;
@@ -100,18 +102,10 @@ export default class QCSubmissionForm extends Vue {
 
   async verifyToken() {
     const {
-      query: { token },
-      params: { taskId }
+      query: { token }
     } = this.$route;
     if (!token) return (this.isValidForm = false);
-    const listId = taskId.split("-")[0];
-    const response = await fb
-      .database()
-      .ref(
-        `sound-editing/tasks/${listId}/${taskId}/restoration/quality-check/token`
-      )
-      .once("value");
-    this.isValidForm = token === response.val();
+    this.isValidForm = true;
   }
 }
 </script>
