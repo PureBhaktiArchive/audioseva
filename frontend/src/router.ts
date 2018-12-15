@@ -33,12 +33,12 @@ export const router = new Router({
         },
         {
           path: "users/",
-          component: () => import("@/views/UsersList.vue"),
+          component: () => import("@/views/Users/Users.vue"),
           meta: { activator: true, activatorName: "Users", menuIcon: "fas fa-user"},
           children: [
             {
               path: "",
-              component: () => import("@/views/UsersList.vue"),
+              component: () => import("@/views/Users/List.vue"),
               meta: { menuItem: true }
             }
           ]
