@@ -16,7 +16,7 @@
             :item="item"
             :value="value.value"
             :Component="computedComponent[value.value]"
-            :componentData="getComponentData(value)"
+            :componentData="getComponentData(value.value)"
           >
           </table-data>
         </template>
