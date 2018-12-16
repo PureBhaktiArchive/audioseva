@@ -44,3 +44,24 @@ export const formatTimestamp = (value: string, item: any) => {
   const timestamp = _.get(item, value, false);
   return timestamp ? moment(timestamp).format("D.MM.YYYY") : "";
 };
+
+const taskIdPattern = "^\\w+-\\d+-\\d+";
+
+const taskIdFormat = new RegExp(taskIdPattern);
+
+const flacFileFormat = new RegExp(`${taskIdPattern}.flac`);
+
+export const validateFlacFile = ({ name: fileName, type }: any) => {
+  if (type !== "audio/flac") {
+    throw new Error("File type must be flac");
+  }
+  if (!fileName.match(flacFileFormat)) {
+    throw new Error("The file name does not start with task ID");
+  }
+  return true;
+};
+
+export const getTaskId = (fileName: string) => {
+  const match = fileName.match(taskIdFormat);
+  return match ? match[0] : false;
+};

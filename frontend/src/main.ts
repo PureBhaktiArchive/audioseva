@@ -27,7 +27,8 @@ Vue.use(Vuetify, {
     listening: "fas fa-headphones",
     track: "fas fa-cut",
     quality: "fas fa-check",
-    sound: "fas fa-music"
+    sound: "fas fa-music",
+    download: "fas fa-file-download"
   }
 });
 
