@@ -14,7 +14,7 @@ Add the following variables into your `.env.development.local` file:
 - `VUE_APP_FIREBASE_AUTH_DOMAIN`
 - `VUE_APP_FIREBASE_DATABASE_URL`
 - `VUE_APP_FIREBASE_STORAGE_BUCKET`
-- `VUE_APP_SOUND_EDITING_UPLOADS_BUCKET` A secondary bucket taken from the Firebase project
+- `VUE_APP_SOUND_EDITING_UPLOADS_BUCKET` - a Firebase bucket for storing sound engineers' uploads
 
 ### Compiles and hot-reloads for development
 
