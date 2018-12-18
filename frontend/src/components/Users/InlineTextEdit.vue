@@ -2,18 +2,19 @@
   <v-edit-dialog
     :return-value.sync="item.notes"
     lazy
+    large
     @save="$listeners.save(item, editPath, item.notes)"
     @cancel="$listeners.cancel"
-    @open="$listeners.open"
+    @open="open"
   > {{ item.notes }}
-    <v-text-field
+    <v-textarea
       slot="input"
+      ref="editNotes"
       v-model="item.notes"
-      :rules="[max25chars]"
       label="Edit notes"
       single-line
       counter
-    ></v-text-field>
+    ></v-textarea>
   </v-edit-dialog>
 </template>
 
@@ -33,6 +34,13 @@ export default class InlineTextEdit extends Vue {
 
   get editPath() {
     return `users/${this.item[".key"]}/notes`;
+  }
+
+  open() {
+    // wait small amount of time so focus works
+    setTimeout(() => {
+      (this.$refs.editNotes as any).focus();
+    }, 100);
   }
 }
 </script>

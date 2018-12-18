@@ -21,7 +21,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 })
 export default class InlineStatusEdit extends Vue {
   @Prop() item!: any;
-  statusItems = ["Empty", "Opted out", "Lost", "Duplicate", "Incorrect"];
+  @Prop() statusItems!: string[];
 
   handleChange(e: string) {
     const { item } = this;

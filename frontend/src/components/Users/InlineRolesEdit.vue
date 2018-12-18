@@ -33,7 +33,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 })
 export default class InlineRolesEdit extends Vue {
   @Prop() item!: any;
-  roles = ["CR", "TE", "SE", "QC", "FC", "SQR", "Coordinator"];
+  @Prop() roles!: string[];
 
   handleChange(e: any, role: string) {
     const { item } = this;
