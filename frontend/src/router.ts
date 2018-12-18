@@ -51,16 +51,9 @@ export const router = new Router({
           component: () => import("@/views/CRAllotment.vue")
         },
         {
-          path: "users/",
-          component: () => import("@/views/Users/Users.vue"),
-          meta: { activator: true, activatorName: "Users", menuIcon: "fas fa-user"},
-          children: [
-            {
-              path: "",
-              component: () => import("@/views/Users/List.vue"),
-              meta: { menuItem: true }
-            }
-          ]
+          path: "users",
+          component: () => import("@/views/Users/List.vue"),
+          meta: { menuItem: true, menuName: "Users", menuIcon: "fas fa-users" }
         },
         {
           path: "sqr/",
