@@ -7,7 +7,7 @@
     }"
     :close-on-content-click="false">
     <div slot="activator">
-      <v-chip v-for="(role, index) in Object.keys(item.roles)" :key="`${index}-${role}-chip`">
+      <v-chip small v-for="(role, index) in Object.keys(item.roles)" :key="`${index}-${role}-chip`">
         {{ role }}
       </v-chip>
     </div>
