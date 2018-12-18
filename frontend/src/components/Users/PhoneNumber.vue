@@ -1,7 +1,7 @@
 <template>
   <div>
     {{ item.phoneNumber }}
-    <v-chip v-if="item.isAvailableOnWhatsApp" color="green">
+    <v-chip small v-if="item.isAvailableOnWhatsApp" color="green">
       <span class="white--text">WhatsApp</span>
     </v-chip>
   </div>
