@@ -36,6 +36,16 @@
               </v-list-tile>
               <menu-links :parentRoute="item" :routes="item.children"></menu-links>
             </v-list-group>
+            <v-list-tile :to="item.path" v-else-if="item.meta.menuItem" :key="`no-nested-${index}`">
+              <v-list-tile-action>
+                <v-icon>{{ item.meta.menuIcon }}</v-icon>
+              </v-list-tile-action>
+              <v-list-tile-content>
+                <v-list-tile-title>
+                  {{ item.meta.menuName }}
+                </v-list-tile-title>
+              </v-list-tile-content>
+            </v-list-tile>
           </template>
           <v-divider></v-divider>
           <v-list-tile @click="signOut" v-if="currentUser">
@@ -96,9 +106,9 @@ export default class MainLayout extends Vue {
 
   get routes(): any {
     // @ts-ignore
-    return this.navLinks.filter(
-      (route: any) => route.meta && route.meta.activator
-    );
+    return this.navLinks.filter((route: any) => {
+      return route.meta && (route.meta.activator || route.meta.menuItem);
+    });
   }
 }
 </script>
