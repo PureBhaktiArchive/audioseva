@@ -3,14 +3,16 @@
  */
 
 <template>
-  <div>
-    <v-breadcrumbs :items="breadcrumbs" divider=">"></v-breadcrumbs>
-    <router-view></router-view>
-  </div>
+  <main-layout>
+    <template slot="aboveRoute">
+      <v-breadcrumbs :items="breadcrumbs" divider=">"></v-breadcrumbs>
+    </template>
+  </main-layout>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
+import MainLayout from "@/views/MainLayout.vue";
 import _ from "lodash";
 
 const pathMap = {
@@ -19,7 +21,10 @@ const pathMap = {
 };
 
 @Component({
-  name: "Dashboard"
+  name: "Dashboard",
+  components: {
+    MainLayout
+  }
 })
 export default class Dashboard extends Vue {
   breadcrumbs: any[] = [];
