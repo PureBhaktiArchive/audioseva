@@ -1,24 +1,48 @@
 <template>
-  <div>
+  <v-container grid-list-sm>
+    <v-layout justify-space-between wrap>
+      <v-flex xs12 sm5 md4>
+        <v-text-field
+          v-model="search"
+          append-icon="fa-search"
+          label="Filter users"
+          single-line
+          hide-details
+        >
+        </v-text-field>
+      </v-flex>
+      <v-flex d-flex align-self-center xs12 sm6 md5>
+        <v-select
+          v-model="selectedRole"
+          :items="allRoles"
+          label="Filter users by role"
+        >
+        </v-select>
+        <v-switch :style="{ justifyContent: 'flex-end' }" v-model="filterActiveUsers" label="Only active">
+        </v-switch>
+      </v-flex>
+    </v-layout>
     <data-table
-      :items="users"
+      :items="items"
       :headers="headers"
       :computedComponent="computedComponent"
       :componentData="componentData"
       :computedValue="computedValue"
       :datatableProps="{ 'loading': isLoadingUsers }"
+      :tableRowStyle="tableRowStyle"
     >
     </data-table>
     <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
       {{ snackText }}
       <v-btn flat @click="snack = false">Close</v-btn>
     </v-snackbar>
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
+import moment from "moment";
 import fb from "@/firebaseApp";
 import DataTable from "@/components/DataTable.vue";
 import InlineTextEdit from "@/components/Users/InlineTextEdit.vue";
@@ -33,11 +57,15 @@ import PhoneNumber from "@/components/Users/PhoneNumber.vue";
 export default class List extends Vue {
   isLoadingUsers: boolean = true;
   users: any[] = [];
+  roles = ["CR", "TE", "SE", "QC", "FC", "SQR", "Coordinator"];
+  statusItems = ["OK", "Opted out", "Lost", "Duplicate", "Incorrect"];
+  filterActiveUsers = true;
+  search: string = "";
+  selectedRole: string = "All";
   snack = false;
   snackColor = "";
   snackText = "";
   editEvents = {
-    open: this.open,
     save: this.save,
     cancel: this.cancel
   };
@@ -52,15 +80,28 @@ export default class List extends Vue {
       on: { ...this.editEvents }
     },
     status: {
-      on: { ...this.editEvents }
+      on: { ...this.editEvents },
+      props: {
+        statusItems: this.statusItems
+      }
     },
     roles: {
-      on: { ...this.editEvents }
+      on: { ...this.editEvents },
+      props: {
+        roles: this.roles
+      }
     }
   };
   computedValue = {
     languages: (val: any, item: any) => {
       return Object.keys(item[val]).join(", ");
+    },
+    timestamp: (val: any, item: any) => {
+      const timestamp = item[val];
+      const localeFormat = moment(timestamp)
+        .creationData()
+        .locale.longDateFormat("L");
+      return moment(timestamp).format(localeFormat);
     }
   };
 
@@ -83,6 +124,61 @@ export default class List extends Vue {
     this.fetchUsers();
   }
 
+  tableRowStyle(item: any) {
+    if (item.status !== "OK") {
+      return {
+        backgroundColor: "#FFEE58"
+      };
+    }
+    return {};
+  }
+
+  searchFields(item: any) {
+    let matchedItem = false;
+    for (const value of Object.values(item)) {
+      if (
+        typeof value === "string" &&
+        value.toLowerCase().includes(this.searchValue)
+      ) {
+        matchedItem = true;
+        break;
+      }
+    }
+    return matchedItem;
+  }
+
+  get items() {
+    return this.users.filter((user: any) => {
+      let hasRole = false;
+      let matchesSearch = false;
+      let isActive;
+      if (this.selectedRole === "All") {
+        hasRole = true;
+      } else {
+        hasRole = !!user.roles[this.selectedRole];
+      }
+      if (!this.searchValue) {
+        matchesSearch = true;
+      } else {
+        matchesSearch = this.searchFields(user);
+      }
+      if (this.filterActiveUsers) {
+        isActive = user.status === "OK";
+      } else {
+        isActive = true;
+      }
+      return matchesSearch && hasRole && isActive;
+    });
+  }
+
+  get allRoles() {
+    return ["All", ...this.roles];
+  }
+
+  get searchValue() {
+    return this.search.toLowerCase();
+  }
+
   fetchUsers() {
     this.$bindAsArray(
       "users",
@@ -90,12 +186,6 @@ export default class List extends Vue {
       null,
       () => (this.isLoadingUsers = false)
     );
-  }
-
-  open() {
-    this.snack = true;
-    this.snackColor = "info";
-    this.snackText = "Dialog opened";
   }
 
   save(
