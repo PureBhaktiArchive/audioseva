@@ -52,8 +52,6 @@ audio_file_name:
   "#readonly": true
   "#prepopulate": true
   "#required": true
-  "#unique": true
-  "#unique_error": "Sound Quality Report was already submitted for “%value” audio file. Please contact your coordinator."
 sound_quality_rating:
   "#type": radios
   "#title": "B. Sound Quality Rating"
