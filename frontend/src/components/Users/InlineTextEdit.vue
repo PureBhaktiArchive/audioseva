@@ -30,7 +30,6 @@ export default class InlineTextEdit extends Vue {
   @Prop() value!: any;
 
   notes: string = "";
-  max25chars: any = (v: string) => v.length <= 25 || "Input too long!";
 
   get editPath() {
     return `users/${this.item[".key"]}/notes`;
