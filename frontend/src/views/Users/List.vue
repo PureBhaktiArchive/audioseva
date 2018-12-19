@@ -1,7 +1,7 @@
 <template>
   <v-container grid-list-sm>
     <v-layout justify-space-between wrap>
-      <v-flex xs12 sm5 md4>
+      <v-flex xs12 sm5 md3>
         <v-text-field
           v-model="search"
           append-icon="fa-search"
@@ -11,15 +11,20 @@
         >
         </v-text-field>
       </v-flex>
-      <v-flex d-flex align-self-center xs12 sm6 md5>
-        <v-select
-          v-model="selectedRole"
-          :items="allRoles"
-          label="Filter users by role"
-        >
-        </v-select>
-        <v-switch :style="{ justifyContent: 'flex-end' }" v-model="filterActiveUsers" label="Only active">
-        </v-switch>
+      <v-flex d-flex align-self-center xs12 md8>
+        <v-layout justify-end wrap>
+          <v-flex md9 xl4 align-self-center>
+            <v-btn-toggle v-model="selectedButton" mandatory>
+              <v-btn v-for="(value, key, index) in allRoles" :key="index">
+                {{ value }}
+              </v-btn>
+            </v-btn-toggle>
+          </v-flex>
+          <v-flex md3 align-self-center>
+            <v-switch :style="{ justifyContent: 'flex-end' }" v-model="filterActiveUsers" label="Only active">
+            </v-switch>
+          </v-flex>
+        </v-layout>
       </v-flex>
     </v-layout>
     <data-table
@@ -61,7 +66,7 @@ export default class List extends Vue {
   statusItems = ["OK", "Opted out", "Lost", "Duplicate", "Incorrect"];
   filterActiveUsers = true;
   search: string = "";
-  selectedRole: string = "All";
+  selectedButton: number = 0;
   snack = false;
   snackColor = "";
   snackText = "";
@@ -173,6 +178,10 @@ export default class List extends Vue {
 
   get allRoles() {
     return ["All", ...this.roles];
+  }
+
+  get selectedRole() {
+    return this.allRoles[this.selectedButton];
   }
 
   get searchValue() {
