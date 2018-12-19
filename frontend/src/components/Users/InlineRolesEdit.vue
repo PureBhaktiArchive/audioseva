@@ -1,9 +1,9 @@
 <template>
   <v-menu
     :style="{
-      maxWidth: '150px',
+      maxWidth: '170px',
       width: `${Object.keys(item.roles).length * 50}px`,
-      minWidth: '70px'
+      height: '100%'
     }"
     :close-on-content-click="false">
     <div slot="activator">
@@ -54,4 +54,8 @@ export default class InlineRolesEdit extends Vue {
 </script>
 
 <style scoped>
+>>> .v-menu__activator {
+  height: 100%;
+  width: 100%;
+}
 </style>
