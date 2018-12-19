@@ -1,5 +1,5 @@
 <template>
-  <v-menu offset-y>
+  <v-menu offset-y :style="{ height: '100%', width: '100%' }">
     <p class="ma-0 text-no-wrap" slot="activator">
       {{ item.status }}
     </p>
@@ -32,4 +32,8 @@ export default class InlineStatusEdit extends Vue {
 </script>
 
 <style scoped>
+>>> .v-menu__activator {
+  height: 100%;
+  width: 100%;
+}
 </style>
