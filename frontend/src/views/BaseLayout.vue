@@ -2,8 +2,12 @@
   <v-app>
     <slot name="aboveContent"></slot>
     <v-content>
-      <slot name="aboveRoute"></slot>
-      <router-view></router-view>
+      <v-container fluid fill-height>
+        <v-layout column>
+          <slot name="aboveRoute"></slot>
+          <router-view></router-view>
+        </v-layout>
+      </v-container>
     </v-content>
     <slot name="belowContent"></slot>
   </v-app>
