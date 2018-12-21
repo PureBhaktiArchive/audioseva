@@ -1,7 +1,7 @@
 <template>
   <base-layout>
     <template slot="aboveContent">
-      <v-navigation-drawer v-model="sidebar" app v-if="currentUser">
+      <v-navigation-drawer fixed :clipped="$vuetify.breakpoint.lgAndUp" v-model="sidebar" app v-if="currentUser">
         <v-toolbar flat class="transparent">
           <v-list class="pa-0">
             <v-list-tile avatar>
@@ -47,7 +47,7 @@
         </v-list>
       </v-navigation-drawer>
 
-      <v-toolbar app>
+      <v-toolbar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
         <v-toolbar-side-icon @click="sidebar = !sidebar" v-if="currentUser">
         </v-toolbar-side-icon>
         <v-toolbar-title>
