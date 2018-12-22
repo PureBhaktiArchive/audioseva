@@ -5,9 +5,19 @@ script:
   -
 after_success:
   - npm install --prefix ./functions
+  - npm install --prefix ./frontend
 deploy:
-  provider: firebase
-  project: $FIREBASE_PROJECT
-  skip_cleanup: true
-  token:
-    secure: $FIREBASE_TOKEN
+  # Development deployment
+  - provider: firebase
+    project: $FIREBASE_DEV_PROJECT
+    skip_cleanup: true
+    token:
+      secure: $FIREBASE_DEV_TOKEN
+    on:
+      all_branches: true
+  # Staging deployment
+  - provider: firebase
+    project: $FIREBASE_STAGING_PROJECT
+    skip_cleanup: true
+    token:
+      secure: $FIREBASE_STAGING_TOKEN
