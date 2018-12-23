@@ -151,7 +151,8 @@ export const importSpreadSheetData = functions.runWith({
           emptyValues: 0, 
           misplaced: 0, 
           noResolution: 0, 
-          overlappingChunks: [] 
+          overlappingChunks: [],
+          modified: []
       };
 
   for (let i = 0; i < sheetTitles.length; i++) {
@@ -283,6 +284,8 @@ export const importSpreadSheetData = functions.runWith({
                       await db
                           .ref(`/sound-editing/chunks/${sheetTitles[i]}/${lastFile.file_name}`)
                           .update(lastFile.chunks);
+                  else 
+                      summary.modified.push(lastFile);   
               }
               
               lastFile.file_name = row[columnsIndex['AudioFileName']];
