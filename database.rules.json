@@ -9,11 +9,8 @@
             ".write": "auth.token.Coordinator === true"
           },
           "contentReporting": {
-            "status": {
-              ".validate": "newData.val().matches(/^Spare|Given|WIP|Done$/)"
-            },
             "timestampGiven": {
-              ".validate": "newData.isNumber() && newData.val() == now"
+              ".validate": "newData.isNumber() && newData.val() == now && !data.exists()"
             },
             "timestampDone": {
               ".validate": "newData.isNumber() && newData.val() == now"
@@ -23,11 +20,8 @@
             }
           },
           "soundQualityReporting": {
-            "status": {
-              ".validate": "newData.val().matches(/^Spare|Given|WIP|Done$/)"
-            },
             "timestampGiven": {
-              ".validate": "newData.isNumber() && newData.val() == now"
+              ".validate": "newData.isNumber() && newData.val() == now && !data.exists()"
             },
             "timestampDone": {
               ".validate": "newData.isNumber() && newData.val() == now"
@@ -50,7 +44,6 @@
         },
         "quality-check": {
           "feedback": {
-            ".read": "auth.token.Coordinator === true",
             "$push_id": {
               ".write": "!data.exists()"
             }
@@ -71,21 +64,15 @@
     },
     "sqr": {
       ".read": "auth.token.Coordinator === true",
-      "files": {
-        ".indexOn": ["allotment/assignee/emailAddress"],
-        "$list": {
-          ".indexOn": ["status", "allotment/assignee/emailAddress"]
-        }
-      },
       "allotments": {
         ".indexOn": ["assignee/emailAddress"],
-        "$allotment_id": {
+        "$push_id": {
           ".write": "auth.token.Coordinator === true && !data.exists()"
         }
       },
       "submissions": {
         ".indexOn": ["assignee/emailAddress", "completed"],
-        ".read": "auth.token.Coordinator === true"
+        ".write": "!data.exists()"
       }
     },
     "users": {
@@ -108,9 +95,6 @@
         },
         "status": {
           ".write": "auth.token.Coordinator === true"
-        },
-        "services": {
-          ".validate": "newData.isString()"
         },
         "roles": {
           ".write": "auth.token.Coordinator === true",
