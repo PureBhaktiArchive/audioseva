@@ -65,3 +65,5 @@ export const getTaskId = (fileName: string) => {
   const match = fileName.match(taskIdFormat);
   return match ? match[0] : false;
 };
+
+export const getListId = (fileId: string) => fileId.split("-")[0];

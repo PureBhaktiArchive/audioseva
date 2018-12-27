@@ -71,6 +71,10 @@ export const router = new Router({
           ]
         },
         {
+          path: "sound-editing/:taskId/quality-check/allot",
+          component: () => import("@/views/QCAllotmentForm.vue")
+        },
+        {
           path: "se/",
           component: () => import("@/views/SE/SE.vue"),
           meta: { activator: true, activatorName: "Sound Engineering", menuIcon: "fas fa-music" },
