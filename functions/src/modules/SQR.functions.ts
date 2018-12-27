@@ -5,6 +5,7 @@ import { google } from 'googleapis';
 const GoogleSpreadsheet = require('google-spreadsheet');
 import { promisify } from 'es6-promisify';
 const lodash = require('lodash');
+import { format } from "date-fns";
 
 const db = admin.database();
 import * as helpers from './../helpers';
@@ -407,7 +408,7 @@ export const syncAllotments = functions.database.ref('/files/{listName}/{fileNam
       rowNumber,
       {
         days_passed: "-",
-        date_given: timestampGiven || "-",
+        date_given: format(timestampGiven*1000, "MM/DD/YYYY") || "-",
         notes: notes || "-",
         language: languages.length ? languages.join(", ") : "-",
         status: soundQualityReporting.status,
@@ -416,7 +417,7 @@ export const syncAllotments = functions.database.ref('/files/{listName}/{fileNam
         email: (assignee && assignee.emailAddress) || "",
         phone: "-",
         location: "-",
-        date_done: timestampDone || "-",
+        date_done: format(timestampDone*1000, "MM/DD/YYYY") || "-",
         follow_up: followUp || "-",
         list: listName || "-",
         serial: null,
@@ -430,8 +431,8 @@ export const syncAllotments = functions.database.ref('/files/{listName}/{fileNam
  * 
  */
 export const syncSubmissions = functions.database.ref('/webforms/sqr/{submission_id}')
-.onUpdate(async (
-  change: functions.Change<functions.database.DataSnapshot>,
+.onCreate(async (
+  snapshot: functions.database.DataSnapshot,
   context: functions.EventContext): Promise<any> => {
     // console.log("Here in syncWithGoogleSpreadsheetsOnNewAllotment: ", context.timestamp, snapshot);
 
