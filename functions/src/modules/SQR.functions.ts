@@ -376,12 +376,14 @@ export const importSpreadSheetData = functions.https.onRequest(
  * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
  * 
  */
-export const syncWithGoogleSpreadsheetsOnNewAllotment = functions.database.ref('/sqr/allotments/{allotment_id}')
-.onCreate(async (snapshot: functions.database.DataSnapshot, context: functions.EventContext): Promise<any> => {
-    // console.log("Here in syncWithGoogleSpreadsheetsOnNewAllotment: ", context.timestamp, snapshot.toJSON());
-    const created = snapshot.val();
-    const spreadsheetId = "11dlTfbkuWHlaVQFiZIFr1cdRDilqVB-shJXZWEEHcW0";
-    console.log("created: ", created);
+export const syncAllotments = functions.database.ref('/files/{listName}/{fileName}')
+.onUpdate(async (
+  change: functions.Change<functions.database.DataSnapshot>,
+  context: functions.EventContext
+  ): Promise<any> => {
+    const { listName, fileName } = context.params;
+    const changedValues = change.after.val();
+    const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
     const gsheets = new GoogleSheet();
     const allotmentFileNames = await gsheets.getColumn(
@@ -389,52 +391,51 @@ export const syncWithGoogleSpreadsheetsOnNewAllotment = functions.database.ref('
       ISoundQualityReportSheet.Allotments,
       "File Name"
     );
-
-    console.log("allotmentFileNames: ", allotmentFileNames);
     
-    let fileToSearch = "DK-266A";
     let rowNumber;
     allotmentFileNames.forEach((file, index) => {
-      if (file === fileToSearch) {
+      if (file === fileName) {
         rowNumber = index + 1;
-        console.log("index found: ", index);
       }
     });
 
-
+    const { languages, notes, soundQualityReporting } = changedValues;
+    const { timestampGiven, assignee, timestampDone, followUp } = soundQualityReporting;
     const updateResults = await gsheets.updateAllotmentRow(
       spreadsheetId,
       ISoundQualityReportSheet.Allotments,
       rowNumber,
       {
-        days_passed: "",
-        date_given: "",
-        notes: "Some notes from test",
-        language: "Spanish?, English",
-        status: "Done",
-        file_name: "",
-        devotee: (created && created.devotee && created.devotee.name) || "adrienshen.dev",
-        email: (created && created.devotee && created.devotee.emailAddress) || "gmail.com",
-        phone: "",
-        location: "",
-        date_done: "123456789",
-        follow_up: "what?",
-        list: "",
-        serial: "",
+        days_passed: "-",
+        date_given: timestampGiven || "-",
+        notes: notes || "-",
+        language: languages.length ? languages.join(", ") : "-",
+        status: soundQualityReporting.status,
+        file_name: fileName,
+        devotee: (assignee && assignee.name) || "-",
+        email: (assignee && assignee.emailAddress) || "",
+        phone: "-",
+        location: "-",
+        date_done: timestampDone || "-",
+        follow_up: followUp || "-",
+        list: listName || "-",
+        serial: null,
       }
     );
-    
-    // console.log("sqrSheets results: ", JSON.stringify(allotmentSpreadsheet));
-
-    return null;
+    console.log("Update results: ", updateResults.data);
 });
 
 /**
  * On creation of a new submission record id, update and sync data values to Google Spreadsheets
  * 
  */
-export const syncWithGoogleSpreadsheetsOnNewSubmition = functions.database.ref('/webforms/sqr/{submission_id}')
-.onCreate(async (snapshot: functions.database.DataSnapshot, context: functions.EventContext): Promise<any> => {
-    console.log("Here in syncWithGoogleSpreadsheetsOnNewAllotment: ", context.timestamp, snapshot);
+export const syncSubmissions = functions.database.ref('/webforms/sqr/{submission_id}')
+.onUpdate(async (
+  change: functions.Change<functions.database.DataSnapshot>,
+  context: functions.EventContext): Promise<any> => {
+    // console.log("Here in syncWithGoogleSpreadsheetsOnNewAllotment: ", context.timestamp, snapshot);
+
+
+
     return null;
 });
