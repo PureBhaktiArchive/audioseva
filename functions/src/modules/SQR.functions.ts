@@ -426,6 +426,30 @@ export const syncAllotments = functions.database.ref('/files/{listName}/{fileNam
     console.log("Update results: ", updateResults.data);
 });
 
+interface IAudioDescription {
+  beginning: string; // h:mm:ss
+  ending: string; // h:mm:ss
+  type: string;
+  description: string;
+}
+
+/**
+ * Used for Unwanted Parts and Sound Issues
+ * TODO: Should probably move to /utils directory
+ */
+function formatMultilineComment(audioDescriptionList: IAudioDescription[]) {
+  if (!audioDescriptionList || !audioDescriptionList.length) {
+    return "-";
+  }
+  let multiline = "";
+  audioDescriptionList.forEach((elem: IAudioDescription, index: number) => {
+    multiline = multiline
+    + `${elem.beginning}-${elem.ending}:${elem.type} -- ${elem.description}`
+    + ((audioDescriptionList.length === (index + 1)) ? "" : "\n");
+  });
+  return multiline;
+}
+
 /**
  * On creation of a new submission record id, update and sync data values to Google Spreadsheets
  * 
@@ -434,36 +458,27 @@ export const syncSubmissions = functions.database.ref('/sqr/submissions/{submiss
 .onCreate(async (
   snapshot: functions.database.DataSnapshot,
   context: functions.EventContext): Promise<any> => {
-    // console.log("Here in syncWithGoogleSpreadsheetsOnNewAllotment: ", context.timestamp, snapshot);
-
-    console.log("context: ", context.params);
-    console.log("new values: ", snapshot.val());
-
     const gsheets = new GoogleSheet();
-
+    const { author, changed, comments, completed, duration, fileName, soundIssues, soundQualityRating, token, unwantedParts } = snapshot.val();
     const newSubmissionRow: ISubmissionRow = {
-      completed: "111",
-      updated: "111",
+      completed: format(completed*1000, "MM/DD/YYYY") || "-",
+      updated: format(changed*1000, "MM/DD/YYYY") || "-",
       submission_serial: context.params.submission_id,
-      update_link: `http://purebhakti.info/audioseva/form/sound-quality-report?token=H9jSErP0dUPJVIn77Pf0Ao_K2NuCQqAXdBRIVHF1xME`,
-      audio_file_name: "ML2-6",
-      unwanted_parts: "first line\nsecond line",
-      sound_issues: "first line\nsecond line",
-      sound_quality_rating: "Average",
-      beginning: "12.2",
-      ending: "2.2",
-      comments: "Some comments",
-      name: "Name",
-      email_address: "Email Address",
+      update_link: `http://purebhakti.info/audioseva/form/sound-quality-report?token=${token}`,
+      audio_file_name: fileName || "",
+      unwanted_parts: formatMultilineComment(unwantedParts),
+      sound_issues: formatMultilineComment(soundIssues),
+      sound_quality_rating: soundQualityRating || "",
+      beginning: duration.beginning || "-",
+      ending: duration.ending || "-",
+      comments: comments || "-",
+      name: author.name || "-",
+      email_address: author.emailAddress || "",
     };
 
-    const appendResults = await gsheets.appendRow(
-      "11dlTfbkuWHlaVQFiZIFr1cdRDilqVB-shJXZWEEHcW0",
+    gsheets.appendRow(
+      functions.config().sqr.spreadsheet_id,
       ISoundQualityReportSheet.Submissions,
       newSubmissionRow
     );
-
-    console.log("appendResults: ", appendResults.data);
-
-    return null;
 });
