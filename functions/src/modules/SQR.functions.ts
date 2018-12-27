@@ -9,7 +9,7 @@ import { format } from "date-fns";
 
 const db = admin.database();
 import * as helpers from './../helpers';
-import GoogleSheet, { ISoundQualityReportSheet } from '../services/GoogleSheet';
+import GoogleSheet, { ISoundQualityReportSheet, ISubmissionRow } from '../services/GoogleSheet';
 
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
@@ -430,13 +430,40 @@ export const syncAllotments = functions.database.ref('/files/{listName}/{fileNam
  * On creation of a new submission record id, update and sync data values to Google Spreadsheets
  * 
  */
-export const syncSubmissions = functions.database.ref('/webforms/sqr/{submission_id}')
+export const syncSubmissions = functions.database.ref('/sqr/submissions/{submission_id}')
 .onCreate(async (
   snapshot: functions.database.DataSnapshot,
   context: functions.EventContext): Promise<any> => {
     // console.log("Here in syncWithGoogleSpreadsheetsOnNewAllotment: ", context.timestamp, snapshot);
 
+    console.log("context: ", context.params);
+    console.log("new values: ", snapshot.val());
 
+    const gsheets = new GoogleSheet();
+
+    const newSubmissionRow: ISubmissionRow = {
+      completed: "111",
+      updated: "111",
+      submission_serial: context.params.submission_id,
+      update_link: `http://purebhakti.info/audioseva/form/sound-quality-report?token=H9jSErP0dUPJVIn77Pf0Ao_K2NuCQqAXdBRIVHF1xME`,
+      audio_file_name: "ML2-6",
+      unwanted_parts: "first line\nsecond line",
+      sound_issues: "first line\nsecond line",
+      sound_quality_rating: "Average",
+      beginning: "12.2",
+      ending: "2.2",
+      comments: "Some comments",
+      name: "Name",
+      email_address: "Email Address",
+    };
+
+    const appendResults = await gsheets.appendRow(
+      "11dlTfbkuWHlaVQFiZIFr1cdRDilqVB-shJXZWEEHcW0",
+      ISoundQualityReportSheet.Submissions,
+      newSubmissionRow
+    );
+
+    console.log("appendResults: ", appendResults.data);
 
     return null;
 });
