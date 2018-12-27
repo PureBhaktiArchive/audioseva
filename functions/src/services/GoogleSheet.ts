@@ -156,13 +156,10 @@ export default class GoogleSheets extends SpreadSheet {
       return null;
     }
 
-    const { majorDimension, values }: IValueRange = data;
-    console.log("firstRow: ", values);
-
+    const { values }: IValueRange = data;
     let targetedColumn;
     const headers: any[] = values[0];
     headers.forEach((elem, index) => {
-      console.log("Column: ", elem), index;
       if(elem === columnName) {
         targetedColumn = letters[index];
       }
@@ -192,40 +189,48 @@ export default class GoogleSheets extends SpreadSheet {
     updateValues: any
   ): Promise<any> {
 
+    const targetedRange = sheetName + `!A${rowNumber}:Z${rowNumber}`;
     // Get our targeted row
     const targetRow: any = await this.connection.spreadsheets.values.get({
       spreadsheetId: sheetId,
       majorDimension: IMajorDimensions.Rows,
-      range: sheetName + `!A${rowNumber}:Z${rowNumber}`,
+      range: targetedRange,
     });
-
-    console.log("Row founded: ", targetRow.data.values);
 
     // Update this row with new merged data from database
     // Object.keys(updateValues).forEach((elem, index) => {
     //   targetRow.data.values[0][index] = targetRow.data.values[0][index];
     // });
-    const updatedRow = [
-      [
-        updateValues.days_passed,
-        updateValues.date_given,
-        updateValues.notes || "",
-        updateValues.language || "",
-        updateValues.status,
-        targetRow.data.values[0][5], // "File Name"
-        updateValues.devotee,
-        updateValues.email,
-        "", // Phone
-        "", // Location
-        updateValues.date_done,
-        updateValues.follow_up,
-        targetRow.data.values[0][12], // "List"
-        targetRow.data.values[0][13], // "Serial"
+    const resource = {
+      values: [
+        [
+          targetRow.data.values[0][0], // "Days passed"
+          updateValues.date_given,
+          updateValues.notes || "",
+          updateValues.language || "",
+          updateValues.status,
+          targetRow.data.values[0][5], // "File Name"
+          updateValues.devotee,
+          updateValues.email,
+          "", // Phone
+          "", // Location
+          updateValues.date_done,
+          updateValues.follow_up,
+          targetRow.data.values[0][12], // "List"
+          targetRow.data.values[0][13], // "Serial"
+        ]
       ]
-    ];
+    };
 
-    console.log("Merged updated row: ", updatedRow);
+    // console.log("Merged updated row: ", resource);
+    const afterUpdate = await this.connection.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: targetedRange,
+      valueInputOption: IValueInputOption.USER_ENTERED,
+      resource,
+    });
 
+    return afterUpdate;
   }
 
   /**
