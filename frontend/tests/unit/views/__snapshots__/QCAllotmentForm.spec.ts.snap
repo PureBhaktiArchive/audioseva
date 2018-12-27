@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`QCAllotmentForm should render 1`] = `
+<div>
+  <v-form>
+    <v-autocomplete return-object="" items="" item-text="name" label="Select an assignee" clearable="" dense=""></v-autocomplete>
+    <v-layout align-center="" class="pa-2">
+      <v-flex><code>1234</code>
+        <soundqualitybadge-stub task="[object Object]"></soundqualitybadge-stub>
+      </v-flex>
+      <v-flex>
+        <soundissueslist-stub item="[object Object]"></soundissueslist-stub>
+      </v-flex>
+      <v-flex><a href="link1" target="_blank" rel="noopener noreferrer">Original file</a> <span> | </span> <a href="link2" target="_blank" rel="noopener noreferrer">Restored file</a></v-flex>
+    </v-layout>
+    <v-textarea box="" label="Comment"></v-textarea>
+    <v-btn>submit</v-btn>
+  </v-form>
+</div>
+`;
