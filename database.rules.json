@@ -1,0 +1,108 @@
+{
+  "rules": {
+    "files": {
+      ".read": "auth.token.Coordinator === true",
+      "$list": {
+        ".indexOn": ["soundQualityReporting/status"],
+        "$fileName": {
+          "notes": {
+            ".write": "auth.token.Coordinator === true"
+          },
+          "contentReporting": {
+            "timestampGiven": {
+              ".validate": "newData.isNumber() && newData.val() == now && !data.exists()"
+            },
+            "timestampDone": {
+              ".validate": "newData.isNumber() && newData.val() == now"
+            },
+            "followUp": {
+              ".write": "auth.token.Coordinator === true"
+            }
+          },
+          "soundQualityReporting": {
+            "timestampGiven": {
+              ".validate": "newData.isNumber() && newData.val() == now && !data.exists()"
+            },
+            "timestampDone": {
+              ".validate": "newData.isNumber() && newData.val() == now"
+            },
+            "followUp": {
+              ".write": "auth.token.Coordinator === true"
+            }
+          }
+        }
+      }
+    },
+    "sound-editing": {
+      ".read": "auth.token.Coordinator === true",
+      "restoration": {
+        "allotments": {
+          ".indexOn": ["assignee/emailAddress"],
+          "$push_id": {
+            ".write": "auth.token.Coordinator === true && !data.exists()"
+          }
+        },
+        "quality-check": {
+          "feedback": {
+            "$push_id": {
+              ".write": "!data.exists()"
+            }
+          }
+        }
+      },
+      "tasks": {
+        "$list": {
+          "$task_id": {
+            "restoration": {
+              "followUp": {
+                ".write": "auth.token.Coordinator === true"
+              }
+            }
+          }
+        }
+      }
+    },
+    "sqr": {
+      ".read": "auth.token.Coordinator === true",
+      "allotments": {
+        ".indexOn": ["assignee/emailAddress"],
+        "$push_id": {
+          ".write": "auth.token.Coordinator === true && !data.exists()"
+        }
+      },
+      "submissions": {
+        ".indexOn": ["assignee/emailAddress", "completed"],
+        ".write": "!data.exists()"
+      }
+    },
+    "users": {
+      ".read": "auth.token.Coordinator === true",
+      ".indexOn": ["emailAddress", "roles/SQR", "roles/SE", "uploadCode"],
+      "$user": {
+        "timestamp": {
+          ".validate": "newData.isNumber() && newData.val() == now"
+        },
+        "isAvailableOnWhatsApp": {
+          ".validate": "newData.isBoolean()"
+        },
+        "notes": {
+          ".write": "auth.token.Coordinator === true"
+        },
+        "languages": {
+          "$langeName": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "status": {
+          ".write": "auth.token.Coordinator === true"
+        },
+        "roles": {
+          ".write": "auth.token.Coordinator === true",
+          "$roleId": {
+            ".validate": "newData.isBoolean()"
+          }
+        }
+      }
+    }
+  }
+}
