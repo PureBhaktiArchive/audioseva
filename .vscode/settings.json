@@ -1,0 +1,21 @@
+{
+  "editor.detectIndentation": false,
+  "editor.tabSize": 2,
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    {
+      "language": "vue",
+      "autoFix": true
+    }
+  ],
+  "vetur.format.defaultFormatter.html": "prettyhtml",
+  "prettier.eslintIntegration": true,
+  "html.format.wrapAttributes": "aligned-multiple",
+  "git.ignoreLimitWarning": true
+}
