@@ -20,10 +20,10 @@ export const processNewAllotment = functions.database
 
     const allotment = snapshot.val();
 
-    let timestamp = new Date(allotment.timestamp);
+    const timestamp = new Date(allotment.timestamp);
 
     //  1. Ensure sound editor's `uploadCode`
-    let userRef = await db
+    const userRef = await db
       .ref('/users')
       .orderByChild('emailAddress')
       .equalTo(allotment.assignee.emailAddress)
@@ -32,7 +32,7 @@ export const processNewAllotment = functions.database
       console.warn("Assignee wasn't found!");
       return -1;
     }
-    let user = userRef.val();
+    const user = userRef.val();
     let { uploadCode } = user;
     if (!uploadCode) {
       uploadCode = uniqid();
@@ -44,7 +44,7 @@ export const processNewAllotment = functions.database
     const tasks = [];
     taskIds.forEach(async taskId => {
       const regex = /(\w+)-(\d+)-(\d+)/g;
-      let taskIdMatch = regex.exec(taskId);
+      const taskIdMatch = regex.exec(taskId);
       const list = taskIdMatch[1];
 
       await db

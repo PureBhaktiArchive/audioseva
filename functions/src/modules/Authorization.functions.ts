@@ -27,7 +27,7 @@ export const onCreateCustomClaimRoles = userRoles.onCreate(
 export const onDeleteCustomClaimRoles = userRoles.onDelete(
   async (snapshot, context) => {
     const removedRoles = {};
-    for (let role in snapshot.val()) {
+    for (const role in snapshot.val()) {
       removedRoles[role] = false;
     }
     const email = await snapshot.ref.parent.child('emailAddress').once('value');
