@@ -1,5 +1,5 @@
 <template>
-  <v-chip :color="soundQualityRatingColor[task.soundQualityRating]">
+  <v-chip small :color="soundQualityRatingColor[task.soundQualityRating]">
     <span class="white--text">{{ task.soundQualityRating }}</span>
   </v-chip>
 </template>
