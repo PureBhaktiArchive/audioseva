@@ -10,20 +10,22 @@
       slot="items"
       slot-scope="{ item }"
     >
-      <td v-for="( value , key, index) in headers" :class="getStyles(value)" :key="index">
-        <template v-if="computedComponent[value.value]">
-          <table-data
-            :item="item"
-            :value="value.value"
-            :Component="computedComponent[value.value]"
-            :componentData="getComponentData(value)"
-          >
-          </table-data>
-        </template>
-        <template v-else>
-          {{ getItem(item, value) }}
-        </template>
-      </td>
+      <tr :style="getTableRowStyle(item)">
+        <td v-for="( value , key, index) in headers" :class="getStyles(value)" :key="index">
+          <template v-if="computedComponent[value.value]">
+            <table-data
+              :item="item"
+              :value="value.value"
+              :Component="computedComponent[value.value]"
+              :componentData="getComponentData(value.value)"
+            >
+            </table-data>
+          </template>
+          <template v-else>
+            {{ getItem(item, value) }}
+          </template>
+        </td>
+      </tr>
     </template>
 
     <template slot="no-data">
@@ -59,6 +61,9 @@ export default class DataTable extends Vue {
   @Prop({ default: () => ({}) })
   styles!: { [key: string]: boolean };
 
+  @Prop({ default: () => ({}), type: Function })
+  tableRowStyle!: (item: any) => { [key: string]: string };
+
   // Callback for missing value in all columns
   @Prop({ default: () => (value: any) => "" })
   missingFileCb!: (value: any) => any;
@@ -86,6 +91,10 @@ export default class DataTable extends Vue {
 
   getStyles({ value }: { value: string }) {
     return this.styles[value] || {};
+  }
+
+  getTableRowStyle(item: any) {
+    return this.tableRowStyle(item);
   }
 
   getComponentData(value: string) {
