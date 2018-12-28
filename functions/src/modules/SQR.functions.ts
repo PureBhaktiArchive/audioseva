@@ -10,6 +10,7 @@ import { format } from "date-fns";
 const db = admin.database();
 import * as helpers from './../helpers';
 import GoogleSheet, { ISoundQualityReportSheet, ISubmissionRow } from '../services/GoogleSheet';
+import { formatMultilineComment, createUpdateLink, spreadsheetDateFormat, withDefault, commaSeparated, EMPTY_VALUE } from '../utils/parsers';
 
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
@@ -407,48 +408,24 @@ export const syncAllotments = functions.database.ref('/files/{listName}/{fileNam
       ISoundQualityReportSheet.Allotments,
       rowNumber,
       {
-        days_passed: "-",
-        date_given: format(timestampGiven*1000, "MM/DD/YYYY") || "-",
-        notes: notes || "-",
-        language: languages.length ? languages.join(", ") : "-",
+        days_passed: EMPTY_VALUE,
+        date_given: spreadsheetDateFormat(timestampGiven),
+        notes: withDefault(notes),
+        language: commaSeparated(languages),
         status: soundQualityReporting.status,
         file_name: fileName,
-        devotee: (assignee && assignee.name) || "-",
-        email: (assignee && assignee.emailAddress) || "",
-        phone: "-",
-        location: "-",
-        date_done: format(timestampDone*1000, "MM/DD/YYYY") || "-",
-        follow_up: followUp || "-",
-        list: listName || "-",
-        serial: null,
+        devotee: withDefault(assignee.name),
+        email: withDefault(assignee.emailAddress),
+        phone: EMPTY_VALUE,
+        location: EMPTY_VALUE,
+        date_done: spreadsheetDateFormat(timestampDone),
+        follow_up: withDefault(followUp),
+        list: withDefault(listName),
+        serial: EMPTY_VALUE,
       }
     );
     console.log("Update results: ", updateResults.data);
 });
-
-interface IAudioDescription {
-  beginning: string; // h:mm:ss
-  ending: string; // h:mm:ss
-  type: string;
-  description: string;
-}
-
-/**
- * Used for Unwanted Parts and Sound Issues
- * TODO: Should probably move to /utils directory
- */
-function formatMultilineComment(audioDescriptionList: IAudioDescription[]) {
-  if (!audioDescriptionList || !audioDescriptionList.length) {
-    return "-";
-  }
-  let multiline = "";
-  audioDescriptionList.forEach((elem: IAudioDescription, index: number) => {
-    multiline = multiline
-    + `${elem.beginning}-${elem.ending}:${elem.type} -- ${elem.description}`
-    + ((audioDescriptionList.length === (index + 1)) ? "" : "\n");
-  });
-  return multiline;
-}
 
 /**
  * On creation of a new submission record id, update and sync data values to Google Spreadsheets
@@ -461,19 +438,19 @@ export const syncSubmissions = functions.database.ref('/sqr/submissions/{submiss
     const gsheets = new GoogleSheet();
     const { author, changed, comments, completed, duration, fileName, soundIssues, soundQualityRating, token, unwantedParts } = snapshot.val();
     const newSubmissionRow: ISubmissionRow = {
-      completed: format(completed*1000, "MM/DD/YYYY") || "-",
-      updated: format(changed*1000, "MM/DD/YYYY") || "-",
+      completed: spreadsheetDateFormat(completed),
+      updated: spreadsheetDateFormat(changed),
       submission_serial: context.params.submission_id,
-      update_link: `http://purebhakti.info/audioseva/form/sound-quality-report?token=${token}`,
-      audio_file_name: fileName || "",
+      update_link: createUpdateLink(token),
+      audio_file_name: withDefault(fileName),
       unwanted_parts: formatMultilineComment(unwantedParts),
       sound_issues: formatMultilineComment(soundIssues),
-      sound_quality_rating: soundQualityRating || "",
-      beginning: duration.beginning || "-",
-      ending: duration.ending || "-",
-      comments: comments || "-",
-      name: author.name || "-",
-      email_address: author.emailAddress || "",
+      sound_quality_rating: withDefault(soundQualityRating),
+      beginning: withDefault(duration.beginning),
+      ending: withDefault(duration.ending),
+      comments: withDefault(comments),
+      name: withDefault(author.name),
+      email_address: withDefault(author.emailAddress),
     };
 
     gsheets.appendRow(
