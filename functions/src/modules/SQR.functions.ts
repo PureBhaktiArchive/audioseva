@@ -5,12 +5,22 @@ import { google } from 'googleapis';
 const GoogleSpreadsheet = require('google-spreadsheet');
 import { promisify } from 'es6-promisify';
 const lodash = require('lodash');
-import { format } from "date-fns";
+import { format } from 'date-fns';
 
 const db = admin.database();
 import * as helpers from './../helpers';
-import GoogleSheet, { ISoundQualityReportSheet, ISubmissionRow } from '../services/GoogleSheet';
-import { formatMultilineComment, createUpdateLink, spreadsheetDateFormat, withDefault, commaSeparated, EMPTY_VALUE } from '../utils/parsers';
+import GoogleSheet, {
+  ISoundQualityReportSheet,
+  ISubmissionRow,
+} from '../services/GoogleSheet';
+import {
+  formatMultilineComment,
+  createUpdateLink,
+  spreadsheetDateFormat,
+  withDefault,
+  commaSeparated,
+  EMPTY_VALUE,
+} from '../utils/parsers';
 
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
@@ -376,86 +386,109 @@ export const importSpreadSheetData = functions.https.onRequest(
 
 /**
  * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
- * 
+ *
  */
-export const syncAllotments = functions.database.ref('/files/{listName}/{fileName}')
-.onUpdate(async (
-  change: functions.Change<functions.database.DataSnapshot>,
-  context: functions.EventContext
-  ): Promise<any> => {
-    const { listName, fileName } = context.params;
-    const changedValues = change.after.val();
-    const spreadsheetId = functions.config().sqr.spreadsheet_id;
+export const syncAllotments = functions.database
+  .ref('/files/{listName}/{fileName}')
+  .onUpdate(
+    async (
+      change: functions.Change<functions.database.DataSnapshot>,
+      context: functions.EventContext
+    ): Promise<any> => {
+      const { listName, fileName } = context.params;
+      const changedValues = change.after.val();
+      const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
-    const gsheets = new GoogleSheet();
-    const allotmentFileNames = await gsheets.getColumn(
-      spreadsheetId,
-      ISoundQualityReportSheet.Allotments,
-      "File Name"
-    );
-    
-    let rowNumber;
-    allotmentFileNames.forEach((file, index) => {
-      if (file === fileName) {
-        rowNumber = index + 1;
-      }
-    });
+      const gsheets = new GoogleSheet();
+      const allotmentFileNames = await gsheets.getColumn(
+        spreadsheetId,
+        ISoundQualityReportSheet.Allotments,
+        'File Name'
+      );
 
-    const { languages, notes, soundQualityReporting } = changedValues;
-    const { timestampGiven, assignee, timestampDone, followUp } = soundQualityReporting;
-    const updateResults = await gsheets.updateAllotmentRow(
-      spreadsheetId,
-      ISoundQualityReportSheet.Allotments,
-      rowNumber,
-      {
-        days_passed: EMPTY_VALUE,
-        date_given: spreadsheetDateFormat(timestampGiven),
-        notes: withDefault(notes),
-        language: commaSeparated(languages),
-        status: soundQualityReporting.status,
-        file_name: fileName,
-        devotee: withDefault(assignee.name),
-        email: withDefault(assignee.emailAddress),
-        phone: EMPTY_VALUE,
-        location: EMPTY_VALUE,
-        date_done: spreadsheetDateFormat(timestampDone),
-        follow_up: withDefault(followUp),
-        list: withDefault(listName),
-        serial: EMPTY_VALUE,
-      }
-    );
-    console.log("Update results: ", updateResults.data);
-});
+      let rowNumber;
+      allotmentFileNames.forEach((file, index) => {
+        if (file === fileName) {
+          rowNumber = index + 1;
+        }
+      });
+
+      const { languages, notes, soundQualityReporting } = changedValues;
+      const {
+        timestampGiven,
+        assignee,
+        timestampDone,
+        followUp,
+      } = soundQualityReporting;
+      const updateResults = await gsheets.updateAllotmentRow(
+        spreadsheetId,
+        ISoundQualityReportSheet.Allotments,
+        rowNumber,
+        {
+          days_passed: EMPTY_VALUE,
+          date_given: spreadsheetDateFormat(timestampGiven),
+          notes: withDefault(notes),
+          language: commaSeparated(languages),
+          status: soundQualityReporting.status,
+          file_name: fileName,
+          devotee: withDefault(assignee.name),
+          email: withDefault(assignee.emailAddress),
+          phone: EMPTY_VALUE,
+          location: EMPTY_VALUE,
+          date_done: spreadsheetDateFormat(timestampDone),
+          follow_up: withDefault(followUp),
+          list: withDefault(listName),
+          serial: EMPTY_VALUE,
+        }
+      );
+      console.log('Update results: ', updateResults.data);
+    }
+  );
 
 /**
  * On creation of a new submission record id, update and sync data values to Google Spreadsheets
- * 
+ *
  */
-export const syncSubmissions = functions.database.ref('/sqr/submissions/{submission_id}')
-.onCreate(async (
-  snapshot: functions.database.DataSnapshot,
-  context: functions.EventContext): Promise<any> => {
-    const gsheets = new GoogleSheet();
-    const { author, changed, comments, completed, duration, fileName, soundIssues, soundQualityRating, token, unwantedParts } = snapshot.val();
-    const newSubmissionRow: ISubmissionRow = {
-      completed: spreadsheetDateFormat(completed),
-      updated: spreadsheetDateFormat(changed),
-      submission_serial: context.params.submission_id,
-      update_link: createUpdateLink(token),
-      audio_file_name: withDefault(fileName),
-      unwanted_parts: formatMultilineComment(unwantedParts),
-      sound_issues: formatMultilineComment(soundIssues),
-      sound_quality_rating: withDefault(soundQualityRating),
-      beginning: withDefault(duration.beginning),
-      ending: withDefault(duration.ending),
-      comments: withDefault(comments),
-      name: withDefault(author.name),
-      email_address: withDefault(author.emailAddress),
-    };
+export const syncSubmissions = functions.database
+  .ref('/sqr/submissions/{submission_id}')
+  .onCreate(
+    async (
+      snapshot: functions.database.DataSnapshot,
+      context: functions.EventContext
+    ): Promise<any> => {
+      const gsheets = new GoogleSheet();
+      const {
+        author,
+        changed,
+        comments,
+        completed,
+        duration,
+        fileName,
+        soundIssues,
+        soundQualityRating,
+        token,
+        unwantedParts,
+      } = snapshot.val();
+      const newSubmissionRow: ISubmissionRow = {
+        completed: spreadsheetDateFormat(completed),
+        updated: spreadsheetDateFormat(changed),
+        submission_serial: context.params.submission_id,
+        update_link: createUpdateLink(token),
+        audio_file_name: withDefault(fileName),
+        unwanted_parts: formatMultilineComment(unwantedParts),
+        sound_issues: formatMultilineComment(soundIssues),
+        sound_quality_rating: withDefault(soundQualityRating),
+        beginning: withDefault(duration.beginning),
+        ending: withDefault(duration.ending),
+        comments: withDefault(comments),
+        name: withDefault(author.name),
+        email_address: withDefault(author.emailAddress),
+      };
 
-    gsheets.appendRow(
-      functions.config().sqr.spreadsheet_id,
-      ISoundQualityReportSheet.Submissions,
-      newSubmissionRow
-    );
-});
+      gsheets.appendRow(
+        functions.config().sqr.spreadsheet_id,
+        ISoundQualityReportSheet.Submissions,
+        newSubmissionRow
+      );
+    }
+  );
