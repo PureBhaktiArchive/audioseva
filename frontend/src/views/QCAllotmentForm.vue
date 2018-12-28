@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h1>Quality Check Allotment</h1>
     <v-form @submit.stop.prevent v-if="task && submissionStatus !== 'complete'">
       <v-autocomplete
         v-model="allotment.assignee"
@@ -22,26 +23,16 @@
           </template>
         </template>
       </v-autocomplete>
-      <v-layout align-center class="pa-2">
-        <v-flex>
-          <code>{{ task[".key"] }}</code>
-          <sound-quality-badge :task="task"></sound-quality-badge>
-        </v-flex>
-        <v-flex>
-          <sound-issues-list :item="task"></sound-issues-list>
-        </v-flex>
-        <v-flex>
-          <a :href="originalFile" target="_blank" rel="noopener noreferrer" v-if="originalFile">Original file</a>
-          <span v-else>
-            No original file
-          </span>
-          <span> | </span>
-          <a :href="restoredFile" target="_blank" rel="noopener noreferrer" v-if="restoredFile">Restored file</a>
-          <span v-else>
-            No restored file
-          </span>
-        </v-flex>
-      </v-layout>
+      <div class="py-2">
+        <data-table
+          :computedValue="computedValue"
+          :computedComponent="computedComponent"
+          :componentData="componentData()"
+          :headers="headers"
+          :items="items"
+        >
+        </data-table>
+      </div>
       <v-textarea box label="Comment" v-model="allotment.comment">
       </v-textarea>
       <v-btn @click="submit">submit</v-btn>
@@ -55,26 +46,61 @@
 
 <script lang="ts">
 import { Component, Mixins } from "vue-property-decorator";
-import UsersByRole from "@/mixins/UsersByRole";
+import _ from "lodash";
 import firebase from "firebase";
+import UsersByRole from "@/mixins/UsersByRole";
 import fb from "@/firebaseApp";
 import SoundQualityBadge from "@/components/SoundQualityBadge.vue";
 import SoundIssuesList from "@/components/SE/SoundIssuesList.vue";
 import { getListId } from "@/utility";
-
-export const storage = fb.storage();
+import DataTable from "@/components/DataTable.vue";
+import FileLink from "@/components/FileLink.vue";
 
 @Component({
   name: "QCAllotmentForm",
-  components: { SoundIssuesList, SoundQualityBadge }
+  components: { DataTable, SoundIssuesList, SoundQualityBadge }
 })
 export default class QCAllotmentForm extends Mixins<UsersByRole>(UsersByRole) {
   usersRole = "QC";
   allotment: any = {};
   submissionStatus: any = null;
   task: any = null;
-  originalFile: any = null;
-  restoredFile: any = null;
+
+  headers = [
+    { text: "Task ID", value: ".key" },
+    { text: "Sound Quality", value: "soundQualityRating" },
+    { text: "Sound Issues", value: "soundIssuesList" },
+    { text: "Rough Edited", value: "roughEdited" },
+    { text: "Restored file", value: "restoredFile" }
+  ];
+
+  computedValue = {
+    ".key": (value: string, item: any) => _.capitalize(_.get(item, value))
+  };
+
+  computedComponent = {
+    soundIssuesList: SoundIssuesList,
+    soundQualityRating: SoundQualityBadge,
+    roughEdited: FileLink,
+    restoredFile: FileLink
+  };
+
+  componentData() {
+    return {
+      roughEdited: {
+        props: {
+          subDomain: "rough",
+          filePath: this.roughEditedFilePath()
+        }
+      },
+      restoredFile: {
+        props: {
+          subDomain: "restored",
+          filePath: this.restoredFilePath()
+        }
+      }
+    };
+  }
 
   mounted() {
     this.getData();
@@ -82,6 +108,10 @@ export default class QCAllotmentForm extends Mixins<UsersByRole>(UsersByRole) {
 
   get taskId() {
     return this.$route.params.taskId;
+  }
+
+  get items() {
+    return [this.task];
   }
 
   getTask() {
@@ -92,39 +122,18 @@ export default class QCAllotmentForm extends Mixins<UsersByRole>(UsersByRole) {
     );
   }
 
-  baseFilePath() {
-    return process.env.VUE_APP_STORAGE_ROOT_DOMAIN;
+  roughEditedFilePath() {
+    return `source/${this.restoredFilePath()}`;
   }
 
-  async getOriginalFile() {
+  restoredFilePath() {
     const listId = getListId(this.taskId);
-    const results = await storage
-      .refFromURL(
-        `gs://original.${this.baseFilePath()}/source/${listId}/${
-          this.taskId
-        }.flac`
-      )
-      .getDownloadURL()
-      .catch(() => {});
-    this.originalFile = results || false;
-  }
-
-  async getRestoredFile() {
-    const listId = getListId(this.taskId);
-    const results = await storage
-      .refFromURL(
-        `gs://restored.${this.baseFilePath()}/${listId}/${this.taskId}.flac`
-      )
-      .getDownloadURL()
-      .catch(() => {});
-    this.restoredFile = results || false;
+    return `${listId}/${this.taskId}`;
   }
 
   getData() {
     this.getUsers();
     this.getTask();
-    this.getOriginalFile();
-    this.getRestoredFile();
   }
 
   async submit() {

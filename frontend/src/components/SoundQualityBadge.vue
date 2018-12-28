@@ -1,6 +1,6 @@
 <template>
-  <v-chip small :color="soundQualityRatingColor[task.soundQualityRating]">
-    <span class="white--text">{{ task.soundQualityRating }}</span>
+  <v-chip small :color="soundQualityRatingColor[item.soundQualityRating]">
+    <span class="white--text">{{ item.soundQualityRating }}</span>
   </v-chip>
 </template>
 
@@ -11,7 +11,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
   name: "SoundQualityBadge"
 })
 export default class SoundQualityBadge extends Vue {
-  @Prop() task!: any;
+  @Prop() item!: any;
 
   soundQualityRatingColor = {
     Bad: "red",

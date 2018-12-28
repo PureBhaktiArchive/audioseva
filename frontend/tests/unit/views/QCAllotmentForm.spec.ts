@@ -1,17 +1,22 @@
-import { shallowMount } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import QCAllotmentForm from "@/views/QCAllotmentForm.vue";
 
 describe('QCAllotmentForm', () => {
   it("should render", () => {
-    const wrapper = shallowMount(QCAllotmentForm, {
+    const wrapper = mount(QCAllotmentForm, {
       data: () => ({
         task: {
           ".key": "1234",
           soundIssues: []
-        },
-        originalFile: "link1",
-        restoredFile: "link2"
+        }
       }),
+      mocks: {
+        $route: {
+          params: {
+            taskId: "list1-list1"
+          }
+        }
+      },
       methods: {
         getData: () => {}
       }
