@@ -21,23 +21,23 @@ export const updateFilesOnNewAllotment = functions.database
   .ref('/sqr/allotments/{allotment_id}')
   .onCreate((snapshot, context) => {
     const allotment = snapshot.val();
-    let newDocKey = snapshot.key;
+    const newDocKey = snapshot.key;
 
     // loop through the FILES array in the NEW ALLOTMENT object
     // and update their corresponding file objects
     allotment.files.forEach(async file => {
-      let sqrRef = db.ref(
+      const sqrRef = db.ref(
         `/files/${allotment.list}/${file}/soundQualityReporting`
       );
 
-      let sqrError = await sqrRef.update({
+      const sqrError = await sqrRef.update({
         status: 'Given',
         assignee: allotment.assignee,
         timestampGiven: Math.round(new Date().getTime() / 1000),
         timestampDone: null,
       });
 
-      if (sqrError == undefined) {
+      if (sqrError === undefined) {
         // if Successful FILE Update, update the ALLOTMENT accordingly
 
         // case 1 -- the allotmnet is read from the spreadsheet
@@ -62,12 +62,12 @@ export const sendEmailOnNewAllotment = functions.database
   .onUpdate(async (change, context) => {
     const old = change.before.val();
     const newAllotment = change.after.val();
-    let coordinatorConfig = functions.config().coordinator;
-    let templateId = functions.config().sqr.allotment.templateid;
+    const coordinatorConfig = functions.config().coordinator;
+    const templateId = functions.config().sqr.allotment.templateid;
 
     // Sends a notification to the assignee
     // of the files he's allotted.
-    let allotmentSnapshot = await db
+    const allotmentSnapshot = await db
       .ref('/sqr/allotments')
       .orderByChild('assignee/emailAddress')
       .equalTo(newAllotment.assignee.emailAddress)
@@ -85,9 +85,9 @@ export const sendEmailOnNewAllotment = functions.database
       newAllotment.sendNotificationEmail
     ) {
       if (newAllotment.assignee.emailAddress) {
-        let date = new Date();
-        let utcMsec = date.getTime() + date.getTimezoneOffset() * 60000;
-        let localDate = new Date(
+        const date = new Date();
+        const utcMsec = date.getTime() + date.getTimezoneOffset() * 60000;
+        const localDate = new Date(
           utcMsec + 3600000 * coordinatorConfig.timeZoneOffset
         );
         db.ref(`/email/notifications`).push({
@@ -137,7 +137,7 @@ export const processSubmissions = functions.database
       audioFileStatus = 'Audio Problem';
 
     // 1. Add the webform data to a SQR submissions DB path
-    let submission = {
+    const submission = {
       fileName: original.audio_file_name,
       cancellation: {
         notPreferredLanguage: audioFileStatus === 'Spare',
@@ -168,7 +168,7 @@ export const processSubmissions = functions.database
     const filesSnapshot = await db
       .ref(`/sqr/files/${original.list}/${original.audio_file_name}`)
       .once('value');
-    let allotmentUpdates = { status: audioFileStatus };
+    const allotmentUpdates = { status: audioFileStatus };
     // in case 1 & 2 add the comments to the notes
     if (audioFileStatus !== 'WIP')
       allotmentUpdates['notes'] = `${filesSnapshot.val().notes}\n${
@@ -181,20 +181,20 @@ export const processSubmissions = functions.database
     );
 
     // Coordinator object example { templateid: 3, email:'a@a.a', name: 'Aj' }
-    let coordinator = functions.config().sqr.coordinator;
-    let templateId = functions.config().sqr.allotment.templateid;
+    const coordinator = functions.config().sqr.coordinator;
+    const templateId = functions.config().sqr.allotment.templateid;
     // 3. Notify the coordinator
     // 3.1 Get the submitted audio file data
 
     //  EXTRACTING the list name first from the file_name
-    let list = helpers.extractListFromFilename(original.audio_file_name);
+    const list = helpers.extractListFromFilename(original.audio_file_name);
 
-    let fileSnapshot = await db
+    const fileSnapshot = await db
       .ref(`/sqr/files/${list}/${original.audio_file_name}`)
       .once('value');
 
     if (fileSnapshot.exists()) {
-      let fileData = fileSnapshot.val();
+      const fileData = fileSnapshot.val();
 
       /////////////////////////////////////////////////////////////
       //
@@ -205,14 +205,14 @@ export const processSubmissions = functions.database
       /////////////////////////////////////////////////////////////
 
       // 3.3 checking if the First Submission or not
-      let submissionSnapshot = await db
+      const submissionSnapshot = await db
         .ref(`/sqr/submissions`)
         .orderByChild('devotee/emailAddress')
         .equalTo(original.email_address)
         .once('value');
 
       if (submissionSnapshot.exists()) {
-        let submissions = submissionSnapshot.val();
+        const submissions = submissionSnapshot.val();
 
         // Sending the notification Email Finally
         db.ref(`/email/notifications`).push({
@@ -244,13 +244,13 @@ export const processSubmissions = functions.database
 //      GROUPED BY a
 //              composite key ( 2nd parameter: values )
 
-let groupByMulti = (list, values, context) => {
+const groupByMulti = (list, values, context) => {
   if (!values.length) {
     return list;
   }
-  var byFirst = lodash.groupBy(list, values[0], context),
+  const byFirst = lodash.groupBy(list, values[0], context),
     rest = values.slice(1);
-  for (var prop in byFirst) {
+  for (const prop in byFirst) {
     byFirst[prop] = groupByMulti(byFirst[prop], rest, context);
   }
   return byFirst;
@@ -269,7 +269,7 @@ export const importSpreadSheetData = functions.https.onRequest(
     spreadsheet.setAuthToken(token);
 
     const getInfo = promisify(spreadsheet.getInfo);
-    let data = await getInfo();
+    const data = await getInfo();
 
     let AllotmentsSheet, SubmissionsSheet;
 
@@ -283,13 +283,13 @@ export const importSpreadSheetData = functions.https.onRequest(
     // submissions = Submissions sheet rows
     const submissions = await getSubmissions();
     submissions.forEach(row => {
-      let serial = row['submissionserial'];
+      const serial = row['submissionserial'];
 
       const regex = /(.*?)–(.*):(.*)—(.*)/g;
-      let soundissuesMatch = regex.exec(row['soundissues']);
-      let unwantedpartsMatch = regex.exec(row['unwantedparts']);
+      const soundissuesMatch = regex.exec(row['soundissues']);
+      const unwantedpartsMatch = regex.exec(row['unwantedparts']);
 
-      let soundissues = {
+      const soundissues = {
           beginning: soundissuesMatch[1],
           ending: soundissuesMatch[2],
           type: soundissuesMatch[3],
@@ -302,7 +302,7 @@ export const importSpreadSheetData = functions.https.onRequest(
           description: unwantedpartsMatch[4],
         };
 
-      let submission = {
+      const submission = {
         author: {
           name: row['name'],
           emailAddress: row['emailAddress'],
@@ -331,23 +331,23 @@ export const importSpreadSheetData = functions.https.onRequest(
     // Group all the files allotted on one day under a single `Allotment Node` in the db
     // Group by ASSIGNEEs/DATEs/LISTs
 
-    let groupedAllotments = groupByMulti(
+    const groupedAllotments = groupByMulti(
       allotments,
       ['devotee', 'dategiven', 'list'],
       {}
     );
 
     // Adding the allotments
-    for (let assignee in groupedAllotments) {
-      for (let date in groupedAllotments[assignee]) {
-        let dayFiles = [];
-        for (let list in groupedAllotments[assignee][date]) {
+    for (const assignee in groupedAllotments) {
+      for (const date in groupedAllotments[assignee]) {
+        const dayFiles = [];
+        for (const list in groupedAllotments[assignee][date]) {
           // Collecting all of the files on a list under a single day in an array
           groupedAllotments[assignee][date][list].forEach(item => {
             dayFiles.push(item['filename']);
           });
 
-          let allotment = {
+          const allotment = {
             assignee: {
               name: assignee,
               emailAddress: groupedAllotments[assignee][date][list][0]['email'],
