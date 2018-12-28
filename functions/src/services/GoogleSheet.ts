@@ -1,5 +1,3 @@
-import { language } from 'googleapis/build/src/apis/language';
-
 const gapi = require('googleapis').google;
 
 export enum GoogleScopes {
@@ -355,6 +353,6 @@ export default class GoogleSheets extends SpreadSheet {
   }
 
   protected _errorHandler(error: Error) {
-    console.error('Something bad happend: ', error);
+    console.error('Something bad happened: ', error);
   }
 }
