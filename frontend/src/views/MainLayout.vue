@@ -19,7 +19,7 @@
             </v-list-tile>
           </v-list>
         </v-toolbar>
-        <v-list dense>
+        <v-list dense expand>
           <v-divider></v-divider>
           <template v-for="(item, index) in routes">
             <v-list-group
