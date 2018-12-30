@@ -5,7 +5,6 @@ import { google } from 'googleapis';
 const GoogleSpreadsheet = require('google-spreadsheet');
 import { promisify } from 'es6-promisify';
 const lodash = require('lodash');
-import { format } from 'date-fns';
 
 const db = admin.database();
 import * as helpers from './../helpers';
@@ -14,7 +13,6 @@ import GoogleSheet, {
   ISubmissionRow,
 } from '../services/GoogleSheet';
 import {
-  formatMultilineComment,
   createUpdateLink,
   spreadsheetDateFormat,
   withDefault,
@@ -444,6 +442,31 @@ export const syncAllotments = functions.database
       console.log('Update results: ', updateResults.data);
     }
   );
+
+
+interface IAudioDescription {
+  beginning: string; // h:mm:ss
+  ending: string; // h:mm:ss
+  type: string;
+  description: string;
+}
+
+/**
+ * Used for Unwanted Parts and Sound Issues to create multi-line comments
+ *
+ */
+export function formatMultilineComment(audioDescriptionList: IAudioDescription[]) {
+  if (!audioDescriptionList || !audioDescriptionList.length) {
+    return "-";
+  }
+  let multiline = "";
+  audioDescriptionList.forEach((elem: IAudioDescription, index: number) => {
+    multiline = multiline
+    + `${elem.beginning}-${elem.ending}:${elem.type} -- ${elem.description}`
+    + ((audioDescriptionList.length === (index + 1)) ? "" : "\n");
+  });
+  return multiline;
+}
 
 /**
  * On creation of a new submission record id, update and sync data values to Google Spreadsheets
