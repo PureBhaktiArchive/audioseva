@@ -192,7 +192,7 @@ export default class GoogleSheets extends SpreadSheet {
     const firstRow: any = await this.connection.spreadsheets.values.get({
       spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
-      range: sheetName + '!A1:Z1',
+      range: `${sheetName}!1:1`,
     });
 
     const { statusText, status, data } = firstRow;
@@ -213,7 +213,7 @@ export default class GoogleSheets extends SpreadSheet {
     const entireColumn: any = await this.connection.spreadsheets.values.get({
       spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
-      range: sheetName + `!${targetedColumn}1:${targetedColumn}`,
+      range: `${sheetName}!${targetedColumn}:${targetedColumn}`,
     });
     return [].concat.apply([], entireColumn.data.values);
   }
