@@ -41,10 +41,10 @@ interface ISQR {
   assignee: {
     emailAddress: string;
     name: string;
-  },
+  };
   timestampGiven: number;
   timestampDone: number;
-  followUp: string
+  followUp: string;
 }
 
 export interface ISQRFileVueFire {

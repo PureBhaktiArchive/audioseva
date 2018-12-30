@@ -29,7 +29,8 @@ export const router = new Router({
       component: () => import("@/views/AnonymousLayout.vue"),
       children: [
         {
-          path: "upload/:uploadCode", component: () => import("@/views/SoundEngineerUpload.vue")
+          path: "upload/:uploadCode",
+          component: () => import("@/views/SoundEngineerUpload.vue")
         }
       ]
     },
@@ -58,18 +59,24 @@ export const router = new Router({
         {
           path: "sqr/",
           component: () => import("@/views/SQR.vue"),
-          meta: { activator: true, activatorName: "Sound Quality Reporting", menuIcon: "fas fa-headphones" },
+          meta: {
+            activator: true,
+            activatorName: "Sound Quality Reporting",
+            menuIcon: "fas fa-headphones"
+          },
           children: [
-            { path: "",
+            {
+              path: "",
               component: () => import("@/views/SQRFiles.vue"),
-              meta: { menuItem: true}
+              meta: { menuItem: true }
             },
             {
               path: "allot",
               component: () => import("@/views/SQRAllotment.vue"),
               meta: { menuItem: true }
             },
-            { path: "statistics",
+            {
+              path: "statistics",
               component: () => import("@/views/SQRFileStatistics.vue"),
               meta: { menuItem: true }
             }
@@ -78,10 +85,22 @@ export const router = new Router({
         {
           path: "se/",
           component: () => import("@/views/SE/SE.vue"),
-          meta: { activator: true, activatorName: "Sound Engineering", menuIcon: "fas fa-music" },
+          meta: {
+            activator: true,
+            activatorName: "Sound Engineering",
+            menuIcon: "fas fa-music"
+          },
           children: [
-            { path: "", component: () => import("@/views/SE/Tasks.vue"), meta: { menuItem: true } },
-            { path: "allot", component: () => import("@/views/SE/Allotment.vue"), meta: { menuItem: true } }
+            {
+              path: "",
+              component: () => import("@/views/SE/Tasks.vue"),
+              meta: { menuItem: true }
+            },
+            {
+              path: "allot",
+              component: () => import("@/views/SE/Allotment.vue"),
+              meta: { menuItem: true }
+            }
           ]
         },
         {

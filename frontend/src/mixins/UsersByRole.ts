@@ -12,15 +12,15 @@ export default class UserByRole extends Vue {
   getUsers() {
     if (!this.usersRole) throw new Error("Must select a role");
     this.$bindAsArray(
-        this.usersBindName,
-        fb
-            .database()
-            .ref("/users")
-            .orderByChild(`roles/${this.usersRole}`)
-            .equalTo(true),
-        null,
-        this.filterUsers
-    )
+      this.usersBindName,
+      fb
+        .database()
+        .ref("/users")
+        .orderByChild(`roles/${this.usersRole}`)
+        .equalTo(true),
+      null,
+      this.filterUsers
+    );
   }
 
   filterUsers() {
@@ -30,9 +30,10 @@ export default class UserByRole extends Vue {
         if (!filteredStatus.includes(status)) {
           users.push(user);
         }
-        if (this.$route.query.emailAddress === other.emailAddress) this.allotment.assignee = user;
+        if (this.$route.query.emailAddress === other.emailAddress)
+          this.allotment.assignee = user;
         return users;
-      }, [])
+      }, []);
     }
   }
 }
