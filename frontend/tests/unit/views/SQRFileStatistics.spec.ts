@@ -4,21 +4,29 @@ import SQRFileStatistics from "@/views/SQRFileStatistics.vue";
 const lists = {
   list1: {
     file1: {
-      status: "Spare",
+      soundQualityReporting: {
+        status: "Spare"
+      },
       languages: ["English"]
     },
     file2: {
-      status: "Spare",
+      soundQualityReporting: {
+        status: "Spare"
+      },
       languages: ["English"]
     }
   },
   list2: {
     file3: {
-      status: "Given",
+      soundQualityReporting: {
+        status: "Given"
+      },
       languages: ["English"]
     },
     file4: {
-      status: "Spare",
+      soundQualityReporting: {
+        status: "Spare"
+      },
       languages: ["Bengali"]
     }
   }
