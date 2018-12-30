@@ -157,7 +157,6 @@ export default class GoogleSheets extends SpreadSheet {
     limit?: number
   ): Promise<IGetSheetResponse> {
     await this.connect();
-    // console.log("Range query: ", sheet + this._computeRange(limit));
     const targetSheet: any = await this.connection.spreadsheets.values.get({
       spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
@@ -210,8 +209,6 @@ export default class GoogleSheets extends SpreadSheet {
         targetedColumn = letters[index];
       }
     });
-
-    // console.log("Column letter of File Name: ", targetedColumn);
 
     const entireColumn: any = await this.connection.spreadsheets.values.get({
       spreadsheetId,
@@ -267,7 +264,6 @@ export default class GoogleSheets extends SpreadSheet {
       ],
     };
 
-    // console.log("Merged updated row: ", resource);
     const afterUpdate = await this.connection.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: targetedRange,
@@ -290,7 +286,6 @@ export default class GoogleSheets extends SpreadSheet {
     appendValues: ISheetRowTypes
   ): Promise<any> {
     await this.connect();
-    // console.log("rows to append: ", this._convertAppendFormat(appendValues));
 
     // https://developers.google.com/sheets/api/guides/values#appending_values
     const appendResponse: any = await this.connection.spreadsheets.values.append(
