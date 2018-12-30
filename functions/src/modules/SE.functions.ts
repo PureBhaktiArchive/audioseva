@@ -239,6 +239,7 @@ export const importChunks = functions.runWith({
                                 summary.overlappingChunks.push(lastFile);
                                 console.log('Overlapping chunks');
                         }
+                        lastEndingTime = moment(chunk.ending, "HH:mm:ss");
                     }
 
 
@@ -248,7 +249,7 @@ export const importChunks = functions.runWith({
                     let chunks = lastFile.chunks;
 
                     // `start` attribute is added to be used in sorting
-                    chunks.forEach(element => element.start = helpers.timeToMins(element.beginning));
+                    chunks.forEach(element => element.start = moment.duration(element.beginning).asSeconds());
                     chunks = lodash.orderBy(chunks, ['start'], ['asc']);
 
                     // getting rid of the added `start` attribute
