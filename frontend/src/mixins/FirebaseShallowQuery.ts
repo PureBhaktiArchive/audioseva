@@ -7,7 +7,9 @@ export default class FirebaseShallowQuery extends Vue {
 
   async getLists() {
     const response: any = await this.$http.get(
-        `${process.env.VUE_APP_FIREBASE_DATABASE_URL}/${this.listsBasePath}.json?shallow=true`
+      `${process.env.VUE_APP_FIREBASE_DATABASE_URL}/${
+        this.listsBasePath
+      }.json?shallow=true`
     );
     this.lists = Object.keys(response.body);
   }

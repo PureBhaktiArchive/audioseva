@@ -28,7 +28,7 @@ const users = [
 ];
 
 describe("Users list", () => {
-  it('should filter items', () => {
+  it("should filter items", () => {
     const wrapper = shallowMount(List, {
       data: () => ({
         users,
