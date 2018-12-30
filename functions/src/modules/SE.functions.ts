@@ -5,6 +5,8 @@ import { google } from "googleapis";
 import uniqid from 'uniqid';
 import * as helpers from './../helpers';
 const lodash = require('lodash');
+import * as moment from 'moment';
+
 
 const db = admin.database();
 
@@ -105,7 +107,7 @@ export const importChunks = functions.runWith({
     const spreadsheetId = functions.config().reporting.content.processing.spreadsheet_id;
     let { sheetTitles, columnsIndex } = await helpers.buildSheetIndex(sheets, spreadsheetId);
 
-    let resolutions = ['ok', 'drop', 'duplicate', 'on hold', 'reallot', 'repeat', 'derivative'];
+    let resolutions = ['OK', 'Drop', 'Duplicate', 'On hold', 'Reallot', 'Repeat', 'Derivative'];
     let resolution, fidCheckRes; // variables to hold values of Res and fidRes when looping through the rows
 
 
@@ -157,11 +159,9 @@ export const importChunks = functions.runWith({
             resolution = row[columnsIndex['Resolution']];
             fidCheckRes = row[columnsIndex['FidelityCheckResolution']];
 
-            if (resolution && fidCheckRes) {            
-                resolution = resolution.toLowerCase(), fidCheckRes = fidCheckRes.toLowerCase();
-
+            if (resolution && fidCheckRes) {
                 // [CHECK #2] Non-existence of `Resolution` values in a row
-                if (resolutions.indexOf(resolution) < 0 || resolutions.indexOf(fidCheckRes) < 0) {
+                if (resolutions.indexOf(resolution) < 0 || resolutions.indexOf(fidCheckRes) < 0 || resolution != fidCheckRes) {
                     summary.noResolution++;
                     skip = true; // Didn't use `continue` here cause we want to skip ALL of the chunks
                                 // not just this one
@@ -180,42 +180,62 @@ export const importChunks = functions.runWith({
             let AudioFileName = row[columnsIndex['AudioFileName']]            
             let continuationFrom = row[columnsIndex['ContinuationFrom']];
 
-
-
             // Ensuring the `continuationFrom` attribute is NOT saved to the database
             // as an empty string.
             // By setting it to NULL, firebase will not save it at all
             if (!continuationFrom || continuationFrom === '')
                 continuationFrom = null;
                 
+            let contentReporting = {
+                date: (row[columnsIndex['Date']] === '')? null : row[columnsIndex['Date']],
+                locatioon: (row[columnsIndex['Location']] === '')? null : row[columnsIndex['Location']],
+                category: (row[columnsIndex['Category']] === '')? null : row[columnsIndex['Category']],
+                topics: (row[columnsIndex['Topics']] === '')? null : row[columnsIndex['Topics']],
+                gurudevaTimings: (row[columnsIndex['GurudevaTimings']] === '')? null : row[columnsIndex['GurudevaTimings']],
+                otherSpeakers: (row[columnsIndex['OtherSpeakers']] === '')? null : row[columnsIndex['OtherSpeakers']],
+                kirtan: (row[columnsIndex['Kirtian']] === '')? null : row[columnsIndex['Kirtian']],
+                abrutLecture: (row[columnsIndex['AbrutLecture']] === '')? null : row[columnsIndex['AbrutLecture']],
+                suggestedTitle: (row[columnsIndex['SuggestedTitle']] === '')? null : row[columnsIndex['SuggestedTitle']],
+                languages: (row[columnsIndex['Languages']] === '')? null : row[columnsIndex['Languages']],
+                soundQualityRating: (row[columnsIndex['SoundQuality']] === '')? null : row[columnsIndex['SoundQuality']],
+
+                soundIssues: (row[columnsIndex['SoundIssues']] === '')? null : row[columnsIndex['SoundIssues']],
+                comments: (row[columnsIndex['Comments']] === '')? null : row[columnsIndex['Comments']],
+                submissionTimestamp: (row[columnsIndex['Timestamp']] === '')? null : row[columnsIndex['Timestamp']],
+                submissionSerial: (row[columnsIndex['SubmissionSerial']] === '')? null : row[columnsIndex['SubmissionSerial']],
+            };
 
 
             if (lastFile.file_name === AudioFileName) {
                 if (!skip)
                     lastFile.chunks.push({
                         audioFileName: AudioFileName,
-                        beginning: row[columnsIndex['Beginning']],
-                        ending: row[columnsIndex['Ending']],
-                        continuationFrom
+                        beginning: moment.duration(row[columnsIndex['Beginning']]).asSeconds(),
+                        ending: moment.duration(row[columnsIndex['Ending']]).asSeconds(),
+                        continuationFrom,
+                        contentReporting,
+                        importTimestamp: admin.database.ServerValue.TIMESTAMP,
+                        processingResolution: row[columnsIndex['processingResolution']],
                     });
             } else { // NEW FILE -- Save the previous Chunks and CLEAR
                 if (lastFile.file_name != null && !lastFile.skip) {
                     summary.addedChunks++;
 
-                    let lastEndingTime = -1;
+                    //////////////////////////////////////////
+                    //
+                    // Ensuring chunks do NOT overlap in time
+                    //
+                    //////////////////////////////////////////
+                    let lastEndingTime = null;
                     for (let k = 0; k < lastFile.chunks.length; k++) {
                         let chunk = lastFile.chunks[k];
-                        if (!chunk.continuationFrom)
-                            continue;
-                        //////////////////////////////////////////
-                        //
-                        // Ensuring chunks do NOT overlap in time
-                        //
-                        //////////////////////////////////////////
+                        
+                        let beginning = moment(chunk.beginning, "HH:mm:ss");
                         let trackNameRegex = /\w+-\d+(.*)/;            
                         let track = trackNameRegex.exec(AudioFileName)[1];
-                        if (helpers.timeToMins(chunk.beginning) < lastEndingTime && 
-                            helpers.timeToMins(chunk.beginning) != 0 && lastFile.track == track) {
+
+                        // check if last chunck ending time is GREATER than current chunk ending time 
+                        if (lastEndingTime && lastFile.track == track && lastEndingTime.diff(beginning)._data.seconds >= 0 ) {
                                 summary.overlappingChunks.push(lastFile);
                                 console.log('Overlapping chunks');
                         }
@@ -255,8 +275,17 @@ export const importChunks = functions.runWith({
                     if (!ref.exists())
                         await db.ref(`/sound-editing/chunks/${sheetTitles[i].title}/${lastFile.file_name}`)
                             .set(lastFile.chunks);
-                    else 
-                        summary.modified.push(lastFile);                
+                    else {
+                        let data = ref.val();
+                        for (let i = 0; i < data.chunks.length; i++) {
+                            // Instead of comparing every single attribute, the two object are converted
+                            // into strings and then compared
+                            if (JSON.stringify(data.chunks[i]) != JSON.stringify(lastFile.chunks[i])) {
+                                summary.modified.push(lastFile);
+                                break;
+                            }                        
+                        }
+                    }                
                 }
                 
 

@@ -4,19 +4,6 @@ export const extractListFromFilename = fileName => {
 };
 
 
-/////////////////////////////////
-//
-//  Converts time in hh:mm format into number of minutes
-//      Example ==> time = 01:30
-//                  timeToMins(time) ==> 90
-//  
-/////////////////////////////////
-export const timeToMins = (time) => {
-  let hours = time.split(':')[0];
-  let mins = time.split(':')[1];
-  return (+hours * 60) + (+mins);
-}
-
 
 //////////////////////////////
 //
