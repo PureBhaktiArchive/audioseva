@@ -237,7 +237,7 @@ export default class GoogleSheets extends SpreadSheet {
     rowNumber: number,
     updateValues: any
   ): Promise<any> {
-    const targetedRange = sheetName + `!A${rowNumber}:Z${rowNumber}`;
+    const targetedRange = `${sheetName}!${rowNumber}:${rowNumber}`;
     // Get our targeted row
     const targetRow: any = await this.connection.spreadsheets.values.get({
       spreadsheetId: sheetId,
