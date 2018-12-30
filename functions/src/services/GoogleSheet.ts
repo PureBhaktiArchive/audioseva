@@ -130,6 +130,12 @@ abstract class SpreadSheet {
     rowValueToSearch: string | any,
     tableToSearch: any
   ): Promise<any>;
+  public abstract updateAllotmentRow(
+    sheetId: string,
+    sheetName: IProjectSpreadSheetNames,
+    rowNumber: number,
+    updateValues: any
+  ): Promise<any>;
 }
 
 type IRowValues = string[] | number[];
