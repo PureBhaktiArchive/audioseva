@@ -89,3 +89,16 @@ export const getSheetRows = async (currentSheet, sheets, spreadsheetId) => {
   }
   return rows;
 };
+
+// Returns `null` if cell value is `undefined` or contains empty string
+// otherwise, the cell value is returned
+// `null` is important so that the value is NOT written into the database
+// as an empty string or as an `undefined` which would rise an error.
+export const validateCellValue = (row, columnsIndex, columnTitle) => {
+  if (!row[columnsIndex[columnTitle]])
+      return null;
+  if (row[columnsIndex[columnTitle]] === '')
+      return null;
+  
+  return  row[columnsIndex[columnTitle]];
+};

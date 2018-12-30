@@ -177,32 +177,25 @@ export const importChunks = functions.runWith({
                 continue;
             }
             
-            let AudioFileName = row[columnsIndex['AudioFileName']]            
-            let continuationFrom = row[columnsIndex['ContinuationFrom']];
-
-            // Ensuring the `continuationFrom` attribute is NOT saved to the database
-            // as an empty string.
-            // By setting it to NULL, firebase will not save it at all
-            if (!continuationFrom || continuationFrom === '')
-                continuationFrom = null;
+            let AudioFileName = row[columnsIndex['AudioFileName']]         
+            let continuationFrom = helpers.validateCellValue(row, columnsIndex, 'ContinuationFrom');
                 
             let contentReporting = {
-                date: (row[columnsIndex['Date']] === '')? null : row[columnsIndex['Date']],
-                locatioon: (row[columnsIndex['Location']] === '')? null : row[columnsIndex['Location']],
-                category: (row[columnsIndex['Category']] === '')? null : row[columnsIndex['Category']],
-                topics: (row[columnsIndex['Topics']] === '')? null : row[columnsIndex['Topics']],
-                gurudevaTimings: (row[columnsIndex['GurudevaTimings']] === '')? null : row[columnsIndex['GurudevaTimings']],
-                otherSpeakers: (row[columnsIndex['OtherSpeakers']] === '')? null : row[columnsIndex['OtherSpeakers']],
-                kirtan: (row[columnsIndex['Kirtian']] === '')? null : row[columnsIndex['Kirtian']],
-                abrutLecture: (row[columnsIndex['AbrutLecture']] === '')? null : row[columnsIndex['AbrutLecture']],
-                suggestedTitle: (row[columnsIndex['SuggestedTitle']] === '')? null : row[columnsIndex['SuggestedTitle']],
-                languages: (row[columnsIndex['Languages']] === '')? null : row[columnsIndex['Languages']],
-                soundQualityRating: (row[columnsIndex['SoundQuality']] === '')? null : row[columnsIndex['SoundQuality']],
-
-                soundIssues: (row[columnsIndex['SoundIssues']] === '')? null : row[columnsIndex['SoundIssues']],
-                comments: (row[columnsIndex['Comments']] === '')? null : row[columnsIndex['Comments']],
-                submissionTimestamp: (row[columnsIndex['Timestamp']] === '')? null : row[columnsIndex['Timestamp']],
-                submissionSerial: (row[columnsIndex['SubmissionSerial']] === '')? null : row[columnsIndex['SubmissionSerial']],
+                date: helpers.validateCellValue(row, columnsIndex, 'Date'),
+                locatioon: helpers.validateCellValue(row, columnsIndex, 'Location'),
+                category: helpers.validateCellValue(row, columnsIndex, 'Category'),
+                topics: helpers.validateCellValue(row, columnsIndex, 'Topics'),
+                gurudevaTimings: helpers.validateCellValue(row, columnsIndex, 'GurudevaTimings'),
+                otherSpeakers: helpers.validateCellValue(row, columnsIndex, 'OtherSpeakers'),
+                kirtan: helpers.validateCellValue(row, columnsIndex, 'Kirtan'),
+                abrutLecture: helpers.validateCellValue(row, columnsIndex, 'AbrutLecture'),
+                suggestedTitle: helpers.validateCellValue(row, columnsIndex, 'SuggestedTitle'),
+                languages: helpers.validateCellValue(row, columnsIndex, 'Languages'),
+                soundQualityRating: helpers.validateCellValue(row, columnsIndex, 'SoundQuality'),
+                soundIssues: helpers.validateCellValue(row, columnsIndex, 'SoundIssues'),
+                comments: helpers.validateCellValue(row, columnsIndex, 'Comments'),
+                submissionTimestamp: helpers.validateCellValue(row, columnsIndex, 'Timestamp'),
+                submissionSerial: helpers.validateCellValue(row, columnsIndex, 'SubmissionSerial'),
             };
 
 
@@ -215,7 +208,7 @@ export const importChunks = functions.runWith({
                         continuationFrom,
                         contentReporting,
                         importTimestamp: admin.database.ServerValue.TIMESTAMP,
-                        processingResolution: row[columnsIndex['processingResolution']],
+                        processingResolution: row[columnsIndex['Resolution']],
                     });
             } else { // NEW FILE -- Save the previous Chunks and CLEAR
                 if (lastFile.file_name != null && !lastFile.skip) {
@@ -278,10 +271,10 @@ export const importChunks = functions.runWith({
                             .set(lastFile.chunks);
                     else {
                         let data = ref.val();
-                        for (let i = 0; i < data.chunks.length; i++) {
+                        for (let i = 0; i < data.length; i++) {
                             // Instead of comparing every single attribute, the two object are converted
                             // into strings and then compared
-                            if (JSON.stringify(data.chunks[i]) != JSON.stringify(lastFile.chunks[i])) {
+                            if (JSON.stringify(data[i]) != JSON.stringify(lastFile.chunks[i])) {
                                 summary.modified.push(lastFile);
                                 break;
                             }                        
@@ -302,9 +295,12 @@ export const importChunks = functions.runWith({
                 lastFile.file_name = row[columnsIndex['AudioFileName']];
                 lastFile.chunks = [{
                     audioFileName: row[columnsIndex['AudioFileName']],
-                    beginning: row[columnsIndex['Beginning']],
-                    ending: row[columnsIndex['Ending']],
-                    continuationFrom
+                    beginning: moment.duration(row[columnsIndex['Beginning']]).asSeconds(),
+                    ending: moment.duration(row[columnsIndex['Ending']]).asSeconds(),               
+                    continuationFrom,
+                    contentReporting,
+                    importTimestamp: admin.database.ServerValue.TIMESTAMP,
+                    processingResolution: row[columnsIndex['Resolution']],
                 }];
                 lastFile.skip = skip;
             }
