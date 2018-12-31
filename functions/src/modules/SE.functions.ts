@@ -236,22 +236,15 @@ export const importChunks = functions.runWith({
                     }
 
 
+                    let chunks = lastFile.chuncks;
+                    
                     ///////////////////////////////
                     // Sorting by Beginning time
                     ///////////////////////////////
-                    let chunks = lastFile.chunks;
-
-                    // `start` attribute is added to be used in sorting
-                    chunks.forEach(element => element.start = moment.duration(element.beginning).asSeconds());
-                    chunks = lodash.orderBy(chunks, ['start'], ['asc']);
-
-                    // getting rid of the added `start` attribute
-                    chunks.forEach(element => delete element.start);
-
-
+                    lastFile.chunks = lodash.orderBy(chunks, ['beginning'], ['asc']);
 
                     ////////////////////////////////////////////////////////
-                    // Filling `continuationFrom` only for the FIRST column
+                    // Filling `continuationFrom` only for the FIRST chunk
                     ////////////////////////////////////////////////////////
                     for (let z = 0; z < chunks.length; z++) 
                         if (chunks[z].continuationFrom && z !== 0)
@@ -308,13 +301,13 @@ export const importChunks = functions.runWith({
     }
     
     //////////////////////////////////////
-    // Notifying the coordinator of the results //edited
+    // Notifying the coordinator of the results
     //////////////////////////////////////
     await db
         .ref(`/email/notifications`).push({
-            template: 'importing-se-chunks', //edited
+            template: 'importing-se-chunks',
             to: functions.config().coordinator.email_address,
-            params: summary //edited
+            params: summary
     });
 
     
