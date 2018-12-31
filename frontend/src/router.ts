@@ -57,6 +57,18 @@ export const router = new Router({
           meta: { menuItem: true, menuName: "Users", menuIcon: "fas fa-users" }
         },
         {
+          path: "reporting/content/",
+          component: () => import("@/views/CR/CR.vue"),
+          meta: { activator: true, activatorName: "Content Reporting", menuIcon: "far fa-file-audio" },
+          children: [
+            { path: "",
+              component: () => import("@/views/CR/List.vue"),
+              meta: { menuItem: true }
+            },
+            { path: "allot", component: () => import("@/views/CR/Allotment.vue"), meta: { menuItem: true } },
+          ]
+        },
+        {
           path: "sqr/",
           component: () => import("@/views/SQR.vue"),
           meta: {
