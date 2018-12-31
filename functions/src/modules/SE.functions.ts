@@ -122,9 +122,9 @@ export const importChunks = functions.runWith({
         };
 
     
-    for (let i = 0; i < sheetTitles.length; i++) { // Loop throughout the sheets of interest
+    sheetTitles.forEach(async sheet => {
 
-        let rows = await helpers.getSheetRows(sheetTitles[i], sheets, spreadsheetId);
+        let rows = await helpers.getSheetRows(sheet, sheets, spreadsheetId);
     
         lastFile = { 
             file_name: null,
@@ -150,7 +150,7 @@ export const importChunks = functions.runWith({
 
 
             // [CHECK #1] Misplaced audio file entry            
-            if (helpers.extractListFromFilename(row[columnsIndex['AudioFileName']]) != sheetTitles[i].title) {
+            if (helpers.extractListFromFilename(row[columnsIndex['AudioFileName']]) != sheet.title) {
                 summary.misplaced++;
                 continue;
             }
@@ -254,11 +254,11 @@ export const importChunks = functions.runWith({
                     // Ensuring data is NEVER overwritten
                     //////////////////////////////////////
                     let ref = await db
-                        .ref(`/sound-editing/chunks/${sheetTitles[i].title}/${lastFile.file_name}`)
+                        .ref(`/sound-editing/chunks/${sheet.title}/${lastFile.file_name}`)
                         .once('value');
 
                     if (!ref.exists())
-                        await db.ref(`/sound-editing/chunks/${sheetTitles[i].title}/${lastFile.file_name}`)
+                        await db.ref(`/sound-editing/chunks/${sheet.title}/${lastFile.file_name}`)
                             .set(lastFile.chunks);
                     else {
                         let data = ref.val();
@@ -296,7 +296,8 @@ export const importChunks = functions.runWith({
                 lastFile.skip = skip;
             }
         }
-    }
+    
+    });
     
     //////////////////////////////////////
     // Notifying the coordinator of the results
