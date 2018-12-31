@@ -29,10 +29,10 @@ import DoneStatistics from "@/components/SQRStatistics/DoneStatistics.vue";
 import SpareByLanguage from "@/components/SQRStatistics/SpareByLanguage.vue";
 
 @Component({
-  name: "SQRFileStatistics",
+  name: "FileStatistics",
   components: { DoneStatistics, FilesByStatus, SpareByLanguage }
 })
-export default class SQRFileStatistics extends Vue {
+export default class FileStatistics extends Vue {
   lists!: { [key: string]: { [key: string]: ISQRFileVueFire } };
   isLoadingFiles: boolean = false;
   doneFiles: any = null;

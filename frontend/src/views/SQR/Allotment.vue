@@ -93,7 +93,7 @@ import _ from "lodash";
 const filteredStatus = ["Lost", "Opted out", "Incorrect", "Duplicate"];
 
 export default {
-  name: "SQRAllotment",
+  name: "Allotment",
   data: () => ({
     users: null,
     languages: ["English", "Hindi", "Bengali"],
