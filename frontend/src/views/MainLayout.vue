@@ -36,7 +36,7 @@
               </v-list-tile>
               <menu-links :parentRoute="item" :routes="item.children"></menu-links>
             </v-list-group>
-            <v-list-tile :to="item.path" v-else-if="item.meta.menuItem" :key="`no-nested-${index}`">
+            <v-list-tile :to="`/${item.path}`" v-else-if="item.meta.menuItem" :key="`no-nested-${index}`">
               <v-list-tile-action>
                 <v-icon>{{ item.meta.menuIcon }}</v-icon>
               </v-list-tile-action>
