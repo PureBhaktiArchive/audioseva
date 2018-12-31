@@ -236,21 +236,19 @@ export const importChunks = functions.runWith({
                     }
 
 
-                    let chunks = lastFile.chuncks;
-                    
                     ///////////////////////////////
                     // Sorting by Beginning time
                     ///////////////////////////////
-                    lastFile.chunks = lodash.orderBy(chunks, ['beginning'], ['asc']);
+                    lastFile.chunks = lodash.orderBy(lastFile.chuncks, ['beginning'], ['asc']);
 
                     ////////////////////////////////////////////////////////
-                    // Filling `continuationFrom` only for the FIRST chunk
+                    // `continuationFrom` column should be filled only 
+                    //  for the first chunk of the track.
                     ////////////////////////////////////////////////////////
-                    for (let z = 0; z < chunks.length; z++) 
-                        if (chunks[z].continuationFrom && z !== 0)
-                            delete chunks[z].continuationFrom;
-
-
+                    lastFile.chuncks.forEach((chunk, i) => {
+                        if (chunk.continuationFrom && i !== 0)
+                            delete chunk.continuationFrom;
+                    });
 
                     //////////////////////////////////////
                     // Ensuring data is NEVER overwritten
