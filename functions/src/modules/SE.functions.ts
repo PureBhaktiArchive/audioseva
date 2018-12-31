@@ -123,6 +123,8 @@ export const importChunks = functions.runWith({
 
     
     sheetTitles.forEach(async sheet => {
+        if (sheet.firstRow.indexOf('Beginning') < 0 || sheet.firstRow.indexOf('Ending') < 0) 
+            return;
 
         let rows = await helpers.getSheetRows(sheet, sheets, spreadsheetId);
     

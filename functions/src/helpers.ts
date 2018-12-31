@@ -44,15 +44,11 @@ export const buildSheetIndex = async (sheets, spreadsheetId) => {
           continue;
       }
   
-      // Getting only the sheets that have the required attributes
-      const row = result.data.values[0] 
-      if (row.indexOf('Beginning') > -1 && row.indexOf('Ending') > -1) {
-          //edited
-          sheetTitles.push({ title, rowCount, columnCount });
-          row.forEach((col, i) => {
-              columnsIndex[col.replace(/ /g, '')] = i;
-          });
-      }
+      const firstRow = result.data.values[0];            
+      sheetTitles.push({ title, rowCount, columnCount, firstRow });
+      firstRow.forEach((col, i) => {
+          columnsIndex[col.replace(/ /g, '')] = i;
+      });
   }
   return { sheetTitles, columnsIndex };
 }
