@@ -5,7 +5,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import BaseLayout from "@/views/BaseLayout.vue";
+import BaseLayout from "./BaseLayout.vue";
 
 @Component({
   name: "AnonymousLayout",

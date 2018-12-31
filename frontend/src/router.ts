@@ -16,7 +16,7 @@ export const router = new Router({
     {
       path: "/login",
       meta: { guestOnly: true },
-      component: () => import("@/views/MainLayout.vue"),
+      component: () => import("@/components/Layout/MainLayout.vue"),
       children: [
         {
           path: "",
@@ -26,7 +26,7 @@ export const router = new Router({
     },
     {
       path: "/sound-editing/",
-      component: () => import("@/views/AnonymousLayout.vue"),
+      component: () => import("@/components/Layout/AnonymousLayout.vue"),
       children: [
         {
           path: "upload/:uploadCode",

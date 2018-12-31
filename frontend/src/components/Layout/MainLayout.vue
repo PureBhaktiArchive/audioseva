@@ -76,8 +76,8 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { mapState, mapActions } from "vuex";
-import BaseLayout from "@/views/BaseLayout.vue";
-import MenuLinks from "@/components/MenuLinks.ts";
+import BaseLayout from "./BaseLayout.vue";
+import MenuLinks from "@/components/MenuLinks";
 
 @Component({
   name: "MainLayout",
