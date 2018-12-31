@@ -1,5 +1,5 @@
 import { shallowMount } from "@vue/test-utils";
-import SQRFileStatistics from "@/views/SQRFileStatistics.vue";
+import SQRFileStatistics from "@/views/SQR/FileStatistics.vue";
 
 const lists = {
   list1: {

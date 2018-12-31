@@ -70,7 +70,7 @@ export const router = new Router({
         },
         {
           path: "sqr/",
-          component: () => import("@/views/SQR.vue"),
+          component: () => import("@/views/SQR/SQR.vue"),
           meta: {
             activator: true,
             activatorName: "Sound Quality Reporting",
@@ -79,17 +79,17 @@ export const router = new Router({
           children: [
             {
               path: "",
-              component: () => import("@/views/SQRFiles.vue"),
+              component: () => import("@/views/SQR/Files.vue"),
               meta: { menuItem: true }
             },
             {
               path: "allot",
-              component: () => import("@/views/SQRAllotment.vue"),
+              component: () => import("@/views/SQR/Allotment.vue"),
               meta: { menuItem: true }
             },
             {
               path: "statistics",
-              component: () => import("@/views/SQRFileStatistics.vue"),
+              component: () => import("@/views/SQR/FileStatistics.vue"),
               meta: { menuItem: true }
             }
           ]

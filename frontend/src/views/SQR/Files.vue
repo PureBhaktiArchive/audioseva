@@ -57,12 +57,12 @@ import DataTable from "@/components/DataTable.vue";
 import { getDayDifference, formatTimestamp } from "@/utility";
 
 @Component({
-  name: "SQRFiles",
+  name: "Files.vue",
   components: {
     DataTable
   }
 })
-export default class SQRFiles extends Vue {
+export default class Files extends Vue {
   lists: string[] = [];
   files: any[] = [];
   isLoadingLists = false;
