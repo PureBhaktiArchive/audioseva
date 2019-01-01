@@ -29,7 +29,7 @@
     </div>
 
     <!-- Only show table if there's at least one list available -->
-    <div v-if="lists.length">
+    <div v-if="lists && lists.length">
       <data-table
         :headers="headers"
         :datatableProps="{ pagination, loading: isLoadingFiles }"
@@ -50,11 +50,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Mixins, Watch } from "vue-property-decorator";
 import _ from "lodash";
 import { db } from "@/main";
 import DataTable from "@/components/DataTable.vue";
 import { getDayDifference, formatTimestamp } from "@/utility";
+import ShallowQuery from "@/mixins/FirebaseShallowQuery";
 
 @Component({
   name: "Files",
@@ -62,8 +63,8 @@ import { getDayDifference, formatTimestamp } from "@/utility";
     DataTable
   }
 })
-export default class Files extends Vue {
-  lists: string[] = [];
+export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
+  // lists: string[] = [];
   files: any[] = [];
   isLoadingLists = false;
   isLoadingFiles = false;
@@ -95,7 +96,7 @@ export default class Files extends Vue {
         "soundQualityReporting.timestampGiven",
         false
       );
-      if (dateGiven) {
+      if (typeof dateGiven === "number") {
         return getDayDifference(dateGiven);
       }
       return "";
@@ -109,10 +110,7 @@ export default class Files extends Vue {
 
   async mounted() {
     this.isLoadingLists = true;
-    const response: any = await this.$http.get(
-      `${process.env.VUE_APP_FIREBASE_DATABASE_URL}/files.json?shallow=true`
-    );
-    this.lists = Object.keys(response.body);
+    await this.getLists();
     this.isLoadingLists = false;
     this.handleButtonClick();
   }
