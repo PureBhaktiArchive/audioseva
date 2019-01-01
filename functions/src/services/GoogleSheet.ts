@@ -34,58 +34,11 @@ const letters: string[] = [
 
 type ISheetId = string;
 
-export enum ISoundQualityReportSheet {
-  Allotments = 'Allotments',
-  Submissions = 'Submissions',
-  Statistics = 'Statistics',
-}
-
 // Create other SpreadSheet Interfaces and add to IProjectSpreadSheetNames
 // enum IOtherReportSheet {  }
 
-export type IProjectSpreadSheetNames = ISoundQualityReportSheet | string;
-
-/**
- * The keys here represent the column keys in Google Sheets, days_passed = "Days passed"
- * As long as the order is preserved, the cells will be updated correctly, the spelling
- * of the keys and headers are unimportant to Google Sheets API
- */
-export interface IAllotmentRow {
-  // some of these should ideally be enums
-  days_passed: string;
-  date_given: string;
-  notes: string;
-  language: string;
-  status: string;
-  file_name: string;
-  devotee: string;
-  email: string;
-  phone: string;
-  location: string;
-  date_done: string;
-  follow_up: string;
-  list: string;
-  serial: number;
-}
-
-export interface ISubmissionRow {
-  // some of these should ideally be enums
-  completed: string;
-  updated: string;
-  submission_serial: number;
-  update_link: string;
-  audio_file_name: string;
-  unwanted_parts: string;
-  sound_issues: string;
-  sound_quality_rating: string;
-  beginning: string;
-  ending: string;
-  comments: string;
-  name: string;
-  email_address: string;
-}
-
-export type ISheetRowTypes = IAllotmentRow | ISubmissionRow;
+export type IProjectSpreadSheetNames = string;
+export type ISheetRowTypes = any;
 
 enum IMajorDimensions {
   Rows = 'ROWS',
@@ -286,10 +239,10 @@ export default class GoogleSheets extends SpreadSheet {
    * @param sheetId The sheet to query from google sheets api
    * @param appendValues Data values to add to Google Sheets
    */
-  public async appendRow(
+  public async appendRow<T>(
     sheetId: string,
     sheetName: IProjectSpreadSheetNames,
-    appendValues: ISheetRowTypes
+    appendValues: T,
   ): Promise<any> {
     await this.connect();
 

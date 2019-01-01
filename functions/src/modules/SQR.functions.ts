@@ -8,10 +8,7 @@ const lodash = require('lodash');
 
 const db = admin.database();
 import * as helpers from './../helpers';
-import GoogleSheet, {
-  ISoundQualityReportSheet,
-  ISubmissionRow,
-} from '../services/GoogleSheet';
+import GoogleSheet from '../services/GoogleSheet';
 import {
   createUpdateLink,
   spreadsheetDateFormat,
@@ -19,6 +16,12 @@ import {
   commaSeparated,
   EMPTY_VALUE,
 } from '../utils/parsers';
+
+export enum ISoundQualityReportSheet {
+  Allotments = 'Allotments',
+  Submissions = 'Submissions',
+  Statistics = 'Statistics',
+}
 
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
@@ -383,6 +386,46 @@ export const importSpreadSheetData = functions.https.onRequest(
 );
 
 /**
+ * The keys here represent the column keys in Google Sheets, days_passed = "Days passed"
+ * As long as the order is preserved, the cells will be updated correctly, the spelling
+ * of the keys and headers are unimportant to Google Sheets API
+ */
+export interface IAllotmentRow {
+  // some of these should ideally be enums
+  days_passed: string;
+  date_given: string;
+  notes: string;
+  language: string;
+  status: string;
+  file_name: string;
+  devotee: string;
+  email: string;
+  phone: string;
+  location: string;
+  date_done: string;
+  follow_up: string;
+  list: string;
+  serial: number;
+}
+
+export interface ISubmissionRow {
+  // some of these should ideally be enums
+  completed: string;
+  updated: string;
+  submission_serial: number;
+  update_link: string;
+  audio_file_name: string;
+  unwanted_parts: string;
+  sound_issues: string;
+  sound_quality_rating: string;
+  beginning: string;
+  ending: string;
+  comments: string;
+  name: string;
+  email_address: string;
+}
+
+/**
  * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
  *
  */
@@ -502,7 +545,7 @@ export const syncSubmissions = functions.database
         email_address: withDefault(author.emailAddress),
       };
 
-      gsheets.appendRow(
+      gsheets.appendRow<ISubmissionRow>(
         functions.config().sqr.spreadsheet_id,
         ISoundQualityReportSheet.Submissions,
         newSubmissionRow
