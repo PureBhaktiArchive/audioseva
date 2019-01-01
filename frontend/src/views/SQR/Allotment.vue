@@ -92,18 +92,8 @@ import firebase from "firebase";
 import _ from "lodash";
 import UsersByRole from "@/mixins/UsersByRole";
 import ShallowQuery from "@/mixins/FirebaseShallowQuery";
+import { initialAllotment, initialFilter } from "@/utility";
 import { IFileVueFire } from "@/types/DataTable";
-
-const initialAllotment = () => ({
-  assignee: null,
-  files: [],
-  comment: null
-});
-
-const initialFilter = () => ({
-  language: null,
-  list: null
-});
 
 @Component({
   name: "Allotment"
@@ -112,10 +102,8 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
   UsersByRole,
   ShallowQuery
 ) {
-  users: any = null;
   usersRole = "SQR";
   languages: string[] = ["English", "Hindi", "Bengali"];
-  lists: any = null;
   files: any = null;
   filter: any = initialFilter();
   allotment: any = initialAllotment();
