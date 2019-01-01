@@ -40,7 +40,7 @@ export const router = new Router({
     },
     {
       path: "/listen/:fileName",
-      component: () => import("@/views/AnonymousLayout.vue"),
+      component: () => import("@/components/Layout/AnonymousLayout.vue"),
       children: [
         {
           path: "", component: () => import("@/views/Listen.vue")
