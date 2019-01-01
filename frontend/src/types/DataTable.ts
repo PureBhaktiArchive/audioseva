@@ -49,6 +49,7 @@ interface ISQR {
 
 export interface IFileVueFire {
   languages: string[];
+  languagesConfirmed?: boolean;
   notes: string;
   [".key"]: string;
   soundQualityReporting?: ISQR;
