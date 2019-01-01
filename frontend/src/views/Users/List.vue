@@ -1,5 +1,8 @@
 <template>
   <v-container grid-list-sm>
+    <header>
+      <h1>People</h1>
+    </header>
     <v-layout justify-space-between wrap>
       <v-flex xs12 sm5 md3>
         <v-text-field
