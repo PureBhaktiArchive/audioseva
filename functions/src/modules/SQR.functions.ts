@@ -404,13 +404,7 @@ export const syncAllotments = functions.database
         'File Name'
       );
 
-      let rowNumber;
-      allotmentFileNames.forEach((file, index) => {
-        if (file === fileName) {
-          rowNumber = index + 1;
-        }
-      });
-
+      const rowNumber = allotmentFileNames.indexOf(fileName) + 1;
       const { languages, notes, soundQualityReporting } = changedValues;
       const {
         timestampGiven,
