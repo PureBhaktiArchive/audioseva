@@ -81,17 +81,17 @@
     // understand the warning and wants to deploy anyway.
 
     // Warn when an empty interface is defined. These are generally not useful.
-    "no-empty-interface": {"severity": "warning"},
+    "no-empty-interface": {"severity": "error"},
 
     // Warn when an import will have side effects.
-    "no-import-side-effect": [true, {"severity": "warning", "ignore-pattern": "/firebase-functions.*/"}],
+    "no-import-side-effect": [true, {"severity": "error", "ignore-pattern": "/firebase-functions.*/"}],
 
     // Warn when variables are defined with var. Var has subtle meaning that can lead to bugs. Strongly prefer const for
     // most values and let for values that will change.
-    "no-var-keyword": {"severity": "warning"},
+    "no-var-keyword": {"severity": "error"},
 
     // Prefer === and !== over == and !=. The latter operators support overloads that are often accidental.
-    "triple-equals": {"severity": "warning"},
+    "triple-equals": {"severity": "error"},
 
     // Warn when using deprecated APIs.
     "deprecation": {"severity": "warning"},
@@ -111,7 +111,7 @@
     "no-unused-variable": {"severity": "error"},
 
     // Prefer const for values that will not change. This better documents code.
-    "prefer-const": {"severity": "warning"},
+    "prefer-const": {"severity": "error"},
 
     // Multi-line object literals and function calls should have a trailing comma. This helps avoid merge conflicts.
     "trailing-comma": {"severity": "warning"}
