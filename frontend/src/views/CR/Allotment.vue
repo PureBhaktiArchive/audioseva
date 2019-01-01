@@ -92,6 +92,7 @@ import _ from "lodash";
 import UsersByRole from "@/mixins/UsersByRole";
 import ShallowQuery from "@/mixins/FirebaseShallowQuery";
 import { initialAllotment, initialFilter } from "@/utility";
+import { IFileVueFire } from "@/types/DataTable";
 
 @Component({
   name: "Allotment"
@@ -106,6 +107,7 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
   filter: any = initialFilter();
   allotment: any = initialAllotment();
   submissionStatus: any = null;
+  crFiles: IFileVueFire[] = [];
 
   mounted() {
     this.getUsers();
@@ -169,9 +171,9 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
   }
 
   filterSelectedFiles() {
-    if (this.crFiles) {
+    if (this.crFiles.length) {
       this.files = this.crFiles.reduce(
-        (filteredItems, { languages, notes, ...other }) => {
+        (filteredItems: any[], { languages, notes, ...other }) => {
           if (languages && languages.includes(this.filter.language)) {
             filteredItems.push({
               languages,

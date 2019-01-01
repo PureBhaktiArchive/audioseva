@@ -165,7 +165,7 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
   filterSelectedFiles() {
     if (this.sqrFiles.length) {
       this.files = this.sqrFiles.reduce(
-        (filteredItems, { languages, notes, ...other }) => {
+        (filteredItems: any[], { languages, notes, ...other }) => {
           if (languages && languages.includes(this.filter.language)) {
             filteredItems.push({
               languages,
@@ -194,7 +194,7 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
         emailAddress
       },
       timestamp: firebase.database.ServerValue.TIMESTAMP,
-      user: fb.auth().currentUser.email
+      user: (fb as any).auth().currentUser.email
     };
 
     await (fb as any)
