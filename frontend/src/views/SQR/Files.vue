@@ -56,6 +56,7 @@ import { db } from "@/main";
 import DataTable from "@/components/DataTable.vue";
 import { getDayDifference, formatTimestamp } from "@/utility";
 import ShallowQuery from "@/mixins/FirebaseShallowQuery";
+import { IFileVueFire } from "@/types/DataTable";
 
 @Component({
   name: "Files",
@@ -64,8 +65,7 @@ import ShallowQuery from "@/mixins/FirebaseShallowQuery";
   }
 })
 export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
-  // lists: string[] = [];
-  files: any[] = [];
+  files: IFileVueFire[] = [];
   isLoadingLists = false;
   isLoadingFiles = false;
 
