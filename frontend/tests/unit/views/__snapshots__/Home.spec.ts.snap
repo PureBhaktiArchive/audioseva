@@ -19,6 +19,13 @@ exports[`Home.vue should render 1`] = `
        
       <v-btn
         color="primary"
+        to="reporting/content/allot"
+      >
+        CR
+      </v-btn>
+       
+      <v-btn
+        color="primary"
         to="sqr"
       >
         SQR
