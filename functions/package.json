@@ -9,6 +9,11 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
+  },
   "main": "lib/index.js",
   "dependencies": {
     "es6-promisify": "^6.0.1",
