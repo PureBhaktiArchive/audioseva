@@ -3,7 +3,6 @@ import * as admin from 'firebase-admin';
 
 const bucket = admin.storage().bucket();
 const db = admin.database();
-import * as helpers from './../helpers';
 
 ///////////////////////////////////
 //   Sync-Related Helper Functions
@@ -17,7 +16,7 @@ const createMP3DBRef = filePath => {
 
   const list = parts[1];
   const mp3 = parts[2];
-  let file_name = mp3.slice(0, -4);
+  const file_name = mp3.slice(0, -4);
 
   return `/files/${list}/${file_name}`;
 };
@@ -34,7 +33,7 @@ export const importFilesFromStorage = functions.storage
     const filePath = object.name;
     if (!checkValidMP3(filePath)) return 1;
 
-    let fileRef = db.ref(createMP3DBRef(filePath));
+    const fileRef = db.ref(createMP3DBRef(filePath));
 
     fileRef.set({
       soundQualityReporting: { status: 'Spare' },
@@ -59,7 +58,7 @@ export const syncStorageToDB = functions.https.onRequest(async (req, res) => {
     innerFilesObject.forEach(file => {
       if (!checkValidMP3(file.name)) return;
 
-      let fileRef = db.ref(createMP3DBRef(file.name));
+      const fileRef = db.ref(createMP3DBRef(file.name));
 
       fileRef.set({
         soundQualityReporting: { status: 'Spare' },
@@ -72,10 +71,10 @@ export const syncStorageToDB = functions.https.onRequest(async (req, res) => {
   //      2. Remove DB entries for MP3s that don't exist
   ///////////////////////////////////////////////////////
   const filesSnapshot = await db.ref(`/files`).once('value');
-  let files = filesSnapshot.val();
+  const files = filesSnapshot.val();
 
-  for (let list in files) {
-    for (let file in files[list]) {
+  for (const list in files) {
+    for (const file in files[list]) {
       const existingBucketFiles = await bucket
         .file(`/mp3/${list}/${file}.mp3`)
         .exists();

@@ -39,6 +39,15 @@ export const router = new Router({
       component: () => import("@/views/QCSubmissionForm.vue")
     },
     {
+      path: "/listen/:fileName",
+      component: () => import("@/views/AnonymousLayout.vue"),
+      children: [
+        {
+          path: "", component: () => import("@/views/Listen.vue")
+        }
+      ]      
+    },
+    {
       path: "/",
       meta: { requireAuth: true },
       component: () => import("@/views/Dashboard.vue"),
@@ -54,7 +63,7 @@ export const router = new Router({
         {
           path: "users",
           component: () => import("@/views/Users/List.vue"),
-          meta: { menuItem: true, menuName: "Users", menuIcon: "fas fa-users" }
+          meta: { menuItem: true, menuName: "People", menuIcon: "fas fa-users" }
         },
         {
           path: "reporting/content/",

@@ -17,5 +17,8 @@
   "vetur.format.defaultFormatter.html": "prettyhtml",
   "prettier.eslintIntegration": true,
   "html.format.wrapAttributes": "aligned-multiple",
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+
+  "tslint.run": "onSave",
+  "tslint.alwaysShowStatus": true
 }
