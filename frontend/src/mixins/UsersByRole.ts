@@ -26,15 +26,18 @@ export default class UserByRole extends Vue {
 
   filterUsers() {
     if (this.users) {
-      this.users = this.users.reduce((users: IUser[], { status = "lost", ...other }) => {
-        const user = { status, ...other };
-        if (!filteredStatus.includes(status)) {
-          users.push(user);
-        }
-        if (this.$route.query.emailAddress === other.emailAddress)
-          this.allotment.assignee = user;
-        return users;
-      }, []);
+      this.users = this.users.reduce(
+        (users: IUser[], { status = "lost", ...other }) => {
+          const user = { status, ...other };
+          if (!filteredStatus.includes(status)) {
+            users.push(user);
+          }
+          if (this.$route.query.emailAddress === other.emailAddress)
+            this.allotment.assignee = user;
+          return users;
+        },
+        []
+      );
     }
   }
 }
