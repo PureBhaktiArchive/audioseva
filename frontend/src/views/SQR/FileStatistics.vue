@@ -19,7 +19,7 @@ import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
 import fb from "@/firebaseApp";
 import {
-  ISQRFileVueFire,
+  IFileVueFire,
   ISpareByLanguage,
   IFileByStatus,
   ICount
@@ -33,7 +33,7 @@ import SpareByLanguage from "@/components/SQRStatistics/SpareByLanguage.vue";
   components: { DoneStatistics, FilesByStatus, SpareByLanguage }
 })
 export default class FileStatistics extends Vue {
-  lists!: { [key: string]: { [key: string]: ISQRFileVueFire } };
+  lists!: { [key: string]: { [key: string]: IFileVueFire } };
   isLoadingFiles: boolean = false;
   doneFiles: any = null;
   doneStatistics: ICount = {};

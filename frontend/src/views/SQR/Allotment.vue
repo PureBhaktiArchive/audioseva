@@ -84,151 +84,132 @@
 }
 </style>
 
-<script>
+<script lang="ts">
+import { Component, Mixins, Watch } from "vue-property-decorator";
 import fb from "@/firebaseApp";
 // need this to use timestamp
 import firebase from "firebase";
 import _ from "lodash";
+import UsersByRole from "@/mixins/UsersByRole";
+import ShallowQuery from "@/mixins/FirebaseShallowQuery";
+import { IFileVueFire } from "@/types/DataTable";
 
-const filteredStatus = ["Lost", "Opted out", "Incorrect", "Duplicate"];
+const initialAllotment = () => ({
+  assignee: null,
+  files: [],
+  comment: null
+});
 
-export default {
-  name: "Allotment",
-  data: () => ({
-    users: null,
-    languages: ["English", "Hindi", "Bengali"],
-    lists: null,
-    files: null,
-    filter: {
-      language: null,
-      list: null
-    },
-    allotment: {
-      assignee: null,
-      files: [],
-      comment: null
-    },
-    submissionStatus: null
-  }),
-  mounted: async function() {
-    // Getting users
-    this.$bindAsArray(
-      "users",
-      fb
-        .database()
-        .ref("/users")
-        .orderByChild("roles/SQR")
-        .equalTo(true),
-      null,
-      () => {
-        this.users = this.users.reduce(
-          (filteredUsers, { status, emailAddress, ...other }) => {
-            if (!filteredStatus.includes(status)) {
-              const assignee = { status, emailAddress, ...other };
-              filteredUsers.push(assignee);
-              if (this.$route.query.emailAddress === emailAddress) {
-                this.allotment.assignee = assignee;
-              }
-            }
-            return filteredUsers;
-          },
-          []
-        );
-      }
-    );
+const initialFilter = () => ({
+  language: null,
+  list: null
+});
 
-    // Getting lists
-    const response = await this.$http.get(
-      `${process.env.VUE_APP_FIREBASE_DATABASE_URL}/files.json?shallow=true`
-    );
-    this.lists = Object.keys(response.body);
-  },
-  computed: {
-    usersHint: function() {
-      const languages = _.get(this.allotment, "assignee.languages", {});
-      const hint = Object.keys(languages).join(", ");
-      return hint ? `Languages: ${hint}` : "";
-    }
-  },
-  watch: {
-    "allotment.assignee": function(newValue) {
-      if (newValue == null) return;
+@Component({
+  name: "Allotment"
+})
+export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
+  UsersByRole,
+  ShallowQuery
+) {
+  users: any = null;
+  usersRole = "SQR";
+  languages: string[] = ["English", "Hindi", "Bengali"];
+  lists: any = null;
+  files: any = null;
+  filter: any = initialFilter();
+  allotment: any = initialAllotment();
+  submissionStatus: any = null;
+  sqrFiles: IFileVueFire[] = [];
 
-      for (let language of this.languages) {
-        if (newValue.languages[language]) {
-          this.filter.language = language;
-        }
-      }
-    },
-    filter: {
-      deep: true,
-      handler: function() {
-        this.files = null;
-        this.allotment.files = [];
+  mounted() {
+    this.getUsers();
+    this.getLists();
+  }
 
-        if (this.filter.list == null) return;
+  get usersHint() {
+    const languages = _.get(this.allotment, "assignee.languages", {});
+    const hint = Object.keys(languages).join(", ");
+    return hint ? `Languages: ${hint}` : "";
+  }
 
-        this.$bindAsArray(
-          "sqrFiles",
-          fb
-            .database()
-            .ref(`files/${this.filter.list}`)
-            .orderByChild("soundQualityReporting/status")
-            .equalTo("Spare"),
-          null, // cancel callback not used
-          this.filterSelectedFiles
-        );
-      }
-    }
-  },
-  methods: {
-    async allot() {
-      const {
-        assignee: { name, emailAddress },
-        ...other
-      } = this.allotment;
-
-      this.submissionStatus = "inProgress";
-      const allotmentData = {
-        ...other,
-        assignee: {
-          name,
-          emailAddress
-        },
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
-        user: fb.auth().currentUser.email
-      };
-
-      await fb
-        .database()
-        .ref("sqr/allotments")
-        .push()
-        .set(allotmentData);
-
-      this.submissionStatus = "complete";
-    },
-    reset() {
-      Object.assign(this.$data.allotment, this.$options.data().allotment);
-      Object.assign(this.$data.filter, this.$options.data().filter);
-      this.submissionStatus = null;
-    },
-    filterSelectedFiles() {
-      if (this.sqrFiles) {
-        this.files = this.sqrFiles.reduce(
-          (filteredItems, { languages, notes, ...other }) => {
-            if (languages && languages.includes(this.filter.language)) {
-              filteredItems.push({
-                languages,
-                notes,
-                filename: other[".key"]
-              });
-            }
-            return filteredItems;
-          },
-          []
-        );
+  @Watch("allotment.assignee")
+  handleAssignee(newValue: any) {
+    if (newValue == null) return;
+    for (let language of this.languages) {
+      if (newValue.languages[language]) {
+        this.filter.language = language;
       }
     }
   }
-};
+
+  @Watch("filter", { deep: true })
+  handleFilter() {
+    this.files = null;
+    this.allotment.files = [];
+
+    if (this.filter.list == null) return;
+
+    this.$bindAsArray(
+      "sqrFiles",
+      (fb as any)
+        .database()
+        .ref(`files/${this.filter.list}`)
+        .orderByChild("soundQualityReporting/status")
+        .equalTo("Spare"),
+      null, // cancel callback not used
+      this.filterSelectedFiles
+    );
+  }
+
+  filterSelectedFiles() {
+    if (this.sqrFiles.length) {
+      this.files = this.sqrFiles.reduce(
+        (filteredItems, { languages, notes, ...other }) => {
+          if (languages && languages.includes(this.filter.language)) {
+            filteredItems.push({
+              languages,
+              notes,
+              filename: other[".key"]
+            });
+          }
+          return filteredItems;
+        },
+        []
+      );
+    }
+  }
+
+  async allot() {
+    const {
+      assignee: { name, emailAddress },
+      ...other
+    } = this.allotment;
+
+    this.submissionStatus = "inProgress";
+    const allotmentData = {
+      ...other,
+      assignee: {
+        name,
+        emailAddress
+      },
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      user: fb.auth().currentUser.email
+    };
+
+    await (fb as any)
+      .database()
+      .ref("sqr/allotments")
+      .push()
+      .set(allotmentData);
+
+    this.submissionStatus = "complete";
+  }
+
+  reset() {
+    this.allotment = initialAllotment();
+    this.filter = initialFilter();
+    this.submissionStatus = null;
+  }
+}
 </script>
