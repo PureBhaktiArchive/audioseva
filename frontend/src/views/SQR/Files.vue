@@ -57,7 +57,7 @@ import DataTable from "@/components/DataTable.vue";
 import { getDayDifference, formatTimestamp } from "@/utility";
 
 @Component({
-  name: "Files.vue",
+  name: "Files",
   components: {
     DataTable
   }
