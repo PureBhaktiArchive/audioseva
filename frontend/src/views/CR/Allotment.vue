@@ -31,13 +31,13 @@
       </v-autocomplete>
       <!-- Language -->
       <v-layout row class="py-2">
-        <v-btn-toggle v-model="filesSelector.language">
+        <v-btn-toggle v-model="filter.language">
           <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
         </v-btn-toggle>
       </v-layout>
       <!-- List -->
       <v-layout row class="py-2">
-        <v-btn-toggle v-model="filesSelector.list" v-if="lists">
+        <v-btn-toggle v-model="filter.list" v-if="lists">
           <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
         </v-btn-toggle>
         <p v-else>Loading lists…</p>
@@ -53,7 +53,7 @@
               <span>{{ file.notes }}</span>
             </v-layout>
           </template>
-          <p v-else>No spare files found for selected language in {{filesSelector.list}} list.</p>
+          <p v-else>No spare files found for selected language in {{ filter.list }} list.</p>
         </template>
         <p v-else>Loading files…</p>
       </template>
@@ -84,158 +84,113 @@
 }
 </style>
 
-<script>
+<script lang="ts">
+import { Component, Mixins, Watch } from "vue-property-decorator";
 import fb from "@/firebaseApp";
 import firebase from "firebase";
 import _ from "lodash";
+import UsersByRole from "@/mixins/UsersByRole";
+import ShallowQuery from "@/mixins/FirebaseShallowQuery";
+import { initialAllotment, initialFilter } from "@/utility";
 
-const filteredStatus = ["Lost", "Opted out", "Incorrect", "Duplicate"];
+@Component({
+  name: "Allotment"
+})
+export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
+  UsersByRole,
+  ShallowQuery
+) {
+  usersRole = "CR";
+  languages: string[] = ["English", "Hindi", "Bengali", "None"];
+  files: any = null;
+  filter: any = initialFilter();
+  allotment: any = initialAllotment();
+  submissionStatus: any = null;
 
-export default {
-  name: "CRAllotment",
-  data: () => ({
-    users: null,
-    languages: ["English", "Hindi", "Bengali", "None"],
-    lists: null,
-    files: null,
-    filesSelector: {
-      language: null,
-      list: null,
-      count: 20
-    },
-    allotment: {
-      assignee: null,
-      files: [],
-      comment: null
-    },
-    submissionStatus: null
-  }),
-  mounted: async function() {
-    // Getting users
-    this.$bindAsArray(
-      "users",
-      fb
-        .database()
-        .ref("/users")
-        .orderByChild("roles/CR")
-        .equalTo(true),
-      null,
-      () => {
-        this.users = this.users.reduce(
-          (filteredUsers, { status, emailAddress, ...other }) => {
-            if (!filteredStatus.includes(status)) {
-              const user = { status, emailAddress, ...other };
-              filteredUsers.push(user);              
-              if (this.$route.query.emailAddress === emailAddress) {
-                this.allotment.assignee = user;  
-              }
-            }
-            return filteredUsers;
-          },
-          []
-        );
-      }
-    );
+  mounted() {
+    this.getUsers();
+    this.getLists();
+  }
 
-    // Getting lists
-    const response = await this.$http.get(
-      `${process.env.VUE_APP_FIREBASE_DATABASE_URL}/files.json?shallow=true`
-    );
-    this.lists = Object.keys(response.body);
-  },
-  computed: {
-    usersHint: function() {
-      const languages = _.get(this.allotment, "assignee.languages", {});
-      const hint = Object.keys(languages).join(", ");
-      return hint ? `Languages: ${hint}` : "";
-    }
-  },
-  methods: {
-    async allot() {
-      const {
-        assignee: { name, emailAddress },
-        ...other
-      } = this.allotment;
+  get usersHint() {
+    const languages = _.get(this.allotment, "assignee.languages", {});
+    const hint = Object.keys(languages).join(", ");
+    return hint ? `Languages: ${hint}` : "";
+  }
 
-      this.submissionStatus = "inProgress";
-      const allotmentData = {
-        ...other,
-        assignee: {
-          name,
-          emailAddress
-        },
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
-        user: fb.auth().currentUser.email
-      };
-      await fb
-        .database()
-        .ref("cr/allotments")
-        .push()
-        .set(allotmentData);
-
-      this.submissionStatus = "complete";
-    },
-    reset() {
-      this.allotment = {
-        assignee: null,
-        files: [],
-        comment: null
-      };
-      this.filesSelector = {
-        language: null,
-        list: null,
-        count: 20
-      };
-      this.files = null;
-      this.submissionStatus = null;
-    },
-    filterSelectedFiles() {
-      if (this.crFiles) {
-        this.files = this.crFiles.reduce(
-          (filteredItems, { languages, notes, ...other }) => {
-            if (languages && languages.includes(this.filesSelector.language)) {
-              filteredItems.push({
-                languages,
-                notes,
-                filename: other[".key"]
-              });
-            }
-            return filteredItems;
-          },
-          []
-        );
-      }
-    }
-  },
-  watch: {
-    "allotment.assignee": function(newValue) {
-      if (newValue == null) return;
-
-      for (let language of this.languages) {
-        if (newValue.languages[language]) {
-          this.filesSelector.language = language;
-        }
-      }
-    },
-    filesSelector: {
-      deep: true,
-      handler: function() {
-        this.files = null;
-        this.allotment.files = [];
-
-        if (
-          this.filesSelector.language == null ||
-          this.filesSelector.list == null
-        )
-          return;
-        this.$bindAsArray(
-          "crFiles",
-          fb.database().ref(`files/${this.filesSelector.list}`),
-          null, 
-          this.filterSelectedFiles
-        );
+  @Watch("allotment.assignee")
+  handleAssignee(newValue: any) {
+    if (newValue == null) return;
+    for (let language of this.languages) {
+      if (newValue.languages[language]) {
+        this.filter.language = language;
       }
     }
   }
-};
+
+  @Watch("filter", { deep: true })
+  handleFilter() {
+    const { language, list } = this.filter;
+    this.files = null;
+    this.allotment.files = [];
+
+    if (language == null || list == null) return;
+    this.$bindAsArray(
+      "crFiles",
+      fb.database().ref(`files/${list}`),
+      null,
+      this.filterSelectedFiles
+    );
+  }
+
+  async allot() {
+    const {
+      assignee: { name, emailAddress },
+      ...other
+    } = this.allotment;
+
+    this.submissionStatus = "inProgress";
+    const allotmentData = {
+      ...other,
+      assignee: {
+        name,
+        emailAddress
+      },
+      timestamp: firebase.database.ServerValue.TIMESTAMP,
+      user: fb.auth().currentUser.email
+    };
+    await fb
+      .database()
+      .ref("cr/allotments")
+      .push()
+      .set(allotmentData);
+
+    this.submissionStatus = "complete";
+  }
+
+  filterSelectedFiles() {
+    if (this.crFiles) {
+      this.files = this.crFiles.reduce(
+        (filteredItems, { languages, notes, ...other }) => {
+          if (languages && languages.includes(this.filter.language)) {
+            filteredItems.push({
+              languages,
+              notes,
+              filename: other[".key"]
+            });
+          }
+          return filteredItems;
+        },
+        []
+      );
+    }
+  }
+
+  reset() {
+    this.allotment = initialAllotment();
+    this.filter = initialFilter();
+    this.files = null;
+    this.submissionStatus = null;
+  }
+}
 </script>
