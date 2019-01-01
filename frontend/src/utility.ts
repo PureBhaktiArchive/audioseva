@@ -64,3 +64,14 @@ export const getTaskId = (fileName: string) => {
   const match = fileName.match(taskIdFormat);
   return match ? match[0] : false;
 };
+
+export const initialAllotment = () => ({
+  assignee: null,
+  files: [],
+  comment: null
+});
+
+export const initialFilter = () => ({
+  language: null,
+  list: null
+});
