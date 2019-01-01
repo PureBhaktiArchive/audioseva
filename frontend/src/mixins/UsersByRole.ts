@@ -1,11 +1,12 @@
 import { Component, Vue } from "vue-property-decorator";
 import fb from "@/firebaseApp";
+import { IUser } from "@/types/Users";
 
 const filteredStatus = ["Lost", "Opted out", "Incorrect", "Duplicate"];
 
 @Component
 export default class UserByRole extends Vue {
-  users: any[] | null = null;
+  users: IUser[] | null = null;
   usersBindName: string = "users";
   usersRole: string | null = null;
 
@@ -25,7 +26,7 @@ export default class UserByRole extends Vue {
 
   filterUsers() {
     if (this.users) {
-      this.users = this.users.reduce((users, { status, ...other }) => {
+      this.users = this.users.reduce((users: IUser[], { status = "lost", ...other }) => {
         const user = { status, ...other };
         if (!filteredStatus.includes(status)) {
           users.push(user);
