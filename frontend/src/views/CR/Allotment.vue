@@ -159,7 +159,7 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
         emailAddress
       },
       timestamp: firebase.database.ServerValue.TIMESTAMP,
-      user: fb.auth().currentUser.email
+      user: (fb as any).auth().currentUser.email
     };
     await fb
       .database()
