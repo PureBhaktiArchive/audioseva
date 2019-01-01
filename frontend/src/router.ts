@@ -43,9 +43,10 @@ export const router = new Router({
       component: () => import("@/components/Layout/AnonymousLayout.vue"),
       children: [
         {
-          path: "", component: () => import("@/views/Listen.vue")
+          path: "",
+          component: () => import("@/views/Listen.vue")
         }
-      ]      
+      ]
     },
     {
       path: "/",
@@ -68,13 +69,22 @@ export const router = new Router({
         {
           path: "reporting/content/",
           component: () => import("@/views/CR/CR.vue"),
-          meta: { activator: true, activatorName: "Content Reporting", menuIcon: "far fa-file-audio" },
+          meta: {
+            activator: true,
+            activatorName: "Content Reporting",
+            menuIcon: "far fa-file-audio"
+          },
           children: [
-            { path: "",
+            {
+              path: "",
               component: () => import("@/views/CR/List.vue"),
               meta: { menuItem: true }
             },
-            { path: "allot", component: () => import("@/views/CR/Allotment.vue"), meta: { menuItem: true } },
+            {
+              path: "allot",
+              component: () => import("@/views/CR/Allotment.vue"),
+              meta: { menuItem: true }
+            }
           ]
         },
         {
