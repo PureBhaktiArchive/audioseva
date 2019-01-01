@@ -47,9 +47,10 @@ interface ISQR {
   followUp: string;
 }
 
-export interface ISQRFileVueFire {
+export interface IFileVueFire {
   languages: string[];
   notes: string;
   [".key"]: string;
-  soundQualityReporting: ISQR;
+  soundQualityReporting?: ISQR;
+  contentReporting?: ISQR;
 }
