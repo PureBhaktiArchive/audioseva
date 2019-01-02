@@ -1,5 +1,5 @@
 <template>
-  <v-container grid-list-sm>
+  <div>
     <header>
       <h1>People</h1>
     </header>
@@ -44,7 +44,7 @@
       {{ snackText }}
       <v-btn flat @click="snack = false">Close</v-btn>
     </v-snackbar>
-  </v-container>
+  </div>
 </template>
 
 <script lang="ts">
