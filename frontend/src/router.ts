@@ -53,7 +53,7 @@ export const router = new Router({
         {
           path: "users",
           component: () => import("@/views/Users/List.vue"),
-          meta: { menuItem: true, menuName: "Users", menuIcon: "fas fa-users" }
+          meta: { menuItem: true, menuName: "People", menuIcon: "fas fa-users" }
         },
         {
           path: "reporting/content/",
