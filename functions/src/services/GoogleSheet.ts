@@ -242,12 +242,13 @@ export default class GoogleSheets extends SpreadSheet {
     tableToSearch.forEach((elem, index) => {
       if (elem[column] === rowValueToSearch) {
         found = elem;
-        no = index;
+        // Add 1 to zero index, and add another 1 for missing header row
+        no = index + 2;
       }
     });
     return {
       row: found,
-      range: `A${no + 2}:N`,
+      range: `${no}:${no}`,
     };
   }
 
