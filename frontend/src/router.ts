@@ -16,7 +16,7 @@ export const router = new Router({
     {
       path: "/login",
       meta: { guestOnly: true },
-      component: () => import("@/components/Layout/MainLayout.vue"),
+      component: () => import("@/views/Layout/MainLayout.vue"),
       children: [
         {
           path: "",
@@ -26,7 +26,7 @@ export const router = new Router({
     },
     {
       path: "/sound-editing/",
-      component: () => import("@/components/Layout/AnonymousLayout.vue"),
+      component: () => import("@/views/Layout/AnonymousLayout.vue"),
       children: [
         {
           path: "upload/:uploadCode",
@@ -40,7 +40,7 @@ export const router = new Router({
     },
     {
       path: "/listen/:fileName",
-      component: () => import("@/components/Layout/AnonymousLayout.vue"),
+      component: () => import("@/views/Layout/AnonymousLayout.vue"),
       children: [
         {
           path: "",
