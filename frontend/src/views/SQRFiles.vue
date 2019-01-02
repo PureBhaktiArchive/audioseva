@@ -3,30 +3,34 @@
     <header>
       <h1>Sound Quality Reporting</h1>
     </header>
-    <div class="nav-wrapper">
-      <!-- lists -->
-      <div>
-        <div v-if="isLoadingLists">
-          <div class="elevation-1 pa-1">
-            <span :style="{ marginRight: '4px' }">loading lists</span>
-            <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
+    <v-layout justify-space-between wrap>
+      <v-flex d-flex align-self-center xs12 md12>
+        <v-flex xs12 sm5 md3 align-self-center>
+          <v-text-field
+            v-model="search"
+            append-icon="fa-search"
+            label="Filter sound quality reporter"
+            single-line
+            hide-details
+          ></v-text-field>
+        </v-flex>
+        <v-flex md2 xl4 align-self-center :style="{ marginLeft: '20px' }">
+          <div v-if="isLoadingLists">
+            <div>
+              <span :style="{ marginRight: '4px' }">loading lists</span>
+              <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
+            </div>
           </div>
-        </div>
-        <div v-else>
-          <v-btn-toggle v-model="selectedButton" mandatory>
-            <v-btn v-for="(value, key, index) in lists" :key="index">
-              {{ value }}
-            </v-btn>
-          </v-btn-toggle>
-        </div>
-      </div>
-
-      <!-- Side links -->
-      <div class="d-flex" :style="{ alignItems: 'center' }">
-        <router-link :style="{ padding: '0 8px' }" to="sqr/statistics">Statistics</router-link>
-        <router-link to="sqr/allot">Allot</router-link>
-      </div>
-    </div>
+          <v-btn-toggle v-model="selectedButton" mandatory v-else>
+            <v-btn v-for="(value, key, index) in lists" :key="index">{{ value }}</v-btn>
+          </v-btn-toggle>         
+        </v-flex>
+        <v-flex align-self-center :style="{ textAlign: 'right' }">
+          <router-link :style="{ padding: '0 8px' }" to="sqr/statistics">Statistics</router-link>
+          <router-link to="sqr/allot">Allot</router-link>
+        </v-flex>
+      </v-flex>
+    </v-layout>
 
     <!-- Only show table if there's at least one list available -->
     <div v-if="lists.length">
@@ -34,7 +38,7 @@
         :headers="headers"
         :datatableProps="{ pagination, loading: isLoadingFiles }"
         :computedValue="computedCb"
-        :items="files"
+        :items="items"
         :styles="{ '.key': { 'font-weight-bold': true }}"
       >
         <template slot="table-no-data">
@@ -67,7 +71,7 @@ export default class SQRFiles extends Vue {
   files: any[] = [];
   isLoadingLists = false;
   isLoadingFiles = false;
-
+  search: string = "";
   selectedButton: number = 0;
 
   pagination = { rowsPerPage: -1 };
@@ -127,6 +131,38 @@ export default class SQRFiles extends Vue {
       () => (this.isLoadingFiles = false)
     );
   }
+
+  get items() {
+    return this.files.filter((file: any) => {
+      let matchesSearch = false;
+      if (!this.searchValue) {
+        matchesSearch = true;
+      } else {
+        matchesSearch = this.searchFields(file);
+      }
+      return matchesSearch;
+    });
+  }
+
+  get searchValue() {
+    return this.search.toLowerCase();
+  }
+
+  searchFields(item: any) {
+    let matchedItem = false;
+    let { soundQualityReporting: { followUp, assignee } = "" } = item;
+    if (
+      item[".key"].toLowerCase().includes(this.searchValue) ||
+      (followUp && followUp.toLowerCase().includes(this.searchValue)) ||
+      (assignee &&
+        assignee.name &&
+        assignee.name.toLowerCase().includes(this.searchValue))
+    ) {
+      matchedItem = true;
+    }
+    return matchedItem;
+  }
+
 }
 </script>
 
