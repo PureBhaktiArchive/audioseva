@@ -58,10 +58,6 @@ export const router = new Router({
           component: () => import("@/views/Home.vue")
         },
         {
-          path: "cr/allot",
-          component: () => import("@/views/CRAllotment.vue")
-        },
-        {
           path: "users",
           component: () => import("@/views/Users/List.vue"),
           meta: { menuItem: true, menuName: "People", menuIcon: "fas fa-users" }
@@ -133,14 +129,6 @@ export const router = new Router({
               meta: { menuItem: true }
             }
           ]
-        },
-        {
-          path: "te/allot",
-          component: () => import("@/views/TEAllotment.vue")
-        },
-        {
-          path: "te/fc/allot",
-          component: () => import("@/views/TFCAllotment.vue")
         },
         {
           path: "/qc/allot",
