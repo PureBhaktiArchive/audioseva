@@ -118,12 +118,14 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
   @Watch("selectedButton")
   handleButtonClick() {
     this.isLoadingFiles = true;
-    this.$bindAsArray(
-      "files",
-      db.ref(`/files/${this.lists[this.selectedButton]}`),
-      null,
-      () => (this.isLoadingFiles = false)
-    );
+    if (this.lists) {
+      this.$bindAsArray(
+        "files",
+        db.ref(`/files/${this.lists[this.selectedButton]}`),
+        null,
+        () => (this.isLoadingFiles = false)
+      );
+    }
   }
 }
 </script>
