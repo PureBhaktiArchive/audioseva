@@ -4,34 +4,6 @@ export enum GoogleScopes {
   SpreadSheets = 'https://www.googleapis.com/auth/spreadsheets',
 }
 
-const letters: string[] = [
-  'A',
-  'B',
-  'C',
-  'D',
-  'E',
-  'F',
-  'G',
-  'H',
-  'I',
-  'J',
-  'K',
-  'L',
-  'M',
-  'N',
-  'O',
-  'P',
-  'Q',
-  'R',
-  'S',
-  'T',
-  'U',
-  'V',
-  'X',
-  'Y',
-  'Z',
-];
-
 type ISheetId = string;
 
 // Create other SpreadSheet Interfaces and add to IProjectSpreadSheetNames
@@ -165,7 +137,7 @@ export default class GoogleSheets extends SpreadSheet {
     const headers: any[] = values[0];
     headers.forEach((elem, index) => {
       if (elem === columnName) {
-        targetedColumn = letters[index];
+        targetedColumn = this._getNotationLetterFromIndex(index);
       }
     });
 
@@ -242,7 +214,7 @@ export default class GoogleSheets extends SpreadSheet {
   public async appendRow<T>(
     sheetId: string,
     sheetName: IProjectSpreadSheetNames,
-    appendValues: T,
+    appendValues: T
   ): Promise<any> {
     await this.connect();
 
@@ -277,6 +249,13 @@ export default class GoogleSheets extends SpreadSheet {
       row: found,
       range: `A${no + 2}:N`,
     };
+  }
+
+  protected _getNotationLetterFromIndex(index: number): string {
+    return (
+      (index >= 26 ? this._getNotationLetterFromIndex(((index / 26) >> 0) - 1) : '') +
+      'abcdefghijklmnopqrstuvwxyz'[index % 26 >> 0].toUpperCase()
+    );
   }
 
   protected _convertRows(headerKeys: any[], rows: any[]): any[] {
