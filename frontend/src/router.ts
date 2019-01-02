@@ -30,7 +30,7 @@ export const router = new Router({
       children: [
         {
           path: "upload/:uploadCode",
-          component: () => import("@/views/SoundEngineerUpload.vue")
+          component: () => import("@/views/SE/Upload.vue")
         }
       ]
     },

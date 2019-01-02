@@ -86,7 +86,7 @@ interface IFileStatus {
 const seUpload = fb.storage(process.env.VUE_APP_SOUND_EDITING_UPLOADS_BUCKET);
 
 @Component({
-  name: "SoundEngineerUpload",
+  name: "Upload",
   components: {
     VueDropzone
   }
