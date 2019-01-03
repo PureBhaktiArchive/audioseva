@@ -1,5 +1,8 @@
 <template>
-  <v-container grid-list-sm>
+  <div>
+    <header>
+      <h1>People</h1>
+    </header>
     <v-layout justify-space-between wrap>
       <v-flex xs12 sm5 md3>
         <v-text-field
@@ -41,7 +44,7 @@
       {{ snackText }}
       <v-btn flat @click="snack = false">Close</v-btn>
     </v-snackbar>
-  </v-container>
+  </div>
 </template>
 
 <script lang="ts">
