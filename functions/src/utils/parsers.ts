@@ -1,4 +1,3 @@
-// import { format } from "date-fns";
 import * as moment from "moment";
 
 export function spreadsheetDateFormat(date: number): string {
