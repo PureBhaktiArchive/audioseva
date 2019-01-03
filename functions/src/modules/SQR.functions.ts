@@ -426,7 +426,7 @@ export interface ISubmissionRow {
  * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
  *
  */
-export const syncAllotments = functions.database
+export const exportAllotmentsToSpreadsheet = functions.database
   .ref('/files/{listName}/{fileName}')
   .onUpdate(
     async (
