@@ -4,12 +4,6 @@ export enum GoogleScopes {
   SpreadSheets = 'https://www.googleapis.com/auth/spreadsheets',
 }
 
-// Create other SpreadSheet Interfaces and add to IProjectSpreadSheetNames
-// enum IOtherReportSheet {  }
-
-export type IProjectSpreadSheetNames = string;
-export type ISheetRowTypes = any;
-
 enum IMajorDimensions {
   Rows = 'ROWS',
   Columns = 'COLUMNS',
@@ -18,11 +12,6 @@ enum IMajorDimensions {
 enum IValueInputOption {
   USER_ENTERED = 'USER_ENTERED',
   RAW = 'RAW',
-}
-
-interface IGetSheetResponse {
-  headers: any[];
-  rows: any[];
 }
 
 export default class GoogleSheets {
