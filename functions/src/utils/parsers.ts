@@ -1,15 +1,14 @@
-import { format } from "date-fns";
-
-export const EMPTY_VALUE = "-";
+// import { format } from "date-fns";
+import * as moment from "moment";
 
 export function spreadsheetDateFormat(date: number): string {
   if (!date) {
     return "-";
   }
-  return format(date*1000, "MM/DD/YYYY");
+  return moment(date*1000).format("MM/DD/YYYY");
 }
 
-export function withDefault(text: string, missing: string = EMPTY_VALUE) {
+export function withDefault(text: string, missing: string = "-") {
   return text ? text : missing;
 }
 
