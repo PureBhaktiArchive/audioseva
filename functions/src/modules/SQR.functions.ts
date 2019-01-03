@@ -383,46 +383,6 @@ export const importSpreadSheetData = functions.https.onRequest(
 );
 
 /**
- * The keys here represent the column keys in Google Sheets, days_passed = "Days passed"
- * As long as the order is preserved, the cells will be updated correctly, the spelling
- * of the keys and headers are unimportant to Google Sheets API
- */
-export interface IAllotmentRow {
-  // some of these should ideally be enums
-  days_passed: string;
-  date_given: string;
-  notes: string;
-  language: string;
-  status: string;
-  file_name: string;
-  devotee: string;
-  email: string;
-  phone: string;
-  location: string;
-  date_done: string;
-  follow_up: string;
-  list: string;
-  serial: number;
-}
-
-export interface ISubmissionRow {
-  // some of these should ideally be enums
-  completed: string;
-  updated: string;
-  submission_serial: number;
-  update_link: string;
-  audio_file_name: string;
-  unwanted_parts: string;
-  sound_issues: string;
-  sound_quality_rating: string;
-  beginning: string;
-  ending: string;
-  comments: string;
-  name: string;
-  email_address: string;
-}
-
-/**
  * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
  *
  */
@@ -468,7 +428,7 @@ export const exportAllotmentsToSpreadsheet = functions.database
   );
 
 
-interface IAudioDescription {
+interface IAudioChunkDescription {
   beginning: string; // h:mm:ss
   ending: string; // h:mm:ss
   type: string;
@@ -479,12 +439,12 @@ interface IAudioDescription {
  * Used for Unwanted Parts and Sound Issues to create multi-line comments
  *
  */
-export function formatMultilineComment(audioDescriptionList: IAudioDescription[]) {
+export function formatMultilineComment(audioDescriptionList: IAudioChunkDescription[]) {
   if (!audioDescriptionList || !audioDescriptionList.length) {
     return "-";
   }
   let multiline = "";
-  audioDescriptionList.forEach((elem: IAudioDescription, index: number) => {
+  audioDescriptionList.forEach((elem: IAudioChunkDescription, index: number) => {
     multiline = multiline
     + `${elem.beginning}-${elem.ending}:${elem.type} -- ${elem.description}`
     + ((audioDescriptionList.length === (index + 1)) ? "" : "\n");
