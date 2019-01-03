@@ -2,10 +2,6 @@ import { format } from "date-fns";
 
 export const EMPTY_VALUE = "-";
 
-export function createUpdateLink(token: string): string {
-  return `http://purebhakti.info/audioseva/form/sound-quality-report?token=${token}`;
-}
-
 export function spreadsheetDateFormat(date: number): string {
   if (!date) {
     return "-";
