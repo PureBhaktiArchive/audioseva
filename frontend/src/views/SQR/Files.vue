@@ -162,7 +162,6 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
     }
     return matchedItem;
   }
-
 }
 </script>
 
