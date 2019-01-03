@@ -8,7 +8,7 @@ const lodash = require('lodash');
 
 const db = admin.database();
 import * as helpers from './../helpers';
-import GoogleSheet from '../services/GoogleSheet';
+import GoogleSheets from '../services/GoogleSheets';
 import {
   spreadsheetDateFormat,
   withDefault,
@@ -437,7 +437,7 @@ export const syncAllotments = functions.database
       const changedValues = change.after.val();
       const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
-      const gsheets = new GoogleSheet();
+      const gsheets = new GoogleSheets();
       const allotmentFileNames = await gsheets.getColumn(
         spreadsheetId,
         ISoundQualityReportSheet.Allotments,
@@ -517,7 +517,7 @@ export const syncSubmissions = functions.database
       snapshot: functions.database.DataSnapshot,
       context: functions.EventContext
     ): Promise<any> => {
-      const gsheets = new GoogleSheet();
+      const gsheets = new GoogleSheets();
       const {
         author,
         changed,
