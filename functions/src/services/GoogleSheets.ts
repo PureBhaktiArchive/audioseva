@@ -103,6 +103,9 @@ export default class GoogleSheets {
   }
 
   public async getRow(rowNumber: number): Promise<any> {
+    this.connect();
+    this.getHeaders();
+
     const rowRange = `${this.sheetName}!${rowNumber}:${rowNumber}`;
     const row: any = await this.connection.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
@@ -114,6 +117,8 @@ export default class GoogleSheets {
 
   public async updateRow(rowNumber: number, updateValues: any): Promise<any> {
     this.connect();
+    this.getHeaders();
+
     const rowRange = `${this.sheetName}!${rowNumber}:${rowNumber}`;
     const updateRow = this._convertColumnFormat(updateValues);
     const afterUpdate = await this.connection.spreadsheets.values.update({
