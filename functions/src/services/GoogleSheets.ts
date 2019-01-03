@@ -73,7 +73,7 @@ export default class GoogleSheets {
     }
 
     this.headers = values.shift();
-    return this._convertRows(this.headers, values);
+    return this._convertRows(values);
   }
 
   public async getColumn(columnName: string) {
@@ -108,13 +108,23 @@ export default class GoogleSheets {
     return [].concat.apply([], entireColumn.data.values);
   }
 
+  public async getRow(rowNumber: number): Promise<any> {
+    const rowRange = `${this.sheetName}!${rowNumber}:${rowNumber}`;
+    const row: any = await this.connection.spreadsheets.values.get({
+      spreadsheetId: this.spreadsheetId,
+      majorDimension: IMajorDimensions.Rows,
+      range: rowRange,
+    });
+    return this._convertRows(row.data.values)[0];
+  }
+
   public async updateRow(rowNumber: number, updateValues: any): Promise<any> {
     this.connect();
-    const targetedRange = `${this.sheetName}!${rowNumber}:${rowNumber}`;
+    const rowRange = `${this.sheetName}!${rowNumber}:${rowNumber}`;
     const updateRow = this._convertColumnFormat(updateValues);
     const afterUpdate = await this.connection.spreadsheets.values.update({
       spreadsheetId: this.spreadsheetId,
-      range: targetedRange,
+      range: rowRange,
       valueInputOption: IValueInputOption.USER_ENTERED,
       resource: {
         values: [updateRow],
@@ -172,10 +182,10 @@ export default class GoogleSheets {
     );
   }
 
-  protected _convertRows(headerKeys: any[], rows: any[]): any[] {
+  protected _convertRows(rows: any[]): any[] {
     return rows.map((row: any[]) => {
       const obj = {};
-      headerKeys.forEach((key: string, i2) => {
+      this.headers.forEach((key: string, i2) => {
         obj[key] = row[i2];
       });
       return obj;
