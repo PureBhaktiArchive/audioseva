@@ -50,25 +50,34 @@ import { functions } from 'firebase';
 <style>
 </style>
 
-<script>
-export default {
-  name: "ListenAudio",
-  data: () => ({
-    fileName: null,
-  }),
-  mounted: function() {
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component({
+  name: "Listen"
+})
+export default class ListenAudio extends Vue {
+  fileName: string = "";
+
+  mounted() {
     this.fileName = this.$route.params.fileName;
-  },
-  computed: {
-    audioUrl: function() {      
-      let nameAndExtension = this.fileName ? this.fileName.split("."): [];
-      let list = nameAndExtension && nameAndExtension[0] ? nameAndExtension[0].split("-")[0]: null;
-      let folder = nameAndExtension && nameAndExtension[1] && nameAndExtension[1] == "mp3" ? "mp3": "source";
-      return `http://original.${process.env.VUE_APP_STORAGE_ROOT_DOMAIN}/${folder}/${list}/${this.fileName}`;
-    },
-    audioFileName: function() {
-      return this.fileName ? this.fileName.split('.')[0]: null;
-    }
   }
-};
+
+  get nameAndExtension() {
+    return this.fileName.split(".");
+  }
+
+  get audioUrl() {
+    const [name, extension] = this.nameAndExtension;
+    const list = name ? name.split("-")[0] : null;
+    const folder = extension && extension === "mp3" ? "mp3" : "source";
+    return `http://original.${
+      process.env.VUE_APP_STORAGE_ROOT_DOMAIN
+    }/${folder}/${list}/${this.fileName}`;
+  }
+
+  get audioFileName() {
+    return this.nameAndExtension[0];
+  }
+}
 </script>

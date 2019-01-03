@@ -1,7 +1,13 @@
 import moment from "moment";
-import { getDayDifference, getLastDays, mergeDoneStatistics, formatTimestamp, validateFlacFile } from "@/utility";
+import {
+  getDayDifference,
+  getLastDays,
+  mergeDoneStatistics,
+  formatTimestamp,
+  validateFlacFile
+} from "@/utility";
 
-describe('utility', function () {
+describe("utility", function() {
   beforeEach(() => {
     moment.now = () => +new Date();
   });
@@ -22,7 +28,9 @@ describe('utility', function () {
     moment.now = () => +new Date(1541497995699);
     const doneStatistics = {
       today: 1,
-      [moment().subtract(1, "days").format("MMM DD")]: 1
+      [moment()
+        .subtract(1, "days")
+        .format("MMM DD")]: 1
     };
     const results = mergeDoneStatistics(doneStatistics);
     expect(results).toMatchSnapshot();
@@ -41,10 +49,14 @@ describe('utility', function () {
 
   it("should validateFlacFile", () => {
     const fileName = "list1-001-1.flac";
-    expect(validateFlacFile({ name: fileName, type: "audio/flac" })).toBeTruthy();
+    expect(
+      validateFlacFile({ name: fileName, type: "audio/flac" })
+    ).toBeTruthy();
   });
 
   it("should throw error if bad validateFlacFile", () => {
-    expect(() => validateFlacFile({ name: "badname.txt" })).toThrowError("File type must be flac")
+    expect(() => validateFlacFile({ name: "badname.txt" })).toThrowError(
+      "File type must be flac"
+    );
   });
 });
