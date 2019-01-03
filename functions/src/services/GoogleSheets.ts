@@ -117,67 +117,22 @@ export default class GoogleSheets {
     return [].concat.apply([], entireColumn.data.values);
   }
 
-  /**
-   * Updates a specific Allotment Sheet row
-   *
-   * @param sheetId Update row with known row number
-   * @param sheetName
-   * @param appendValues
-   */
-  public async updateAllotmentRow(
-    rowNumber: number,
-    updateValues: any
-  ): Promise<any> {
-    const targetedRange = `${this.sheetName}!${rowNumber}:${rowNumber}`;
-    // Get our targeted row
-    const targetRow: any = await this.connection.spreadsheets.values.get({
-      spreadsheetId: this.spreadsheetId,
-      majorDimension: IMajorDimensions.Rows,
-      range: targetedRange,
-    });
-
-    // Update this row with new merged data from database
-    // Object.keys(updateValues).forEach((elem, index) => {
-    //   targetRow.data.values[0][index] = targetRow.data.values[0][index];
-    // });
-    const resource = {
-      values: [
-        [
-          targetRow.data.values[0][0], // "Days passed"
-          updateValues.date_given,
-          updateValues.notes || '',
-          updateValues.language || '',
-          updateValues.status,
-          targetRow.data.values[0][5], // "File Name"
-          updateValues.devotee,
-          updateValues.email,
-          '', // Phone
-          '', // Location
-          updateValues.date_done,
-          updateValues.follow_up,
-          targetRow.data.values[0][12], // "List"
-          targetRow.data.values[0][13], // "Serial"
-        ],
-      ],
-    };
-
-    const afterUpdate = await this.connection.spreadsheets.values.update({
-      spreadsheetId: this.spreadsheetId,
-      range: targetedRange,
-      valueInputOption: IValueInputOption.USER_ENTERED,
-      resource,
-    });
-
-    return afterUpdate;
-  }
-
-  public async updateRow<T>(
+  public async updateRow(
     rowNumber: number,
     updateValues: any
   ): Promise<any> {
     this.connect();
-
-
+    const targetedRange = `${this.sheetName}!${rowNumber}:${rowNumber}`;
+    const updateRow = this._convertColumnFormat(updateValues);
+    const afterUpdate = await this.connection.spreadsheets.values.update({
+      spreadsheetId: this.spreadsheetId,
+      range: targetedRange,
+      valueInputOption: IValueInputOption.USER_ENTERED,
+      resource: {
+        values: [ updateRow ],
+      },
+    });
+    return afterUpdate;
   }
 
   /**
@@ -187,19 +142,15 @@ export default class GoogleSheets {
    * @param appendValues Data values to add to Google Sheets
    */
   public async appendRow<T>(
-    sheetId: string,
-    sheetName: IProjectSpreadSheetNames,
     appendValues: T
   ): Promise<any> {
     await this.connect();
-
-    // https://developers.google.com/sheets/api/guides/values#appending_values
     const appendResponse: any = await this.connection.spreadsheets.values.append(
       {
-        spreadsheetId: sheetId,
-        range: sheetName,
+        spreadsheetId: this.spreadsheetId,
+        range: this.sheetName,
         valueInputOption: IValueInputOption.USER_ENTERED,
-        resource: this._convertAppendFormat(appendValues),
+        resource: this._convertColumnFormat(appendValues),
       }
     );
 
@@ -244,14 +195,13 @@ export default class GoogleSheets {
     });
   }
 
-  protected _convertAppendFormat(appendValues: any) {
-    const prep = [];
-    for (const key of Object.keys(appendValues)) {
-      prep.push(appendValues[key]);
-    }
-    return {
-      values: [prep],
-    };
+  protected _convertColumnFormat(appendValues: any) {
+    return this.headers.map((c: string) => {
+      let columnValue = appendValues[c];
+      if (columnValue === null || columnValue === undefined) {
+        columnValue = "";
+      }
+    });
   }
 
   protected _computeRange(limit?: number): string {
