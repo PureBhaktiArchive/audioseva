@@ -53,9 +53,7 @@ export default class GoogleSheets {
    * @param sheet The sheet to query from google sheets api
    * @param limit How many rows you want including the header titles
    */
-  public async getSheet(
-    limit?: number
-  ): Promise<IGetSheetResponse> {
+  public async getSheet(limit?: number): Promise<any> {
     await this.connect();
     const targetSheet: any = await this.connection.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
@@ -63,7 +61,7 @@ export default class GoogleSheets {
       range: this.sheetName + this._computeRange(limit),
     });
 
-    const { statusText, status, data, headers } = targetSheet;
+    const { statusText, status, data } = targetSheet;
     if (statusText !== 'OK' || status !== 200) {
       console.error('Error: Not able to get google sheet');
       return null;
@@ -75,18 +73,11 @@ export default class GoogleSheets {
     }
 
     this.headers = values.shift();
-    return {
-      headers: this.headers,
-      rows: this._convertRows(this.headers, values),
-    };
+    return this._convertRows(this.headers, values);
   }
 
-  public async getColumn(
-    columnName: string
-  ) {
+  public async getColumn(columnName: string) {
     await this.connect();
-
-    // Retrieve first row of headers
     const firstRow: any = await this.connection.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
@@ -106,7 +97,7 @@ export default class GoogleSheets {
     if (index > -1) {
       targetedColumn = this._getNotationLetterFromIndex(index);
     } else {
-      throw Error("Column not found");
+      throw Error('Column not found');
     }
 
     const entireColumn: any = await this.connection.spreadsheets.values.get({
@@ -117,10 +108,7 @@ export default class GoogleSheets {
     return [].concat.apply([], entireColumn.data.values);
   }
 
-  public async updateRow(
-    rowNumber: number,
-    updateValues: any
-  ): Promise<any> {
+  public async updateRow(rowNumber: number, updateValues: any): Promise<any> {
     this.connect();
     const targetedRange = `${this.sheetName}!${rowNumber}:${rowNumber}`;
     const updateRow = this._convertColumnFormat(updateValues);
@@ -129,7 +117,7 @@ export default class GoogleSheets {
       range: targetedRange,
       valueInputOption: IValueInputOption.USER_ENTERED,
       resource: {
-        values: [ updateRow ],
+        values: [updateRow],
       },
     });
     return afterUpdate;
@@ -141,9 +129,7 @@ export default class GoogleSheets {
    * @param sheetId The sheet to query from google sheets api
    * @param appendValues Data values to add to Google Sheets
    */
-  public async appendRow<T>(
-    appendValues: T
-  ): Promise<any> {
+  public async appendRow<T>(appendValues: T): Promise<any> {
     await this.connect();
     const appendResponse: any = await this.connection.spreadsheets.values.append(
       {
@@ -180,8 +166,9 @@ export default class GoogleSheets {
 
   protected _getNotationLetterFromIndex(index: number): string {
     return (
-      (index >= 26 ? this._getNotationLetterFromIndex(((index / 26) >> 0) - 1) : '') +
-      'abcdefghijklmnopqrstuvwxyz'[index % 26 >> 0].toUpperCase()
+      (index >= 26
+        ? this._getNotationLetterFromIndex(((index / 26) >> 0) - 1)
+        : '') + 'abcdefghijklmnopqrstuvwxyz'[index % 26 >> 0].toUpperCase()
     );
   }
 
@@ -199,7 +186,7 @@ export default class GoogleSheets {
     return this.headers.map((c: string) => {
       let columnValue = appendValues[c];
       if (columnValue === null || columnValue === undefined) {
-        columnValue = "";
+        columnValue = '';
       }
     });
   }
