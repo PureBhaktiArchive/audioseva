@@ -164,26 +164,6 @@ export default class GoogleSheets {
     return { spreadsheetId, updatedRows };
   }
 
-  public async findRowWithColumnValue(
-    column: string,
-    rowValueToSearch: string | any,
-    tableToSearch: any
-  ): Promise<any> {
-    let found = {};
-    let no = 0;
-    tableToSearch.forEach((elem, index) => {
-      if (elem[column] === rowValueToSearch) {
-        found = elem;
-        // Add 1 to zero index, and add another 1 for missing header row
-        no = index + 2;
-      }
-    });
-    return {
-      row: found,
-      range: `${no}:${no}`,
-    };
-  }
-
   protected _getNotationLetterFromIndex(index: number): string {
     return (
       (index >= 26
