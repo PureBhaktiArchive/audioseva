@@ -1,4 +1,3 @@
-
 interface IBaseAssignee {
   emailAddress: string;
   name: string;
@@ -12,7 +11,7 @@ interface IAllotmentAssignee extends IBaseAssignee {
 }
 
 interface IBaseAllotment {
-  assignee: IAllotmentAssignee | null
+  assignee: IAllotmentAssignee | null;
   comment: string;
 }
 

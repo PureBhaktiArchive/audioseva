@@ -1,32 +1,39 @@
 import { shallowMount } from "@vue/test-utils";
-import SQRFileStatistics from "@/views/SQRFileStatistics.vue";
+import SQRFileStatistics from "@/views/SQR/FileStatistics.vue";
 
 const lists = {
   list1: {
     file1: {
-      status: "Spare",
+      soundQualityReporting: {
+        status: "Spare"
+      },
       languages: ["English"]
     },
     file2: {
-      status: "Spare",
+      soundQualityReporting: {
+        status: "Spare"
+      },
       languages: ["English"]
     }
   },
   list2: {
     file3: {
-      status: "Given",
+      soundQualityReporting: {
+        status: "Given"
+      },
       languages: ["English"]
     },
     file4: {
-      status: "Spare",
+      soundQualityReporting: {
+        status: "Spare"
+      },
       languages: ["Bengali"]
     }
   }
 };
 
-describe('SQRFileStatistics', () => {
-
-  it('should extract files', () => {
+describe("SQRFileStatistics", () => {
+  it("should extract files", () => {
     const wrapper = shallowMount(SQRFileStatistics, {
       mocks: {
         lists
@@ -38,7 +45,9 @@ describe('SQRFileStatistics', () => {
     wrapper.vm.extractFiles();
     expect(wrapper.vm.filesByStatus).toMatchSnapshot("files by status");
     expect(wrapper.vm.spareByLanguage).toMatchSnapshot("spare by language");
-    expect(wrapper.vm.fileCountByStatus).toMatchSnapshot("file count by status");
+    expect(wrapper.vm.fileCountByStatus).toMatchSnapshot(
+      "file count by status"
+    );
   });
 
   it("should get doneStatistics", () => {

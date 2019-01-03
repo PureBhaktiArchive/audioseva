@@ -33,7 +33,7 @@
     </v-layout>
 
     <!-- Only show table if there's at least one list available -->
-    <div v-if="lists.length">
+    <div v-if="lists && lists.length">
       <data-table
         :headers="headers"
         :datatableProps="{ pagination, loading: isLoadingFiles }"
@@ -54,21 +54,22 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Mixins, Watch } from "vue-property-decorator";
 import _ from "lodash";
 import { db } from "@/main";
 import DataTable from "@/components/DataTable.vue";
 import { getDayDifference, formatTimestamp } from "@/utility";
+import ShallowQuery from "@/mixins/FirebaseShallowQuery";
+import { IFileVueFire } from "@/types/DataTable";
 
 @Component({
-  name: "SQRFiles",
+  name: "Files",
   components: {
     DataTable
   }
 })
-export default class SQRFiles extends Vue {
-  lists: string[] = [];
-  files: any[] = [];
+export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
+  files: IFileVueFire[] = [];
   isLoadingLists = false;
   isLoadingFiles = false;
   search: string = "";
@@ -99,7 +100,7 @@ export default class SQRFiles extends Vue {
         "soundQualityReporting.timestampGiven",
         false
       );
-      if (dateGiven) {
+      if (typeof dateGiven === "number") {
         return getDayDifference(dateGiven);
       }
       return "";
@@ -113,10 +114,7 @@ export default class SQRFiles extends Vue {
 
   async mounted() {
     this.isLoadingLists = true;
-    const response: any = await this.$http.get(
-      `${process.env.VUE_APP_FIREBASE_DATABASE_URL}/files.json?shallow=true`
-    );
-    this.lists = Object.keys(response.body);
+    await this.getLists();
     this.isLoadingLists = false;
     this.handleButtonClick();
   }
@@ -124,12 +122,14 @@ export default class SQRFiles extends Vue {
   @Watch("selectedButton")
   handleButtonClick() {
     this.isLoadingFiles = true;
-    this.$bindAsArray(
-      "files",
-      db.ref(`/files/${this.lists[this.selectedButton]}`),
-      null,
-      () => (this.isLoadingFiles = false)
-    );
+    if (this.lists) {
+      this.$bindAsArray(
+        "files",
+        db.ref(`/files/${this.lists[this.selectedButton]}`),
+        null,
+        () => (this.isLoadingFiles = false)
+      );
+    }
   }
 
   get items() {
@@ -162,7 +162,6 @@ export default class SQRFiles extends Vue {
     }
     return matchedItem;
   }
-
 }
 </script>
 
