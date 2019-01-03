@@ -33,39 +33,9 @@ interface IGetSheetResponse {
   rows: any[];
 }
 
-abstract class SpreadSheet {
-  protected abstract connect(): any;
-  public abstract getSheet(
-    spreadsheetId: ISheetId,
-    sheetName: IProjectSpreadSheetNames,
-    limit?: number
-  ): Promise<IGetSheetResponse>;
-  public abstract appendRow(
-    spreadsheetId: ISheetId,
-    sheetName: IProjectSpreadSheetNames,
-    appendValues: any
-  ): Promise<any>;
-  public abstract getColumn(
-    spreadsheetId: ISheetId,
-    sheetName: IProjectSpreadSheetNames,
-    columnName: string
-  ): Promise<any>;
-  public abstract findRowWithColumnValue(
-    column: string,
-    rowValueToSearch: string | any,
-    tableToSearch: any
-  ): Promise<any>;
-  public abstract updateAllotmentRow(
-    sheetId: string,
-    sheetName: IProjectSpreadSheetNames,
-    rowNumber: number,
-    updateValues: any
-  ): Promise<any>;
-}
-
 type IRowValues = string[] | number[];
 
-export default class GoogleSheets extends SpreadSheet {
+export default class GoogleSheets {
   protected connection: any;
 
   protected async connect() {
