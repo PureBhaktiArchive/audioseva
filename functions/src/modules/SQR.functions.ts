@@ -10,7 +10,6 @@ const db = admin.database();
 import * as helpers from './../helpers';
 import GoogleSheet from '../services/GoogleSheet';
 import {
-  createUpdateLink,
   spreadsheetDateFormat,
   withDefault,
   commaSeparated,
@@ -503,6 +502,10 @@ export function formatMultilineComment(audioDescriptionList: IAudioDescription[]
     + ((audioDescriptionList.length === (index + 1)) ? "" : "\n");
   });
   return multiline;
+}
+
+export function createUpdateLink(token: string): string {
+  return `http://purebhakti.info/audioseva/form/sound-quality-report?token=${token}`;
 }
 
 /**
