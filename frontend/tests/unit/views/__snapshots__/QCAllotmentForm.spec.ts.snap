@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`QCAllotmentForm should render 1`] = `
+<div>
+  <h1>Quality Check Allotment</h1>
+  <v-form>
+    <v-autocomplete return-object="" items="" item-text="name" label="Select an assignee" clearable="" dense=""></v-autocomplete>
+    <div class="py-2">
+      <v-data-table headers="[object Object],[object Object],[object Object],[object Object],[object Object]" pagination="[object Object]" hide-actions="" items="[object Object]"><template></template> <template></template></v-data-table>
+    </div>
+    <v-textarea box="" label="Comment"></v-textarea>
+    <v-btn>submit</v-btn>
+  </v-form>
+</div>
+`;

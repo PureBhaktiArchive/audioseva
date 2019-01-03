@@ -13,14 +13,15 @@ export default class TableData extends Vue {
     const { props: otherProps = {}, ...other } = this.componentData;
 
     return createElement(
-        Component,
-        // spread props from data table component plus otherProps passed in from parent of data table component
-        {
-          props: {
-            ...otherProps,
-            ...props
-          },
-          ...other
-        })
+      Component,
+      // spread props from data table component plus otherProps passed in from parent of data table component
+      {
+        props: {
+          ...otherProps,
+          ...props
+        },
+        ...other
+      }
+    );
   }
 }
