@@ -6,14 +6,14 @@ export function getDayDifference(date: number) {
   return moment().diff(date, "days");
 }
 
-type MomentDateOrString = string|moment.Moment
+type MomentDateOrString = string | moment.Moment;
 
 export const getLastDays = (day = 5) => {
   const days: MomentDateOrString[] = ["today"];
   const today = moment();
   let i;
   for (i = 1; i < day + 1; i++) {
-    days.unshift(today.clone().subtract(i, "days"))
+    days.unshift(today.clone().subtract(i, "days"));
   }
   return days;
 };
@@ -23,8 +23,7 @@ export const mergeDoneStatistics = (doneStatistics: ICount) => {
   getLastDays().forEach((date: MomentDateOrString) => {
     if (typeof date === "string") {
       baseStatistics[date] = 0;
-    }
-    else {
+    } else {
       baseStatistics[date.format("MMM DD")] = 0;
     }
   });
@@ -67,3 +66,14 @@ export const getTaskId = (fileName: string) => {
 };
 
 export const getListId = (fileId: string) => fileId.split("-")[0];
+
+export const initialAllotment = () => ({
+  assignee: null,
+  files: [],
+  comment: null
+});
+
+export const initialFilter = () => ({
+  language: null,
+  list: null
+});
