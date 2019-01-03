@@ -135,10 +135,6 @@ export const router = new Router({
               meta: { menuItem: true }
             }
           ]
-        },
-        {
-          path: "/qc/allot",
-          component: () => import("@/views/QCAllotment.vue")
         }
       ]
     }
