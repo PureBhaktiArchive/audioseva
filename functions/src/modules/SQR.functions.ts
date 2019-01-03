@@ -19,7 +19,6 @@ import {
 export enum ISoundQualityReportSheet {
   Allotments = 'Allotments',
   Submissions = 'Submissions',
-  Statistics = 'Statistics',
 }
 
 /////////////////////////////////////////////////
