@@ -3,30 +3,39 @@
     <header>
       <h1>Sound Engineering</h1>
     </header>
-    <v-layout row justify-space-between class="mb-2">
-      <div v-if="isLoadingLists">
-        <div class="elevation-1 pa-1">
-          <span :style="{ marginRight: '4px' }">loading lists</span>
-          <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
-        </div>
-      </div>
-      <div v-else>
-        <v-btn-toggle v-model="selectedButton" mandatory>
-          <v-btn v-for="(value, key, index) in lists" :key="index">
-            {{ value }}
-          </v-btn>
-        </v-btn-toggle>
-      </div>
-      <div class="align-center d-flex">
-        <router-link to="se/allot">Allot</router-link>
-      </div>
+    <v-layout justify-space-between wrap>
+      <v-flex d-flex align-self-center xs12 md12>
+        <v-flex xs12 sm5 md3 align-self-center>
+          <v-text-field
+            v-model="search"
+            append-icon="fa-search"
+            label="Filter sound engineer"
+            single-line
+            hide-details
+          ></v-text-field>
+        </v-flex>
+        <v-flex md2 xl4 align-self-center :style="{ marginLeft: '20px' }">
+          <div v-if="isLoadingLists">
+            <div>
+              <span :style="{ marginRight: '4px' }">loading lists</span>
+              <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
+            </div>
+          </div>
+          <v-btn-toggle v-model="selectedButton" mandatory v-else>
+            <v-btn v-for="(value, key, index) in lists" :key="index">{{ value }}</v-btn>
+          </v-btn-toggle>
+        </v-flex>
+        <v-flex align-self-center :style="{ textAlign: 'right' }">
+          <router-link to="se/allot">Allot</router-link>
+        </v-flex>
+      </v-flex>
     </v-layout>
     <div v-if="lists.length">
       <data-table
         :computedComponent="computedComponent"
         :computedValue="computedCb"
         :headers="headers"
-        :items="tasks"
+        :items="items"
         :styles="styles"
         :datatableProps="{ loading: isLoadingTasks }"
       >
@@ -58,6 +67,7 @@ export default class Tasks extends Vue {
   tasks: ITasks[] = [];
   selectedButton = 0;
   lists: string[] = [];
+  search: string = "";
   isLoadingLists: boolean = false;
   isLoadingTasks: boolean = false;
 
@@ -142,11 +152,42 @@ export default class Tasks extends Vue {
       () => (this.isLoadingTasks = false)
     );
   }
+
+  get items() {
+    return this.tasks.filter((task: any) => {
+      let matchesSearch = false;
+      if (!this.searchValue) {
+        matchesSearch = true;
+      } else {
+        matchesSearch = this.searchFields(task);
+      }
+      return matchesSearch;
+    });
+  }
+
+  get searchValue() {
+    return this.search.toLowerCase();
+  }
+
+  searchFields(item: any) {
+    let matchedItem = false;
+    let { restoration: { followUp, assignee } = "" } = item;
+    if (
+      item[".key"].toLowerCase().includes(this.searchValue) ||
+      (followUp && followUp.toLowerCase().includes(this.searchValue)) ||
+      (assignee &&
+        assignee.name &&
+        assignee.name.toLowerCase().includes(this.searchValue))
+    ) {
+      matchedItem = true;
+    }
+    return matchedItem;
+  }
 }
 </script>
 
 <style scoped>
->>> thead tr:first-child th:first-child {
+thead tr:first-child th:first-child {
   white-space: normal;
 }
 </style>
