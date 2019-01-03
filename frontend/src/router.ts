@@ -25,18 +25,18 @@ export const router = new Router({
       ]
     },
     {
-      path: "/sound-editing/",
+      path: "/sound-editing/:taskId/quality-check/feedback",
+      component: () => import("@/views/QCSubmissionForm.vue")
+    },
+    {
+      path: "/sound-editing/upload/:uploadCode",
       component: () => import("@/views/Layout/AnonymousLayout.vue"),
       children: [
         {
-          path: "upload/:uploadCode",
+          path: "",
           component: () => import("@/views/SE/Upload.vue")
         }
       ]
-    },
-    {
-      path: "/sound-editing/:taskId/quality-check/feedback",
-      component: () => import("@/views/QCSubmissionForm.vue")
     },
     {
       path: "/listen/:fileName",
