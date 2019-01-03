@@ -215,26 +215,3 @@ export default class GoogleSheets {
     console.error('Something bad happened: ', error);
   }
 }
-
-class SpreadSheetRow {
-  protected sheetId: string;
-  protected rowNumber: number;
-
-  constructor(rowData) {
-    Object.keys(rowData).forEach(key => {
-      this[key] = rowData[key];
-    });
-  }
-
-  public save() {
-
-    Object.keys(this).forEach(key => {
-      console.log("save keys: ", key);
-    });
-
-  }
-
-  public delete() {
-
-  }
-}
