@@ -65,6 +65,8 @@ export const getTaskId = (fileName: string) => {
   return match ? match[0] : false;
 };
 
+export const getListId = (fileId: string) => fileId.split("-")[0];
+
 export const initialAllotment = () => ({
   assignee: null,
   files: [],
