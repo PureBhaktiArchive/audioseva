@@ -500,7 +500,7 @@ export function createUpdateLink(token: string): string {
  * On creation of a new submission record id, update and sync data values to Google Spreadsheets
  *
  */
-export const syncSubmissions = functions.database
+export const exportSubmissionsToSpreadsheet = functions.database
   .ref('/sqr/submissions/{submission_id}')
   .onCreate(
     async (
