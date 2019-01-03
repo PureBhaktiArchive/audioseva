@@ -435,44 +435,34 @@ export const exportAllotmentsToSpreadsheet = functions.database
     ): Promise<any> => {
       const { listName, fileName } = context.params;
       const changedValues = change.after.val();
-      const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
-      const gsheets = new GoogleSheets();
-      const allotmentFileNames = await gsheets.getColumn(
-        spreadsheetId,
-        ISoundQualityReportSheet.Allotments,
-        'File Name'
+      const gsheets = new GoogleSheets(
+        functions.config().sqr.spreadsheet_id,
+        ISoundQualityReportSheet.Allotments
       );
-
+      const allotmentFileNames = await gsheets.getColumn('File Name');
       const rowNumber = allotmentFileNames.indexOf(fileName) + 1;
       const { languages, notes, soundQualityReporting } = changedValues;
+
       const {
         timestampGiven,
         assignee,
         timestampDone,
         followUp,
       } = soundQualityReporting;
-      const updateResults = await gsheets.updateAllotmentRow(
-        spreadsheetId,
-        ISoundQualityReportSheet.Allotments,
-        rowNumber,
-        {
-          days_passed: "",
-          date_given: spreadsheetDateFormat(timestampGiven),
-          notes: withDefault(notes),
-          language: commaSeparated(languages),
-          status: soundQualityReporting.status,
-          file_name: fileName,
-          devotee: withDefault(assignee.name),
-          email: withDefault(assignee.emailAddress),
-          phone: "",
-          location: "",
-          date_done: spreadsheetDateFormat(timestampDone),
-          follow_up: withDefault(followUp),
-          list: withDefault(listName),
-          serial: "",
-        }
-      );
+
+      const updateResults = await gsheets.updateRow(rowNumber, {
+        "Days passed": spreadsheetDateFormat(timestampGiven),
+        "Date Given": withDefault(notes),
+        "Language": commaSeparated(languages),
+        "Status": soundQualityReporting.status,
+        "File Name": fileName,
+        "Devotee": withDefault(assignee.name),
+        "Email": withDefault(assignee.emailAddress),
+        "Date Done": spreadsheetDateFormat(timestampDone),
+        "Follow Up": withDefault(followUp),
+        "List": withDefault(listName),
+      });
       console.log('Update results: ', updateResults.data);
     }
   );
@@ -517,7 +507,10 @@ export const syncSubmissions = functions.database
       snapshot: functions.database.DataSnapshot,
       context: functions.EventContext
     ): Promise<any> => {
-      const gsheets = new GoogleSheets();
+      const gsheets = new GoogleSheets(
+        functions.config().sqr.spreadsheet_id,
+        ISoundQualityReportSheet.Submissions,
+      );
       const {
         author,
         changed,
@@ -530,26 +523,20 @@ export const syncSubmissions = functions.database
         token,
         unwantedParts,
       } = snapshot.val();
-      const newSubmissionRow: ISubmissionRow = {
-        completed: spreadsheetDateFormat(completed),
-        updated: spreadsheetDateFormat(changed),
-        submission_serial: context.params.submission_id,
-        update_link: createUpdateLink(token),
-        audio_file_name: withDefault(fileName),
-        unwanted_parts: formatMultilineComment(unwantedParts),
-        sound_issues: formatMultilineComment(soundIssues),
-        sound_quality_rating: withDefault(soundQualityRating),
-        beginning: withDefault(duration.beginning),
-        ending: withDefault(duration.ending),
-        comments: withDefault(comments),
-        name: withDefault(author.name),
-        email_address: withDefault(author.emailAddress),
-      };
-
-      gsheets.appendRow<ISubmissionRow>(
-        functions.config().sqr.spreadsheet_id,
-        ISoundQualityReportSheet.Submissions,
-        newSubmissionRow
-      );
+      gsheets.appendRow({
+        "Completed": spreadsheetDateFormat(completed),
+        "Updated": spreadsheetDateFormat(changed),
+        "Submission Serial": context.params.submission_id,
+        "Update Link": createUpdateLink(token),
+        "Audio File Name": withDefault(fileName),
+        "Unwanted Parts": formatMultilineComment(unwantedParts),
+        "Sound Issues": formatMultilineComment(soundIssues),
+        "Sound Quality Rating": withDefault(soundQualityRating),
+        "Beginning": withDefault(duration.beginning),
+        "Ending": withDefault(duration.ending),
+        "Comments": withDefault(comments),
+        "Name": withDefault(author.name),
+        "Email Address": withDefault(author.emailAddress),
+      });
     }
   );
