@@ -112,124 +112,135 @@ export const sendEmailOnNewAllotment = functions.database
     return 1;
   });
 
-/////////////////////////////////////////////////
-//          SQR Submission Processing (DB create Trigger)
-//
-//      1. Add the webform data to a SQR submissions DB path
-//      2. Update the allotment to reflect the current state of the audio file
-//      3. Notifying the coordinator using a mail that holds the following information
-//          3.1 the current submission information
-//          3.2 the data of the file in the submission
-//          3.3 the list of all the files alloted to the devotee of the current submission
-//          3.4 a boolean value indicating whether this is the first submission of this devotee or not
-//              Function --> processSubmissions
-/////////////////////////////////////////////////
+/**
+ * Restructure External Submission
+ * 1. Restructuring the submission and inserting it into /sqr/submissions path
+ * 
+ * Function -> restructureExternalSubmission()
+ */
+export const restructureExternalSubmission = functions.database
+.ref('/webforms/sqr/{submission_id}')
+.onCreate(async (snapshot, context) => {
+  const original = snapshot.val();
 
-export const processSubmissions = functions.database
-  .ref('/webforms/sqr/{submission_id}')
-  .onCreate(async (snapshot, context) => {
-    const original = snapshot.val();
+  // 1. Add the webform data to a SQR submissions DB path
+  const submission = {
+    fileName: original.audio_file_name,
+    cancellation: {
+      notPreferredLanguage: original.not_preferred_language,
+      audioProblem: original.unable_to_play_or_download,
+    },
+    soundQualityRating: original.sound_quality_rating,
+    unwantedParts: original.unwanted_parts,
+    soundIssues: original.sound_issues,
+    duration: {
+      beginning: original.beginning,
+      ending: original.ending,
+    },
+    comments: original.comments,
+    token: original.token,
+    created: original.created,
+    //  timestamp of the submission creation,
+    // can differ from COMPLETED in case of saving a DRAFT and completing later.
+    completed: original.completed, // timestamp of the submission completion.
+    changed: original.changed, //timestamp of the submission update.
+    author: {
+      name: original.name,
+      emailAddress: original.email_address,
+    },
+  };
 
-    let audioFileStatus = 'WIP';
+  db.ref(`/sqr/submissions/${original.serial}`).update(submission);
 
-    if (original.not_preferred_language) audioFileStatus = 'Spare';
-    else if (original.unable_to_play_or_download)
-      audioFileStatus = 'Audio Problem';
+  return 1;
+});
 
-    // 1. Add the webform data to a SQR submissions DB path
-    const submission = {
-      fileName: original.audio_file_name,
-      cancellation: {
-        notPreferredLanguage: audioFileStatus === 'Spare',
-        audioProblem: audioFileStatus === 'Audio Problem',
-      },
-      soundQualityRating: original.sound_quality_rating,
-      unwantedParts: original.unwanted_parts,
-      soundIssues: original.sound_issues,
-      duration: {
-        beginning: original.beginning,
-        ending: original.ending,
-      },
-      comments: original.comments,
-      token: original.token,
-      created: original.created,
-      //  timestamp of the submission creation,
-      // can differ from COMPLETED in case of saving a DRAFT and completing later.
-      completed: original.completed, // timestamp of the submission completion.
-      changed: original.changed, //timestamp of the submission update.
-      devotee: {
-        name: original.name,
-        emailAddress: original.email_address,
-      },
-    };
-    db.ref(`/sqr/submissions/${original.serial}`).update(submission);
 
-    // 2. Update the allotment ( first get the previous NOTES )
-    const filesSnapshot = await db
-      .ref(`/sqr/files/${original.list}/${original.audio_file_name}`)
-      .once('value');
-    const allotmentUpdates = { status: audioFileStatus };
-    // in case 1 & 2 add the comments to the notes
-    if (audioFileStatus !== 'WIP')
-      allotmentUpdates['notes'] = `${filesSnapshot.val().notes}\n${
-        original.comments
-      }`;
-    // if the audio has a problem then REMOVE the devotee from the file allotment
-    if (audioFileStatus === 'audioProblem') allotmentUpdates['devotee'] = {};
-    db.ref(`/sqr/files/${original.list}/${original.audio_file_name}`).update(
-      allotmentUpdates
-    );
+/**
+ * SQR Process Submission
+ * 1. Notifying the coordinator using a mail that holds the following information
+ * 2. Update the allotment to reflect the current state of the audio file
+ * 3. Setting the audio file status
+ * 
+ * Function -> processSubmission()
+ */
+export const processSubmission = functions.database
+.ref('/sqr/submissions/{submission_id}')
+.onCreate(async (snapshot, context) => {
+  const submission = snapshot.val();
 
-    // Coordinator object example { templateid: 3, email:'a@a.a', name: 'Aj' }
-    const coordinator = functions.config().sqr.coordinator;
-    const templateId = functions.config().sqr.allotment.templateid;
-    // 3. Notify the coordinator
-    // 3.1 Get the submitted audio file data
+  let audioFileStatus = 'WIP';
+  if (submission.cancellation.notPreferredLanguage) 
+    audioFileStatus = 'spare';	 
+  else if (submission.cancellation.audioProblem)	
+    audioFileStatus = 'audioProblem';
 
     //  EXTRACTING the list name first from the file_name
-    const list = helpers.extractListFromFilename(original.audio_file_name);
+  const list = helpers.extractListFromFilename(submission.fileName);
+  
 
-    const fileSnapshot = await db
-      .ref(`/sqr/files/${list}/${original.audio_file_name}`)
-      .once('value');
+  // 2. Update the allotment ( first get the previous NOTES )
+  // 3.1 Get the submitted audio file data
+  const fileSnapshot = await db
+    .ref(`/files/${list}/${submission.fileName}`)
+    .once('value');
+    
+  
+  // If fileSnapshot doesn't exist stop the execution
+  if (!fileSnapshot.exists()) return false;
 
-    if (fileSnapshot.exists()) {
-      const fileData = fileSnapshot.val();
+  const fileUpdate = { status: audioFileStatus };
 
-      /////////////////////////////////////////////////////////////
-      //
-      // 3.2 Get the devotee's Allotments in ('given' || 'WIP') state
-      // TO BE ADDED LATER
-      // Currently passing an empty array
-      //
-      /////////////////////////////////////////////////////////////
+  // in case 1 & 2 add the comments to the notes
+  if (audioFileStatus !== 'WIP') {
+    fileUpdate['notes'] = `${fileSnapshot.val().notes}\n${
+      submission.comments
+    }`;
+  }
 
-      // 3.3 checking if the First Submission or not
-      const submissionSnapshot = await db
-        .ref(`/sqr/submissions`)
-        .orderByChild('devotee/emailAddress')
-        .equalTo(original.email_address)
-        .once('value');
+  // if the audio has any cancellation then REMOVE the assignee from the file allotment
+  if (submission.cancellation.audioProblem || submission.cancellation.notPreferredLanguage) 
+    fileUpdate['assignee'] = {};
 
-      if (submissionSnapshot.exists()) {
-        const submissions = submissionSnapshot.val();
+  db.ref(`/files/${list}/${submission.fileName}`).update(
+    fileUpdate
+  );
 
-        // Sending the notification Email Finally
-        db.ref(`/email/notifications`).push({
-          template: templateId,
-          to: coordinator.email_address,
-          params: {
-            submission,
-            fileData,
-            currentSet: [],
-            isFirstSubmission: Object.keys(submissions).length <= 1,
-          },
-        });
-      }
-    }
+  const coordinator = functions.config().coordinator;
+  const fileData = fileSnapshot.val();
 
-    return 1;
-  });
+  /**
+   * 3.2 Get the author's Allotments in ('given' || 'WIP') state
+   * TO BE ADDED LATER
+   * Currently passing an empty array
+   */
+  const allSubmissionsSnapshot = await db
+    .ref(`/sqr/submissions`)
+    .orderByChild('author/emailAddress')
+    .equalTo(submission.author.emailAddress)
+    .once('value');
+
+  // 3.3 checking if the First Submission or not
+  if (allSubmissionsSnapshot.exists()) {
+    const allSubmissions = allSubmissionsSnapshot.val();
+
+    // 3.4 Notify the coordinator
+    // Sending the notification Email Finally
+    db.ref(`/email/notifications`).push({
+      template: "sqr-submission",
+      to: coordinator.email_address,
+      params: {
+        submission,
+        fileData,
+        currentSet: [],
+        isFirstSubmission: Object.keys(allSubmissions).length <= 1,
+      },
+    });
+  }
+
+  return 1;
+});
+
 
 /////////////////////////////////////////////////
 //          Import Submission and Allotments from a Spreadsheet(Http Triggered)
