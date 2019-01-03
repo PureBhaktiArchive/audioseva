@@ -26,10 +26,10 @@ interface IGetSheetResponse {
 }
 
 export default class GoogleSheets {
-  protected spreadsheetId: string;
-  protected sheetName: string;
+  public spreadsheetId: string;
+  public sheetName: string;
+  public headers: any[];
   protected connection: any;
-  protected headers: any[];
 
   constructor(spreadsheetId: string, sheetName: string) {
     this.spreadsheetId = spreadsheetId;
@@ -188,6 +188,7 @@ export default class GoogleSheets {
       if (columnValue === null || columnValue === undefined) {
         columnValue = '';
       }
+      return columnValue;
     });
   }
 
