@@ -393,7 +393,7 @@ export const exportAllotmentsToSpreadsheet = functions.database
       change: functions.Change<functions.database.DataSnapshot>,
       context: functions.EventContext
     ): Promise<any> => {
-      const { listName, fileName } = context.params;
+      const { fileName } = context.params;
       const changedValues = change.after.val();
 
       const gsheets = new GoogleSheets(
@@ -411,22 +411,18 @@ export const exportAllotmentsToSpreadsheet = functions.database
         followUp,
       } = soundQualityReporting;
 
-      const updateResults = await gsheets.updateRow(rowNumber, {
-        "Days passed": spreadsheetDateFormat(timestampGiven),
-        "Date Given": withDefault(notes),
-        "Language": commaSeparated(languages),
-        "Status": soundQualityReporting.status,
-        "File Name": fileName,
-        "Devotee": withDefault(assignee.name),
-        "Email": withDefault(assignee.emailAddress),
-        "Date Done": spreadsheetDateFormat(timestampDone),
-        "Follow Up": withDefault(followUp),
-        "List": withDefault(listName),
-      });
-      console.log('Update results: ', updateResults.data);
+      const row: any = await gsheets.getRow(rowNumber);
+      row['Date Given'] = spreadsheetDateFormat(timestampGiven);
+      row['Notes'] = withDefault(notes);
+      row['Language'] = commaSeparated(languages);
+      row['Status'] = soundQualityReporting.status;
+      row['Devotee'] = withDefault(assignee.name);
+      row['Email'] = withDefault(assignee.emailAddress);
+      row['Date Done'] = spreadsheetDateFormat(timestampDone);
+      row['Follow Up'] = withDefault(followUp);
+      await gsheets.updateRow(rowNumber, row);
     }
   );
-
 
 interface IAudioChunkDescription {
   beginning: string; // h:mm:ss
@@ -439,16 +435,21 @@ interface IAudioChunkDescription {
  * Used for Unwanted Parts and Sound Issues to create multi-line comments
  *
  */
-export function formatMultilineComment(audioDescriptionList: IAudioChunkDescription[]) {
+export function formatMultilineComment(
+  audioDescriptionList: IAudioChunkDescription[]
+) {
   if (!audioDescriptionList || !audioDescriptionList.length) {
-    return "-";
+    return '';
   }
-  let multiline = "";
-  audioDescriptionList.forEach((elem: IAudioChunkDescription, index: number) => {
-    multiline = multiline
-    + `${elem.beginning}-${elem.ending}:${elem.type} -- ${elem.description}`
-    + ((audioDescriptionList.length === (index + 1)) ? "" : "\n");
-  });
+  let multiline = '';
+  audioDescriptionList.forEach(
+    (elem: IAudioChunkDescription, index: number) => {
+      multiline =
+        multiline +
+        `${elem.beginning}-${elem.ending}:${elem.type} -- ${elem.description}` +
+        (audioDescriptionList.length === index + 1 ? '' : '\n');
+    }
+  );
   return multiline;
 }
 
@@ -469,7 +470,7 @@ export const exportSubmissionsToSpreadsheet = functions.database
     ): Promise<any> => {
       const gsheets = new GoogleSheets(
         functions.config().sqr.spreadsheet_id,
-        ISoundQualityReportSheet.Submissions,
+        ISoundQualityReportSheet.Submissions
       );
       const {
         author,
@@ -484,19 +485,19 @@ export const exportSubmissionsToSpreadsheet = functions.database
         unwantedParts,
       } = snapshot.val();
       gsheets.appendRow({
-        "Completed": spreadsheetDateFormat(completed),
-        "Updated": spreadsheetDateFormat(changed),
-        "Submission Serial": context.params.submission_id,
-        "Update Link": createUpdateLink(token),
-        "Audio File Name": withDefault(fileName),
-        "Unwanted Parts": formatMultilineComment(unwantedParts),
-        "Sound Issues": formatMultilineComment(soundIssues),
-        "Sound Quality Rating": withDefault(soundQualityRating),
-        "Beginning": withDefault(duration.beginning),
-        "Ending": withDefault(duration.ending),
-        "Comments": withDefault(comments),
-        "Name": withDefault(author.name),
-        "Email Address": withDefault(author.emailAddress),
+        Completed: spreadsheetDateFormat(completed),
+        Updated: spreadsheetDateFormat(changed),
+        'Submission Serial': context.params.submission_id,
+        'Update Link': createUpdateLink(token),
+        'Audio File Name': withDefault(fileName),
+        'Unwanted Parts': formatMultilineComment(unwantedParts),
+        'Sound Issues': formatMultilineComment(soundIssues),
+        'Sound Quality Rating': withDefault(soundQualityRating),
+        Beginning: withDefault(duration.beginning),
+        Ending: withDefault(duration.ending),
+        Comments: withDefault(comments),
+        Name: withDefault(author.name),
+        'Email Address': withDefault(author.emailAddress),
       });
     }
   );

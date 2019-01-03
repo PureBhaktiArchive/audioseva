@@ -42,7 +42,7 @@ export default class GoogleSheets {
    * @param sheet The sheet to query from google sheets api
    * @param limit How many rows you want including the header titles
    */
-  public async getSheet(limit?: number): Promise<any> {
+  public async getRows(limit?: number): Promise<any> {
     await this.connect();
     const targetSheet: any = await this.connection.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
