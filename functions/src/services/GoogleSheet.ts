@@ -39,6 +39,9 @@ export default class GoogleSheets {
   protected connection: any;
 
   protected async connect() {
+    if (this.connection) {
+      return this.connection;
+    }
     const auth = await gapi.auth.getClient({
       scopes: [GoogleScopes.SpreadSheets],
     });
