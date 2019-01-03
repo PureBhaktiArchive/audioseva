@@ -76,23 +76,28 @@ export default class GoogleSheets {
     return this._convertRows(values);
   }
 
-  public async getColumn(columnName: string) {
-    await this.connect();
+  protected async getHeaders() {
+    if (this.headers && this.headers.length) {
+      return;
+    }
     const firstRow: any = await this.connection.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
       range: `${this.sheetName}!1:1`,
     });
-
     const { statusText, status, data } = firstRow;
     if (statusText !== 'OK' || status !== 200) {
       console.error('Error: Not able to get google sheet');
       return null;
     }
+    this.headers = data.values[0];
+  }
 
-    const { values } = data;
+  public async getColumn(columnName: string) {
+    await this.connect();
+    await this.getHeaders();
+
     let targetedColumn;
-    this.headers = values[0];
     const index = this.headers.indexOf(columnName);
     if (index > -1) {
       targetedColumn = this._getNotationLetterFromIndex(index);
@@ -141,12 +146,17 @@ export default class GoogleSheets {
    */
   public async appendRow<T>(appendValues: T): Promise<any> {
     await this.connect();
+    await this.getHeaders();
+
+    const updateValues = this._convertColumnFormat(appendValues);
     const appendResponse: any = await this.connection.spreadsheets.values.append(
       {
         spreadsheetId: this.spreadsheetId,
         range: this.sheetName,
         valueInputOption: IValueInputOption.USER_ENTERED,
-        resource: this._convertColumnFormat(appendValues),
+        resource: {
+          values: [updateValues],
+        },
       }
     );
 
