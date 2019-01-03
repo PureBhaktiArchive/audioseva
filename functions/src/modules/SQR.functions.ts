@@ -13,7 +13,6 @@ import {
   spreadsheetDateFormat,
   withDefault,
   commaSeparated,
-  EMPTY_VALUE,
 } from '../utils/parsers';
 
 export enum ISoundQualityReportSheet {
@@ -458,7 +457,7 @@ export const syncAllotments = functions.database
         ISoundQualityReportSheet.Allotments,
         rowNumber,
         {
-          days_passed: EMPTY_VALUE,
+          days_passed: "",
           date_given: spreadsheetDateFormat(timestampGiven),
           notes: withDefault(notes),
           language: commaSeparated(languages),
@@ -466,12 +465,12 @@ export const syncAllotments = functions.database
           file_name: fileName,
           devotee: withDefault(assignee.name),
           email: withDefault(assignee.emailAddress),
-          phone: EMPTY_VALUE,
-          location: EMPTY_VALUE,
+          phone: "",
+          location: "",
           date_done: spreadsheetDateFormat(timestampDone),
           follow_up: withDefault(followUp),
           list: withDefault(listName),
-          serial: EMPTY_VALUE,
+          serial: "",
         }
       );
       console.log('Update results: ', updateResults.data);
