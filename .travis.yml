@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+  - "lts/*"
+cache: npm
+install:
+  - npm install --prefix ./functions
+  - npm install --prefix ./frontend
+script:
+  - npm run lint --prefix ./functions
+  - npm run build --prefix ./functions
+  - npm run build --prefix ./frontend
