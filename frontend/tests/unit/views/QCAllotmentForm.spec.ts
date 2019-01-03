@@ -1,7 +1,7 @@
 import { mount } from "@vue/test-utils";
 import QCAllotmentForm from "@/views/QCAllotmentForm.vue";
 
-describe('QCAllotmentForm', () => {
+describe("QCAllotmentForm", () => {
   it("should render", () => {
     const wrapper = mount(QCAllotmentForm, {
       data: () => ({
