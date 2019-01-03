@@ -26,7 +26,13 @@ export const router = new Router({
     },
     {
       path: "/sound-editing/:taskId/quality-check/feedback",
-      component: () => import("@/views/QCSubmissionForm.vue")
+      component: () => import("@/views/Layout/AnonymousLayout.vue"),
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/QCSubmissionForm.vue")
+        }
+      ]
     },
     {
       path: "/sound-editing/upload/:uploadCode",
