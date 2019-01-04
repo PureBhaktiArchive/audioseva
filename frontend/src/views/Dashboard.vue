@@ -12,7 +12,7 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from "vue-property-decorator";
-import MainLayout from "@/views/MainLayout.vue";
+import MainLayout from "@/views/Layout/MainLayout.vue";
 import _ from "lodash";
 
 const pathMap = {
