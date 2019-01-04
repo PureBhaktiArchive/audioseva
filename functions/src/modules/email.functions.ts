@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 const sendInBlueSecretKey = functions.config().send_in_blue.key;
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
-let apiKey = defaultClient.authentications['api-key'];
+const apiKey = defaultClient.authentications['api-key'];
 apiKey.apiKey = sendInBlueSecretKey;
 const apiInstance = new SibApiV3Sdk.SMTPApi();
 
@@ -17,7 +17,7 @@ const os = require('os');
 const fs = require('fs');
 
 // used for caching in `sendNotificationEmail` function
-let emailTemplates = {};
+const emailTemplates = {};
 
 // SendInBlue Helper Functions
 export const sendEmail = async (to, bcc, replyTo, templateId, params) => {
@@ -31,16 +31,16 @@ export const sendEmail = async (to, bcc, replyTo, templateId, params) => {
     params,
   };
 
-  let sendingResult = await apiInstance.sendTransacEmail(smtpEmail);
+  const sendingResult = await apiInstance.sendTransacEmail(smtpEmail);
   console.log(sendingResult);
 };
 
 export const updateTemplate = async (templateId, html) => {
-  let updatedTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
+  const updatedTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
 
   updatedTemplate.htmlContent = html;
 
-  let updateResult = await apiInstance.updateSmtpTemplate(
+  const updateResult = await apiInstance.updateSmtpTemplate(
     templateId,
     updatedTemplate
   );
@@ -48,7 +48,7 @@ export const updateTemplate = async (templateId, html) => {
 };
 
 export const createTemplate = async (templateName, sender, html, subject) => {
-  let smtpTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
+  const smtpTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
 
   smtpTemplate.templateName = templateName;
   smtpTemplate.htmlContent = html;
@@ -56,17 +56,17 @@ export const createTemplate = async (templateName, sender, html, subject) => {
   smtpTemplate.sender = sender;
   smtpTemplate.isActive = true;
 
-  let result = await apiInstance.createSmtpTemplate(smtpTemplate);
+  const result = await apiInstance.createSmtpTemplate(smtpTemplate);
   return result['id'];
 };
 
 export const getTemplateId = async templateName => {
-  var opts = { templateStatus: true };
+  const opts = { templateStatus: true };
 
-  let result = await apiInstance.getSmtpTemplates(opts);
-  let { templates } = result;
+  const result = await apiInstance.getSmtpTemplates(opts);
+  const { templates } = result;
 
-  let template = templates.filter(temp => temp['name'] === templateName)[0];
+  const template = templates.filter(temp => temp['name'] === templateName)[0];
 
   if (template === undefined) return -1;
   // template not found
@@ -88,27 +88,27 @@ const updateEmailTemplates = async filePath => {
 
   if (!filePath.startsWith('email/templates')) return;
 
-  let emailRef = bucket.file(filePath);
+  const emailRef = bucket.file(filePath);
 
   await emailRef.download({ destination: tempLocalFile });
 
   // Use the following to upate the template on SendInBlue
-  let htmlContent = fs.readFileSync(tempLocalFile, 'utf-8');
+  const htmlContent = fs.readFileSync(tempLocalFile, 'utf-8');
 
   // 1. Get the template ID (sendInBlue ID)
-  let templateNode = await db
+  const templateNode = await db
     .ref('/email/templates')
     .orderByKey()
     .equalTo(fileName)
     .once('value');
-  let template = templateNode.val();
+  const template = templateNode.val();
 
   if (!template.exists()) {
     console.log("Template metadata doesn't exist.");
     return;
   }
 
-  let { sender, subject } = template;
+  const { sender, subject } = template;
 
   let id = getTemplateId(fileName);
 
@@ -126,7 +126,7 @@ const updateEmailTemplates = async filePath => {
   }
 
   // 2. Send a test Email confirming it has been updated correctly
-  let testEmail = new SibApiV3Sdk.SendTestEmail();
+  const testEmail = new SibApiV3Sdk.SendTestEmail();
   await apiInstance.sendTestTemplate(id, testEmail);
 };
 
@@ -134,14 +134,16 @@ export const updateTemplatesOnTemplateUpload = functions.storage
   .object()
   .onFinalize(object => {
     // called when either a NEW object is created, or when an object is overwritten
-    updateEmailTemplates(object.name);
+    updateEmailTemplates(object.name)
+      .catch(err => console.error("Error: updateTemplatesOnTemplateUpload ", err));
     return 1;
   });
 
 export const updateTemplatesOnMetadataChange = functions.database
   .ref('/email/templates}')
   .onUpdate(async (change, context) => {
-    updateEmailTemplates(change.after.key);
+    updateEmailTemplates(change.after.key)
+      .catch(err => console.error("Error: updateTemplatesOnMetadataChange ", err));
     return 1;
   });
 
