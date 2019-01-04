@@ -8,8 +8,6 @@ import { google } from 'googleapis';
 import { promisify } from 'es6-promisify';
 
 const db = admin.database();
-
-import * as helpers from './../helpers';
 import GoogleSheets from '../services/GoogleSheets';
 import {
   spreadsheetDateFormat,
@@ -65,6 +63,9 @@ export const updateFilesOnNewAllotment = functions.database
             sendNotificationEmail: true,
           });
       }
+    })
+  }
+)
 
 /**
  * OnNewAllotment (DB create and update Trigger)
@@ -535,4 +536,4 @@ export const exportSubmissionsToSpreadsheet = functions.database
         'Email Address': withDefault(author.emailAddress),
       });
     }
-  );
+  )
