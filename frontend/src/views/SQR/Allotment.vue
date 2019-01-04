@@ -37,10 +37,11 @@
       </v-layout>
       <!-- List -->
       <v-layout row class="py-2">
-        <v-btn-toggle v-model="filter.list" v-if="lists">
+        <v-btn-toggle v-model="filter.list" v-if="lists && lists.length">
           <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
         </v-btn-toggle>
-        <p v-else>Loading lists…</p>
+        <p v-else-if="lists == null">Loading lists…</p>
+        <p v-else-if="lists.length == 0">There is no spare file.</p>
       </v-layout>
       <!-- Files -->
       <template v-if="filter.list && filter.language">
@@ -88,7 +89,7 @@
 import { Component, Mixins, Watch } from "vue-property-decorator";
 import fb from "@/firebaseApp";
 // need this to use timestamp
-import firebase from "firebase";
+import firebase from "firebase/app";
 import _ from "lodash";
 import UsersByRole from "@/mixins/UsersByRole";
 import ShallowQuery from "@/mixins/FirebaseShallowQuery";
