@@ -1,122 +1,119 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-
-import { google } from 'googleapis';
-const GoogleSpreadsheet = require('google-spreadsheet');
-import { promisify } from 'es6-promisify';
-const lodash = require('lodash');
-
-const db = admin.database();
 import * as helpers from './../helpers';
 
-/////////////////////////////////////////////////
-//          OnNewAllotment (DB create and update Trigger)
-//      1. Mark the files in the database --> { status: "Given" }
-//              Function --> updateFilesOnNewAllotment
-//
-//      2. Send an email to the assignee to notify them of the new allotments
-//              Function --> sendEmailOnNewAllotment
-/////////////////////////////////////////////////
-export const updateFilesOnNewAllotment = functions.database
-  .ref('/sqr/allotments/{allotment_id}')
-  .onCreate((snapshot, context) => {
-    const allotment = snapshot.val();
-    const newDocKey = snapshot.key;
+import { google } from 'googleapis';
+import { promisify } from 'es6-promisify';
 
-    // loop through the FILES array in the NEW ALLOTMENT object
-    // and update their corresponding file objects
-    allotment.files.forEach(async file => {
-      const sqrRef = db.ref(
-        `/files/${allotment.list}/${file}/soundQualityReporting`
-      );
+const db = admin.database();
+const GoogleSpreadsheet = require('google-spreadsheet');
+const moment = require('moment');
 
-      const sqrError = await sqrRef.update({
-        status: 'Given',
-        assignee: allotment.assignee,
-        timestampGiven: Math.round(new Date().getTime() / 1000),
-        timestampDone: null,
-      });
 
-      if (sqrError === undefined) {
-        // if Successful FILE Update, update the ALLOTMENT accordingly
+/**
+ * OnNewAllotment (DB create and update Trigger)
+ * 1. Mark the files in the database --> { status: "Given" }
+ * 2. Send an email to the assignee to notify them of the new allotments
+ * 
+ * @function processAllotment()
+ */
+export const processAllotment = functions.database
+.ref('/sqr/allotments/{allotment_id}').onWrite(async (snapshot, context) => {
+  const allotment = snapshot.after.val(); // new allotment
+  const newDocKey = snapshot.after.key;
+  const old = snapshot.before.val();
+  const coordinatorConfig = functions.config().coordinator;
 
-        // case 1 -- the allotmnet is read from the spreadsheet
-        if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-          });
-        // case 2 -- the allotmnet is inputted manually
-        else
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-            sendNotificationEmail: true,
-          });
-      }
+  // loop through the FILES array in the NEW ALLOTMENT object
+  // and update their corresponding file objects
+  allotment.files.forEach(async file => {
+    // Skip the current iteration if allotment.list doesn't exist
+    if (!allotment.list) return;
+
+    const sqrRef = db.ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
+    const sqrError = await sqrRef.update({
+      status: 'Given',
+      assignee: allotment.assignee,
+      timestampGiven: moment().format('x'), // gives timestamp in ms
+      timestampDone: null,
     });
 
-    return 1;
-  });
-
-export const sendEmailOnNewAllotment = functions.database
-  .ref('/sqr/allotments/{allotment_id}')
-  .onUpdate(async (change, context) => {
-    const old = change.before.val();
-    const newAllotment = change.after.val();
-    const coordinatorConfig = functions.config().coordinator;
-    const templateId = functions.config().sqr.allotment.templateid;
-
-    // Sends a notification to the assignee
-    // of the files he's allotted.
-    const allotmentSnapshot = await db
-      .ref('/sqr/allotments')
-      .orderByChild('assignee/emailAddress')
-      .equalTo(newAllotment.assignee.emailAddress)
-      .once('value');
-
-    const allotments = allotmentSnapshot.val();
-    ////////////////
-    // sending mail ( only if sendNotificationEmail is TRUE )
-    //                        sendNotificationEmail is FASLE if the record is read from the spreadsheet
-    ///////////////
-    if (
-      !old.filesAlloted &&
-      newAllotment.filesAlloted &&
-      newAllotment.assignee &&
-      newAllotment.sendNotificationEmail
-    ) {
-      if (newAllotment.assignee.emailAddress) {
-        const date = new Date();
-        const utcMsec = date.getTime() + date.getTimezoneOffset() * 60000;
-        const localDate = new Date(
-          utcMsec + 3600000 * coordinatorConfig.timeZoneOffset
-        );
-        db.ref(`/email/notifications`).push({
-          template: templateId,
-          to: newAllotment.assignee.emailAddress,
-          bcc: [{ email: coordinatorConfig.email_address }],
-          params: {
-            files: newAllotment.files,
-            assignee: newAllotment.assignee,
-            comment: newAllotment.comment,
-            date: `${localDate.getDate() + 1}.${date.getMonth() + 1}`,
-            repeated: Object.keys(allotments).length > 1,
-          },
+    // if Successful FILE Update, update the ALLOTMENT accordingly
+    if (sqrError === undefined) {
+      // case 1 -- the allotmnet is read from the spreadsheet
+      if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1) {
+        db.ref(`/sqr/allotments/${newDocKey}`).update({
+          filesAlloted: true,
         });
-        change.after.ref
-          .child('mailSent')
-          .set(true)
-          .catch(err => console.log(err));
+      }
+      // case 2 -- the allotmnet is inputted manually 
+      else { 
+        db.ref(`/sqr/allotments/${newDocKey}`).update({
+          filesAlloted: true,
+          sendNotificationEmail: true,
+        });
       }
     }
-
-    return 1;
   });
+
+  
+  // Sends a notification to the assignee of the files he's allotted.
+  const allotmentSnapshot = await db
+    .ref('/sqr/allotments')
+    .orderByChild('assignee/emailAddress')
+    .equalTo(allotment.assignee.emailAddress)
+    .once('value');
+
+  const allotments = allotmentSnapshot.val();
+  
+  /**
+   * 1. sending mail ( only if sendNotificationEmail is TRUE 
+   * 2. old allotment's filesAlloted is False
+   * 3. allotment has valid assignee )
+   * sendNotificationEmail is FASLE if the record is read from the spreadsheet
+   */
+  if (
+    !old.filesAlloted &&
+    allotment.filesAlloted &&
+    allotment.assignee &&
+    allotment.sendNotificationEmail
+  ) {
+    if (allotment.assignee.emailAddress) {
+      const utcMsec = moment().zone('utc').format('x'); // returns ms in utc
+
+      const localDate = new Date(
+        utcMsec + 3600000 * coordinatorConfig.timeZoneOffset
+      );
+
+      db.ref(`/email/notifications`).push({
+        template: "sqr-allotment",
+        to: allotment.assignee.emailAddress,
+        bcc: [{ email: coordinatorConfig.email_address }],
+        params: {
+          files: allotment.files,
+          assignee: allotment.assignee,
+          comment: allotment.comment,
+          date: `${localDate.getDate() + 1}.${moment().month() + 1}`,
+          repeated: Object.keys(allotments).length > 1,
+        },
+      });
+
+      snapshot.after.ref
+        .child('mailSent')
+        .set(true)
+        .catch(err => console.log(err));
+    }
+  }
+
+  return 1;
+});
+
 
 /**
  * Restructure External Submission
  * 1. Restructuring the submission and inserting it into /sqr/submissions path
  * 
- * Function -> restructureExternalSubmission()
+ * @function restructureExternalSubmission()
  */
 export const restructureExternalSubmission = functions.database
 .ref('/webforms/sqr/{submission_id}')
@@ -249,24 +246,6 @@ export const processSubmission = functions.database
 //      2. Looks for two sheets --> Allotments & Submissions
 //      3. Loads their data into the equivalent Firebase database paths
 /////////////////////////////////////////////////
-
-// Helper Function
-//      splits an array into a bunch of arrays
-//      GROUPED BY a
-//              composite key ( 2nd parameter: values )
-
-const groupByMulti = (list, values, context) => {
-  if (!values.length) {
-    return list;
-  }
-  const byFirst = lodash.groupBy(list, values[0], context),
-    rest = values.slice(1);
-  for (const prop in byFirst) {
-    byFirst[prop] = groupByMulti(byFirst[prop], rest, context);
-  }
-  return byFirst;
-};
-
 export const importSpreadSheetData = functions.https.onRequest(
   async (req, res) => {
     const auth = await google.auth.getClient({
@@ -342,7 +321,7 @@ export const importSpreadSheetData = functions.https.onRequest(
     // Group all the files allotted on one day under a single `Allotment Node` in the db
     // Group by ASSIGNEEs/DATEs/LISTs
 
-    const groupedAllotments = groupByMulti(
+    const groupedAllotments = helpers.groupByMulti(
       allotments,
       ['devotee', 'dategiven', 'list'],
       {}
