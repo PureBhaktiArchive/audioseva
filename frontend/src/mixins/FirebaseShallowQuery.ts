@@ -13,6 +13,6 @@ export default class FirebaseShallowQuery extends Vue {
         this.listsBasePath
       }.json?shallow=true`
     );
-    this.lists = Object.keys(response.body);
+    this.lists = response.body ? Object.keys(response.body): [];
   }
 }
