@@ -28,3 +28,6 @@ yarn-error.log*
 
 // config for local functions
 .runtimeconfig.json
+automationscripts/addsubmission.py
+automationscripts/updateallomentssqr.py
+automationscripts/firebase-adminsdk.json
