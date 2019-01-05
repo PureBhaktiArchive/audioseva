@@ -28,3 +28,5 @@ yarn-error.log*
 
 // config for local functions
 .runtimeconfig.json
+automationscripts/
+.vscode/tags

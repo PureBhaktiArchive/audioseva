@@ -1,14 +1,71 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as helpers from './../helpers';
+const GoogleSpreadsheet = require('google-spreadsheet');
+const moment = require('moment');
 
 import { google } from 'googleapis';
 import { promisify } from 'es6-promisify';
 
 const db = admin.database();
-const GoogleSpreadsheet = require('google-spreadsheet');
-const moment = require('moment');
+import GoogleSheets from '../services/GoogleSheets';
+import {
+  spreadsheetDateFormat,
+  withDefault,
+  commaSeparated,
+} from '../utils/parsers';
 
+export enum ISoundQualityReportSheet {
+  Allotments = 'Allotments',
+  Submissions = 'Submissions',
+}
+
+/////////////////////////////////////////////////
+//          OnNewAllotment (DB create and update Trigger)
+//      1. Mark the files in the database --> { status: "Given" }
+//              Function --> updateFilesOnNewAllotment
+//
+//      2. Send an email to the assignee to notify them of the new allotments
+//              Function --> sendEmailOnNewAllotment
+/////////////////////////////////////////////////
+export const updateFilesOnNewAllotment = functions.database
+  .ref('/sqr/allotments/{allotment_id}')
+  .onCreate((snapshot, context) => {
+    const allotment = snapshot.val();
+    let newDocKey = snapshot.key;
+
+    // loop through the FILES array in the NEW ALLOTMENT object
+    // and update their corresponding file objects
+    allotment.files.forEach(async file => {
+      let sqrRef = db.ref(
+        `/files/${allotment.list}/${file}/soundQualityReporting`
+      );
+
+      let sqrError = await sqrRef.update({
+        status: 'Given',
+        assignee: allotment.assignee,
+        timestampGiven: Math.round(new Date().getTime() / 1000),
+        timestampDone: null,
+      });
+
+      if (sqrError == undefined) {
+        // if Successful FILE Update, update the ALLOTMENT accordingly
+
+        // case 1 -- the allotmnet is read from the spreadsheet
+        if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
+          db.ref(`/sqr/allotments/${newDocKey}`).update({
+            filesAlloted: true,
+          });
+        // case 2 -- the allotmnet is inputted manually
+        else
+          db.ref(`/sqr/allotments/${newDocKey}`).update({
+            filesAlloted: true,
+            sendNotificationEmail: true,
+          });
+      }
+    })
+  }
+)
 
 /**
  * OnNewAllotment (DB create and update Trigger)
@@ -360,3 +417,123 @@ export const importSpreadSheetData = functions.https.onRequest(
       );
   }
 );
+
+/**
+ * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
+ *
+ */
+export const exportAllotmentsToSpreadsheet = functions.database
+  .ref('/files/{listName}/{fileName}')
+  .onUpdate(
+    async (
+      change: functions.Change<functions.database.DataSnapshot>,
+      context: functions.EventContext
+    ): Promise<any> => {
+      const { fileName } = context.params;
+      const changedValues = change.after.val();
+
+      const gsheets = new GoogleSheets(
+        functions.config().sqr.spreadsheet_id,
+        ISoundQualityReportSheet.Allotments
+      );
+      const allotmentFileNames = await gsheets.getColumn('File Name');
+      const rowNumber = allotmentFileNames.indexOf(fileName) + 1;
+      const { languages, notes, soundQualityReporting } = changedValues;
+
+      const {
+        timestampGiven,
+        assignee,
+        timestampDone,
+        followUp,
+      } = soundQualityReporting;
+
+      const row: any = await gsheets.getRow(rowNumber);
+      row['Date Given'] = spreadsheetDateFormat(timestampGiven);
+      row['Notes'] = withDefault(notes);
+      row['Language'] = commaSeparated(languages);
+      row['Status'] = soundQualityReporting.status;
+      row['Devotee'] = withDefault(assignee.name);
+      row['Email'] = withDefault(assignee.emailAddress);
+      row['Date Done'] = spreadsheetDateFormat(timestampDone);
+      row['Follow Up'] = withDefault(followUp);
+      await gsheets.updateRow(rowNumber, row);
+    }
+  );
+
+interface IAudioChunkDescription {
+  beginning: string; // h:mm:ss
+  ending: string; // h:mm:ss
+  type: string;
+  description: string;
+}
+
+/**
+ * Used for Unwanted Parts and Sound Issues to create multi-line comments
+ *
+ */
+export function formatMultilineComment(
+  audioDescriptionList: IAudioChunkDescription[]
+) {
+  if (!audioDescriptionList || !audioDescriptionList.length) {
+    return '';
+  }
+  let multiline = '';
+  audioDescriptionList.forEach(
+    (elem: IAudioChunkDescription, index: number) => {
+      multiline =
+        multiline +
+        `${elem.beginning}-${elem.ending}:${elem.type} -- ${elem.description}` +
+        (audioDescriptionList.length === index + 1 ? '' : '\n');
+    }
+  );
+  return multiline;
+}
+
+export function createUpdateLink(token: string): string {
+  return `http://purebhakti.info/audioseva/form/sound-quality-report?token=${token}`;
+}
+
+/**
+ * On creation of a new submission record id, update and sync data values to Google Spreadsheets
+ *
+ */
+export const exportSubmissionsToSpreadsheet = functions.database
+  .ref('/sqr/submissions/{submission_id}')
+  .onCreate(
+    async (
+      snapshot: functions.database.DataSnapshot,
+      context: functions.EventContext
+    ): Promise<any> => {
+      const gsheets = new GoogleSheets(
+        functions.config().sqr.spreadsheet_id,
+        ISoundQualityReportSheet.Submissions
+      );
+      const {
+        author,
+        changed,
+        comments,
+        completed,
+        duration,
+        fileName,
+        soundIssues,
+        soundQualityRating,
+        token,
+        unwantedParts,
+      } = snapshot.val();
+      gsheets.appendRow({
+        Completed: spreadsheetDateFormat(completed),
+        Updated: spreadsheetDateFormat(changed),
+        'Submission Serial': context.params.submission_id,
+        'Update Link': createUpdateLink(token),
+        'Audio File Name': withDefault(fileName),
+        'Unwanted Parts': formatMultilineComment(unwantedParts),
+        'Sound Issues': formatMultilineComment(soundIssues),
+        'Sound Quality Rating': withDefault(soundQualityRating),
+        Beginning: withDefault(duration.beginning),
+        Ending: withDefault(duration.ending),
+        Comments: withDefault(comments),
+        Name: withDefault(author.name),
+        'Email Address': withDefault(author.emailAddress),
+      });
+    }
+  )
