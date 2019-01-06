@@ -37,7 +37,9 @@
       <data-table
         :headers="headers"
         :datatableProps="{ pagination, loading: isLoadingFiles }"
+        :computedComponent="computedComponent"
         :computedValue="computedCb"
+        :componentData="componentData"
         :items="items"
         :styles="{ '.key': { 'font-weight-bold': true }}"
       >
@@ -50,6 +52,10 @@
         </template>
       </data-table>
     </div>
+    <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
+      {{ snackText }}
+      <v-btn flat @click="snack = false">Close</v-btn>
+    </v-snackbar>
   </div>
 </template>
 
@@ -61,11 +67,18 @@ import DataTable from "@/components/DataTable.vue";
 import { getDayDifference, formatTimestamp } from "@/utility";
 import ShallowQuery from "@/mixins/FirebaseShallowQuery";
 import { IFileVueFire } from "@/types/DataTable";
+import fb from "@/firebaseApp";
+import InlineAssignEdit from "@/components/SQR/InlineAssignEdit.vue";
+import InlineStatusEdit from "@/components/SQR/InlineStatusEdit.vue";
+import InlineTextEdit from "@/components/SQR/InlineTextEdit.vue";
 
 @Component({
   name: "Files",
   components: {
-    DataTable
+    DataTable, 
+    InlineAssignEdit, 
+    InlineStatusEdit, 
+    InlineTextEdit
   }
 })
 export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
@@ -74,6 +87,30 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
   isLoadingFiles = false;
   search: string = "";
   selectedButton: number = 0;
+  statusItems = ["Spare", "Given", "WIP", "Done"];
+
+  snack = false;
+  snackColor = "";
+  snackText = "";
+  editEvents = {
+    save: this.save,
+    cancel: this.cancel
+  };
+
+  componentData = {
+    followUp: {
+      on: { ...this.editEvents }
+    },
+    assignee: {
+      on: { ...this.editEvents }
+    },
+    status: {
+      on: { ...this.editEvents },
+      props: {
+        statusItems: this.statusItems
+      }
+    }
+  };
 
   pagination = { rowsPerPage: -1 };
 
@@ -82,15 +119,11 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
     { text: "Date Given", value: "soundQualityReporting.timestampGiven" },
     { text: "Notes", value: "notes" },
     { text: "Languages", value: "languages" },
-    { text: "Status", value: "soundQualityReporting.status" },
+    { text: "Status", value: "status" },
     { text: "File Name", value: ".key" },
-    { text: "Assignee", value: "soundQualityReporting.assignee.name" },
-    {
-      text: "Email Address",
-      value: "soundQualityReporting.assignee.emailAddress"
-    },
+    { text: "Assignee", value: "assignee" },
     { text: "Date Done", value: "soundQualityReporting.timestampDone" },
-    { text: "Follow Up", value: "soundQualityReporting.followUp" }
+    { text: "Follow Up", value: "followUp" }
   ];
 
   computedCb = {
@@ -112,6 +145,12 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
     "soundQualityReporting.timestampDone": formatTimestamp
   };
 
+  computedComponent = {
+    assignee: InlineAssignEdit,
+    status: InlineStatusEdit,
+    followUp: InlineTextEdit
+  };
+
   async mounted() {
     this.isLoadingLists = true;
     await this.getLists();
@@ -130,6 +169,7 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
         () => (this.isLoadingFiles = false)
       );
     }
+    console.log("this.files", this.files)
   }
 
   get items() {
@@ -161,6 +201,37 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
       matchedItem = true;
     }
     return matchedItem;
+  }
+
+  save(
+    item: any,
+    path: string,
+    updates: any,
+    { itemPath, newValue }: { [key: string]: any } = { itemPath: false }
+  ) {
+    this.snack = true;
+    this.snackColor = "success";
+    this.snackText = "Data saved";
+    path = `files/${this.lists[this.selectedButton]}${path}`;
+
+    // manual update state if component can't use v-model
+    if (itemPath) {
+      this.$set(
+        this.items,
+        this.items.findIndex(i => i[".key"] === item[".key"]),
+        _.setWith(_.clone(item), itemPath, newValue, _.clone)
+      );
+    }   
+
+    fb.database()
+      .ref(path)
+      .set(updates);
+  }
+
+  cancel() {
+    this.snack = true;
+    this.snackColor = "error";
+    this.snackText = "Canceled";
   }
 }
 </script>
