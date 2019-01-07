@@ -57,7 +57,7 @@ async (req: functions.Request, res: functions.Response) => {
   const profile = await gm.users.getProfile({ userId: "me" });
 
   await saveTokensInDatabase({
-    emailAddress: profile.data.emailAddress,
+    email: profile.data.emailAddress,
     accessToken: oauth2Client.credentials.access_token
   });
 
@@ -76,10 +76,16 @@ async (req: functions.Request, res: functions.Response) => {
  * Store auth tokens with email address
  * @param obj Values to save along with token
  */
-const saveTokensInDatabase = async (obj: any) => {
-  console.log("Should store these tokens somehow: ", obj);
-  const gmailTokensRef = db.ref(`/gmail/token`);
-  return await gmailTokensRef.push(obj);
+const saveTokensInDatabase = async (values: any) => {
+  console.log("Store object values: ", values);
+  const newGmailTokensRef = db.ref(`/gmail`);
+  newGmailTokensRef.push({
+    oauth: {
+      token: values.accessToken
+    },
+    emailAddress: values.email,
+  });
+  // return await gmailTokensRef.push(obj);
 }
 
 /**
