@@ -70,7 +70,8 @@ import { IFileVueFire } from "@/types/DataTable";
 import fb from "@/firebaseApp";
 import InlineAssignEdit from "@/components/SQR/InlineAssignEdit.vue";
 import InlineStatusEdit from "@/components/SQR/InlineStatusEdit.vue";
-import InlineTextEdit from "@/components/SQR/InlineTextEdit.vue";
+import InlineFollowUpEdit from "@/components/SQR/InlineFollowUpEdit.vue";
+import InlineNoteEdit from "@/components/SQR/InlineNoteEdit.vue";
 
 @Component({
   name: "Files",
@@ -78,7 +79,8 @@ import InlineTextEdit from "@/components/SQR/InlineTextEdit.vue";
     DataTable, 
     InlineAssignEdit, 
     InlineStatusEdit, 
-    InlineTextEdit
+    InlineFollowUpEdit,
+    InlineNoteEdit
   }
 })
 export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
@@ -99,6 +101,9 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
 
   componentData = {
     followUp: {
+      on: { ...this.editEvents }
+    },
+    notes: {
       on: { ...this.editEvents }
     },
     assignee: {
@@ -148,7 +153,8 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
   computedComponent = {
     assignee: InlineAssignEdit,
     status: InlineStatusEdit,
-    followUp: InlineTextEdit
+    followUp: InlineFollowUpEdit,
+    notes: InlineNoteEdit
   };
 
   async mounted() {

@@ -1,21 +1,21 @@
 <template>
   <v-menu
-    v-if="item.restoration && item.restoration.assignee && item.restoration.assignee.name"
+    v-if="item.soundQualityReporting && item.soundQualityReporting.assignee"
     offset-y
     :style="{ height: '100%', width: '100%' }"
   >
     <p class="ma-0 text-no-wrap" slot="activator">
-      <span>{{item.restoration.assignee.name}}</span>
+      <span>{{item.soundQualityReporting.assignee.name ? item.soundQualityReporting.assignee.name: ""}}</span>
       <br>
       <span
         :style="{ fontSize: 'smaller',color: '#A9A9A9' }"
-      >{{item.restoration.assignee.emailAddress}}</span>
+      >{{item.soundQualityReporting.assignee.emailAddress ? item.soundQualityReporting.assignee.emailAddress: ""}}</span>
     </p>
     <div>
        <v-card>         
           <v-list>
             <v-list-tile>              
-              <v-list-tile-title>Are you sure you want to cancel allotment?</v-list-tile-title>
+              <v-list-tile-title>{{`Are you sure you want to cancel ${item[".key"]} allotment?`}}</v-list-tile-title>
             </v-list-tile>             
           </v-list>
           <v-divider></v-divider>    
@@ -51,8 +51,8 @@ export default class InlineAssignEdit extends Vue {
         name: ""
       }
     };
-    let update = _.merge({}, item.restoration, changedData);
-    let path = `/${item[".key"]}/restoration`;
+    let update = _.merge({}, item.soundQualityReporting, changedData);
+    let path = `/${item[".key"]}/soundQualityReporting`;
     this.$emit("save", item, path, update);
   }
 }
