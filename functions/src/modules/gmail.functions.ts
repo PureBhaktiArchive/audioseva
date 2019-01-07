@@ -22,17 +22,12 @@ export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
   const { client_key, secret, redirect } = functions.config().gmail;
   const oauth2Client = new Google.google.auth.OAuth2(
-    "614669175345-6lsbit5ksndninnfpiti52f6tpfn538s.apps.googleusercontent.com",
-    "esgLuN0kJLIK9MAK7piwcGzy",
+    client_key,
+    secret,
     redirect);
-    
   const authURL = oauth2Client.generateAuthUrl({
     access_type: "offline",
-    scope: [
-      "https://www.googleapis.com/auth/gmail.modify",
-      "https://www.googleapis.com/auth/userinfo.email",
-      "https://www.googleapis.com/auth/userinfo.profile",
-    ],
+    scope: ["https://www.googleapis.com/auth/gmail.modify"],
   });
   
   console.log("url: ", authURL);
@@ -47,19 +42,19 @@ export const oauth2callback = functions.https.onRequest(
 async (req: functions.Request, res: functions.Response) => {
   const { client_key, secret, redirect } = functions.config().gmail;
   const oauth2Client = new Google.google.auth.OAuth2(
-    "614669175345-6lsbit5ksndninnfpiti52f6tpfn538s.apps.googleusercontent.com",
-    "esgLuN0kJLIK9MAK7piwcGzy",
+    client_key,
+    secret,
     redirect);
   
   const { tokens } = await oauth2Client.getToken(req.query.code);
   oauth2Client.setCredentials(tokens);
   
-  const gmail = await Google.google.gmail({
+  const gm = await Google.google.gmail({
     version: "v1",
     auth: oauth2Client,
   });
 
-  const profile = await gmail.users.getProfile({ userId: "me" });
+  const profile = await gm.users.getProfile({ userId: "me" });
 
   await saveTokensInDatabase({
     emailAddress: profile.data.emailAddress,
@@ -78,6 +73,16 @@ async (req: functions.Request, res: functions.Response) => {
 });
 
 /**
+ * Store auth tokens with email address
+ * @param obj Values to save along with token
+ */
+const saveTokensInDatabase = async (obj: any) => {
+  console.log("Should store these tokens somehow: ", obj);
+  const gmailTokensRef = db.ref(`/gmail/token`);
+  return await gmailTokensRef.push(obj);
+}
+
+/**
  * Make gmail account labels subscribe to our pubsub channel, "gmail-done"
  */
 export const initWatch = functions.https.onRequest(
@@ -92,12 +97,6 @@ async (req: functions.Request, res: functions.Response) => {
   // Return response
 
 });
-
-const saveTokensInDatabase = async (obj: any) => {
-  console.log("Should store these tokens somehow: ", obj);
-  const gmailTokensRef = db.ref(`/gmail/token`);
-  return await gmailTokensRef.push(obj);
-}
 
 /**
  * Receive gmail watch push from gcp pubsub, and modify our database
