@@ -25,9 +25,9 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "InlineTextEdit"
+  name: "InlineFollowUpEdit"
 })
-export default class InlineTextEdit extends Vue {
+export default class InlineFollowUpEdit extends Vue {
   @Prop({ default: () => ({}) })
   item!: any;
   @Prop() value!: any;
