@@ -77,7 +77,7 @@
     },
     "users": {
       ".read": "auth.token.Coordinator === true",
-      ".indexOn": ["emailAddress", "roles/SQR", "roles/SE", "uploadCode"],
+      ".indexOn": ["emailAddress", "roles/CR", "roles/SQR", "roles/SE", "uploadCode"],
       "$user": {
         "timestamp": {
           ".validate": "newData.isNumber() && newData.val() == now"
