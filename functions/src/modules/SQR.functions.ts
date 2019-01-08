@@ -32,23 +32,23 @@ export const updateFilesOnNewAllotment = functions.database
   .ref('/sqr/allotments/{allotment_id}')
   .onCreate((snapshot, context) => {
     const allotment = snapshot.val();
-    let newDocKey = snapshot.key;
+    const newDocKey = snapshot.key;
 
     // loop through the FILES array in the NEW ALLOTMENT object
     // and update their corresponding file objects
     allotment.files.forEach(async file => {
-      let sqrRef = db.ref(
+      const sqrRef = db.ref(
         `/files/${allotment.list}/${file}/soundQualityReporting`
       );
 
-      let sqrError = await sqrRef.update({
+      const sqrError = await sqrRef.update({
         status: 'Given',
         assignee: allotment.assignee,
         timestampGiven: Math.round(new Date().getTime() / 1000),
         timestampDone: null,
       });
 
-      if (sqrError == undefined) {
+      if (sqrError === undefined) {
         // if Successful FILE Update, update the ALLOTMENT accordingly
 
         // case 1 -- the allotmnet is read from the spreadsheet
@@ -520,7 +520,8 @@ export const exportSubmissionsToSpreadsheet = functions.database
         token,
         unwantedParts,
       } = snapshot.val();
-      gsheets.appendRow({
+      
+      await gsheets.appendRow({
         Completed: spreadsheetDateFormat(completed),
         Updated: spreadsheetDateFormat(changed),
         'Submission Serial': context.params.submission_id,
