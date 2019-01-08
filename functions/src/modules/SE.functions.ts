@@ -88,3 +88,58 @@ export const processNewAllotment = functions.database
     });
     return 1;
   });
+
+const serialRegex = "^[a-zA-Z]+-\\d+";
+
+const updateChunk = async (path: string, taskId: string) => {
+  return await db.ref(path).update({
+    taskId
+  });
+};
+
+const makeTaskId = (fileName: string, index: number) => {
+  return `${fileName.match(serialRegex)[0]}-${index}`;
+};
+
+export const createTaskFromChunks = functions.database.ref(
+    "/sound-editing/chunks/{listId}/{fileName}/{index}"
+).onCreate(async (snapshot, { params: { fileName, listId, index } }) => {
+  const {
+    continuationTo,
+    continuationFrom,
+    processingResolution = "",
+    taskId,
+    beginning,
+    ending
+  } = snapshot.val();
+  if (continuationTo || processingResolution.toLowerCase() !== "ok" || taskId) return;
+  const chunkDuration = ending - beginning;
+  const chunkTaskId = makeTaskId(fileName, index);
+  let duration;
+
+  if (continuationFrom) {
+    const response = await db
+        .ref(`/sound-editing/chunks/${listId}/${continuationFrom}`)
+        .orderByKey()
+        .limitToLast(1).once("value");
+    const chunks = response.val();
+    const lastChunk = chunks[chunks.length - 1];
+    if (lastChunk.continuationTo === fileName) {
+      // create task and mark current chunk and continue from chunk with task id
+      const lastChunkDuration = lastChunk.ending - lastChunk.beginning;
+      duration = chunkDuration + lastChunkDuration;
+      await updateChunk(
+          `/sound-editing/chunks/${listId}/${continuationFrom}/${chunks.length - 1}`,
+          chunkTaskId
+      );
+      await updateChunk(`/sound-editing/chunks/${listId}/${fileName}/${index}`, chunkTaskId)
+    }
+  }
+  else {
+    duration = chunkDuration;
+  }
+  await db.ref(`/sound-editing/tasks/${listId}/${chunkTaskId}`).update({
+    duration
+  });
+  return snapshot.val();
+});
