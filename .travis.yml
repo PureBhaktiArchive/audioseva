@@ -1,0 +1,26 @@
+language: node_js
+node_js:
+  - "lts/*"
+cache: npm
+install:
+  - npm install --prefix ./functions
+  - npm install --prefix ./frontend
+script:
+  - npm run lint --prefix ./functions
+  - npm run build --prefix ./functions
+  - npm run build --prefix ./frontend
+deploy:
+  # Development deployment
+  - provider: firebase
+    project: $FIREBASE_DEV_PROJECT
+    skip_cleanup: true
+    token:
+      secure: $FIREBASE_DEV_TOKEN
+  # Staging deployment
+  - provider: firebase
+    project: $FIREBASE_STAGING_PROJECT
+    skip_cleanup: true
+    token:
+      secure: $FIREBASE_STAGING_TOKEN
+    on:
+      branch: staging
