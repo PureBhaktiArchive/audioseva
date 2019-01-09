@@ -53,7 +53,10 @@ export default class InlineAssignEdit extends Vue {
       }
     };
     let update = _.merge({}, item[this.keyPath], changedData);
-    let path = `/${item[".key"]}/${this.keyPath}`;
+    let path: any = {};
+    path["keyPathId"] = item[".key"] ? item[".key"] : "";
+    path["keyPath"] = this.keyPath ? this.keyPath : "";
+    path["itemPath"] = "";
     this.$emit("save", item, path, update);
   }
 }

@@ -7,13 +7,13 @@
       @save="$listeners.save(item, editPath, textAreaValue)"
       @cancel="$listeners.cancel"
       @open="open"
-    > <span :style="{padding: '4px'}">{{ item[keyPath] && item[keyPath][value] }}</span>
+    > <span :style="{padding: '4px'}">{{ textArea }}</span>
       <v-textarea
         v-if="isShowTextArea == true"
         slot="input"
-        ref="editFolloUp"
+        ref="editTextArea"
         v-model="textAreaValue"
-        label="Edit follow up"
+        label="Edit here..."
         single-line
         counter
       ></v-textarea>
@@ -23,6 +23,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import { findObjectValue } from "@/utility";
 
 @Component({
   name: "InlineTextEdit"
@@ -32,21 +33,29 @@ export default class InlineTextEdit extends Vue {
   item!: any;
   @Prop() value!: any;
   @Prop() keyPath!: string;
-  
+
   isShowTextArea: boolean = false;
   textAreaValue: string = "";
-  
+
   get editPath() {
-    return `/${this.item[".key"]}/${this.keyPath}/${this.value}`;
+    let path: any = {};
+    path["keyPathId"] = this.item[".key"] ? this.item[".key"] : "";
+    path["keyPath"] = this.keyPath ? this.keyPath : "";
+    path["itemPath"] = this.value;
+    return path;
+  }
+
+  get textArea() {
+    return findObjectValue(this.item, this.value);
   }
 
   open() {
     // wait small amount of time so focus works
     setTimeout(() => {
-      (this.$refs.editFolloUp as any).focus();
-    }, 100);    
-   
-    this.textAreaValue = this.item && this.item[this.keyPath] && this.item[this.keyPath][this.value] ? this.item[this.keyPath][this.value] : "";
+      (this.$refs.editTextArea as any).focus();
+    }, 100);
+
+    this.textAreaValue = findObjectValue(this.item, this.value);
     this.isShowTextArea = true;
   }
 }
