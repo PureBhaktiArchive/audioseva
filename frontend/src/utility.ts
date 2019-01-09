@@ -80,7 +80,7 @@ export const initialFilter = () => ({
 
 export const findObjectValue = (object: any, key: any) => {
   let value;
-  Object.keys(object).some(k => {
+  Object.keys(object).some((k: any) => {
     if (k === key) {
       value = object[k];
       return true;
@@ -88,6 +88,8 @@ export const findObjectValue = (object: any, key: any) => {
     if (object[k] && typeof object[k] === "object") {
       value = findObjectValue(object[k], key);
       return value !== undefined;
+    } else {
+      return false
     }
   });
   return value;

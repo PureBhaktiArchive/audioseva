@@ -35,7 +35,7 @@ export default class InlineTextEdit extends Vue {
   @Prop() keyPath!: string;
 
   isShowTextArea: boolean = false;
-  textAreaValue: string = "";
+  textAreaValue: any = "";
 
   get editPath() {
     let path: any = {};
