@@ -3,6 +3,8 @@ import * as admin from 'firebase-admin';
 
 import uniqid from 'uniqid';
 
+import { taskIdRegex } from "../helpers";
+
 const db = admin.database();
 
 /////////////////////////////////////////////////
@@ -89,16 +91,15 @@ export const processNewAllotment = functions.database
     return 1;
   });
 
-const serialRegex = "^[a-zA-Z]+-\\d+";
-
-const updateChunk = async (path: string, taskId: string) => {
-  return await db.ref(path).update({
-    taskId
-  });
-};
+const basePath = "/sound-editing/";
 
 const makeTaskId = (fileName: string, index: number) => {
-  return `${fileName.match(serialRegex)[0]}-${index}`;
+  return `${fileName.match(taskIdRegex)[0]}-${index}`;
+};
+
+const validateTask = async (path: string) => {
+  const response = await db.ref(path).once("value");
+  return response.val();
 };
 
 export const createTaskFromChunks = functions.database.ref(
@@ -108,38 +109,74 @@ export const createTaskFromChunks = functions.database.ref(
     continuationTo,
     continuationFrom,
     processingResolution = "",
-    taskId,
+    taskId: currentTaskId,
     beginning,
     ending
   } = snapshot.val();
-  if (continuationTo || processingResolution.toLowerCase() !== "ok" || taskId) return;
+
+  if (processingResolution.toLowerCase() !== "ok" || currentTaskId) return;
+  const chunksPath = `${basePath}chunks/${listId}/`;
+  const tasksPath = `${basePath}tasks/${listId}/`;
   const chunkDuration = ending - beginning;
-  const chunkTaskId = makeTaskId(fileName, index);
+  const chunkResponse = await db.ref(`${chunksPath}${fileName}`)
+      .orderByKey()
+      .limitToLast(1)
+      .once("value");
+  const chunks = chunkResponse.val() || [];
+  let taskId;
   let duration;
 
-  if (continuationFrom) {
-    const response = await db
-        .ref(`/sound-editing/chunks/${listId}/${continuationFrom}`)
+  // check for next chunk and create task id with current chunk and next chunk
+  if (continuationTo) {
+    const nextChunkResponse = await db
+        .ref(`${chunksPath}${continuationTo}`)
+        .once("value");
+    const nextChunks = nextChunkResponse.val();
+    if (nextChunks) {
+      const nextChunk = nextChunks[0];
+      taskId = makeTaskId(fileName, chunks.length + 1);
+      if (await validateTask(`${tasksPath}${taskId}`)) {
+        console.error("Task exists");
+        return;
+      }
+      if (nextChunk.continuationFrom === fileName) {
+        duration = ending - beginning + (nextChunk.ending - nextChunk.beginning);
+        await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
+        await db.ref(`${chunksPath}${continuationTo}/0`).update({ taskId });
+      } else {
+        return;
+      }
+    } else {
+      return;
+    }
+  } else if (continuationFrom) { // check for previous chunk
+    const previousChunkResponse = await db
+        .ref(`${chunksPath}${continuationFrom}`)
         .orderByKey()
         .limitToLast(1).once("value");
-    const chunks = response.val();
-    const lastChunk = chunks[chunks.length - 1];
-    if (lastChunk.continuationTo === fileName) {
-      // create task and mark current chunk and continue from chunk with task id
-      const lastChunkDuration = lastChunk.ending - lastChunk.beginning;
-      duration = chunkDuration + lastChunkDuration;
-      await updateChunk(
-          `/sound-editing/chunks/${listId}/${continuationFrom}/${chunks.length - 1}`,
-          chunkTaskId
-      );
-      await updateChunk(`/sound-editing/chunks/${listId}/${fileName}/${index}`, chunkTaskId)
+    const previousChunks = previousChunkResponse.val();
+    const previousChunk = previousChunks[previousChunks.length - 1];
+    taskId = makeTaskId(fileName, previousChunks.length + chunks.length);
+    if (await validateTask(`${tasksPath}${taskId}`)) {
+      console.error("Task exists");
+      return;
+    }
+    if (previousChunk.continuationTo === fileName) {
+      duration = chunkDuration + (previousChunk.ending - previousChunk.beginning);
+      await db.ref(`${chunksPath}${continuationFrom}/${previousChunks.length - 1}`).update({ taskId });
+      await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
+    } else {
+      console.error("Invalid continuationTo from previous chunk");
+      return;
+    }
+  } else { // single chunk without a continuation
+    duration = chunkDuration;
+    taskId = makeTaskId(fileName, chunks.length);
+    if (await validateTask(`${tasksPath}${taskId}`)) {
+      console.error("Task exists");
+      return;
     }
   }
-  else {
-    duration = chunkDuration;
-  }
-  await db.ref(`/sound-editing/tasks/${listId}/${chunkTaskId}`).update({
-    duration
-  });
+  await db.ref(`${tasksPath}${taskId}/duration`).set(duration);
   return snapshot.val();
 });
