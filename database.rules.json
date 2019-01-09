@@ -88,6 +88,9 @@
         "notes": {
           ".write": "auth.token.Coordinator === true"
         },
+        "emailAddress": {
+          ".write": "!data.exists()"
+        },
         "languages": {
           "$langeName": {
             ".validate": "newData.isBoolean()"
