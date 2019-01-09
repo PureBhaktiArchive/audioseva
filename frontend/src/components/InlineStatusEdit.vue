@@ -1,7 +1,7 @@
 <template>
   <v-menu offset-y :style="{ height: '100%', width: '100%', display: 'inherit' }">
     <p class="ma-0 text-no-wrap" slot="activator" :style="{ height: '25px', width: '40px' }">
-      {{ item[keyPath] && item[keyPath].status }}  
+      {{ status }}  
     </p>
     <div>
       <v-list>
@@ -15,6 +15,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import { findObjectValue } from "@/utility";
 
 @Component({
   name: "InlineStatusEdit"
@@ -24,9 +25,17 @@ export default class InlineStatusEdit extends Vue {
   @Prop() statusItems!: string[];
   @Prop() keyPath!: string;
 
+  get status() {
+    const { item } = this;
+    return findObjectValue(item, "status");
+  }
+
   handleChange(e: string) {
     const { item } = this;
-    const path = `/${item[".key"]}/${this.keyPath}/status`;
+    let path: any = {};
+    path["keyPathId"] = item[".key"] ? item[".key"] : "";
+    path["keyPath"] = this.keyPath ? this.keyPath : "";
+    path["itemPath"] = "status";
     this.$emit("save", item, path, e, { newValue: e, itemPath: "status" });
   }
 }

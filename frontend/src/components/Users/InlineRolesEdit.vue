@@ -37,7 +37,11 @@ export default class InlineRolesEdit extends Vue {
 
   handleChange(e: any, role: string) {
     const { item } = this;
-    const path = `users/${item[".key"]}/roles/${role}`;
+    let path: any = {};
+    path["keyPathId"] = item[".key"] ? item[".key"] : "";
+    path["keyPath"] = this.keyPath ? this.keyPath : "";
+    path["itemPath"] = `roles/${role}`;
+
     const updatedRoles = { ...item.roles };
     const addedRole = !!e;
     if (addedRole) {
@@ -54,7 +58,7 @@ export default class InlineRolesEdit extends Vue {
 </script>
 
 <style scoped>
->>> .v-menu__activator {
+.v-menu__activator {
   height: 100%;
   width: 100%;
 }

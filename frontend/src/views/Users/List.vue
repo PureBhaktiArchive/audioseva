@@ -53,8 +53,8 @@ import _ from "lodash";
 import moment from "moment";
 import fb from "@/firebaseApp";
 import DataTable from "@/components/DataTable.vue";
-import InlineTextEdit from "@/components/Users/InlineTextEdit.vue";
-import InlineStatusEdit from "@/components/Users/InlineStatusEdit.vue";
+import InlineTextEdit from "@/components/InlineTextEdit.vue";
+import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
 import InlineRolesEdit from "@/components/Users/InlineRolesEdit.vue";
 import PhoneNumber from "@/components/Users/PhoneNumber.vue";
 
@@ -68,6 +68,7 @@ export default class List extends Vue {
   roles = ["CR", "TE", "SE", "QC", "FC", "SQR", "Coordinator"];
   statusItems = ["OK", "Opted out", "Lost", "Duplicate", "Incorrect"];
   filterActiveUsers = true;
+  keyPath: string = "users";
   search: string = "";
   selectedButton: number = 0;
   snack = false;
@@ -202,13 +203,14 @@ export default class List extends Vue {
 
   save(
     item: any,
-    path: string,
+    path: any,
     updates: any,
     { itemPath, newValue }: { [key: string]: any } = { itemPath: false }
   ) {
     this.snack = true;
     this.snackColor = "success";
     this.snackText = "Data saved";
+    let refPath = `users/${path.keyPathId}/${path.itemPath}`;
 
     // manual update state if component can't use v-model
     if (itemPath) {
@@ -219,7 +221,7 @@ export default class List extends Vue {
       );
     }
     fb.database()
-      .ref(path)
+      .ref(refPath)
       .set(updates);
   }
 

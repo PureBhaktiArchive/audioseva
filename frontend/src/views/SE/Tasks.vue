@@ -69,9 +69,9 @@ import { formatTimestamp, getDayDifference } from "@/utility";
 
 @Component({
   name: "Tasks",
-  components: { 
-    DataTable, 
-    SoundIssuesList ,
+  components: {
+    DataTable,
+    SoundIssuesList,
     InlineAssignEdit,
     InlineStatusEdit,
     InlineTextEdit
@@ -230,14 +230,16 @@ export default class Tasks extends Vue {
 
   save(
     item: any,
-    path: string,
+    path: any,
     updates: any,
     { itemPath, newValue }: { [key: string]: any } = { itemPath: false }
   ) {
     this.snack = true;
     this.snackColor = "success";
     this.snackText = "Data saved";
-    path = `sound-editing/tasks/${this.lists[this.selectedButton]}${path}`;
+    let refPath = `sound-editing/tasks/${this.lists[this.selectedButton]}/${
+      path.keyPathId
+    }/${path.keyPath}/${path.itemPath}`;
 
     // manual update state if component can't use v-model
     if (itemPath) {
@@ -246,10 +248,10 @@ export default class Tasks extends Vue {
         this.items.findIndex(i => i[".key"] === item[".key"]),
         _.setWith(_.clone(item), itemPath, newValue, _.clone)
       );
-    }   
+    }
 
     fb.database()
-      .ref(path)
+      .ref(refPath)
       .set(updates);
   }
 
