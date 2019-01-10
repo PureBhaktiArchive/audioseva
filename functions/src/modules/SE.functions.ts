@@ -125,6 +125,7 @@ export const createTaskFromChunks = functions.database.ref(
   const chunks = chunkResponse.val() || [];
   let taskId;
   let duration;
+  const allChunks = [snapshot.val()];
 
   // check for next chunk and create task id with current chunk and next chunk
   if (continuationTo) {
@@ -134,7 +135,8 @@ export const createTaskFromChunks = functions.database.ref(
     const nextChunks = nextChunkResponse.val();
     if (nextChunks) {
       const nextChunk = nextChunks[0];
-      taskId = makeTaskId(fileName, chunks.length + 1);
+      allChunks.push(nextChunk);
+      taskId = makeTaskId(fileName, chunks.length);
       if (await validateTask(`${tasksPath}${taskId}`)) {
         console.error("Task exists");
         return;
@@ -156,7 +158,8 @@ export const createTaskFromChunks = functions.database.ref(
         .limitToLast(1).once("value");
     const previousChunks = previousChunkResponse.val();
     const previousChunk = previousChunks[previousChunks.length - 1];
-    taskId = makeTaskId(fileName, previousChunks.length + chunks.length);
+    allChunks.unshift(previousChunk);
+    taskId = makeTaskId(fileName, previousChunks.length + chunks.length - 1);
     if (await validateTask(`${tasksPath}${taskId}`)) {
       console.error("Task exists");
       return;
@@ -171,12 +174,15 @@ export const createTaskFromChunks = functions.database.ref(
     }
   } else { // single chunk without a continuation
     duration = chunkDuration;
-    taskId = makeTaskId(fileName, chunks.length);
+    taskId = makeTaskId(fileName, chunks.length - 1);
     if (await validateTask(`${tasksPath}${taskId}`)) {
       console.error("Task exists");
       return;
     }
   }
-  await db.ref(`${tasksPath}${taskId}/duration`).set(duration);
+  await db.ref(`${tasksPath}${taskId}`).set({
+    chunks: allChunks,
+    duration
+  });
   return snapshot.val();
 });
