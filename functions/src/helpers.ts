@@ -7,6 +7,8 @@ export const extractListFromFilename = (fileName: string): string => {
   return fileName.match(/^[^-]*[^ -]/g)[0];
 };
 
+export const taskIdRegex = "^[a-zA-Z]+-\\d+";
+
 /**
  * Splits an array into a bunch of arrays
  * GROUPED BY a
