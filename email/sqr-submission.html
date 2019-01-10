@@ -1,0 +1,25 @@
+<b>Current set:</b>
+<div style="font-family: Courier,serif">
+  Please update your previous submission using this update link: http://purebhakti.info/audioseva/form/sound-quality-report?token={{params.submission.token}}.<br>Please note &#8212; do not make a new submission using this link. For a new submission, use the link in the allotment email.<br>
+  <p><b>A. Audio File Name:</b> {{ params.submission.fileName }}</p>
+  <p><b>B. Unwanted parts to be cut:</b><br></p>
+  <ul>
+    {% for unwantedPart in params.submission.unwantedParts %}
+    <li>
+      {{ unwantedPart.beginning }} - {{ unwantedPart.ending }} {{ unwantedPart.type }} {{ unwantedPart.description }}
+    </li>
+    {% endfor %}
+  </ul>
+  <p><b>C. Sound Issues:</b><br></p>
+  <ul>
+    {% for soundIssue in params.submission.soundIssues %}
+    <li>
+      {{ soundIssue.beginning }} - {{ soundIssue.ending }} {{ soundIssue.type }} {{ soundIssue.description }}
+    </li>
+    {% endfor %}
+  </ul>
+  <p><b>D. Sound Quality Rating:</b> {{ params.submission.soundQualityRating }}</p>
+  <p><b>E. Total Duration of the Recording:</b> {{ params.submission.duration.ending - params.submission.duration.beginning }}</p>
+  <p><b>F. Comments:</b> {{ params.submission.comments }}</p>
+  <p><b>G. Filled By:</b> {{ params.submission.author.name }}, {{ params.submission.author.emailAddress }}</p>
+</div>
