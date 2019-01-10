@@ -33,8 +33,8 @@ export const buildSheetIndex = async (sheets, spreadsheetId) => {
 
   const sheetscMetadata = [];
   for (let i = 0; i < currentSheets.data.sheets.length; i++) {
-    let { title } = currentSheets.data.sheets[i].properties;
-    let { rowCount, columnCount } = currentSheets.data.sheets[i].properties.gridProperties;
+    const { title } = currentSheets.data.sheets[i].properties;
+    const { rowCount, columnCount } = currentSheets.data.sheets[i].properties.gridProperties;
 
 
     const result = await sheets.spreadsheets.values.get({
