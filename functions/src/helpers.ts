@@ -25,3 +25,29 @@ export const groupByMulti = (list, values: Array<any>, context: Object): Array<a
   }
   return byFirst;
 };
+
+export const buildSheetIndex = async (sheets, spreadsheetId) => {
+  const currentSheets = await sheets.spreadsheets.get({
+      spreadsheetId
+  });
+
+  const sheetscMetadata = [];
+  for (let i = 0; i < currentSheets.data.sheets.length; i++) {
+    let { title } = currentSheets.data.sheets[i].properties;
+    let { rowCount, columnCount } = currentSheets.data.sheets[i].properties.gridProperties;
+
+
+    const result = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${title}!1:1` // get all the cells in the first row `Column headers`
+    });
+
+    if (!result.data.values || result.data.values.length === 0) {
+      console.log(`No data found in sheet: ${title}`);
+      continue;
+    }
+  
+    sheetscMetadata.push({ title, rowCount, columnCount, firstRow: result.data.values[0] });
+  }
+  return sheetscMetadata;
+}
