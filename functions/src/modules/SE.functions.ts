@@ -197,13 +197,13 @@ export const createTaskFromChunks = functions.database.ref(
 
 
 const validateSpreadsheetRow = (row, summary, sheetTitle) => {
-  let resolutions = ['ok', 'drop', 'duplicate', 'on hold', 'reallot', 'repeat', 'derivative'];
+  const resolutions = ['ok', 'drop', 'duplicate', 'on hold', 'reallot', 'repeat', 'derivative'];
   
   let _import = false;
   let rowValid = true;
 
   // [CHECK #1] File name belongs to the list identified by the sheet name			 
-  if (helpers.extractListFromFilename(row['Audio File Name']) != sheetTitle) {
+  if (helpers.extractListFromFilename(row['Audio File Name']) !== sheetTitle) {
     console.warn("File name belongs to a different list.");//edited				
     summary.validityFailures.push({//edited
       row,
@@ -255,7 +255,7 @@ const validateSpreadsheetRow = (row, summary, sheetTitle) => {
 //					2. Reporting chunks that are not the first chunk of a file and having `continuationfrom`
 ////////////////////////////////
 const validateFileChunks = (chunks, fileName, summary) => {
-  let chunksToImport = [];
+  const chunksToImport = [];
   ////////////////////////////////////////////
   // [CHECK #5] Chunks of a single audio file 
   // should not overlap each other in timing.
@@ -313,7 +313,7 @@ export const importChunks = functions.runWith({
 
   const sheets = google.sheets({ version: "v4", auth });
   const spreadsheetId = functions.config().reporting.content.processing.spreadsheet_id;
-  let sheetsInfo = await helpers.buildSheetIndex(sheets, spreadsheetId);
+  const sheetsInfo = await helpers.buildSheetIndex(sheets, spreadsheetId);
   
   const validSheetsTitles = [];
   sheetsInfo.forEach(sheet => {
@@ -323,11 +323,11 @@ export const importChunks = functions.runWith({
   });
 
 
-  let currentFile, // used to increment the chunks of an audiofile coming from multiple rows into a single object
-    summary = {
-      validityFailures: [],
-      addedChunks: 0
-    };
+  let currentFile; // used to increment the chunks of an audiofile coming from multiple rows into a single object
+  const summary = {
+    validityFailures: [],
+    addedChunks: 0
+  };
 
 
   // `for` is used instead of `forEach` to get the updated value of `summary` 
@@ -359,7 +359,7 @@ export const importChunks = functions.runWith({
     //							"BR-01A": [ chunk#1, chunk#2, .... ],
     //							"BR-03A": [ chunk#1, chunk#2, .... ],
     //					}
-    let chunks = {};
+    const chunks = {};
     
     currentFile = { 
       file_name: null,
@@ -424,7 +424,7 @@ export const importChunks = functions.runWith({
       //			Flush the read chunks into the corresponding file in the `chunks` index
       //			& RESET the `currentFile` object
       else {
-        if (currentFile.file_name != null) {
+        if (currentFile.file_name !== null) {
           // if file object exists, add the chunks to it
           if (chunks[currentFile.file_name]) 
             chunks[currentFile.file_name].push(currentFile.chunks)
@@ -444,13 +444,13 @@ export const importChunks = functions.runWith({
     
 
     const fileNames = Object.keys(chunks);
-    for (let fileName of fileNames) {
+    for (const fileName of fileNames) {
       let currentFilechunks = chunks[fileName];
 
       // Sorting by `beginning` time
       currentFilechunks = await lodash.orderBy(currentFilechunks, ['beginning'], ['asc']);
 
-      let chunksToImport = validateFileChunks(currentFilechunks, fileName, summary);
+      const chunksToImport = validateFileChunks(currentFilechunks, fileName, summary);
 
       summary.addedChunks += chunksToImport.length;
 
@@ -468,7 +468,7 @@ export const importChunks = functions.runWith({
         dbChunks.forEach((dbChunk, i) => {									 
           // Instead of comparing every single attribute,
           // the two chunk object are converted into strings and then compared
-          if (JSON.stringify(dbChunk) != JSON.stringify(currentFilechunks[i])) {								
+          if (JSON.stringify(dbChunk) !== JSON.stringify(currentFilechunks[i])) {								
             console.warn(`Audio file name: ${fileName} -- Error: Modified data.`);
             summary.validityFailures.push({																				
               row: dbChunk,
