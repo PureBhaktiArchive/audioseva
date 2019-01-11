@@ -237,6 +237,8 @@ export default class Tasks extends Vue {
     this.snack = true;
     this.snackColor = "success";
     this.snackText = "Data saved";
+
+    // firebase Path URL to save data in database.
     let refPath = `sound-editing/tasks/${this.lists[this.selectedButton]}/${
       path.keyPathId
     }/${path.keyPath}/${path.itemPath}`;
