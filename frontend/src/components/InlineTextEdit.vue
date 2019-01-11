@@ -38,6 +38,7 @@ export default class InlineTextEdit extends Vue {
   textAreaValue: any = "";
 
   get editPath() {
+    //Object that is use in making of firebase path URL to save data in database.
     let path: any = {};
     path["keyPathId"] = this.item[".key"] ? this.item[".key"] : "";
     path["keyPath"] = this.keyPath ? this.keyPath : "";

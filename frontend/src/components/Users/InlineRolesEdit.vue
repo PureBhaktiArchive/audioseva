@@ -37,6 +37,8 @@ export default class InlineRolesEdit extends Vue {
 
   handleChange(e: any, role: string) {
     const { item } = this;
+    
+    //Object that is use in making of firebase path URL to save data in database.
     let path: any = {};
     path["keyPathId"] = item[".key"] ? item[".key"] : "";
     path["keyPath"] = this.keyPath ? this.keyPath : "";
