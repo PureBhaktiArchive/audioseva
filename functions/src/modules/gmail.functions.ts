@@ -5,12 +5,6 @@ import { Message } from 'firebase-functions/lib/providers/pubsub';
 
 const db = admin.database();
 
-class GoogleMail {
-  constructor() {
-    // connection
-  }
-}
-
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
     const { client_key, secret, redirect } = functions.config().gmail;
@@ -39,6 +33,7 @@ export const oauth2callback = functions.https.onRequest(
     const { tokens } = await oauth2Client.getToken(req.query.code);
     oauth2Client.setCredentials(tokens);
 
+    // Need to figure out how to get refresh token
     console.info('refresh tokens returned: ', tokens);
     console.info('auth credentials: ', oauth2Client.credentials);
 
@@ -65,7 +60,6 @@ export const oauth2callback = functions.https.onRequest(
 );
 
 const saveTokensInDatabase = async (values: any) => {
-  console.log('Store object values: ', values);
   const newGmailTokensRef = db.ref(`/gmail/${values.emailKey}`);
   newGmailTokensRef.set({
     oauth: {
@@ -87,7 +81,9 @@ export const initWatch = functions.https.onRequest(
 
     // User email should come from client initiation
     const hardCodedEmail = 'audioseva.test@gmail.com';
-    const { oauth, emailAddress } = await getEmailTokenFromDatabase(hardCodedEmail);
+    const { oauth, emailAddress } = await getEmailTokenFromDatabase(
+      hardCodedEmail
+    );
 
     oauth2Client.setCredentials({
       access_token: oauth.token,
@@ -115,9 +111,12 @@ export const initWatch = functions.https.onRequest(
         },
       });
 
-      console.log('watch results: ', watchResults.data);
-
       if (watchResults.data && doneLabelObj) {
+        // Store the most recent historyId
+        await storeHistoryIdInDatabase(
+          emailAddress,
+          watchResults.data.historyId
+        );
         res
           .status(200)
           .send(
@@ -142,11 +141,9 @@ export const initWatch = functions.https.onRequest(
 export const gmailDoneHandler = functions.pubsub
   .topic('gmail-labeled-done')
   .onPublish(async (message: Message) => {
-    console.log('Raw message: ', message);
     const decodedMessage = JSON.parse(
       Buffer.from(message.data, 'base64').toString('ascii')
     );
-    console.log('Decoded message: ', decodedMessage);
 
     // Gmail client and authenticate
     const { client_key, secret, redirect } = functions.config().gmail;
@@ -155,7 +152,9 @@ export const gmailDoneHandler = functions.pubsub
       secret,
       redirect
     );
-    const { oauth } = await getEmailTokenFromDatabase(decodedMessage.emailAddress || "audioseva.test@gmail.com");
+    const { oauth, lastSyncHistoryId } = await getEmailTokenFromDatabase(
+      decodedMessage.emailAddress || 'audioseva.test@gmail.com'
+    );
     oauth2Client.setCredentials({
       access_token: oauth.token,
     });
@@ -164,92 +163,105 @@ export const gmailDoneHandler = functions.pubsub
       auth: oauth2Client,
     });
 
-    console.log("oath: ", oauth);
+    const labelResults = await gm.users.labels.list({
+      userId: 'me',
+    });
+    const doneLabelObj = labelResults.data.labels.filter(label => {
+      return label.name === 'SQRDone';
+    })[0];
 
     try {
       // Typescript complains if not initialized and casted to any
       const historyListRequest: any = {
-        userId: decodedMessage.emailAddress || "me",
-        startHistoryId: decodedMessage.historyId,
+        userId: decodedMessage.emailAddress || 'me',
+        startHistoryId: lastSyncHistoryId,
+        historyTypes: 'labelAdded',
+        labelId: [doneLabelObj.id],
       };
 
-      // Call the history list api to fetch changes
+      // Call the history list api to fetch changes since last synced
       const results = await gm.users.history.list(historyListRequest);
-      console.log("History results: ", results.data);
-
       if (!results.data.history || !results.data.history.length) {
-        // Handle empty history
-        throw new Error("History is empty. Nothing to process");
+        // Handle empty history, and update history id
+        await storeHistoryIdInDatabase(
+          decodedMessage.emailAddress,
+          decodedMessage.historyId
+        );
+        throw new Error('History is empty. Nothing to process');
       }
-  
+
       const onlyLabelAdded = results.data.history.filter(change => {
         return change.labelsAdded;
       });
 
-    // We only care about the final state of the Done label whether it was applied
-    // or not, so we get rid of the duplicates
-    const uniques = {};
-    onlyLabelAdded.forEach(change => {
-      change.labelsAdded.forEach(obj => {
-        uniques[obj.message.id] = {
-          labels: obj.labelIds,
-          threadId: obj.message.threadId,
+      // We only care about the final state of the Done label whether it was applied
+      // or not, so we get rid of the duplicates incase there are any
+      const uniques = {};
+      onlyLabelAdded.forEach(change => {
+        change.labelsAdded.forEach(obj => {
+          uniques[obj.message.id] = {
+            labels: obj.labelIds,
+            threadId: obj.message.threadId,
+          };
+        });
+      });
+
+      // Call the gmail.users.threads api with the unique changes
+      // and retrieve list of threads and messages
+      const threadHeaders = Object.keys(uniques).map(async threadKey => {
+        const threadResults = await gm.users.threads.get({
+          userId: 'me',
+          id: uniques[threadKey].threadId,
+        });
+        // Only care about the first message headers in the thread
+        return threadResults.data.messages[0].payload.headers;
+      });
+      const allResults = await Promise.all(threadHeaders);
+      // Filter the subject header out from the response
+      const subjectParts = allResults.map(thread => {
+        const subjectValue = thread.filter(
+          header => header.name === 'Subject'
+        )[0].value;
+        if (subjectValue) {
+          const p = subjectValue.split(' - ');
+          return { no: p[0], fileName: p[1], person: p[2] };
+        }
+        return null;
+      });
+
+      subjectParts.forEach(async subjectPart => {
+        const list = subjectPart.fileName.split('-')[0];
+        const Ref = db.ref(
+          `files/${list}/${subjectPart.fileName}/soundQualityReporting`
+        );
+        const sqrResults = await Ref.once('value');
+        if (sqrResults.exists()) {
+          Ref.update({
+            status: 'Done',
+            timestampDone: Date.now() / 1000,
+          });
         }
       });
-    });
 
-    // Call the gmail.users.threads api with the unique changes
-    // and retrieve list of threads and messages
-    const threadHeaders = Object.keys(uniques).map(async (threadKey) => {
-      const threadResults = await gm.users.threads.get({
-        userId: "me",
-        id: uniques[threadKey].threadId,
-      });
-      // Only care about the first message headers in the thread
-      return threadResults.data.messages[0].payload.headers;
-    });
-    const allResults = await Promise.all(threadHeaders);
-    // Filter the subject header out from the response
-    const subjectParts = allResults.map(thread => {
-      const subjectValue = thread.filter(header => header.name === "Subject")[0].value;
-      if (subjectValue) {
-        const p = subjectValue.split(" - ");
-        return { no: p[0], fileName: p[1], person: p[2] };
-      }
-      return null;
-    });
-
-    console.log("subjectParts: ", subjectParts);
-
-    // subjectParts.forEach(async (subjectPart) => {
-    //   const list = subjectPart.fileName.split("-")[0];
-    //   const Ref = db.ref(`files/${list}/${subjectPart.fileName}/soundQualityReporting`);
-    //   const sqrResults = await Ref.once("value");
-    //   // console.log("results: ", sqrResults.exists());
-    //   if (sqrResults.exists()) {
-    //     Ref.update({
-    //       status: "Done",
-    //       timestampDone: Date.now()/1000,
-    //     });
-    //   }
-    // });
-
-
-
-
+      // If everything goes well, store the new history id for next sync
+      await storeHistoryIdInDatabase(
+        decodedMessage.emailAddress,
+        decodedMessage.historyId
+      );
     } catch (error) {
-      console.log("Error: ", error);
+      console.log('Error: ', error);
     }
-    // Request for changes
-
-    const filename = '';
-
-    // Modify the database / spreadsheets
-    // Ack the Pub/Sub
   });
 
 const getEmailTokenFromDatabase = async (email: string) => {
   const emailKey = email.split('@')[0].replace('.', '');
   const queryResults = await db.ref(`/gmail/${emailKey}`).once('value');
   return queryResults.val();
+};
+
+const storeHistoryIdInDatabase = async (email: string, historyId: any) => {
+  const emailKey = email.split('@')[0].replace('.', '');
+  return await db.ref(`/gmail/${emailKey}`).update({
+    lastSyncHistoryId: historyId,
+  });
 };
