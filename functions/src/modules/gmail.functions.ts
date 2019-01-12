@@ -1,8 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import * as Google from "googleapis";
+import * as Google from 'googleapis';
 import { Message } from 'firebase-functions/lib/providers/pubsub';
-import { gmail } from 'googleapis/build/src/apis/gmail';
 
 const db = admin.database();
 
@@ -10,108 +9,247 @@ class GoogleMail {
   constructor() {
     // connection
   }
-
-
 }
 
-/**
- * Authenticate and give permissions, then redirect to redirect endpoint
- * 
- */
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-  const { client_key, secret, redirect } = functions.config().gmail;
-  const oauth2Client = new Google.google.auth.OAuth2(
-    client_key,
-    secret,
-    redirect);
-  const authURL = oauth2Client.generateAuthUrl({
-    access_type: "offline",
-    scope: ["https://www.googleapis.com/auth/gmail.modify"],
-  });
-  
-  console.log("url: ", authURL);
-  res.redirect(authURL);
-});
+    const { client_key, secret, redirect } = functions.config().gmail;
+    const oauth2Client = new Google.google.auth.OAuth2(
+      client_key,
+      secret,
+      redirect
+    );
+    const authURL = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: ['https://www.googleapis.com/auth/gmail.modify'],
+    });
+    res.redirect(authURL);
+  }
+);
 
-/**
- * After authentication redirects here with token, store the token somewhere
- * 
- */
 export const oauth2callback = functions.https.onRequest(
-async (req: functions.Request, res: functions.Response) => {
-  const { client_key, secret, redirect } = functions.config().gmail;
-  const oauth2Client = new Google.google.auth.OAuth2(
-    client_key,
-    secret,
-    redirect);
-  
-  const { tokens } = await oauth2Client.getToken(req.query.code);
-  oauth2Client.setCredentials(tokens);
-  
-  const gm = await Google.google.gmail({
-    version: "v1",
-    auth: oauth2Client,
-  });
+  async (req: functions.Request, res: functions.Response) => {
+    const { client_key, secret, redirect } = functions.config().gmail;
+    const oauth2Client = new Google.google.auth.OAuth2(
+      client_key,
+      secret,
+      redirect
+    );
 
-  const profile = await gm.users.getProfile({ userId: "me" });
+    const { tokens } = await oauth2Client.getToken(req.query.code);
+    oauth2Client.setCredentials(tokens);
 
-  await saveTokensInDatabase({
-    email: profile.data.emailAddress,
-    accessToken: oauth2Client.credentials.access_token
-  });
+    console.info('refresh tokens returned: ', tokens);
+    console.info('auth credentials: ', oauth2Client.credentials);
 
-  // https://www.googleapis.com/oauth2/v1/userinfo?access_token={accessToken}
-  // Store token in some storage
-  // const resultsOfSave = await saveTokensInDatabase(tokens);
+    const gm = await Google.google.gmail({
+      version: 'v1',
+      auth: oauth2Client,
+    });
 
-  // Subscribe for pubsub
+    const profile = await gm.users.getProfile({ userId: 'me' });
+    const emailAddressKey = profile.data.emailAddress
+      .split('@')[0]
+      .replace('.', '');
 
-  res.send({
-    message: `${profile.data.emailAddress} token saved`,
-  });
-});
+    await saveTokensInDatabase({
+      emailKey: emailAddressKey,
+      fullEmail: profile.data.emailAddress,
+      accessToken: oauth2Client.credentials.access_token,
+    });
 
-/**
- * Store auth tokens with email address
- * @param obj Values to save along with token
- */
+    res.send({
+      message: `${profile.data.emailAddress} token saved`,
+    });
+  }
+);
+
 const saveTokensInDatabase = async (values: any) => {
-  console.log("Store object values: ", values);
-  const newGmailTokensRef = db.ref(`/gmail`);
-  newGmailTokensRef.push({
+  console.log('Store object values: ', values);
+  const newGmailTokensRef = db.ref(`/gmail/${values.emailKey}`);
+  newGmailTokensRef.set({
     oauth: {
-      token: values.accessToken
+      token: values.accessToken,
     },
-    emailAddress: values.email,
+    emailAddress: values.fullEmail,
   });
-  // return await gmailTokensRef.push(obj);
-}
+};
 
-/**
- * Make gmail account labels subscribe to our pubsub channel, "gmail-done"
- */
 export const initWatch = functions.https.onRequest(
-async (req: functions.Request, res: functions.Response) => {
+  async (req: functions.Request, res: functions.Response) => {
+    // Initiate gmail client
+    const { client_key, secret, redirect } = functions.config().gmail;
+    const oauth2Client = new Google.google.auth.OAuth2(
+      client_key,
+      secret,
+      redirect
+    );
 
-  // Fetch token from database (Requires email address from client)
+    // User email should come from client initiation
+    const hardCodedEmail = 'audioseva.test@gmail.com';
+    const { oauth, emailAddress } = await getEmailTokenFromDatabase(hardCodedEmail);
+
+    oauth2Client.setCredentials({
+      access_token: oauth.token,
+    });
+    const gm = await Google.google.gmail({
+      version: 'v1',
+      auth: oauth2Client,
+    });
+
+    try {
+      // Make sure we have the correct labelId because GMail internally gives a random one that is
+      // not based on the given name, so we need to filter it by the given name
+      const labelResults = await gm.users.labels.list({
+        userId: emailAddress,
+      });
+      const doneLabelObj = labelResults.data.labels.filter(label => {
+        return label.name === 'SQRDone';
+      })[0];
+
+      const watchResults = await gm.users.watch({
+        userId: 'me',
+        requestBody: {
+          labelIds: [doneLabelObj.id],
+          topicName: 'projects/audio-seva-team-test/topics/gmail-labeled-done',
+        },
+      });
+
+      console.log('watch results: ', watchResults.data);
+
+      if (watchResults.data && doneLabelObj) {
+        res
+          .status(200)
+          .send(
+            `Watch (${watchResults.data.historyId}) created on ${
+              doneLabelObj.name
+            }/${doneLabelObj.id} for ${emailAddress}`
+          );
+      } else {
+        res
+          .status(301)
+          .send(`Something went wrong, check logs for Gmail-initWatch`);
+      }
+    } catch (err) {
+      console.log('Error: ', err);
+      res
+        .status(301)
+        .send(`Something went wrong, check logs for Gmail-initWatch`);
+    }
+  }
+);
+
+export const gmailDoneHandler = functions.pubsub
+  .topic('gmail-labeled-done')
+  .onPublish(async (message: Message) => {
+    console.log('Raw message: ', message);
+    const decodedMessage = JSON.parse(
+      Buffer.from(message.data, 'base64').toString('ascii')
+    );
+    console.log('Decoded message: ', decodedMessage);
+
+    // Gmail client and authenticate
+    const { client_key, secret, redirect } = functions.config().gmail;
+    const oauth2Client = new Google.google.auth.OAuth2(
+      client_key,
+      secret,
+      redirect
+    );
+    const { oauth } = await getEmailTokenFromDatabase(decodedMessage.emailAddress || "audioseva.test@gmail.com");
+    oauth2Client.setCredentials({
+      access_token: oauth.token,
+    });
+    const gm = await Google.google.gmail({
+      version: 'v1',
+      auth: oauth2Client,
+    });
+
+    console.log("oath: ", oauth);
+
+    try {
+      // Typescript complains if not initialized and casted to any
+      const historyListRequest: any = {
+        userId: decodedMessage.emailAddress || "me",
+        startHistoryId: decodedMessage.historyId,
+      };
+
+      // Call the history list api to fetch changes
+      const results = await gm.users.history.list(historyListRequest);
+      console.log("History results: ", results.data);
+
+      if (!results.data.history || !results.data.history.length) {
+        // Handle empty history
+        throw new Error("History is empty. Nothing to process");
+      }
+  
+      const onlyLabelAdded = results.data.history.filter(change => {
+        return change.labelsAdded;
+      });
+
+    // We only care about the final state of the Done label whether it was applied
+    // or not, so we get rid of the duplicates
+    const uniques = {};
+    onlyLabelAdded.forEach(change => {
+      change.labelsAdded.forEach(obj => {
+        uniques[obj.message.id] = {
+          labels: obj.labelIds,
+          threadId: obj.message.threadId,
+        }
+      });
+    });
+
+    // Call the gmail.users.threads api with the unique changes
+    // and retrieve list of threads and messages
+    const threadHeaders = Object.keys(uniques).map(async (threadKey) => {
+      const threadResults = await gm.users.threads.get({
+        userId: "me",
+        id: uniques[threadKey].threadId,
+      });
+      // Only care about the first message headers in the thread
+      return threadResults.data.messages[0].payload.headers;
+    });
+    const allResults = await Promise.all(threadHeaders);
+    // Filter the subject header out from the response
+    const subjectParts = allResults.map(thread => {
+      const subjectValue = thread.filter(header => header.name === "Subject")[0].value;
+      if (subjectValue) {
+        const p = subjectValue.split(" - ");
+        return { no: p[0], fileName: p[1], person: p[2] };
+      }
+      return null;
+    });
+
+    console.log("subjectParts: ", subjectParts);
+
+    // subjectParts.forEach(async (subjectPart) => {
+    //   const list = subjectPart.fileName.split("-")[0];
+    //   const Ref = db.ref(`files/${list}/${subjectPart.fileName}/soundQualityReporting`);
+    //   const sqrResults = await Ref.once("value");
+    //   // console.log("results: ", sqrResults.exists());
+    //   if (sqrResults.exists()) {
+    //     Ref.update({
+    //       status: "Done",
+    //       timestampDone: Date.now()/1000,
+    //     });
+    //   }
+    // });
 
 
-  // Call gmail.users.watch api
 
 
-  // Return response
+    } catch (error) {
+      console.log("Error: ", error);
+    }
+    // Request for changes
 
-});
+    const filename = '';
 
-/**
- * Receive gmail watch push from gcp pubsub, and modify our database
- * 
- */
-// export const gmailDoneTrigger = functions.pubsub.topic('gmail-labeled-done')
-// .onPublish((message: Message) => {
-//   console.log("gmail done: ", message);
-// });
+    // Modify the database / spreadsheets
+    // Ack the Pub/Sub
+  });
 
-// https://us-central1-audio-seva-team-test.cloudfunctions.net/Gmail-gmailRedirectUrl
-// LastToken=4/yAAL1SEwU7TQQkYCYCvvO3Bf73r0BjayKU4gWveQKDZ_--_zW1wwCoNCkAP6Nlwmc5PN4MC1Ty7v0MEG-RuIlTc
+const getEmailTokenFromDatabase = async (email: string) => {
+  const emailKey = email.split('@')[0].replace('.', '');
+  const queryResults = await db.ref(`/gmail/${emailKey}`).once('value');
+  return queryResults.val();
+};
