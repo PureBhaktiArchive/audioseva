@@ -24,21 +24,22 @@ export default class InlineStatusEdit extends Vue {
   @Prop() item!: any;
   @Prop() statusItems!: string[];
   @Prop() keyPath!: string;
+  @Prop() value!: string;
 
   get status() {
     const { item } = this;
-    return findObjectValue(item, "status");
+    return findObjectValue(item, this.value);
   }
 
   handleChange(e: string) {
     const { item } = this;
     
     //Object that is use in making of firebase path URL to save data in database.
-    let path: any = {};
+    const path: any = {};
     path["keyPathId"] = item[".key"] ? item[".key"] : "";
     path["keyPath"] = this.keyPath ? this.keyPath : "";
-    path["itemPath"] = "status";
-    this.$emit("save", item, path, e, { newValue: e, itemPath: "status" });
+    path["itemPath"] = this.value;
+    this.$emit("save", item, path, e, { newValue: e, itemPath: this.value });
   }
 }
 </script>
