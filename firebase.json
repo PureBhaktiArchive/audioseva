@@ -2,6 +2,10 @@
   "database": {
     "rules": "./database.rules.json"
   },
+  "storage": [{
+      "target": "se_uploads",
+      "rules": "./functions/storage.sound-editing.uploads.rules"
+  }],
   "hosting": {
     "public": "frontend/dist",
     "ignore": [
