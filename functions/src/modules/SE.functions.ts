@@ -227,6 +227,8 @@ const validateSpreadsheetRow = (row, summary, sheetTitle) => {
       summary.validityFailures[summary.validityFailures.length - 1].issues.push('invalidResoultion');
     rowValid = false;
   }
+  else 
+    return false; // skipping silently
 
   // [CHECK #6] Beginning and Ending should be filled for rows with Resolution equal to `OK`.
   if (row['Beginning'] !== '' || row['Ending'] !== '' && resolution === 'ok') 
@@ -249,10 +251,10 @@ const validateSpreadsheetRow = (row, summary, sheetTitle) => {
 
 
 ////////////////////////////////
-//			validateFileChunks
-//					1. Performing a validity check that can be performed
-//						only after the chunks are grouped
-//					2. Reporting chunks that are not the first chunk of a file and having `continuationfrom`
+//  validateFileChunks
+//    1. Performing a validity check that can be performed
+//      only after the chunks are grouped
+//		2. Reporting chunks that are not the first chunk of a file and having `continuationfrom`
 ////////////////////////////////
 const validateFileChunks = (chunks, fileName, summary) => {
   const chunksToImport = [];
@@ -274,10 +276,7 @@ const validateFileChunks = (chunks, fileName, summary) => {
 
 
     // setting the value of `lastEndingTime` to be used in the next iteration
-    if (chunk.ending)
-      lastEndingTime = chunk.ending;
-    else
-      lastEndingTime = null;
+    lastEndingTime = chunk.ending;
 
 
     //////////////////////////////////////////////////
@@ -301,6 +300,35 @@ const validateFileChunks = (chunks, fileName, summary) => {
   return chunksToImport;
 }
 
+const saveChunksToDB = async (fileName, chunksToImport, summary, sheetTitle) => {
+  const dbRef = `/sound-editing/chunks/${sheetTitle}/${fileName.split(' ')[0]}`;
+  
+  const ref = await db.ref(dbRef).once('value');
+
+  //////////////////////////////////////
+  // Check first if the file has chunks
+  // written at the database or not
+  //////////////////////////////////////
+  if (!ref.exists())
+    await db.ref(dbRef).set(chunksToImport);
+  else {
+    const dbChunks = ref.val();
+    dbChunks.forEach((dbChunk, i) => {									 
+      // Instead of comparing every single attribute,
+      // the two chunk object are converted into strings and then compared
+      if (JSON.stringify(dbChunk) != JSON.stringify(chunksToImport[i])) {								
+        console.warn(`Audio file name: ${fileName} -- Error: Modified data.`);
+        summary.validityFailures.push({																				
+          row: dbChunk,
+          currentFilechunks: chunksToImport,
+          issues: ['modifiedData']
+        });
+        return;
+      }								 
+    });
+  }
+}
+
 
 
 export const importChunks = functions.runWith({
@@ -315,11 +343,11 @@ export const importChunks = functions.runWith({
   const spreadsheetId = functions.config().reporting.content.processing.spreadsheet_id;
   const sheetsInfo = await helpers.buildSheetIndex(sheets, spreadsheetId);
   
-  const validSheetsTitles = [];
+  const validSheets = [];
   sheetsInfo.forEach(sheet => {
-    // Skip sheets not having (`Beginning` & `Ending`) columns //edited
-    if (sheet.firstRow.indexOf('Beginning') >= 0 && sheet.firstRow.indexOf('Ending') >= 0)
-      validSheetsTitles.push(sheet.title);
+    // Skip sheets not having (`Beginning` & `Ending`) columns 
+    if (sheet.firstRow.indexOf('Beginning') >= 0 && sheet.firstRow.indexOf('Ending') >= 0) 
+      validSheets.push(sheet);
   });
 
 
@@ -337,29 +365,33 @@ export const importChunks = functions.runWith({
   //	`forEach` doesn't wait in turn for its inner async functions to end, resulting the `summary`
   //	object to stay the same as it was before executing the `forEach`
 
-  for(const sheetTitle of validSheetsTitles) {
-
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // [TEMPORARY] this is added because of the limitation of 1000 rows, 26 columns per request
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    if (sheetTitle === 'ML2')
-        continue;
-
+  for(const sheet of validSheets) {
+    const sheetTitle = sheet.title
     const gsheets = new GoogleSheets(
       spreadsheetId,
       sheetTitle
     );
 
-    const rows = await gsheets.getRows();    
+    let rows = [];
+    let remainingRows = sheet.rowCount;
+    let stopAtRow = 0, startAtRow = 1;
+    while (remainingRows > 0) {
+      // Getting the rows of the sheet in increments of 1000s
+      // as this is the MAX num of rowss allowed in one call
+      if (remainingRows >= 1000) {
+        stopAtRow += 1000;
+        remainingRows -= 1000;
+      } 
+      else {
+        stopAtRow += remainingRows
+        remainingRows -= stopAtRow;
+      }
+
+      const result = await gsheets.getRowsByStart(startAtRow, stopAtRow);
+      startAtRow += 1000;
+      rows = rows.concat(result);
+    }  
     
-    // Maps each audio file name with its chunks
-    //			EXAMPLE:
-    //					chunks = {
-    //							"BR-01A": [ chunk#1, chunk#2, .... ],
-    //							"BR-03A": [ chunk#1, chunk#2, .... ],
-    //					}
-    const chunks = {};
     
     currentFile = { 
       file_name: null,
@@ -374,11 +406,14 @@ export const importChunks = functions.runWith({
     //			B. Non-existence of `Resolution` values in a row
     //			C. Empty values in either `Beginning` or `Ending` attributes
     //			D. `Beginning` being greater than `Ending`
-    //	3. Build the `chunks` index object with the relative chunks
+    //	3. Add the row to the `chunks` array
+    //  4. If all the rows of a file is added, 
+    //    a) Sort by `beginning` time
+    //    b) Validate the file rows (check for overlapping) 
+    //    c) Add the chunks to the database
     //
     ////////////////////////////////////////
     for (const row of rows) {
-
       let _import;
 
       if (!row['Resolution'] || !row['Fidelity Check Resolution'])
@@ -421,65 +456,24 @@ export const importChunks = functions.runWith({
         currentFile.chunks.push(chunkToStore);
       
       // NEW FILE -->
-      //			Flush the read chunks into the corresponding file in the `chunks` index
-      //			& RESET the `currentFile` object
+      //  Flush the read chunks into the corresponding file in the `chunks` index
+      //	& RESET the `currentFile` object
       else {
         if (currentFile.file_name !== null) {
-          // if file object exists, add the chunks to it
-          if (chunks[currentFile.file_name]) 
-            chunks[currentFile.file_name].push(currentFile.chunks)
+          // Sorting by `beginning` time
+          const sortedChunks = await lodash.orderBy(currentFile.chunks, ['beginning'], ['asc']);
+          const chunksToImport = validateFileChunks(sortedChunks, currentFile.fileName, summary);
 
-          // if this is the first occurence of the file, set its value to the list of chunks 
-          else		
-            chunks[currentFile.file_name] = currentFile.chunks;
+          summary.addedChunks += chunksToImport.length;
+          
+          await saveChunksToDB(currentFile.fileName, chunksToImport, summary, sheetTitle);
         }
 
         // Reset the `currentFile` object
         currentFile.file_name = audioFileName;
         currentFile.chunks = [chunkToStore];
       }										
-    }
-    
-
-    
-
-    const fileNames = Object.keys(chunks);
-    for (const fileName of fileNames) {
-      let currentFilechunks = chunks[fileName];
-
-      // Sorting by `beginning` time
-      currentFilechunks = await lodash.orderBy(currentFilechunks, ['beginning'], ['asc']);
-
-      const chunksToImport = validateFileChunks(currentFilechunks, fileName, summary);
-
-      summary.addedChunks += chunksToImport.length;
-
-      //////////////////////////////////////
-      // Ensuring data is NEVER overwritten
-      //////////////////////////////////////
-      const dbRef = `/sound-editing/chunks/${sheetTitle}/${fileName.split(' ')[0]}`;
-      
-      const ref = await db.ref(dbRef).once('value');
-
-      if (!ref.exists())
-        await db.ref(dbRef).set(chunksToImport);
-      else {
-        const dbChunks = ref.val();
-        dbChunks.forEach((dbChunk, i) => {									 
-          // Instead of comparing every single attribute,
-          // the two chunk object are converted into strings and then compared
-          if (JSON.stringify(dbChunk) !== JSON.stringify(currentFilechunks[i])) {								
-            console.warn(`Audio file name: ${fileName} -- Error: Modified data.`);
-            summary.validityFailures.push({																				
-              row: dbChunk,
-              currentFilechunks,
-              issues: ['modifiedData']
-            });
-            return;
-          }								 
-        });
-      }
-    }
+    }    
   }	 
 
   

@@ -65,6 +65,35 @@ export default class GoogleSheets {
     return this._convertRows(values);
   }
 
+  /**
+   * Query for a specific google sheets within a spreadsheet
+   *
+   * @param sheet The sheet to query from google sheets api
+   * @param limit How many rows you want including the header titles
+   */
+  public async getRowsByStart(start: number, limit?: number): Promise<any> {
+    await this.connect();
+    const targetSheet: any = await this.connection.spreadsheets.values.get({
+      spreadsheetId: this.spreadsheetId,
+      majorDimension: IMajorDimensions.Rows,
+      range: this.sheetName + this._computeRangeByStart(start, limit),
+    });
+
+    const { statusText, status, data } = targetSheet;
+    if (statusText !== 'OK' || status !== 200) {
+      console.error('Error: Not able to get google sheet');
+      return null;
+    }
+    const { majorDimension, values } = data;
+    if (majorDimension !== IMajorDimensions.Rows || !values || !values.length) {
+      console.error('Error: Values are wrong format');
+      return null;
+    }
+
+    this.headers = values.shift();
+    return this._convertRows(values);
+  }
+
   protected async getHeaders() {
     if (this.headers && this.headers.length) {
       return;
@@ -191,6 +220,13 @@ export default class GoogleSheets {
       return '';
     }
     return `!A1:${limit + 1}`;
+  }
+
+  protected _computeRangeByStart(start?: number, limit?: number): string {
+    if (!limit) {
+      return '';
+    }
+    return `!A${start}:${limit}`;
   }
 
   protected _errorHandler(error: Error) {
