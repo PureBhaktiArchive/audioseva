@@ -23,7 +23,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { findObjectValue } from "@/utility";
+import _ from "lodash";
 
 @Component({
   name: "InlineTextEdit"
@@ -40,14 +40,15 @@ export default class InlineTextEdit extends Vue {
   get editPath() {
     //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
+    const itemPath = this.value ? this.value.split("."): null;
     path["keyPathId"] = this.item[".key"] ? this.item[".key"] : "";
     path["keyPath"] = this.keyPath ? this.keyPath : "";
-    path["itemPath"] = this.value;
+    path["itemPath"] = itemPath.length == 1 ? itemPath[0] : itemPath[1];
     return path;
   }
 
   get textArea() {
-    return findObjectValue(this.item, this.value);
+    return _.get(this.item, this.value);
   }
 
   open() {
@@ -56,7 +57,7 @@ export default class InlineTextEdit extends Vue {
       (this.$refs.editTextArea as any).focus();
     }, 100);
 
-    this.textAreaValue = findObjectValue(this.item, this.value);
+    this.textAreaValue = _.get(this.item, this.value);
     this.isShowTextArea = true;
   }
 }

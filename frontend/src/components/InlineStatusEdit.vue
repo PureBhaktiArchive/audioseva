@@ -1,8 +1,10 @@
 <template>
   <v-menu offset-y :style="{ height: '100%', width: '100%', display: 'inherit' }">
-    <p class="ma-0 text-no-wrap" slot="activator" :style="{ height: '25px', width: '40px' }">
-      {{ status }}  
-    </p>
+    <p
+      class="ma-0 text-no-wrap"
+      slot="activator"
+      :style="{ height: '25px', width: '40px' }"
+    >{{ status }}</p>
     <div>
       <v-list>
         <v-list-tile @click="handleChange(item)" v-for="(item, index) in statusItems" :key="index">
@@ -15,7 +17,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import { findObjectValue } from "@/utility";
+import _ from "lodash";
 
 @Component({
   name: "InlineStatusEdit"
@@ -27,19 +29,19 @@ export default class InlineStatusEdit extends Vue {
   @Prop() value!: string;
 
   get status() {
-    const { item } = this;
-    return findObjectValue(item, this.value);
+    return _.get(this.item, this.value);
   }
 
   handleChange(e: string) {
     const { item } = this;
-    
+
     //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
-    path["keyPathId"] = item[".key"] ? item[".key"] : "";
+    const itemPath = this.value ? this.value.split(".") : "";
+    path["keyPathId"] = this.item[".key"] ? this.item[".key"] : "";
     path["keyPath"] = this.keyPath ? this.keyPath : "";
-    path["itemPath"] = this.value;
-    this.$emit("save", item, path, e, { newValue: e, itemPath: this.value });
+    path["itemPath"] = itemPath.length == 1 ? itemPath[0] : itemPath[1];
+    this.$emit("save", item, path, e, { newValue: e, itemPath: "status" });
   }
 }
 </script>

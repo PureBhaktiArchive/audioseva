@@ -95,7 +95,7 @@ export default class Tasks extends Vue {
   };
 
   componentData = {
-    followUp: {
+    'restoration.followUp': {
       on: { ...this.editEvents },
       props: {
         keyPath: this.keyPath
@@ -107,7 +107,7 @@ export default class Tasks extends Vue {
         keyPath: this.keyPath
       }
     },
-    status: {
+    'restoration.status': {
       on: { ...this.editEvents },
       props: {
         keyPath: this.keyPath,
@@ -140,14 +140,14 @@ export default class Tasks extends Vue {
   computedComponent = {
     soundIssues: SoundIssuesList,
     assignee: InlineAssignEdit,
-    status: InlineStatusEdit,
-    followUp: InlineTextEdit
+    'restoration.status': InlineStatusEdit,
+    'restoration.followUp': InlineTextEdit
   };
 
   headers = [
     { text: "Days passed", value: "daysPassed" },
     { text: "Date given", value: "restoration.timestampGiven" },
-    { text: "Status", value: "status" },
+    { text: "Status", value: "restoration.status" },
     {
       text: "Task ID",
       value: ".key"
@@ -165,7 +165,7 @@ export default class Tasks extends Vue {
       value: "assignee"
     },
     { text: "Date Done", value: "restoration.timestampDone" },
-    { text: "Follow Up", value: "followUp" }
+    { text: "Follow Up", value: "restoration.followUp" }
   ];
 
   async mounted() {
@@ -242,7 +242,7 @@ export default class Tasks extends Vue {
     let refPath = `sound-editing/tasks/${this.lists[this.selectedButton]}/${
       path.keyPathId
     }/${path.keyPath}/${path.itemPath}`;
-
+    
     // manual update state if component can't use v-model
     if (itemPath) {
       this.$set(
