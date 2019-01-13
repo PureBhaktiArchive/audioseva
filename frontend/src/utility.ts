@@ -77,20 +77,3 @@ export const initialFilter = () => ({
   language: null,
   list: null
 });
-
-export const findObjectValue = (object: any, key: any) => {
-  let value;
-  Object.keys(object).some((k: any) => {
-    if (k === key) {
-      value = object[k];
-      return true;
-    }
-    if (object[k] && typeof object[k] === "object") {
-      value = findObjectValue(object[k], key);
-      return value !== undefined;
-    } else {
-      return false
-    }
-  });
-  return value;
-};
