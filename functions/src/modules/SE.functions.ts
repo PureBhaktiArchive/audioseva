@@ -206,7 +206,7 @@ export const uploadProcessing = functions.storage.bucket(seUploadsBucketUrl).obj
     // [Check #1] File name should match `$taskId.flac` pattern.
     if (!match) {
       console.warn(`Wrong Path -- ${filePath} will be deleted.`);
-      throw `Wrong Path -- ${filePath} will be deleted.`;
+      throw new Error(`Wrong Path -- ${filePath} will be deleted.`);
     }
 
     const uploadCode = match[1],
@@ -222,21 +222,21 @@ export const uploadProcessing = functions.storage.bucket(seUploadsBucketUrl).obj
     //  which is identified by the `uploadCode`within the file path.
     if (!supposedAssignee.exists()) { 
       console.warn(`Wrong Upload code -- ${filePath} will be deleted.`);
-      throw `Wrong Upload code -- ${filePath} will be deleted.`;
+      throw new Error(`Wrong Upload code -- ${filePath} will be deleted.`);
     }
 
     const taskRef = await db.ref(`/sound-editing/tasks/${list}/${taskId}`).once('value');
     // [Check #2] The task should be found in the database by Id.
     if (!taskRef.exists()) {
       console.warn(`Task does not exist -- ${filePath} will be deleted.`);
-      throw `Task does not exist -- ${filePath} will be deleted.`;
+      throw new Error(`Task does not exist -- ${filePath} will be deleted.`);
     }
 
     const task = taskRef.val();
     // [Check #4] The task should be in `Spare` or `Revise` status.
     if (['Revise', 'Spare'].indexOf(task.restoration.status) < 0) {
       console.warn(`Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`);
-      throw `Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`;
+      throw new Error(`Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`);
     }
 
 
@@ -256,7 +256,7 @@ export const uploadProcessing = functions.storage.bucket(seUploadsBucketUrl).obj
     
 
     // Update the Task
-    let taskRestorationUpdate = {
+    const taskRestorationUpdate = {
         status: 'In Review',
         timestampLastVersion: admin.database.ServerValue.TIMESTAMP
     };
