@@ -186,3 +186,88 @@ export const createTaskFromChunks = functions.database.ref(
   });
   return snapshot.val();
 });
+
+
+
+/**
+ * Sends a notification email to the coordinator & udpates the corresponding Task
+ */
+const seUploadsBucketUrl = functions.config().sound_editing.uploads.bucket_name;
+export const uploadProcessing = functions.storage.bucket(seUploadsBucketUrl).object()
+.onFinalize(async object => {
+
+  const filePath = object.name;
+  const seUploadsBucket = admin.storage().bucket(seUploadsBucketUrl);
+
+  try {
+    const filePathRegex = /restored\/(\w+)\/(?:\w+\/)*(([\w]+)-\d+-\d+)\.flac/;
+    const match = filePathRegex.exec(filePath);
+
+    // [Check #1] File name should match `$taskId.flac` pattern.
+    if (!match) {
+      console.warn(`Wrong Path -- ${filePath} will be deleted.`);
+      throw `Wrong Path -- ${filePath} will be deleted.`;
+    }
+
+    const uploadCode = match[1],
+          taskId = match[2], 
+          list = match[3];
+
+    const supposedAssignee = await db.ref(`/users`)
+      .orderByChild('uploadCode')
+      .equalTo(uploadCode)
+      .once('value');
+    
+    // [Check #3] The task should be assigned to a particular sound engineer 
+    //  which is identified by the `uploadCode`within the file path.
+    if (!supposedAssignee.exists()) { 
+      console.warn(`Wrong Upload code -- ${filePath} will be deleted.`);
+      throw `Wrong Upload code -- ${filePath} will be deleted.`;
+    }
+
+    const taskRef = await db.ref(`/sound-editing/tasks/${list}/${taskId}`).once('value');
+    // [Check #2] The task should be found in the database by Id.
+    if (!taskRef.exists()) {
+      console.warn(`Task does not exist -- ${filePath} will be deleted.`);
+      throw `Task does not exist -- ${filePath} will be deleted.`;
+    }
+
+    const task = taskRef.val();
+    // [Check #4] The task should be in `Spare` or `Revise` status.
+    if (['Revise', 'Spare'].indexOf(task.restoration.status) < 0) {
+      console.warn(`Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`);
+      throw `Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`;
+    }
+
+
+    // Move current file (after passing all validity checks) into `Restored` bucket
+    seUploadsBucket.file(object.name).move(
+      admin.storage().bucket(functions.config().sound_editing.restoration.bucket_name) //add to README
+        .file(`${list}/${taskId}.flac`)
+    );
+
+    // Send an email notification to the coordinator
+    db.ref(`/email/notifications`).push({
+      template: 'se-upload',
+      to: functions.config().coordinator.email_address,
+      replyTo: task.restoration.assignee.emailAddress,
+      params: { task }
+    });  
+    
+
+    // Update the Task
+    let taskRestorationUpdate = {
+        status: 'In Review',
+        timestampLastVersion: admin.database.ServerValue.TIMESTAMP
+    };
+
+    if (!task.restoration.timestampFirstVersion)
+      taskRestorationUpdate['timestampFirstVersion'] = admin.database.ServerValue.TIMESTAMP;
+
+    return taskRef.ref.child('restoration').update(taskRestorationUpdate);   
+
+    
+  } catch (err) {
+    if (err) seUploadsBucket.file(filePath).delete();
+  }
+});
