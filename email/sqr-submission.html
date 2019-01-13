@@ -1,0 +1,75 @@
+<div style="color:red; font-weight:bold;">
+  {{if(34.rowId; ; "
+  <p>This is the first submission by this devotee!</p>
+  ")}} {{if(1.not_preferred_language; "The lecture is not in devotee's preferred
+  language!<br /><br />")}}{{if(1.unable_to_play_or_download; "Unable to play or
+  download the audio! Description: " + 1.comments + "<br /><br />")}}{{if(1.changed
+  != 1.completed; "This is an updated submission!<br /><br />")}}{{if(23.rowId;
+  if(23.columnemail != 1.email_address; "File is allotted to another email id -
+  " + 23.columnemail + "!<br /><br />") + if(23.columnstatus != "Given" &
+  23.columnstatus != "WIP"; "Status of the file is - " +
+  ifempty(23.columnstatus; "Spare") + "<br /><br />"); "Audio File Name “" +
+  1.audio_file_name + "” is not found in the Backend!<br /><br />")}}{{if(indexOf(19.text;
+  "Given"; indexOf(19.text; "Given") + 1) = -1; "It's time to allot!<br /><br />")}}
+</div>
+<b>Current set:</b><br />
+<div style="font-family: Courier">{{19.text}}</div>
+<a
+  href="https://audio-seva.firebaseapp.com/sqr/allot?emailAddress={{encodeURL(1.email_address)}}"
+  >Allot the next set</a
+><br /><br />Please update your previous submission using this update link:
+http://purebhakti.info/audioseva/form/sound-quality-report?token={{1.token
+
+}}.<br />Please note — do not make a new submission using this link. For a new
+submission, use the link in the allotment email.<br />
+
+<p>Content Reporting Submissions:</p>
+<table
+  frame="border"
+  cellspacing="4"
+  cellpadding="2"
+  width="100%"
+  rules="all"
+  style="border-collapse:collapse;"
+>
+  <thead align="left">
+    <tr>
+      <th>Fused</th>
+      <th>Timing</th>
+      <th>Beginning</th>
+      <th>Ending</th>
+      <th>Continuation From</th>
+      <th>Date</th>
+      <th>Location</th>
+      <th>Category</th>
+      <th>Gurudeva Timings</th>
+      <th>Other Speakers</th>
+      <th>Kirtan</th>
+      <th>Abrupt Lecture</th>
+      <th>Languages</th>
+      <th>Sound Quality</th>
+      <th>Sound Issues</th>
+      <th>Comments</th>
+      <th>Resolution</th>
+      <th>Processing Comments</th>
+      <th>Fidelity Check Resolution</th>
+      <th>Structuring Comments</th>
+    </tr>
+  </thead>
+  <tbody valign="top">
+    {{38.text}}
+  </tbody>
+</table>
+
+<h2>SQR #{{1.serial}}</h2>
+<p><b>A. Audio File Name:</b> {{1.audio_file_name}}</p>
+<p><b>B. Sound Quality Rating:</b> {{1.sound_quality_rating}}</p>
+<p>
+  <b>C. Unwanted parts to be cut:</b><br />{{replace(33.text; newline; "<br />")}}
+</p>
+<p><b>D. Sound Issues:</b><br />{{replace(31.text; newline; "<br />")}}</p>
+<p><b>E. Total Duration of the Recording:</b> {{1.beginning}}–{{1.ending}}</p>
+<br />
+<p><b>F. Comments:</b> {{replace(1.comments; newline; "<br />")}}</p>
+<br />
+<p><b>G. Filled By:</b> {{1.name}}, {{1.email_address}}</p>
