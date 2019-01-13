@@ -316,7 +316,7 @@ const saveChunksToDB = async (fileName, chunksToImport, summary, sheetTitle) => 
     dbChunks.forEach((dbChunk, i) => {									 
       // Instead of comparing every single attribute,
       // the two chunk object are converted into strings and then compared
-      if (JSON.stringify(dbChunk) != JSON.stringify(chunksToImport[i])) {								
+      if (JSON.stringify(dbChunk) !== JSON.stringify(chunksToImport[i])) {								
         console.warn(`Audio file name: ${fileName} -- Error: Modified data.`);
         summary.validityFailures.push({																				
           row: dbChunk,

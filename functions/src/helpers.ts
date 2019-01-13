@@ -32,9 +32,9 @@ export const buildSheetIndex = async (sheets, spreadsheetId) => {
   });
 
   const sheetscMetadata = [];
-  for (let i = 0; i < currentSheets.data.sheets.length; i++) {
-    const { title } = currentSheets.data.sheets[i].properties;
-    const { rowCount, columnCount } = currentSheets.data.sheets[i].properties.gridProperties;
+  for (const sheet of currentSheets.data.sheets) {
+    const { title } = sheet.properties;
+    const { rowCount, columnCount } = sheet.gridProperties;
 
 
     const result = await sheets.spreadsheets.values.get({
