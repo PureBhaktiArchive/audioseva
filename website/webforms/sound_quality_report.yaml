@@ -46,8 +46,7 @@ audio_file_name:
   "#type": textfield
   "#title": "A. Audio File Name"
   "#more_title": Guidelines
-  "#more": |
-    This field will be pre-filled in the form.
+  "#more": "This field will be pre-filled in the form."
   "#autocomplete": "off"
   "#readonly": true
   "#prepopulate": true
@@ -95,22 +94,22 @@ details_container:
     "#states":
       visible:
         ':input[name="not_preferred_language"]':
-          checked: false
+          unchecked: true
         ':input[name="unable_to_play_or_download"]':
-          checked: false
-    "#multiple__header": false
+          unchecked: true
     "#multiple__sorting": false
+    "#format_items": table
     "#element":
       beginning:
         "#type": textfield
         "#title": Beginning
-        "#placeholder": "Enter the timing in (h:)mm:ss format"
+        "#placeholder": "(h:)mm:ss format"
         "#autocomplete": "off"
         "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
       ending:
         "#type": textfield
         "#title": Ending
-        "#placeholder": "Enter the timing in (h:)mm:ss format"
+        "#placeholder": "(h:)mm:ss format"
         "#autocomplete": "off"
         "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
       type:
@@ -138,29 +137,32 @@ details_container:
     "#states":
       visible:
         ':input[name="not_preferred_language"]':
-          checked: false
+          unchecked: true
         ':input[name="unable_to_play_or_download"]':
-          checked: false
-    "#multiple__header": false
+          unchecked: true
     "#multiple__sorting": false
+    "#format_items": table
     "#element":
+      entire_file:
+        "#type": checkbox
+        "#title": "Entire File"
       beginning:
         "#type": textfield
         "#title": Beginning
-        "#placeholder": "Enter the timing in (h:)mm:ss format"
+        "#placeholder": "(h:)mm:ss format"
         "#autocomplete": "off"
         "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
       ending:
         "#type": textfield
         "#title": Ending
-        "#placeholder": "Enter the timing in (h:)mm:ss format"
+        "#placeholder": "(h:)mm:ss format"
         "#autocomplete": "off"
         "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
       issue:
         "#type": webform_radios_other
         "#options":
           "Background noise": "Background noise"
-          Volume: "Low volume or changing volume"
+          Volume: "Low/changing volume"
           Reverberation: Reverberation
         "#title": Issue
       description:
