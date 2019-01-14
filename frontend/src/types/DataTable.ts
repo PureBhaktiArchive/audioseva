@@ -41,15 +41,17 @@ interface ISQR {
   assignee: {
     emailAddress: string;
     name: string;
-  },
+  };
   timestampGiven: number;
   timestampDone: number;
-  followUp: string
+  followUp: string;
 }
 
-export interface ISQRFileVueFire {
+export interface IFileVueFire {
   languages: string[];
+  languagesConfirmed?: boolean;
   notes: string;
   [".key"]: string;
-  soundQualityReporting: ISQR;
+  soundQualityReporting?: ISQR;
+  contentReporting?: ISQR;
 }

@@ -27,10 +27,11 @@
       <!-- Lists -->
       <v-layout class="py-2">
         <div v-if="lists">
-          <v-btn-toggle v-model="selectedList" mandatory v-if="lists.length">
+          <v-btn-toggle v-model="selectedList" mandatory v-if="lists && lists.length">
             <v-btn flat v-for="list in lists" :key="list" :value="list">{{ list }}</v-btn>
           </v-btn-toggle>
-          <p v-else>no lists</p>
+          <p v-else-if="lists == null">Loading lists…</p>
+          <p v-else-if="lists.length == 0">There is no spare file.</p>
         </div>
         <div v-else class="elevation-1 pa-1">
           <span :style="{ marginRight: '4px' }">loading lists</span>
@@ -82,7 +83,7 @@
 
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
-import firebase from "firebase";
+import firebase from "firebase/app";
 import fb from "@/firebaseApp";
 import UsersByRole from "@/mixins/UsersByRole";
 import FirebaseShallowQuery from "@/mixins/FirebaseShallowQuery";

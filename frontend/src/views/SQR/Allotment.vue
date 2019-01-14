@@ -3,7 +3,7 @@
  */
 <template>
   <div>
-    <h1>Content Reporting Allotment</h1>
+    <h1>Sound Quality Reporting Allotment</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
       <v-autocomplete
         v-model="allotment.assignee"
@@ -11,7 +11,7 @@
         :hint="usersHint"
         :loading="users === null"
         item-text="name"
-        label="Select an assignee"
+        label="Select a devotee"
         persistent-hint
         return-object
         clearable
@@ -44,7 +44,7 @@
         <p v-else-if="lists.length == 0">There is no spare file.</p>
       </v-layout>
       <!-- Files -->
-      <template v-if="files != null">
+      <template v-if="filter.list && filter.language">
         <template v-if="files">
           <template v-if="files.length > 0">
             <v-layout align-center v-for="file in files" :key="file.filename">
@@ -54,7 +54,7 @@
               <span>{{ file.notes }}</span>
             </v-layout>
           </template>
-          <p v-else>No spare files found for selected language in {{ filter.list }} list.</p>
+          <p v-else>No spare files found for selected language in {{filter.list}} list.</p>
         </template>
         <p v-else>Loading files…</p>
       </template>
@@ -70,7 +70,7 @@
       type="success"
       transition="scale-transition"
     >
-      <h4 class="alert-heading">Lectures allotted successfully</h4>
+      <h4 class="alert-heading">Allotted succesfully</h4>
       <p class="mb-0">
         <v-btn @click="reset">Make another allotment</v-btn>
       </p>
@@ -88,6 +88,7 @@
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
 import fb from "@/firebaseApp";
+// need this to use timestamp
 import firebase from "firebase/app";
 import _ from "lodash";
 import UsersByRole from "@/mixins/UsersByRole";
@@ -102,13 +103,13 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
   UsersByRole,
   ShallowQuery
 ) {
-  usersRole = "CR";
-  languages: string[] = ["English", "Hindi", "Bengali", "None"];
+  usersRole = "SQR";
+  languages: string[] = ["English", "Hindi", "Bengali"];
   files: any = null;
   filter: any = initialFilter();
   allotment: any = initialAllotment();
   submissionStatus: any = null;
-  crFiles: IFileVueFire[] = [];
+  sqrFiles: IFileVueFire[] = [];
 
   mounted() {
     this.getUsers();
@@ -133,17 +134,39 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
 
   @Watch("filter", { deep: true })
   handleFilter() {
-    const { language, list } = this.filter;
     this.files = null;
     this.allotment.files = [];
 
-    if (language == null || list == null) return;
+    if (this.filter.list == null) return;
+
     this.$bindAsArray(
-      "crFiles",
-      fb.database().ref(`files/${list}`),
-      null,
+      "sqrFiles",
+      (fb as any)
+        .database()
+        .ref(`files/${this.filter.list}`)
+        .orderByChild("soundQualityReporting/status")
+        .equalTo("Spare"),
+      null, // cancel callback not used
       this.filterSelectedFiles
     );
+  }
+
+  filterSelectedFiles() {
+    if (this.sqrFiles.length) {
+      this.files = this.sqrFiles.reduce(
+        (filteredItems: any[], { languages, notes, ...other }) => {
+          if (languages && languages.includes(this.filter.language)) {
+            filteredItems.push({
+              languages,
+              notes,
+              filename: other[".key"]
+            });
+          }
+          return filteredItems;
+        },
+        []
+      );
+    }
   }
 
   async allot() {
@@ -162,37 +185,19 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       user: (fb as any).auth().currentUser.email
     };
-    await fb
+
+    await (fb as any)
       .database()
-      .ref("cr/allotments")
+      .ref("sqr/allotments")
       .push()
       .set(allotmentData);
 
     this.submissionStatus = "complete";
   }
 
-  filterSelectedFiles() {
-    if (this.crFiles.length) {
-      this.files = this.crFiles.reduce(
-        (filteredItems: any[], { languages, notes, ...other }) => {
-          if (languages && languages.includes(this.filter.language)) {
-            filteredItems.push({
-              languages,
-              notes,
-              filename: other[".key"]
-            });
-          }
-          return filteredItems;
-        },
-        []
-      );
-    }
-  }
-
   reset() {
     this.allotment = initialAllotment();
     this.filter = initialFilter();
-    this.files = null;
     this.submissionStatus = null;
   }
 }

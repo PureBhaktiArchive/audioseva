@@ -60,10 +60,16 @@ Firebase Cloud Functions is written in **TypeScript**, if you are uploading the 
 # Deploying Firebase Cloud Functions!
 Don't upload the functions manually as it needs first to be converted from **TypeScript** into **JavaScript**.
 
+```sh
+$ cd functions
+```
 
-The following command will run a **predeploy** script to make the conversion and then upload the functions.
+The following command transpiles all the **Typescript** files:
+```sh
+$ npm run build
+```
 
-
+Deploy the functions:
 ```sh
 $ npm run deploy
 ```
