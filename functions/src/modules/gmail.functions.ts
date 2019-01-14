@@ -1,14 +1,10 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as Google from 'googleapis';
+import * as querystring from 'querystring';
 import { Message } from 'firebase-functions/lib/providers/pubsub';
 
 const db = admin.database();
-
-/**
- * TODOS: need to figure how to refresh auth token per gmail account
- * 
- */
 
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
@@ -21,16 +17,18 @@ export const oauth2init = functions.https.onRequest(
     const authURL = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: ['https://www.googleapis.com/auth/gmail.modify'],
+      prompt: 'consent',
     });
     res.redirect(authURL);
   }
 );
 
-const saveTokensInDatabase = async (values: any) => {
+const saveTokens = async (values: any) => {
   const newGmailTokensRef = db.ref(`/gmail/${values.emailKey}`);
   newGmailTokensRef.set({
     oauth: {
       token: values.accessToken,
+      refreshToken: values.refreshToken,
     },
     emailAddress: values.fullEmail,
   });
@@ -48,10 +46,6 @@ export const oauth2callback = functions.https.onRequest(
     const { tokens } = await oauth2Client.getToken(req.query.code);
     oauth2Client.setCredentials(tokens);
 
-    // Need to figure out how to get refresh token
-    console.info('refresh tokens returned: ', tokens);
-    console.info('auth credentials: ', oauth2Client.credentials);
-
     const gm = await Google.google.gmail({
       version: 'v1',
       auth: oauth2Client,
@@ -62,19 +56,20 @@ export const oauth2callback = functions.https.onRequest(
       .split('@')[0]
       .replace('.', '');
 
-    await saveTokensInDatabase({
+    await saveTokens({
       emailKey: emailAddressKey,
       fullEmail: profile.data.emailAddress,
-      accessToken: oauth2Client.credentials.access_token,
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
     });
 
-    res.send({
-      message: `${profile.data.emailAddress} token saved`,
-    });
+    res.redirect(
+      `/initWatch?emailAddress=${querystring.escape(profile.data.emailAddress)}`
+    );
   }
 );
 
-const getEmailTokenFromDatabase = async (email: string) => {
+const fetchToken = async (email: string) => {
   const emailKey = email.split('@')[0].replace('.', '');
   const queryResults = await db.ref(`/gmail/${emailKey}`).once('value');
   return queryResults.val();
@@ -89,6 +84,14 @@ const storeHistoryIdInDatabase = async (email: string, historyId: any) => {
 
 export const initWatch = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
+    if (!req.query.emailAddress) {
+      return res.status(400).send('No emailAddress specified.');
+    }
+    const email = querystring.unescape(req.query.emailAddress);
+    if (!email.includes('@')) {
+      return res.status(400).send('Invalid emailAddress.');
+    }
+
     // Initiate gmail client
     const { client_key, secret, redirect } = functions.config().gmail;
     const oauth2Client = new Google.google.auth.OAuth2(
@@ -97,14 +100,11 @@ export const initWatch = functions.https.onRequest(
       redirect
     );
 
-    // User email should come from client initiation
-    const hardCodedEmail = 'audioseva.test@gmail.com';
-    const { oauth, emailAddress } = await getEmailTokenFromDatabase(
-      hardCodedEmail
-    );
+    const { oauth, emailAddress } = await fetchToken(email);
 
     oauth2Client.setCredentials({
       access_token: oauth.token,
+      refresh_token: oauth.refreshToken,
     });
     const gm = await Google.google.gmail({
       version: 'v1',
@@ -135,7 +135,7 @@ export const initWatch = functions.https.onRequest(
           emailAddress,
           watchResults.data.historyId
         );
-        res
+        return res
           .status(200)
           .send(
             `Watch (${watchResults.data.historyId}) created on ${
@@ -143,13 +143,13 @@ export const initWatch = functions.https.onRequest(
             }/${doneLabelObj.id} for ${emailAddress}`
           );
       } else {
-        res
+        return res
           .status(301)
           .send(`Something went wrong, check logs for Gmail-initWatch`);
       }
     } catch (err) {
       console.log('Error: ', err);
-      res
+      return res
         .status(301)
         .send(`Something went wrong, check logs for Gmail-initWatch`);
     }
@@ -170,11 +170,12 @@ export const gmailDoneHandler = functions.pubsub
       secret,
       redirect
     );
-    const { oauth, lastSyncHistoryId } = await getEmailTokenFromDatabase(
-      decodedMessage.emailAddress || 'audioseva.test@gmail.com'
+    const { oauth, lastSyncHistoryId } = await fetchToken(
+      decodedMessage.emailAddress
     );
     oauth2Client.setCredentials({
       access_token: oauth.token,
+      refresh_token: oauth.refreshToken,
     });
     const gm = await Google.google.gmail({
       version: 'v1',
