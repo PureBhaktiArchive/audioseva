@@ -34,15 +34,14 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 export default class InlineRolesEdit extends Vue {
   @Prop() item!: any;
   @Prop() roles!: string[];
-
+   @Prop() value!: any;
+   
   handleChange(e: any, role: string) {
     const { item } = this;
     
     //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
-    path["keyPathId"] = item[".key"] ? item[".key"] : "";
-    path["keyPath"] = this.keyPath ? this.keyPath : "";
-    path["itemPath"] = `roles/${role}`;
+    path["itemPath"] = `${this.value}/${role}`;
 
     const updatedRoles = { ...item.roles };
     const addedRole = !!e;

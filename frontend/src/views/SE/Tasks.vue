@@ -239,10 +239,8 @@ export default class Tasks extends Vue {
     this.snackText = "Data saved";
 
     // firebase Path URL to save data in database.
-    let refPath = `sound-editing/tasks/${this.lists[this.selectedButton]}/${
-      path.keyPathId
-    }/${path.keyPath}/${path.itemPath}`;
-    
+    let refPath = `sound-editing/tasks/${this.lists[this.selectedButton]}/${item[".key"]}/${path.itemPath}`;
+
     // manual update state if component can't use v-model
     if (itemPath) {
       this.$set(

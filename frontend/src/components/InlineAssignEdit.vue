@@ -58,9 +58,7 @@ export default class InlineAssignEdit extends Vue {
 
     //Object that is use in making of firebase path URL to save data in database. 
     const path: any = {};
-    path["keyPathId"] = item[".key"] ? item[".key"] : "";
-    path["keyPath"] = this.keyPath ? this.keyPath : "";
-    path["itemPath"] = "";
+    path["itemPath"] = this.keyPath;
     this.$emit("save", item, path, update);
   }
 }

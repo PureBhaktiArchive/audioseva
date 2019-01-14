@@ -210,7 +210,7 @@ export default class List extends Vue {
     this.snack = true;
     this.snackColor = "success";
     this.snackText = "Data saved";
-    let refPath = `users/${path.keyPathId}/${path.itemPath}`;
+    let refPath = `users/${item['.key']}/${path.itemPath}`;
 
     // manual update state if component can't use v-model
     if (itemPath) {
