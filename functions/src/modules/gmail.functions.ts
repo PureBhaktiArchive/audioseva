@@ -5,6 +5,11 @@ import { Message } from 'firebase-functions/lib/providers/pubsub';
 
 const db = admin.database();
 
+/**
+ * TODOS: need to figure how to refresh auth token per gmail account
+ * 
+ */
+
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
     const { client_key, secret, redirect } = functions.config().gmail;
@@ -20,6 +25,16 @@ export const oauth2init = functions.https.onRequest(
     res.redirect(authURL);
   }
 );
+
+const saveTokensInDatabase = async (values: any) => {
+  const newGmailTokensRef = db.ref(`/gmail/${values.emailKey}`);
+  newGmailTokensRef.set({
+    oauth: {
+      token: values.accessToken,
+    },
+    emailAddress: values.fullEmail,
+  });
+};
 
 export const oauth2callback = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
@@ -59,13 +74,16 @@ export const oauth2callback = functions.https.onRequest(
   }
 );
 
-const saveTokensInDatabase = async (values: any) => {
-  const newGmailTokensRef = db.ref(`/gmail/${values.emailKey}`);
-  newGmailTokensRef.set({
-    oauth: {
-      token: values.accessToken,
-    },
-    emailAddress: values.fullEmail,
+const getEmailTokenFromDatabase = async (email: string) => {
+  const emailKey = email.split('@')[0].replace('.', '');
+  const queryResults = await db.ref(`/gmail/${emailKey}`).once('value');
+  return queryResults.val();
+};
+
+const storeHistoryIdInDatabase = async (email: string, historyId: any) => {
+  const emailKey = email.split('@')[0].replace('.', '');
+  return await db.ref(`/gmail/${emailKey}`).update({
+    lastSyncHistoryId: historyId,
   });
 };
 
@@ -252,16 +270,3 @@ export const gmailDoneHandler = functions.pubsub
       console.log('Error: ', error);
     }
   });
-
-const getEmailTokenFromDatabase = async (email: string) => {
-  const emailKey = email.split('@')[0].replace('.', '');
-  const queryResults = await db.ref(`/gmail/${emailKey}`).once('value');
-  return queryResults.val();
-};
-
-const storeHistoryIdInDatabase = async (email: string, historyId: any) => {
-  const emailKey = email.split('@')[0].replace('.', '');
-  return await db.ref(`/gmail/${emailKey}`).update({
-    lastSyncHistoryId: historyId,
-  });
-};
