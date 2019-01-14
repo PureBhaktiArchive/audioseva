@@ -8,10 +8,8 @@ const db = admin.database();
 
 export const importUserRegistrationData = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    const spreadsheetId: string =
-      '1dpGOD0IWFcwzXLjXNFXehsnqYtok5aqOWJHbLwXboIs';
     const gsheets: GoogleSheet = new GoogleSheet(
-      spreadsheetId,
+      functions.config().user.spreadsheet_id,
       'Registrations'
     );
 
@@ -56,6 +54,6 @@ export const importUserRegistrationData = functions.https.onRequest(
         });
     });
 
-    res.status(200).end();
+    res.status(200).send("Ok");
   }
 );
