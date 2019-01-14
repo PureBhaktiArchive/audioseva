@@ -28,5 +28,6 @@ import * as ReportingSync from './modules/reporting.sync.functions';
 import * as Email from './modules/email.functions';
 import * as SE from './modules/SE.functions';
 import * as Authorization from './modules/Authorization.functions';
+import * as User from './modules/Users.functions';
 
-export { SQR, ReportingSync, Email, Authorization, SE };
+export { SQR, ReportingSync, Email, Authorization, SE, User };
