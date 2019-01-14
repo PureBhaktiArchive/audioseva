@@ -22,6 +22,7 @@
     "google-spreadsheet": "^2.0.6",
     "googleapis": "^35.0.0",
     "lodash": "^4.17.11",
+    "querystring": "^0.2.0",
     "sib-api-v3-sdk": "^7.0.3",
     "uniqid": "^5.0.3"
   },
