@@ -64,7 +64,7 @@ export const oauth2callback = functions.https.onRequest(
     });
 
     res.redirect(
-      `/initWatch?emailAddress=${querystring.escape(profile.data.emailAddress)}`
+      `/Gmail-initWatch?emailAddress=${querystring.escape(profile.data.emailAddress)}`
     );
   }
 );
