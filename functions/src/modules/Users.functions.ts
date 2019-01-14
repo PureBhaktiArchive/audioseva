@@ -10,7 +10,7 @@ const db = admin.database();
  * 
  * @function processRegistration()
  */
-export const processRegistration = functions.database
+export const restructureRegistrationData = functions.database
 .ref('/webforms/registration/{registration_id}')
 .onCreate(async (snapshot, context) => {
   const webform = snapshot.val();
