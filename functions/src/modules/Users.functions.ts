@@ -16,7 +16,6 @@ export const importUserRegistrationData = functions.https.onRequest(
     const registrationRows = await gsheets.getRows();
 
     const readyForDatabaseUpdate = registrationRows.map((elem: any) => {
-      console.log('elem: ', elem['Languages']);
       return {
         notes: withDefault(elem['Details']),
         status: elem['Status'],
