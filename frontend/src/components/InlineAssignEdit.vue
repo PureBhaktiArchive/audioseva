@@ -46,7 +46,7 @@ export default class InlineAssignEdit extends Vue {
     const { item } = this;
 
     //Object that is effectively empties only following fields: date given, assignee, email address, status in database.
-    let changedData = {
+    const changedData = {
       status: "",
       timestampGiven: "",
       assignee: {
@@ -54,7 +54,7 @@ export default class InlineAssignEdit extends Vue {
         name: ""
       }
     };
-    let update = _.merge({}, item[this.keyPath], changedData);
+    const update = _.merge({}, item[this.keyPath], changedData);
 
     //Object that is use in making of firebase path URL to save data in database. 
     const path: any = {};
