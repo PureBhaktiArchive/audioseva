@@ -64,7 +64,7 @@ import SoundIssuesList from "@/components/SE/SoundIssuesList.vue";
 import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
 import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
 import InlineTextEdit from "@/components/InlineTextEdit.vue";
-import { ITasks } from "@/types/SE";
+import { ITaskVueFire } from "@/types/SE";
 import { formatTimestamp, getDayDifference } from "@/utility";
 
 @Component({
@@ -78,7 +78,7 @@ import { formatTimestamp, getDayDifference } from "@/utility";
   }
 })
 export default class Tasks extends Vue {
-  tasks: ITasks[] = [];
+  tasks: ITaskVueFire[] = [];
   selectedButton = 0;
   lists: string[] = [];
   statusItems = ["Spare", "Given", "In Review", "Revise", "Done"];

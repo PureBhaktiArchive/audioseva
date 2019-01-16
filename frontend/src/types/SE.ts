@@ -1,5 +1,5 @@
-export interface ITasks {
-  ".key": string;
-  duration: number;
-  soundIssues: string[];
+import { ITask } from "../../../types/SE";
+
+export interface ITaskVueFire extends ITask {
+  [".key"]: string;
 }
