@@ -1,25 +1,7 @@
-type Status = "Spare" | "Given" | "WIP" | "Done";
-
-interface ISQRFileAllotment {
-  dateGiven: string;
-  name: string;
-  emailAddress: string;
-  followUp: string;
-  daysPassed: string;
-  devotee: string;
-  dateDone: string;
-}
+import { IFile } from "../../../types/Files";
 
 export interface ICount {
   [key: string]: number;
-}
-
-export interface ISQRFile {
-  status: Status;
-  languages: string[];
-  notes: string;
-  filename: string;
-  allotment: ISQRFileAllotment;
 }
 
 export interface IFileByStatus {
@@ -36,22 +18,6 @@ export interface ISpareByLanguage {
   Hindi?: string;
 }
 
-interface ISQR {
-  status: Status;
-  assignee: {
-    emailAddress: string;
-    name: string;
-  };
-  timestampGiven: number;
-  timestampDone: number;
-  followUp: string;
-}
-
-export interface IFileVueFire {
-  languages: string[];
-  languagesConfirmed?: boolean;
-  notes: string;
+export interface IFileVueFire extends IFile {
   [".key"]: string;
-  soundQualityReporting?: ISQR;
-  contentReporting?: ISQR;
 }
