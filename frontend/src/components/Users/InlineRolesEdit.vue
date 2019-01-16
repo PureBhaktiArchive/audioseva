@@ -34,10 +34,15 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 export default class InlineRolesEdit extends Vue {
   @Prop() item!: any;
   @Prop() roles!: string[];
-
+   @Prop() value!: any;
+   
   handleChange(e: any, role: string) {
     const { item } = this;
-    const path = `users/${item[".key"]}/roles/${role}`;
+    
+    //Object that is use in making of firebase path URL to save data in database.
+    const path: any = {};
+    path["itemPath"] = `${this.value}/${role}`;
+
     const updatedRoles = { ...item.roles };
     const addedRole = !!e;
     if (addedRole) {
@@ -54,7 +59,7 @@ export default class InlineRolesEdit extends Vue {
 </script>
 
 <style scoped>
->>> .v-menu__activator {
+.v-menu__activator {
   height: 100%;
   width: 100%;
 }
