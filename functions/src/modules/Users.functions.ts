@@ -83,7 +83,8 @@ export const importUserRegistrationData = functions.https.onRequest(
 
     await readyForDatabaseUpdate.forEach(async (spreadsheetRecord: any) => {
       const usersRef = db.ref('/users');
-      await usersRef.orderByChild('emailAddress')
+      await usersRef
+        .orderByChild('emailAddress')
         .equalTo(spreadsheetRecord['emailAddress'])
         .once('value', async (snapshot: functions.database.DataSnapshot) => {
           if (snapshot.exists() === false) {
