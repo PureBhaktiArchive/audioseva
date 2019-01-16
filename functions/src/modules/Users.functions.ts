@@ -53,6 +53,6 @@ export const importUserRegistrationData = functions.https.onRequest(
         });
     });
 
-    res.status(200).send("Ok");
+    res.status(200).send('Ok');
   }
 );
