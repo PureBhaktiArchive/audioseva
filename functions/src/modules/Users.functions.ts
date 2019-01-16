@@ -6,6 +6,36 @@ import { withDefault } from '../utils/parsers';
 
 const db = admin.database();
 
+enum RegistrationColumns {
+  Details = 'Details',
+  Status = 'Status',
+  Timestamp = 'Timestamp',
+  Name = 'Name',
+  Country = 'Country',
+  EmailAddress = 'Email Address',
+  PhoneNumber = 'Phone Number',
+  WhatsApp = 'WhatsApp',
+  Languages = 'Languages',
+  Services = 'Services',
+  Experience = 'Experience',
+  Influencer = 'Influencer',
+  RecommendedBy = 'Recommended By',
+}
+
+enum Roles {
+  CR = 'CR',
+  FC = 'FC',
+  QC = 'QC',
+  TE = 'TE',
+  SE = 'SE',
+  SQR = 'SQR',
+}
+
+enum Decision {
+  Yes = 'Yes',
+  No = 'No',
+}
+
 export const importUserRegistrationData = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
     const gsheets: GoogleSheet = new GoogleSheet(
@@ -17,27 +47,28 @@ export const importUserRegistrationData = functions.https.onRequest(
 
     const readyForDatabaseUpdate = registrationRows.map((elem: any) => {
       return {
-        notes: withDefault(elem['Details']),
-        status: elem['Status'],
-        timestamp: new Date(elem['Timestamp']).getTime() / 1000,
-        name: elem['Name'],
-        location: elem['Country'],
-        emailAddress: elem['Email Address'],
-        phoneNumber: elem['Phone Number'],
-        whatsApp: elem['WhatsApp'],
-        languages: elem['Languages'].split(', '),
-        services: elem['Services'],
+        notes: withDefault(elem[RegistrationColumns.Details]),
+        status: elem[RegistrationColumns.Status],
+        timestamp:
+          new Date(elem[RegistrationColumns.Timestamp]).getTime() / 1000,
+        name: elem[RegistrationColumns.Name],
+        location: elem[RegistrationColumns.Country],
+        emailAddress: elem[RegistrationColumns.EmailAddress],
+        phoneNumber: elem[RegistrationColumns.PhoneNumber],
+        whatsApp: elem[RegistrationColumns.WhatsApp],
+        languages: elem[RegistrationColumns.Languages].split(', '),
+        services: elem[RegistrationColumns.Services],
         roles: {
-          CR: elem['CR'] === 'Yes',
-          FC: elem['FC'] === 'Yes',
-          QC: elem['QC'] === 'Yes',
-          TE: elem['TE'] === 'Yes',
-          SE: elem['SE'] === 'Yes',
-          SQR: elem['SQR'] === 'Yes',
+          CR: elem[Roles.CR] === Decision.Yes,
+          FC: elem[Roles.FC] === Decision.Yes,
+          QC: elem[Roles.QC] === Decision.Yes,
+          TE: elem[Roles.TE] === Decision.Yes,
+          SE: elem[Roles.SE] === Decision.Yes,
+          SQR: elem[Roles.SQR] === Decision.Yes,
         },
-        experience: elem['Experience'],
-        influencer: elem['Influencer'],
-        recommendedBy: elem['Recommended By'],
+        experience: elem[RegistrationColumns.Experience],
+        influencer: elem[RegistrationColumns.Influencer],
+        recommendedBy: elem[RegistrationColumns.RecommendedBy],
       };
     });
 
