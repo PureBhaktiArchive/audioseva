@@ -1,7 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import GoogleSheet from '../services/GoogleSheets';
-import { DataSnapshot } from 'firebase-functions/lib/providers/database';
 import { withDefault } from '../utils/parsers';
 
 const db = admin.database();
@@ -55,7 +54,7 @@ export const importUserRegistrationData = functions.https.onRequest(
         location: elem[RegistrationColumns.Country],
         emailAddress: elem[RegistrationColumns.EmailAddress],
         phoneNumber: elem[RegistrationColumns.PhoneNumber],
-        whatsApp: elem[RegistrationColumns.WhatsApp],
+        isAvailableOnWhatsApp: elem[RegistrationColumns.WhatsApp],
         languages: elem[RegistrationColumns.Languages].split(', '),
         services: elem[RegistrationColumns.Services],
         roles: {
@@ -76,7 +75,7 @@ export const importUserRegistrationData = functions.https.onRequest(
       const Users = db.ref('/users');
       await Users.orderByChild('emailAddress')
         .equalTo(spreadsheetRecord['emailAddress'])
-        .once('value', async (snapshot: DataSnapshot) => {
+        .once('value', async (snapshot: functions.database.DataSnapshot) => {
           if (snapshot.exists() === false) {
             // No such email exist, create new record
             await Users.push(spreadsheetRecord);
