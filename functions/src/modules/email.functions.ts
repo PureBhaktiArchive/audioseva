@@ -3,7 +3,15 @@ import * as admin from 'firebase-admin';
 
 // SendInBlue Helper Imports
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
-const sendInBlueSecretKey = functions.config().send_in_blue.key;
+
+// Abort if send_in_blue api key is not set
+if (!functions.config().send_in_blue) {
+  console.error(`Error! Send in blue api key is not set.`);
+  process.abort();
+}
+
+const sendInBlueSecretKey = functions.config().send_in_blue ? 
+                            functions.config().send_in_blue.key : '';
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 const apiKey = defaultClient.authentications['api-key'];
 apiKey.apiKey = sendInBlueSecretKey;
