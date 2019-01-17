@@ -38,6 +38,8 @@
         :headers="headers"
         :datatableProps="{ pagination, loading: isLoadingFiles }"
         :computedValue="computedCb"
+        :componentData="componentData"
+        :computedComponent="computedComponent"
         :items="items"
         :styles="{ '.key': { 'font-weight-bold': true }}"
       >
@@ -61,6 +63,10 @@ import DataTable from "@/components/DataTable.vue";
 import { getDayDifference, formatTimestamp } from "@/utility";
 import ShallowQuery from "@/mixins/FirebaseShallowQuery";
 import { IFileVueFire } from "@/types/DataTable";
+import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
+import InlineTextEdit from "@/components/InlineTextEdit.vue";
+import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
+import InlineSave from "@/mixins/InlineSave";
 
 @Component({
   name: "Files",
@@ -68,12 +74,16 @@ import { IFileVueFire } from "@/types/DataTable";
     DataTable
   }
 })
-export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
+export default class Files extends Mixins<ShallowQuery, InlineSave>(
+  ShallowQuery,
+  InlineSave
+) {
   files: IFileVueFire[] = [];
   isLoadingLists = false;
   isLoadingFiles = false;
   search: string = "";
   selectedButton: number = 0;
+  keyPath = "soundQualityReporting";
 
   pagination = { rowsPerPage: -1 };
 
@@ -84,14 +94,43 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
     { text: "Languages", value: "languages" },
     { text: "Status", value: "soundQualityReporting.status" },
     { text: "File Name", value: ".key" },
-    { text: "Assignee", value: "soundQualityReporting.assignee.name" },
-    {
-      text: "Email Address",
-      value: "soundQualityReporting.assignee.emailAddress"
-    },
+    { text: "Assignee", value: "assignee" },
     { text: "Date Done", value: "soundQualityReporting.timestampDone" },
     { text: "Follow Up", value: "soundQualityReporting.followUp" }
   ];
+
+  editEvents = {
+    cancel: this.cancel,
+    save: this.save
+  };
+
+  componentData = {
+    "soundQualityReporting.followUp": {
+      on: { ...this.editEvents }
+    },
+    "soundQualityReporting.status": {
+      on: { ...this.editEvents },
+      props: {
+        statusItems: ["Spare", "Given", "In Review", "Revise", "Done"]
+      }
+    },
+    notes: {
+      on: { ...this.editEvents }
+    },
+    assignee: {
+      on: { ...this.editEvents },
+      props: {
+        keyPath: "soundQualityReporting"
+      }
+    }
+  };
+
+  computedComponent = {
+    "soundQualityReporting.followUp": InlineTextEdit,
+    "soundQualityReporting.status": InlineStatusEdit,
+    notes: InlineTextEdit,
+    assignee: InlineAssignEdit
+  };
 
   computedCb = {
     daysPassed: (value: string, item: any) => {
@@ -125,7 +164,7 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
     if (this.lists) {
       this.$bindAsArray(
         "files",
-        db.ref(`/files/${this.lists[this.selectedButton]}`),
+        db.ref(`/files/${this.list}`),
         null,
         () => (this.isLoadingFiles = false)
       );
@@ -142,6 +181,10 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
       }
       return matchesSearch;
     });
+  }
+
+  get list() {
+    return this.lists[this.selectedButton];
   }
 
   get searchValue() {
@@ -161,6 +204,10 @@ export default class Files extends Mixins<ShallowQuery>(ShallowQuery) {
       matchedItem = true;
     }
     return matchedItem;
+  }
+
+  getUpdatePath(item: any, path: any): string {
+    return `/files/${this.list}/${item[".key"]}/${path["itemPath"]}`;
   }
 }
 </script>
