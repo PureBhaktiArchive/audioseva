@@ -34,6 +34,7 @@
       <data-table
         :computedComponent="computedComponent"
         :computedValue="computedCb"
+        :componentData="componentData"
         :headers="headers"
         :items="items"
         :styles="styles"
@@ -46,6 +47,10 @@
         </template>
       </data-table>
     </div>
+    <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
+      {{ snackText }}
+      <v-btn flat @click="snack = false">Close</v-btn>
+    </v-snackbar>
   </div>
 </template>
 
@@ -56,20 +61,60 @@ import moment from "moment";
 import fb from "@/firebaseApp";
 import DataTable from "@/components/DataTable.vue";
 import SoundIssuesList from "@/components/SE/SoundIssuesList.vue";
+import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
+import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
+import InlineTextEdit from "@/components/InlineTextEdit.vue";
 import { ITasks } from "@/types/SE";
 import { formatTimestamp, getDayDifference } from "@/utility";
 
 @Component({
   name: "Tasks",
-  components: { DataTable, SoundIssuesList }
+  components: {
+    DataTable,
+    SoundIssuesList,
+    InlineAssignEdit,
+    InlineStatusEdit,
+    InlineTextEdit
+  }
 })
 export default class Tasks extends Vue {
   tasks: ITasks[] = [];
   selectedButton = 0;
   lists: string[] = [];
+  statusItems = ["Spare", "Given", "In Review", "Revise", "Done"];
   search: string = "";
+  keyPath: string = "restoration";
   isLoadingLists: boolean = false;
   isLoadingTasks: boolean = false;
+  snack = false;
+  snackColor = "";
+  snackText = "";
+  editEvents = {
+    save: this.save,
+    cancel: this.cancel
+  };
+
+  componentData = {
+    'restoration.followUp': {
+      on: { ...this.editEvents },
+      props: {
+        keyPath: this.keyPath
+      }
+    },
+    assignee: {
+      on: { ...this.editEvents },
+      props: {
+        keyPath: this.keyPath
+      }
+    },
+    'restoration.status': {
+      on: { ...this.editEvents },
+      props: {
+        keyPath: this.keyPath,
+        statusItems: this.statusItems
+      }
+    }
+  };
 
   computedCb = {
     duration: (value: string, item: any) => {
@@ -93,7 +138,10 @@ export default class Tasks extends Vue {
   };
 
   computedComponent = {
-    soundIssues: SoundIssuesList
+    soundIssues: SoundIssuesList,
+    assignee: InlineAssignEdit,
+    'restoration.status': InlineStatusEdit,
+    'restoration.followUp': InlineTextEdit
   };
 
   headers = [
@@ -114,11 +162,7 @@ export default class Tasks extends Vue {
     },
     {
       text: "Assignee",
-      value: "restoration.assignee.name"
-    },
-    {
-      text: "Email Address",
-      value: "restoration.assignee.emailAddress"
+      value: "assignee"
     },
     { text: "Date Done", value: "restoration.timestampDone" },
     { text: "Follow Up", value: "restoration.followUp" }
@@ -183,11 +227,41 @@ export default class Tasks extends Vue {
     }
     return matchedItem;
   }
+
+  save(
+    item: any,
+    path: any,
+    updates: any,
+    { itemPath, newValue }: { [key: string]: any } = { itemPath: false }
+  ) {
+    this.snack = true;
+    this.snackColor = "success";
+    this.snackText = "Data saved";
+
+    // firebase Path URL to save data in database.
+    const refPath = `sound-editing/tasks/${this.lists[this.selectedButton]}/${item[".key"]}/${path.itemPath}`;
+
+    // manual update state if component can't use v-model
+    if (itemPath) {
+      this.$set(
+        this.items,
+        this.items.findIndex(i => i[".key"] === item[".key"]),
+        _.setWith(_.clone(item), itemPath, newValue, _.clone)
+      );
+    }
+
+    fb.database()
+      .ref(refPath)
+      .set(updates);
+  }
+
+  cancel() {
+    this.snack = true;
+    this.snackColor = "error";
+    this.snackText = "Canceled";
+  }
 }
 </script>
 
 <style scoped>
-thead tr:first-child th:first-child {
-  white-space: normal;
-}
 </style>
