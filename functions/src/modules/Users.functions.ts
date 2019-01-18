@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { IUser } from "../../../types/Users";
 
 const db = admin.database();
 
@@ -33,7 +34,7 @@ export const restructureRegistrationData = functions.database
   };
 
   // if user email doesn't exists prepare the newUser Object
-  const newUser: any = {
+  const newUser: IUser = {
     timestamp: webform.completed,
     emailAddress: webform.email_address,
     phoneNumber: webform.contact_number,

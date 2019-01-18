@@ -1,5 +1,6 @@
 import { database, auth } from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { IUser } from "../../../types/Users";
 
 const db = admin.database();
 
@@ -44,7 +45,7 @@ export const onCreateUserCustomClaimRoles = auth
       .equalTo(event.email)
       .once('value')
       .catch(() => null);
-    const userData = user && user.val();
+    const userData: IUser = user && user.val();
     if (userData && userData.roles) {
       return admin
         .auth()

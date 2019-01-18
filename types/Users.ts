@@ -13,5 +13,5 @@ export interface IUser {
   recommendedBy?: any;
   status?: string;
   notes?: string;
-  uploadCode: any;
+  uploadCode?: any;
 }
