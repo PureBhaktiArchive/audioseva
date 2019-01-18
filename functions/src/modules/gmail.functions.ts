@@ -98,7 +98,7 @@ export const initWatch = functions.https.onRequest(
       access_token: oauth.token,
       refresh_token: oauth.refreshToken,
     });
-    const gm = await Google.google.gmail({
+    const gmail = await Google.google.gmail({
       version: 'v1',
       auth: oauth2Client,
     });
