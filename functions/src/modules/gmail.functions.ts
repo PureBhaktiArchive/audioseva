@@ -140,7 +140,7 @@ export const initWatch = functions.https.onRequest(
           .send(`Something went wrong, check logs for Gmail-initWatch`);
       }
     } catch (err) {
-      console.log('Error: ', err);
+      console.error(err);
       return res
         .status(301)
         .send(`Something went wrong, check logs for Gmail-initWatch`);
@@ -260,6 +260,6 @@ export const gmailDoneHandler = functions.pubsub
         decodedMessage.historyId
       );
     } catch (error) {
-      console.log('Error: ', error);
+      console.error(error);
     }
   });
