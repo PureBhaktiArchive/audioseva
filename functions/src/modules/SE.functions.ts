@@ -254,7 +254,7 @@ export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).
   }
 
   // Update the Task
-  let taskRestorationUpdate = {
+  const taskRestorationUpdate = {
     status: 'In Review',
     timestampLastVersion: admin.database.ServerValue.TIMESTAMP
   };
