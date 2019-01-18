@@ -15,8 +15,9 @@ export const oauth2init = functions.https.onRequest(
     );
     const authURL = oauth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: ['https://www.googleapis.com/auth/gmail.modify'],
       prompt: 'consent',
+      scope: ['https://www.googleapis.com/auth/gmail.modify'],
+      login_hint: functions.config().coordinator.gmail.account,
     });
     res.redirect(authURL);
   }
@@ -62,7 +63,7 @@ export const oauth2callback = functions.https.onRequest(
       refreshToken: tokens.refresh_token,
     });
 
-    res.send("Ok");
+    res.send('Ok');
   }
 );
 
@@ -81,7 +82,6 @@ const storeHistoryIdInDatabase = async (email: string, historyId: any) => {
 
 export const initWatch = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-
     // Initiate gmail client
     const { client_key, secret, redirect } = functions.config().gmail;
     const oauth2Client = new Google.google.auth.OAuth2(
