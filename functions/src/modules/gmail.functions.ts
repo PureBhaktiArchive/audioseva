@@ -1,7 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as Google from 'googleapis';
-import * as querystring from 'querystring';
 import { Message } from 'firebase-functions/lib/providers/pubsub';
 
 const db = admin.database();
@@ -63,9 +62,7 @@ export const oauth2callback = functions.https.onRequest(
       refreshToken: tokens.refresh_token,
     });
 
-    res.redirect(
-      `/Gmail-initWatch?emailAddress=${querystring.escape(profile.data.emailAddress)}`
-    );
+    res.send("Ok");
   }
 );
 
@@ -84,13 +81,6 @@ const storeHistoryIdInDatabase = async (email: string, historyId: any) => {
 
 export const initWatch = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    if (!req.query.emailAddress) {
-      return res.status(400).send('No emailAddress specified.');
-    }
-    const email = querystring.unescape(req.query.emailAddress);
-    if (!email.includes('@')) {
-      return res.status(400).send('Invalid emailAddress.');
-    }
 
     // Initiate gmail client
     const { client_key, secret, redirect } = functions.config().gmail;
@@ -100,7 +90,9 @@ export const initWatch = functions.https.onRequest(
       redirect
     );
 
-    const { oauth, emailAddress } = await fetchToken(email);
+    const { oauth, emailAddress } = await fetchToken(
+      functions.config().audioseva.coordinator.email
+    );
 
     oauth2Client.setCredentials({
       access_token: oauth.token,
