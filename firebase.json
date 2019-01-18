@@ -4,7 +4,7 @@
   },
   "storage": [{
       "target": "se_uploads",
-      "rules": "./functions/storage.sound-editing.uploads.rules"
+      "rules": "./functions/storage.uploads.rules"
   }],
   "hosting": {
     "public": "frontend/dist",
