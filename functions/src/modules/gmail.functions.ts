@@ -45,12 +45,12 @@ export const oauth2callback = functions.https.onRequest(
     const { tokens } = await oauth2Client.getToken(req.query.code);
     oauth2Client.setCredentials(tokens);
 
-    const gm = await Google.google.gmail({
+    const gmail = await Google.google.gmail({
       version: 'v1',
       auth: oauth2Client,
     });
 
-    const profile = await gm.users.getProfile({ userId: 'me' });
+    const profile = await gmail.users.getProfile({ userId: 'me' });
     const emailAddressKey = profile.data.emailAddress
       .split('@')[0]
       .replace('.', '');
@@ -98,7 +98,7 @@ export const initWatch = functions.https.onRequest(
       access_token: oauth.token,
       refresh_token: oauth.refreshToken,
     });
-    const gm = await Google.google.gmail({
+    const gmail = await Google.google.gmail({
       version: 'v1',
       auth: oauth2Client,
     });
@@ -106,14 +106,14 @@ export const initWatch = functions.https.onRequest(
     try {
       // Make sure we have the correct labelId because GMail internally gives a random one that is
       // not based on the given name, so we need to filter it by the given name
-      const labelResults = await gm.users.labels.list({
+      const labelResults = await gmail.users.labels.list({
         userId: emailAddress,
       });
       const doneLabelObj = labelResults.data.labels.filter(label => {
         return label.name === 'SQRDone';
       })[0];
 
-      const watchResults = await gm.users.watch({
+      const watchResults = await gmail.users.watch({
         userId: 'me',
         requestBody: {
           labelIds: [doneLabelObj.id],
