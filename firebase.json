@@ -3,7 +3,7 @@
     "rules": "./database.rules.json"
   },
   "storage": [{
-      "target": "se_uploads",
+      "target": "uploads",
       "rules": "./functions/storage.uploads.rules"
   }],
   "hosting": {
