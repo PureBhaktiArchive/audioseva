@@ -195,7 +195,7 @@ export default class Files extends Mixins<ShallowQuery, InlineSave>(
   }
 
   get list() {
-    return this.lists[this.selectedButton];
+    return this.lists ? this.lists[this.selectedButton] : "";
   }
 
   get searchValue() {
