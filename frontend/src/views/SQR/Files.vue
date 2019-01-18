@@ -37,9 +37,9 @@
       <data-table
         :headers="headers"
         :datatableProps="{ pagination, loading: isLoadingFiles }"
+        :computedComponent="computedComponent"
         :computedValue="computedCb"
         :componentData="componentData"
-        :computedComponent="computedComponent"
         :items="items"
         :styles="{ '.key': { 'font-weight-bold': true }}"
       >
@@ -52,13 +52,16 @@
         </template>
       </data-table>
     </div>
+    <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
+      {{ snackText }}
+      <v-btn flat @click="snack = false">Close</v-btn>
+    </v-snackbar>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
 import _ from "lodash";
-import { db } from "@/main";
 import DataTable from "@/components/DataTable.vue";
 import { getDayDifference, formatTimestamp } from "@/utility";
 import ShallowQuery from "@/mixins/FirebaseShallowQuery";
@@ -67,11 +70,15 @@ import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
 import InlineTextEdit from "@/components/InlineTextEdit.vue";
 import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
 import InlineSave from "@/mixins/InlineSave";
+import fb from "@/firebaseApp";
 
 @Component({
   name: "Files",
   components: {
-    DataTable
+    DataTable,
+    InlineAssignEdit,
+    InlineStatusEdit,
+    InlineTextEdit
   }
 })
 export default class Files extends Mixins<ShallowQuery, InlineSave>(
@@ -84,6 +91,10 @@ export default class Files extends Mixins<ShallowQuery, InlineSave>(
   search: string = "";
   selectedButton: number = 0;
   keyPath = "soundQualityReporting";
+  statusItems = ["Spare", "Given", "WIP", "Done"];
+  snack = false;
+  snackColor = "";
+  snackText = "";
 
   pagination = { rowsPerPage: -1 };
 
@@ -164,7 +175,7 @@ export default class Files extends Mixins<ShallowQuery, InlineSave>(
     if (this.lists) {
       this.$bindAsArray(
         "files",
-        db.ref(`/files/${this.list}`),
+        fb.database().ref(`/files/${this.list}`),
         null,
         () => (this.isLoadingFiles = false)
       );
