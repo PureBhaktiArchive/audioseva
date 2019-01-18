@@ -253,23 +253,25 @@ export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).
     return -1;
   }
 
+  // Update the Task
+  let taskRestorationUpdate = {
+    status: 'In Review',
+    timestampLastVersion: admin.database.ServerValue.TIMESTAMP
+  };
+
+  if (!task.restoration.timestampFirstVersion)
+    taskRestorationUpdate['timestampFirstVersion'] = task.restoration.timestampGiven;
+
+  await taskRef.ref.child('restoration').update(taskRestorationUpdate);
+
+
   // Send an email notification to the coordinator
   db.ref(`/email/notifications`).push({
     template: 'se-upload',
     to: functions.config().coordinator.email_address,
     replyTo: task.restoration.assignee.emailAddress,
     params: { task }
-  });  
-  
+  });
 
-  // Update the Task
-  const taskRestorationUpdate = {
-      status: 'In Review',
-      timestampLastVersion: admin.database.ServerValue.TIMESTAMP
-  };
-
-  if (!task.restoration.timestampFirstVersion)
-    taskRestorationUpdate['timestampFirstVersion'] = admin.database.ServerValue.TIMESTAMP;
-
-  return taskRef.ref.child('restoration').update(taskRestorationUpdate);
+  return 1;
 });
