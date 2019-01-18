@@ -220,10 +220,8 @@ export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).
       .equalTo(uploadCode)
       .once('value');
     
-    // [Check #3] The task should be assigned to a particular sound engineer 
-    //  which is identified by the `uploadCode`within the file path.
     if (!user.exists()) 
-      throw new Error(`Wrong Upload code -- ${filePath} will be deleted.`);
+      throw new Error(`No User with the given upload code -- ${filePath} will be deleted.`);
     
 
     taskRef = await db.ref(`/sound-editing/tasks/${list}/${taskId}`).once('value');
@@ -232,6 +230,12 @@ export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).
     // [Check #2] The task should be found in the database by Id.
     if (!taskRef.exists()) 
       throw new Error(`Task does not exist -- ${filePath} will be deleted.`);
+
+    
+    // [Check #3] The task should be assigned to a particular sound engineer 
+    //  which is identified by the `uploadCode`within the file path.
+    if (task.restoration.assignee.emailAddress != user.val().emailAddress)
+      throw new Error(`Wrong upload code -- ${filePath} will be deleted.`);
 
     // [Check #4] The task should be in `Spare` or `Revise` status.
     if (['Revise', 'Spare'].indexOf(task.restoration.status) < 0) 
