@@ -1,10 +1,9 @@
-import { IAssignee, ITimeStamp } from "./Common";
+import { IAllotment } from "./Common";
 
 type Status = "Spare" | "Given" | "WIP" | "Done";
 
-interface IReporting extends IAssignee, ITimeStamp {
-  status: Status;
-  followUp: string;
+interface IReporting extends IAllotment<Status> {
+  token: string;
 }
 
 export interface IFile {

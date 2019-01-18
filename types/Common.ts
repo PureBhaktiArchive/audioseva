@@ -1,11 +1,10 @@
-export interface IAssignee {
+export interface IAllotment<Status> {
+  timestampDone: number;
+  timestampGiven: number;
   assignee: {
     emailAddress: string;
     name: string;
   }
-}
-
-export interface ITimeStamp {
-  timestampDone: number;
-  timestampGiven: number;
+  status: Status;
+  followUp: string;
 }
