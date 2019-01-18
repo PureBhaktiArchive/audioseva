@@ -61,9 +61,9 @@ export const importUserRegistrationData = functions.https.onRequest(
         phoneNumber: elem[RegistrationColumns.PhoneNumber],
         isAvailableOnWhatsApp: elem[RegistrationColumns.WhatsApp],
         languages: elem[RegistrationColumns.Languages]
-          .split(', ')
+          .split(',')
           .reduce((acc: any, language: string) => {
-            acc[language] = true;
+            acc[language.trim()] = true;
             return acc;
           }, {}),
         services: elem[RegistrationColumns.Services],
