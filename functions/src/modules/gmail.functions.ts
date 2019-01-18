@@ -91,7 +91,7 @@ export const initWatch = functions.https.onRequest(
     );
 
     const { oauth, emailAddress } = await fetchToken(
-      functions.config().audioseva.coordinator.email
+      functions.config().coordinator.gmail.account
     );
 
     oauth2Client.setCredentials({
