@@ -207,10 +207,8 @@ export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).
     const match = filePathRegex.exec(filePath);
 
     // [Check #1] File name should match `$taskId.flac` pattern.
-    if (!match) {
-      console.warn(`Wrong Path -- ${filePath} will be deleted.`);
+    if (!match) 
       throw new Error(`Wrong Path -- ${filePath} will be deleted.`);
-    }
 
     const uploadCode = match[1],
           taskId = match[2], 
@@ -223,31 +221,27 @@ export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).
     
     // [Check #3] The task should be assigned to a particular sound engineer 
     //  which is identified by the `uploadCode`within the file path.
-    if (!supposedAssignee.exists()) { 
-      console.warn(`Wrong Upload code -- ${filePath} will be deleted.`);
+    if (!supposedAssignee.exists()) 
       throw new Error(`Wrong Upload code -- ${filePath} will be deleted.`);
-    }
+    
 
     const taskRef = await db.ref(`/sound-editing/tasks/${list}/${taskId}`).once('value');
     // [Check #2] The task should be found in the database by Id.
-    if (!taskRef.exists()) {
-      console.warn(`Task does not exist -- ${filePath} will be deleted.`);
+    if (!taskRef.exists()) 
       throw new Error(`Task does not exist -- ${filePath} will be deleted.`);
-    }
 
     const task = taskRef.val();
     // [Check #4] The task should be in `Spare` or `Revise` status.
-    if (['Revise', 'Spare'].indexOf(task.restoration.status) < 0) {
-      console.warn(`Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`);
+    if (['Revise', 'Spare'].indexOf(task.restoration.status) < 0) 
       throw new Error(`Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`);
-    }
-
+    
 
     // Move current file (after passing all validity checks) into `Restored` bucket
     seUploadsBucket.file(object.name).move(
       admin.storage().bucket(functions.config().sound_editing.restoration.bucket_name) //add to README
         .file(`${list}/${taskId}.flac`)
     );
+    
 
     // Send an email notification to the coordinator
     db.ref(`/email/notifications`).push({
@@ -271,6 +265,8 @@ export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).
 
     
   } catch (err) {
-    if (err) seUploadsBucket.file(filePath).delete();
+    console.warn(err.message);
+    await seUploadsBucket.file(filePath).delete();
+    return -1;
   }
 });
