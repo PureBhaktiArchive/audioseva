@@ -198,6 +198,7 @@ export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).
 
   const filePath = object.name;
   const seUploadsBucket = admin.storage().bucket(seUploadsBucketUrl);
+  let uploadCode, list, taskId, task, taskRef;
 
   if (!filePath.startsWith('restored'))
     return -1;
@@ -210,27 +211,28 @@ export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).
     if (!match) 
       throw new Error(`Wrong Path -- ${filePath} will be deleted.`);
 
-    const uploadCode = match[1],
-          taskId = match[2], 
-          list = match[3];
+    uploadCode = match[1];
+    taskId = match[2];
+    list = match[3];
 
-    const supposedAssignee = await db.ref(`/users`)
+    const user = await db.ref(`/users`)
       .orderByChild('uploadCode')
       .equalTo(uploadCode)
       .once('value');
     
     // [Check #3] The task should be assigned to a particular sound engineer 
     //  which is identified by the `uploadCode`within the file path.
-    if (!supposedAssignee.exists()) 
+    if (!user.exists()) 
       throw new Error(`Wrong Upload code -- ${filePath} will be deleted.`);
     
 
-    const taskRef = await db.ref(`/sound-editing/tasks/${list}/${taskId}`).once('value');
+    taskRef = await db.ref(`/sound-editing/tasks/${list}/${taskId}`).once('value');
+    task = taskRef.val();
+    
     // [Check #2] The task should be found in the database by Id.
     if (!taskRef.exists()) 
       throw new Error(`Task does not exist -- ${filePath} will be deleted.`);
 
-    const task = taskRef.val();
     // [Check #4] The task should be in `Spare` or `Revise` status.
     if (['Revise', 'Spare'].indexOf(task.restoration.status) < 0) 
       throw new Error(`Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`);
@@ -241,32 +243,29 @@ export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).
       admin.storage().bucket(functions.config().sound_editing.restoration.bucket_name) //add to README
         .file(`${list}/${taskId}.flac`)
     );
-    
-
-    // Send an email notification to the coordinator
-    db.ref(`/email/notifications`).push({
-      template: 'se-upload',
-      to: functions.config().coordinator.email_address,
-      replyTo: task.restoration.assignee.emailAddress,
-      params: { task }
-    });  
-    
-
-    // Update the Task
-    const taskRestorationUpdate = {
-        status: 'In Review',
-        timestampLastVersion: admin.database.ServerValue.TIMESTAMP
-    };
-
-    if (!task.restoration.timestampFirstVersion)
-      taskRestorationUpdate['timestampFirstVersion'] = admin.database.ServerValue.TIMESTAMP;
-
-    return taskRef.ref.child('restoration').update(taskRestorationUpdate);   
-
-    
   } catch (err) {
     console.warn(err.message);
     await seUploadsBucket.file(filePath).delete();
     return -1;
   }
+
+  // Send an email notification to the coordinator
+  db.ref(`/email/notifications`).push({
+    template: 'se-upload',
+    to: functions.config().coordinator.email_address,
+    replyTo: task.restoration.assignee.emailAddress,
+    params: { task }
+  });  
+  
+
+  // Update the Task
+  const taskRestorationUpdate = {
+      status: 'In Review',
+      timestampLastVersion: admin.database.ServerValue.TIMESTAMP
+  };
+
+  if (!task.restoration.timestampFirstVersion)
+    taskRestorationUpdate['timestampFirstVersion'] = admin.database.ServerValue.TIMESTAMP;
+
+  return taskRef.ref.child('restoration').update(taskRestorationUpdate);
 });
