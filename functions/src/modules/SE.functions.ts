@@ -193,11 +193,14 @@ export const createTaskFromChunks = functions.database.ref(
  * Sends a notification email to the coordinator & udpates the corresponding Task
  */
 const seUploadsBucketUrl = functions.config().sound_editing.uploads.bucket_name;
-export const uploadProcessing = functions.storage.bucket(seUploadsBucketUrl).object()
+export const processUploadedFile = functions.storage.bucket(seUploadsBucketUrl).object()
 .onFinalize(async object => {
 
   const filePath = object.name;
   const seUploadsBucket = admin.storage().bucket(seUploadsBucketUrl);
+
+  if (!filePath.startsWith('restored'))
+    return -1;
 
   try {
     const filePathRegex = /restored\/(\w+)\/(?:\w+\/)*(([\w]+)-\d+-\d+)\.flac/;
