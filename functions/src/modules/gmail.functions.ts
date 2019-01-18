@@ -24,14 +24,8 @@ export const oauth2init = functions.https.onRequest(
 );
 
 const saveTokens = async (values: any) => {
-  const newGmailTokensRef = db.ref(`/gmail/${values.emailKey}`);
-  newGmailTokensRef.set({
-    oauth: {
-      token: values.accessToken,
-      refreshToken: values.refreshToken,
-    },
-    emailAddress: values.fullEmail,
-  });
+  const newGmailTokensRef = db.ref(`/gmail/coordinator/oauth`);
+  newGmailTokensRef.set({ ...values });
 };
 
 export const oauth2callback = functions.https.onRequest(
@@ -46,19 +40,7 @@ export const oauth2callback = functions.https.onRequest(
     const { tokens } = await oauth2Client.getToken(req.query.code);
     oauth2Client.setCredentials(tokens);
 
-    const gmail = await Google.google.gmail({
-      version: 'v1',
-      auth: oauth2Client,
-    });
-
-    const profile = await gmail.users.getProfile({ userId: 'me' });
-    const emailAddressKey = profile.data.emailAddress
-      .split('@')[0]
-      .replace('.', '');
-
     await saveTokens({
-      emailKey: emailAddressKey,
-      fullEmail: profile.data.emailAddress,
       accessToken: tokens.access_token,
       refreshToken: tokens.refresh_token,
     });
@@ -67,15 +49,13 @@ export const oauth2callback = functions.https.onRequest(
   }
 );
 
-const fetchToken = async (email: string) => {
-  const emailKey = email.split('@')[0].replace('.', '');
-  const queryResults = await db.ref(`/gmail/${emailKey}`).once('value');
+const fetchToken = async () => {
+  const queryResults = await db.ref(`/gmail/coordinator/oauth`).once('value');
   return queryResults.val();
 };
 
-const storeHistoryIdInDatabase = async (email: string, historyId: any) => {
-  const emailKey = email.split('@')[0].replace('.', '');
-  return await db.ref(`/gmail/${emailKey}`).update({
+const storeHistoryIdInDatabase = async (historyId: any) => {
+  return await db.ref(`/gmail/coordinator`).update({
     lastSyncHistoryId: historyId,
   });
 };
@@ -90,10 +70,7 @@ export const initWatch = functions.https.onRequest(
       redirect
     );
 
-    const { oauth, emailAddress } = await fetchToken(
-      functions.config().coordinator.gmail.account
-    );
-
+    const oauth = await fetchToken();
     oauth2Client.setCredentials({
       access_token: oauth.token,
       refresh_token: oauth.refreshToken,
@@ -107,7 +84,7 @@ export const initWatch = functions.https.onRequest(
       // Make sure we have the correct labelId because GMail internally gives a random one that is
       // not based on the given name, so we need to filter it by the given name
       const labelResults = await gmail.users.labels.list({
-        userId: emailAddress,
+        userId: 'me',
       });
       const doneLabelObj = labelResults.data.labels.filter(label => {
         return label.name === 'SQRDone';
@@ -123,16 +100,13 @@ export const initWatch = functions.https.onRequest(
 
       if (watchResults.data && doneLabelObj) {
         // Store the most recent historyId
-        await storeHistoryIdInDatabase(
-          emailAddress,
-          watchResults.data.historyId
-        );
+        await storeHistoryIdInDatabase(watchResults.data.historyId);
         return res
           .status(200)
           .send(
             `Watch (${watchResults.data.historyId}) created on ${
               doneLabelObj.name
-            }/${doneLabelObj.id} for ${emailAddress}`
+            }/${doneLabelObj.id} for coordinator`
           );
       } else {
         return res
@@ -162,9 +136,7 @@ export const gmailDoneHandler = functions.pubsub
       secret,
       redirect
     );
-    const { oauth, lastSyncHistoryId } = await fetchToken(
-      decodedMessage.emailAddress
-    );
+    const { oauth, lastSyncHistoryId } = await fetchToken();
     oauth2Client.setCredentials({
       access_token: oauth.token,
       refresh_token: oauth.refreshToken,
@@ -194,10 +166,7 @@ export const gmailDoneHandler = functions.pubsub
       const results = await gm.users.history.list(historyListRequest);
       if (!results.data.history || !results.data.history.length) {
         // Handle empty history, and update history id
-        await storeHistoryIdInDatabase(
-          decodedMessage.emailAddress,
-          decodedMessage.historyId
-        );
+        await storeHistoryIdInDatabase(decodedMessage.historyId);
         throw new Error('History is empty. Nothing to process');
       }
 
@@ -255,10 +224,7 @@ export const gmailDoneHandler = functions.pubsub
       });
 
       // If everything goes well, store the new history id for next sync
-      await storeHistoryIdInDatabase(
-        decodedMessage.emailAddress,
-        decodedMessage.historyId
-      );
+      await storeHistoryIdInDatabase(decodedMessage.historyId);
     } catch (error) {
       console.error(error);
     }
