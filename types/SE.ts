@@ -1,4 +1,6 @@
-import { IAssignee, ITimeStamp } from "./Common";
+import { IAllotment } from "./Common";
+
+type Status = "Spare" | "Given" | "In Review" | "Revise" | "Done";
 
 interface Issue {
   beginning: number;
@@ -7,9 +9,7 @@ interface Issue {
   description: string;
 }
 
-interface IRestoration extends IAssignee, ITimeStamp {
-  status: "Spare" | "Given" | "In Review" | "Revise" | "Done";
-  followUp?: string;
+interface IRestoration extends IAllotment<Status> {
   ["quality-check"]: {
     token?: string;
   }
