@@ -2,9 +2,17 @@ import { IAllotment } from "./Common";
 
 type Status = "Spare" | "Given" | "In Review" | "Revise" | "Done";
 
-interface Issue {
+interface ITimeSpan {
   beginning: number;
   ending: number;
+}
+
+interface ISoundIssue extends ITimeSpan {
+  type: string;
+  description: string;
+}
+
+interface IUnwantedPart extends ITimeSpan {
   type: string;
   description: string;
 }
@@ -17,7 +25,7 @@ interface IRestoration extends IAllotment<Status> {
 
 export interface ITask {
   duration: number;
-  soundIssues: Issue[];
-  unwantedParts: Issue[];
+  soundIssues: ISoundIssue[];
+  unwantedParts: IUnwantedPart[];
   restoration: IRestoration;
 }
