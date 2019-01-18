@@ -9,10 +9,9 @@
       <template slot="table-footer">
         <td
           :style="{ borderTop: 'double', backgroundColor: 'lightgray'}"
-          v-for="( value , key, index) in headers" :key="index"
-        >
-          {{ getFooterData(value) }}
-        </td>
+          v-for="( value , key, index) in headers"
+          :key="index"
+        >{{ getFooterData(value) }}</td>
       </template>
     </data-table>
   </div>

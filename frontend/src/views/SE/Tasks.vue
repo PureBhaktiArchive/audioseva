@@ -95,7 +95,7 @@ export default class Tasks extends Vue {
   };
 
   componentData = {
-    'restoration.followUp': {
+    "restoration.followUp": {
       on: { ...this.editEvents },
       props: {
         keyPath: this.keyPath
@@ -107,7 +107,7 @@ export default class Tasks extends Vue {
         keyPath: this.keyPath
       }
     },
-    'restoration.status': {
+    "restoration.status": {
       on: { ...this.editEvents },
       props: {
         keyPath: this.keyPath,
@@ -140,8 +140,8 @@ export default class Tasks extends Vue {
   computedComponent = {
     soundIssues: SoundIssuesList,
     assignee: InlineAssignEdit,
-    'restoration.status': InlineStatusEdit,
-    'restoration.followUp': InlineTextEdit
+    "restoration.status": InlineStatusEdit,
+    "restoration.followUp": InlineTextEdit
   };
 
   headers = [
@@ -239,7 +239,9 @@ export default class Tasks extends Vue {
     this.snackText = "Data saved";
 
     // firebase Path URL to save data in database.
-    const refPath = `sound-editing/tasks/${this.lists[this.selectedButton]}/${item[".key"]}/${path.itemPath}`;
+    const refPath = `sound-editing/tasks/${this.lists[this.selectedButton]}/${
+      item[".key"]
+    }/${path.itemPath}`;
 
     // manual update state if component can't use v-model
     if (itemPath) {

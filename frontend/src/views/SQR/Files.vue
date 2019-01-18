@@ -23,7 +23,7 @@
           </div>
           <v-btn-toggle v-model="selectedButton" mandatory v-else>
             <v-btn v-for="(value, key, index) in lists" :key="index">{{ value }}</v-btn>
-          </v-btn-toggle>         
+          </v-btn-toggle>
         </v-flex>
         <v-flex align-self-center :style="{ textAlign: 'right' }">
           <router-link :style="{ padding: '0 8px' }" to="sqr/statistics">Statistics</router-link>
