@@ -43,7 +43,7 @@ enum Decision {
 export const importUserRegistrationData = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
     const gsheets: GoogleSheet = new GoogleSheet(
-      functions.config().user.spreadsheet_id,
+      functions.config().registrations.spreadsheet_id,
       'Registrations'
     );
 
