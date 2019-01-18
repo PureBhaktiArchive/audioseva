@@ -41,8 +41,8 @@ export const oauth2callback = functions.https.onRequest(
     oauth2Client.setCredentials(tokens);
 
     await saveTokens({
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
+      token: tokens.access_token,
+      refresh: tokens.refresh_token,
     });
 
     res.send('Ok');
