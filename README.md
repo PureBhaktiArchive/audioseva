@@ -79,10 +79,10 @@ $ npm run deploy
 ```
 
 # Deploying Firebase Storage Rules!
-So far, one **target name** has been created [ se_uploads ], so the command needed to deploy the rules is:
+So far, one **target name** has been created [ uploads ], so the command needed to deploy the rules is:
 ```sh
-$ firebase target:apply storage se_uploads <sound editing uploads bucket name>
-$ firebase deploy --only storage:se_uploads
+$ firebase target:apply storage uploads <sound editing uploads bucket name>
+$ firebase deploy --only storage:uploads
 ```
 
 later, when other **target name**s are added to the `firebase.json` file under the `storage` section, similar commands will be needed to deploy the new rules.
