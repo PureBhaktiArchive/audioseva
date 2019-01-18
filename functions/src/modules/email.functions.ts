@@ -134,16 +134,18 @@ export const updateTemplatesOnTemplateUpload = functions.storage
   .object()
   .onFinalize(object => {
     // called when either a NEW object is created, or when an object is overwritten
-    updateEmailTemplates(object.name)
-      .catch(err => console.error("Error: updateTemplatesOnTemplateUpload ", err));
+    updateEmailTemplates(object.name).catch(err =>
+      console.error('Error: updateTemplatesOnTemplateUpload ', err)
+    );
     return 1;
   });
 
 export const updateTemplatesOnMetadataChange = functions.database
   .ref('/email/templates}')
   .onUpdate(async (change, context) => {
-    updateEmailTemplates(change.after.key)
-      .catch(err => console.error("Error: updateTemplatesOnMetadataChange ", err));
+    updateEmailTemplates(change.after.key).catch(err =>
+      console.error('Error: updateTemplatesOnMetadataChange ', err)
+    );
     return 1;
   });
 

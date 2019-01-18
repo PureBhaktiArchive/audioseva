@@ -1,8 +1,7 @@
 <template>
   <div>
     <span class=".font-weight-medium">Done statistics:</span>
-    <data-table :datatableProps="{ hideHeaders: true }" :items="statistics" :headers="headers">
-    </data-table>
+    <data-table :datatableProps="{ hideHeaders: true }" :items="statistics" :headers="headers"></data-table>
   </div>
 </template>
 
