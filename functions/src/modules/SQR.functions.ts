@@ -1,11 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as helpers from './../helpers';
-const GoogleSpreadsheet = require('google-spreadsheet');
 const moment = require('moment');
-
-import { google } from 'googleapis';
-import { promisify } from 'es6-promisify';
 
 const db = admin.database();
 import GoogleSheets from '../services/GoogleSheets';
@@ -247,7 +243,7 @@ export const processSubmission = functions.database
     if (audioFileStatus !== 'WIP') {
       fileUpdate['notes'] = `${fileSnapshot.val().notes}\n${
         submission.comments
-      }`;
+        }`;
     }
 
     // if the audio has any cancellation then REMOVE the assignee from the file allotment
@@ -303,118 +299,107 @@ export const processSubmission = functions.database
 /////////////////////////////////////////////////
 export const importSpreadSheetData = functions.https.onRequest(
   async (req, res) => {
-    const auth = await google.auth.getClient({
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
+    const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
-    const spreadsheetId = functions.config().sqr.spreadsheetId;
-    const spreadsheet = new GoogleSpreadsheet(spreadsheetId);
+    // Regex for validating file names in both sheets
+    const audioFileRegex = /(\w+)-\d+.*/;
 
-    const token = await auth.getAccessToken();
-    spreadsheet.setAuthToken(token);
+    ////////////////////////
+    //     Submissions
+    ////////////////////////
+    const submissionsSheet = new GoogleSheets(spreadsheetId, ISoundQualityReportSheet.Submissions);
+    const submissionsRows = await submissionsSheet.__getRows();
+    for (const row of submissionsRows) {
+      const audioFileName = row['Audio File Name'];
+      const match = audioFileRegex.exec(audioFileName);
+      if (!match) continue;
 
-    const getInfo = promisify(spreadsheet.getInfo);
-    const data = await getInfo();
+      const list = match[1];
+      // const serial = row['Submission Serial'];
 
-    let AllotmentsSheet, SubmissionsSheet;
-
-    data.worksheets.forEach(worksheet => {
-      if (worksheet.title === 'Submissions') SubmissionsSheet = worksheet;
-      if (worksheet.title === 'Allotments') AllotmentsSheet = worksheet;
-    });
-
-    const getSubmissions = promisify(SubmissionsSheet.getRows);
-
-    // submissions = Submissions sheet rows
-    const submissions = await getSubmissions();
-    submissions.forEach(row => {
-      const serial = row['submissionserial'];
+      const fileRef = await db.ref(`/files/${list}/${audioFileName}/soundQualityReporting`).once('value');
+      const audioFile = fileRef.val();
+      let token;
+      if (fileRef.exists()) {
+        token = audioFile.token;
+      } else {
+        console.warn(`Token not found!`)
+        continue;
+      }
 
       const regex = /(.*?)–(.*):(.*)—(.*)/g;
-      const soundissuesMatch = regex.exec(row['soundissues']);
-      const unwantedpartsMatch = regex.exec(row['unwantedparts']);
+      const soundissuesMatch = regex.exec(row['Sound Issues']);
+      const unwantedpartsMatch = regex.exec(row['Unwanted Parts']);
+
+      if (!soundissuesMatch || !unwantedpartsMatch) {
+        console.warn(`"Sound Issues" or "Unwanted Parts" are not in the correct format`);
+        continue;
+      }
 
       const soundissues = {
-          beginning: soundissuesMatch[1],
-          ending: soundissuesMatch[2],
-          type: soundissuesMatch[3],
-          description: soundissuesMatch[4],
-        },
-        unwantedparts = {
-          beginning: unwantedpartsMatch[1],
-          ending: unwantedpartsMatch[2],
-          type: unwantedpartsMatch[3],
-          description: unwantedpartsMatch[4],
-        };
-
+        beginning: soundissuesMatch[1],
+        ending: soundissuesMatch[2],
+        type: soundissuesMatch[3],
+        description: soundissuesMatch[4]
+      };
+      const unwantedparts = {
+        beginning: unwantedpartsMatch[1],
+        ending: unwantedpartsMatch[2],
+        type: unwantedpartsMatch[3],
+        description: unwantedpartsMatch[4]
+      };
       const submission = {
-        author: {
-          name: row['name'],
-          emailAddress: row['emailAddress'],
-        },
-        fileName: row['audiofilename'],
-        changed: row['changed'],
-        completed: row['completed'],
-        created: row['created'],
-        comments: row['comments'],
+        fileName: row['Audio File Name'],
+        changed: row['Changed'] || null,
+        completed: row['Completed'] || null,
+        created: row['Created'] || null,
+        comments: row['Comments'],
         soundissues,
-        soundqualityrating: row['soundqualityrating'],
+        soundqualityrating: row['Sound Quality Rating'],
         unwantedparts,
         duration: {
-          beginning: new Date(row['beginning']).getTime() / 1000,
-          ending: new Date(row['ending']).getTime() / 1000,
-        },
-      };
-
-      db.ref(`/sqr/submissions/${serial}`).set(submission);
-    });
-
-    const getAllotments = promisify(AllotmentsSheet.getRows);
-    // alllotments = Allotments sheet rows
-    const allotments = await getAllotments();
-
-    // Group all the files allotted on one day under a single `Allotment Node` in the db
-    // Group by ASSIGNEEs/DATEs/LISTs
-
-    const groupedAllotments = helpers.groupByMulti(
-      allotments,
-      ['devotee', 'dategiven', 'list'],
-      {}
-    );
-
-    // Adding the allotments
-    for (const assignee in groupedAllotments) {
-      for (const date in groupedAllotments[assignee]) {
-        const dayFiles = [];
-        for (const list in groupedAllotments[assignee][date]) {
-          // Collecting all of the files on a list under a single day in an array
-          groupedAllotments[assignee][date][list].forEach(item => {
-            dayFiles.push(item['filename']);
-          });
-
-          const allotment = {
-            assignee: {
-              name: assignee,
-              emailAddress: groupedAllotments[assignee][date][list][0]['email'],
-            },
-            files: dayFiles,
-            list,
-            timestamp: new Date(date).getTime() / 1000,
-            sendNotificationEmail: false, // Don't send emails if the document is read from the spreadsheet
-          };
-
-          db.ref(`/sqr/allotments`).push(allotment);
+          beginning: row['Beginning'],
+          ending: row['Ending'],
         }
-      }
+      };
+      db.ref(`/submissions/soundQualityReporting/${list}/${audioFileName}/${token}`).set(submission);
     }
 
-    res
-      .status(200)
-      .send(
-        `Function was called successfully, check the Logs on Firebase to find out if something went wrong`
-      );
-  }
-);
+    ////////////////////////
+    //     Allotments
+    ////////////////////////
+
+    const allotmentsSheet = new GoogleSheets(spreadsheetId, ISoundQualityReportSheet.Allotments);
+    const allotmentsRows = await allotmentsSheet.__getRows();
+
+    for (const row of allotmentsRows) {
+      if (!row) continue;
+
+      const fileName = row['File Name'];
+      const match = audioFileRegex.exec(fileName);
+
+      if (!match) continue;
+
+      const fileNameHasForbiddenChars = fileName.match(/[\.\[\]$#]/g);
+      if (fileNameHasForbiddenChars) {
+        console.warn(`File name has forbidden characters that can't be used as a node name.`)
+        continue;
+      }
+
+      const list = match[1];
+      const allotment = {
+        status: row['Status'] || null,
+        timestampGiven: row['Date Given'] ? (new Date(row['Date Given'])).getTime() : null,
+        timestampDone: row['Date Done'] ? (new Date(row['Date Done'])).getTime() : null,
+        assignee: {
+          emailAddress: row['Email'] || null,
+          name: row['Devotee'] || null
+        },
+        followUp: row['Follow-up'] || null
+      }
+      db.ref(`/files/${list}/${fileName}/soundQualityReporting`).update(allotment);
+    }
+  });
 
 /**
  * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
