@@ -143,7 +143,7 @@ export default class GoogleSheets {
       spreadsheetId: this.spreadsheetId
     });
     const sheetMetadata = sheetsMetadata.data.sheets
-      .filter(sheet => sheet.properties.title == this.sheetName)[0];
+      .filter(sheet => sheet.properties.title === this.sheetName)[0];
     const { rowCount, columnCount } = sheetMetadata.properties.gridProperties;
     this.headers = data.values[0];
     this.sheetMetadata = { rowCount, columnCount };
