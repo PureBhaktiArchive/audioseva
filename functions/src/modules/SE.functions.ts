@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 
 import uniqid from 'uniqid';
 
-import { taskIdRegex } from "../helpers";
+import { taskIdRegex } from '../helpers';
 
 const db = admin.database();
 
@@ -91,98 +91,106 @@ export const processNewAllotment = functions.database
     return 1;
   });
 
-const basePath = "/sound-editing/";
+const basePath = '/sound-editing/';
 
 const makeTaskId = (fileName: string, index: number) => {
   return `${fileName.match(taskIdRegex)[0]}-${index}`;
 };
 
 const validateTask = async (path: string) => {
-  const response = await db.ref(path).once("value");
+  const response = await db.ref(path).once('value');
   return response.val();
 };
 
-export const createTaskFromChunks = functions.database.ref(
-    "/sound-editing/chunks/{listId}/{fileName}/{index}"
-).onCreate(async (snapshot, { params: { fileName, listId, index } }) => {
-  const {
-    continuationTo,
-    continuationFrom,
-    processingResolution = "",
-    taskId: currentTaskId,
-    beginning,
-    ending
-  } = snapshot.val();
+export const createTaskFromChunks = functions.database
+  .ref('/sound-editing/chunks/{listId}/{fileName}/{index}')
+  .onCreate(async (snapshot, { params: { fileName, listId, index } }) => {
+    const {
+      continuationTo,
+      continuationFrom,
+      processingResolution = '',
+      taskId: currentTaskId,
+      beginning,
+      ending,
+    } = snapshot.val();
 
-  if (processingResolution.toLowerCase() !== "ok" || currentTaskId) return;
-  const chunksPath = `${basePath}chunks/${listId}/`;
-  const tasksPath = `${basePath}tasks/${listId}/`;
-  const chunkDuration = ending - beginning;
-  const chunkResponse = await db.ref(`${chunksPath}${fileName}`)
+    if (processingResolution.toLowerCase() !== 'ok' || currentTaskId) return;
+    const chunksPath = `${basePath}chunks/${listId}/`;
+    const tasksPath = `${basePath}tasks/${listId}/`;
+    const chunkDuration = ending - beginning;
+    const chunkResponse = await db
+      .ref(`${chunksPath}${fileName}`)
       .orderByKey()
       .limitToLast(1)
-      .once("value");
-  const chunks = chunkResponse.val() || [];
-  let taskId;
-  let duration;
-  const allChunks = [snapshot.val()];
+      .once('value');
+    const chunks = chunkResponse.val() || [];
+    let taskId;
+    let duration;
+    const allChunks = [snapshot.val()];
 
-  // check for next chunk and create task id with current chunk and next chunk
-  if (continuationTo) {
-    const nextChunkResponse = await db
+    // check for next chunk and create task id with current chunk and next chunk
+    if (continuationTo) {
+      const nextChunkResponse = await db
         .ref(`${chunksPath}${continuationTo}`)
-        .once("value");
-    const nextChunks = nextChunkResponse.val();
-    if (nextChunks) {
-      const nextChunk = nextChunks[0];
-      allChunks.push(nextChunk);
-      taskId = makeTaskId(fileName, chunks.length);
-      if (await validateTask(`${tasksPath}${taskId}`)) {
-        console.error("Task exists");
-        return;
-      }
-      if (nextChunk.continuationFrom === fileName) {
-        duration = ending - beginning + (nextChunk.ending - nextChunk.beginning);
-        await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
-        await db.ref(`${chunksPath}${continuationTo}/0`).update({ taskId });
+        .once('value');
+      const nextChunks = nextChunkResponse.val();
+      if (nextChunks) {
+        const nextChunk = nextChunks[0];
+        allChunks.push(nextChunk);
+        taskId = makeTaskId(fileName, chunks.length);
+        if (await validateTask(`${tasksPath}${taskId}`)) {
+          console.error('Task exists');
+          return;
+        }
+        if (nextChunk.continuationFrom === fileName) {
+          duration =
+            ending - beginning + (nextChunk.ending - nextChunk.beginning);
+          await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
+          await db.ref(`${chunksPath}${continuationTo}/0`).update({ taskId });
+        } else {
+          return;
+        }
       } else {
         return;
       }
-    } else {
-      return;
-    }
-  } else if (continuationFrom) { // check for previous chunk
-    const previousChunkResponse = await db
+    } else if (continuationFrom) {
+      // check for previous chunk
+      const previousChunkResponse = await db
         .ref(`${chunksPath}${continuationFrom}`)
         .orderByKey()
-        .limitToLast(1).once("value");
-    const previousChunks = previousChunkResponse.val();
-    const previousChunk = previousChunks[previousChunks.length - 1];
-    allChunks.unshift(previousChunk);
-    taskId = makeTaskId(fileName, previousChunks.length + chunks.length - 1);
-    if (await validateTask(`${tasksPath}${taskId}`)) {
-      console.error("Task exists");
-      return;
-    }
-    if (previousChunk.continuationTo === fileName) {
-      duration = chunkDuration + (previousChunk.ending - previousChunk.beginning);
-      await db.ref(`${chunksPath}${continuationFrom}/${previousChunks.length - 1}`).update({ taskId });
-      await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
+        .limitToLast(1)
+        .once('value');
+      const previousChunks = previousChunkResponse.val();
+      const previousChunk = previousChunks[previousChunks.length - 1];
+      allChunks.unshift(previousChunk);
+      taskId = makeTaskId(fileName, previousChunks.length + chunks.length - 1);
+      if (await validateTask(`${tasksPath}${taskId}`)) {
+        console.error('Task exists');
+        return;
+      }
+      if (previousChunk.continuationTo === fileName) {
+        duration =
+          chunkDuration + (previousChunk.ending - previousChunk.beginning);
+        await db
+          .ref(`${chunksPath}${continuationFrom}/${previousChunks.length - 1}`)
+          .update({ taskId });
+        await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
+      } else {
+        console.error('Invalid continuationTo from previous chunk');
+        return;
+      }
     } else {
-      console.error("Invalid continuationTo from previous chunk");
-      return;
+      // single chunk without a continuation
+      duration = chunkDuration;
+      taskId = makeTaskId(fileName, chunks.length - 1);
+      if (await validateTask(`${tasksPath}${taskId}`)) {
+        console.error('Task exists');
+        return;
+      }
     }
-  } else { // single chunk without a continuation
-    duration = chunkDuration;
-    taskId = makeTaskId(fileName, chunks.length - 1);
-    if (await validateTask(`${tasksPath}${taskId}`)) {
-      console.error("Task exists");
-      return;
-    }
-  }
-  await db.ref(`${tasksPath}${taskId}`).set({
-    chunks: allChunks,
-    duration
+    await db.ref(`${tasksPath}${taskId}`).set({
+      chunks: allChunks,
+      duration,
+    });
+    return snapshot.val();
   });
-  return snapshot.val();
-});
