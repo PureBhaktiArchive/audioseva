@@ -1,4 +1,3 @@
-
 # Frontend
 
 ## Project setup
@@ -41,8 +40,9 @@ npm run test:unit
 ```
 
 # Configuring the Firebase Cloud Functions environment!
+
 The main credentials, **databaseURL** & the **storageBucket** are automatically set up for you, however, other variables have to be set manually before deploying the functions.
-  
+
 ```sh
 # each arg must have at least 2-part key (e.g foo.bar)
 $ firebase functions:config:set website.base_url="Base url of the website"
@@ -58,6 +58,7 @@ $ firebase functions:config:set sqr.spreadsheetId='Google Spreadsheet ID'
 Firebase Cloud Functions is written in **TypeScript**, if you are uploading the functions for the first time make sure you're selecting the language used in the project as **TypeScript** instead of the default **JavaScript**.
 
 # Deploying Firebase Cloud Functions!
+
 Don't upload the functions manually as it needs first to be converted from **TypeScript** into **JavaScript**.
 
 ```sh
@@ -65,11 +66,13 @@ $ cd functions
 ```
 
 The following command transpiles all the **Typescript** files:
+
 ```sh
 $ npm run build
 ```
 
 Deploy the functions:
+
 ```sh
 $ npm run deploy
 ```

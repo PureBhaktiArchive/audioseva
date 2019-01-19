@@ -12,19 +12,19 @@
       >{{item[keyPath].assignee.emailAddress}}</span>
     </p>
     <div>
-       <v-card>         
-          <v-list>
-            <v-list-tile>              
-              <v-list-tile-title>{{`Are you sure you want to cancel ${item[".key"]} allotment?`}}</v-list-tile-title>
-            </v-list-tile>             
-          </v-list>
-          <v-divider></v-divider>    
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="error" flat @click="handleChange()">Yes</v-btn>
-            <v-btn flat>No</v-btn>           
-          </v-card-actions>
-        </v-card>
+      <v-card>
+        <v-list>
+          <v-list-tile>
+            <v-list-tile-title>{{`Are you sure you want to cancel ${item[".key"]} allotment?`}}</v-list-tile-title>
+          </v-list-tile>
+        </v-list>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="error" flat @click="handleChange()">Yes</v-btn>
+          <v-btn flat>No</v-btn>
+        </v-card-actions>
+      </v-card>
     </div>
   </v-menu>
 </template>
@@ -56,7 +56,7 @@ export default class InlineAssignEdit extends Vue {
     };
     const update = _.merge({}, item[this.keyPath], changedData);
 
-    //Object that is use in making of firebase path URL to save data in database. 
+    //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
     path["itemPath"] = this.keyPath;
     this.$emit("save", item, path, update);

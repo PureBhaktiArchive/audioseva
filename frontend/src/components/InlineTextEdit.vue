@@ -1,13 +1,14 @@
 <template>
   <div>
-    <v-edit-dialog      
+    <v-edit-dialog
       :return-value.sync="textAreaValue"
       lazy
       large
       @save="$listeners.save(item, editPath, textAreaValue)"
       @cancel="$listeners.cancel"
       @open="open"
-    > <span :style="{padding: '4px'}">{{ textArea }}</span>
+    >
+      <span :style="{padding: '4px'}">{{ textArea }}</span>
       <v-textarea
         v-if="isShowTextArea == true"
         slot="input"
@@ -40,7 +41,7 @@ export default class InlineTextEdit extends Vue {
   get editPath() {
     //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
-    path["itemPath"] = this.value ? this.value.split(".").join("/"): "";
+    path["itemPath"] = this.value ? this.value.split(".").join("/") : "";
     return path;
   }
 

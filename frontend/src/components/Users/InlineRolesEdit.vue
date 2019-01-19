@@ -5,11 +5,14 @@
       width: `${Object.keys(item.roles).length * 50}px`,
       height: '100%'
     }"
-    :close-on-content-click="false">
+    :close-on-content-click="false"
+  >
     <div slot="activator">
-      <v-chip small v-for="(role, index) in Object.keys(item.roles)" :key="`${index}-${role}-chip`">
-        {{ role }}
-      </v-chip>
+      <v-chip
+        small
+        v-for="(role, index) in Object.keys(item.roles)"
+        :key="`${index}-${role}-chip`"
+      >{{ role }}</v-chip>
     </div>
     <v-list v-for="(role, index) in roles" :key="index">
       <v-list-tile>
@@ -17,8 +20,8 @@
           <v-switch
             @change="handleChange($event, role)"
             :label="role"
-            :input-value="item.roles[role]">
-          </v-switch>
+            :input-value="item.roles[role]"
+          ></v-switch>
         </v-list-tile-action>
       </v-list-tile>
     </v-list>
@@ -34,11 +37,11 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 export default class InlineRolesEdit extends Vue {
   @Prop() item!: any;
   @Prop() roles!: string[];
-   @Prop() value!: any;
-   
+  @Prop() value!: any;
+
   handleChange(e: any, role: string) {
     const { item } = this;
-    
+
     //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
     path["itemPath"] = `${this.value}/${role}`;
