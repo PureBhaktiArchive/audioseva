@@ -1,6 +1,55 @@
-<b>Current set:</b>
-<div style="font-family: Courier,serif">
-  Please update your previous submission using this update link: http://purebhakti.info/audioseva/form/sound-quality-report?token={{params.submission.token}}.<br>Please note &#8212; do not make a new submission using this link. For a new submission, use the link in the allotment email.<br>
+<body>
+  <div style="color:red; font-weight:bold;">
+    {% if params.submission.cancellation.notPreferredLanguage %}
+      <p>The lecture is not in devotee's preferred language!</p>
+    {% endif %}
+
+    {% if params.submission.cancellation.audioProblem %}
+      <p>Unable to play or download the audio {{ params.submission.comments }}</p>
+    {% endif %}
+
+    {% if params.submission.changed != params.submission.completed %}
+      <p>This is an updated submission!</p>
+    {% endif %}
+
+    {% if params.fileData.soundQualityReporting.assignee.emailAddress != params.submission.author.emailAddress %}
+      <div>
+        <p>
+          File is alloted to another email
+          id - {{ params.fileData.soundQualityReporting.assignee.emailAddress }}!
+        </p>
+
+        <p>Status of file is {{ params.fileData.soundQualityReporting.status }}</p>
+
+        <p>Audio file name {{ params.submission.fileName }} is not found in the Backend!</p>
+      </div>
+    {% endif %}
+
+    {% if params.fileData.soundQualityReporting.status == "Given" %}
+      <p>It's time to allot!</p>
+    {% endif %}
+  </div>
+  <b>Current set:</b>
+  <div style="font-family: Courier,serif">
+    <ul>
+      {% for allotment in params.currentSet %}
+      <li>
+        {{ allotment.fileName }}
+        {{ allotment.timestampGiven }}
+        {{ allotment.status}}
+        {{ allotment.daysPassed }},
+        {{ allotment.language }}
+        {% if allotment.fileName == params.submission.fileName %}
+        <strong> -- CURRENT SUBMISSION</strong>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <a href="https://audio-seva.firebaseapp.com/sqr/allot?emailaddress={{ params.submission.author.emailAddress }}">Allot the next set</a><br>
+  <p>
+    Please update your previous submission using this update link: http://purebhakti.info/audioseva/form/sound-quality-report?token={{params.submission.token}}.<br>Please note &#8212; do not make a new submission using this link. For a new submission, use the link in the allotment email.<br>
+  </p>
   <p><b>A. Audio File Name:</b> {{ params.submission.fileName }}</p>
   <p><b>B. Unwanted parts to be cut:</b><br></p>
   <ul>
@@ -19,7 +68,9 @@
     {% endfor %}
   </ul>
   <p><b>D. Sound Quality Rating:</b> {{ params.submission.soundQualityRating }}</p>
-  <p><b>E. Total Duration of the Recording:</b> {{ params.submission.duration.ending - params.submission.duration.beginning }}</p>
+  <p><b>E. Total Duration of the Recording:</b>
+    {{ params.submission.duration.ending - params.submission.duration.beginning }}
+  </p>
   <p><b>F. Comments:</b> {{ params.submission.comments }}</p>
   <p><b>G. Filled By:</b> {{ params.submission.author.name }}, {{ params.submission.author.emailAddress }}</p>
-</div>
+</body>
