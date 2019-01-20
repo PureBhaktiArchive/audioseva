@@ -72,96 +72,96 @@ export const updateFilesOnNewAllotment = functions.database
 export const processAllotment = functions.database
   .ref('/sqr/allotments/{allotment_id}')
   .onWrite(async (snapshot, context) => {
-    const allotment = snapshot.after.val(); // new allotment
-    const newDocKey = snapshot.after.key;
-    const old = snapshot.before.val();
-    const coordinatorConfig = functions.config().coordinator;
+  const allotment = snapshot.after.val(); // new allotment
+  const newDocKey = snapshot.after.key;
+  const old = snapshot.before.val();
+  const coordinatorConfig = functions.config().coordinator;
 
-    // loop through the FILES array in the NEW ALLOTMENT object
-    // and update their corresponding file objects
-    allotment.files.forEach(async file => {
-      // Skip the current iteration if allotment.list doesn't exist
-      if (!allotment.list) return;
+  // loop through the FILES array in the NEW ALLOTMENT object
+  // and update their corresponding file objects
+  allotment.files.forEach(async file => {
+    // Skip the current iteration if allotment.list doesn't exist
+    if (!allotment.list) return;
 
       const sqrRef = db.ref(
         `/files/${allotment.list}/${file}/soundQualityReporting`
       );
-      const sqrError = await sqrRef.update({
-        status: 'Given',
-        assignee: allotment.assignee,
-        timestampGiven: moment().format('x'), // gives timestamp in ms
-        timestampDone: null,
-      });
-
-      // if Successful FILE Update, update the ALLOTMENT accordingly
-      if (sqrError === undefined) {
-        // case 1 -- the allotmnet is read from the spreadsheet
-        if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1) {
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-          });
-        }
-        // case 2 -- the allotmnet is inputted manually
-        else {
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-            sendNotificationEmail: true,
-          });
-        }
-      }
+    const sqrError = await sqrRef.update({
+      status: 'Given',
+      assignee: allotment.assignee,
+      timestampGiven: moment().format('x'), // gives timestamp in ms
+      timestampDone: null,
     });
 
-    // Sends a notification to the assignee of the files he's allotted.
-    const allotmentSnapshot = await db
-      .ref('/sqr/allotments')
-      .orderByChild('assignee/emailAddress')
-      .equalTo(allotment.assignee.emailAddress)
-      .once('value');
+    // if Successful FILE Update, update the ALLOTMENT accordingly
+    if (sqrError === undefined) {
+      // case 1 -- the allotmnet is read from the spreadsheet
+      if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1) {
+        db.ref(`/sqr/allotments/${newDocKey}`).update({
+          filesAlloted: true,
+        });
+      }
+        // case 2 -- the allotmnet is inputted manually
+        else {
+        db.ref(`/sqr/allotments/${newDocKey}`).update({
+          filesAlloted: true,
+          sendNotificationEmail: true,
+        });
+      }
+    }
+  });
 
-    const allotments = allotmentSnapshot.val();
+  // Sends a notification to the assignee of the files he's allotted.
+  const allotmentSnapshot = await db
+    .ref('/sqr/allotments')
+    .orderByChild('assignee/emailAddress')
+    .equalTo(allotment.assignee.emailAddress)
+    .once('value');
 
-    /**
+  const allotments = allotmentSnapshot.val();
+
+  /**
      * 1. sending mail ( only if sendNotificationEmail is TRUE
-     * 2. old allotment's filesAlloted is False
-     * 3. allotment has valid assignee )
-     * sendNotificationEmail is FASLE if the record is read from the spreadsheet
-     */
-    if (
-      !old.filesAlloted &&
-      allotment.filesAlloted &&
-      allotment.assignee &&
-      allotment.sendNotificationEmail
-    ) {
-      if (allotment.assignee.emailAddress) {
+   * 2. old allotment's filesAlloted is False
+   * 3. allotment has valid assignee )
+   * sendNotificationEmail is FASLE if the record is read from the spreadsheet
+   */
+  if (
+    !old.filesAlloted &&
+    allotment.filesAlloted &&
+    allotment.assignee &&
+    allotment.sendNotificationEmail
+  ) {
+    if (allotment.assignee.emailAddress) {
         const utcMsec = moment()
           .zone('utc')
           .format('x'); // returns ms in utc
 
-        const localDate = new Date(
-          utcMsec + 3600000 * coordinatorConfig.timeZoneOffset
-        );
+      const localDate = new Date(
+        utcMsec + 3600000 * coordinatorConfig.timeZoneOffset
+      );
 
-        db.ref(`/email/notifications`).push({
+      db.ref(`/email/notifications`).push({
           template: 'sqr-allotment',
-          to: allotment.assignee.emailAddress,
-          bcc: [{ email: coordinatorConfig.email_address }],
-          params: {
-            files: allotment.files,
-            assignee: allotment.assignee,
-            comment: allotment.comment,
-            date: `${localDate.getDate() + 1}.${moment().month() + 1}`,
-            repeated: Object.keys(allotments).length > 1,
-          },
-        });
+        to: allotment.assignee.emailAddress,
+        bcc: [{ email: coordinatorConfig.email_address }],
+        params: {
+          files: allotment.files,
+          assignee: allotment.assignee,
+          comment: allotment.comment,
+          date: `${localDate.getDate() + 1}.${moment().month() + 1}`,
+          repeated: Object.keys(allotments).length > 1,
+        },
+      });
 
-        snapshot.after.ref
-          .child('mailSent')
-          .set(true)
-          .catch(err => console.log(err));
-      }
+      snapshot.after.ref
+        .child('mailSent')
+        .set(true)
+        .catch(err => console.log(err));
     }
+  }
 
-    return 1;
+  return 1;
   });
 
 /**
@@ -173,38 +173,38 @@ export const processAllotment = functions.database
 export const restructureExternalSubmission = functions.database
   .ref('/webforms/sqr/{submission_id}')
   .onCreate(async (snapshot, context) => {
-    const original = snapshot.val();
+  const original = snapshot.val();
 
-    // 1. Add the webform data to a SQR submissions DB path
-    const submission = {
-      fileName: original.audio_file_name,
-      cancellation: {
-        notPreferredLanguage: original.not_preferred_language,
-        audioProblem: original.unable_to_play_or_download,
-      },
-      soundQualityRating: original.sound_quality_rating,
-      unwantedParts: original.unwanted_parts,
-      soundIssues: original.sound_issues,
-      duration: {
-        beginning: original.beginning,
-        ending: original.ending,
-      },
-      comments: original.comments,
-      token: original.token,
-      created: original.created,
-      //  timestamp of the submission creation,
-      // can differ from COMPLETED in case of saving a DRAFT and completing later.
-      completed: original.completed, // timestamp of the submission completion.
-      changed: original.changed, //timestamp of the submission update.
-      author: {
-        name: original.name,
-        emailAddress: original.email_address,
-      },
-    };
+  // 1. Add the webform data to a SQR submissions DB path
+  const submission = {
+    fileName: original.audio_file_name,
+    cancellation: {
+      notPreferredLanguage: original.not_preferred_language,
+      audioProblem: original.unable_to_play_or_download,
+    },
+    soundQualityRating: original.sound_quality_rating,
+    unwantedParts: original.unwanted_parts,
+    soundIssues: original.sound_issues,
+    duration: {
+      beginning: original.beginning,
+      ending: original.ending,
+    },
+    comments: original.comments,
+    token: original.token,
+    created: original.created,
+    //  timestamp of the submission creation,
+    // can differ from COMPLETED in case of saving a DRAFT and completing later.
+    completed: original.completed, // timestamp of the submission completion.
+    changed: original.changed, //timestamp of the submission update.
+    author: {
+      name: original.name,
+      emailAddress: original.email_address,
+    },
+  };
 
-    db.ref(`/sqr/submissions/${original.serial}`).update(submission);
+  db.ref(`/sqr/submissions/${original.serial}`).update(submission);
 
-    return 1;
+  return 1;
   });
 
 /**
@@ -218,76 +218,91 @@ export const restructureExternalSubmission = functions.database
 export const processSubmission = functions.database
   .ref('/sqr/submissions/{submission_id}')
   .onCreate(async (snapshot, context) => {
-    const submission = snapshot.val();
+  const submission = snapshot.val();
 
-    let audioFileStatus = 'WIP';
+  let audioFileStatus = 'WIP';
     if (submission.cancellation.notPreferredLanguage) audioFileStatus = 'spare';
     else if (submission.cancellation.audioProblem)
-      audioFileStatus = 'audioProblem';
+    audioFileStatus = 'audioProblem';
 
     //  EXTRACTING the list name first from the file_name
-    const list = helpers.extractListFromFilename(submission.fileName);
+  const list = helpers.extractListFromFilename(submission.fileName);
 
-    // 2. Update the allotment ( first get the previous NOTES )
-    // 3.1 Get the submitted audio file data
-    const fileSnapshot = await db
-      .ref(`/files/${list}/${submission.fileName}`)
-      .once('value');
+  // 2. Update the allotment ( first get the previous NOTES )
+  // 3.1 Get the submitted audio file data
+  const fileSnapshot = await db
+    .ref(`/files/${list}/${submission.fileName}`)
+    .once('value');
 
-    // If fileSnapshot doesn't exist stop the execution
-    if (!fileSnapshot.exists()) return false;
+  // If fileSnapshot doesn't exist stop the execution
+  if (!fileSnapshot.exists()) return false;
 
-    const fileUpdate = { status: audioFileStatus };
+  const fileUpdate = { status: audioFileStatus };
 
-    // in case 1 & 2 add the comments to the notes
-    if (audioFileStatus !== 'WIP') {
-      fileUpdate['notes'] = `${fileSnapshot.val().notes}\n${
-        submission.comments
-      }`;
-    }
+  // in case 1 & 2 add the comments to the notes
+  if (audioFileStatus !== 'WIP') {
+    fileUpdate['notes'] = `${fileSnapshot.val().notes}\n${
+      submission.comments
+    }`;
+  }
 
-    // if the audio has any cancellation then REMOVE the assignee from the file allotment
+  // if the audio has any cancellation then REMOVE the assignee from the file allotment
     if (
       submission.cancellation.audioProblem ||
       submission.cancellation.notPreferredLanguage
     )
-      fileUpdate['assignee'] = {};
+    fileUpdate['assignee'] = {};
 
     db.ref(`/files/${list}/${submission.fileName}`).update(fileUpdate);
 
-    const coordinator = functions.config().coordinator;
-    const fileData = fileSnapshot.val();
+  const coordinator = functions.config().coordinator;
+  const fileData = fileSnapshot.val();
 
-    /**
-     * 3.2 Get the author's Allotments in ('given' || 'WIP') state
-     * TO BE ADDED LATER
-     * Currently passing an empty array
-     */
-    const allSubmissionsSnapshot = await db
-      .ref(`/sqr/submissions`)
-      .orderByChild('author/emailAddress')
-      .equalTo(submission.author.emailAddress)
-      .once('value');
+  /**
+   * 3.2 Get the author's Allotments in ('given' || 'WIP') state
+   * TO BE ADDED LATER
+   * Currently passing an empty array
+   */
+  const allSubmissionsSnapshot = await db
+    .ref(`/sqr/submissions`)
+    .orderByChild('author/emailAddress')
+    .equalTo(submission.author.emailAddress)
+    .once('value');
 
-    // 3.3 checking if the First Submission or not
-    if (allSubmissionsSnapshot.exists()) {
-      const allSubmissions = allSubmissionsSnapshot.val();
+  // 3.3 checking if the First Submission or not
+  if (allSubmissionsSnapshot.exists()) {
+    const allSubmissions = allSubmissionsSnapshot.val();
 
-      // 3.4 Notify the coordinator
-      // Sending the notification Email Finally
-      db.ref(`/email/notifications`).push({
+    let currentSet = (await db
+        .ref(`/files/${list}`)
+        .orderByChild("soundQualityReporting/assignee/emailAddress")
+        .equalTo(submission.author.emailAddress).once("value")
+    ).val();
+
+    currentSet = Object.entries(currentSet).map(
+        ([fileName, { languages, soundQualityReporting: { timestampGiven, status } }]: any) => ({
+          fileName,
+          status,
+          timestampGiven: timestampGiven ? moment(timestampGiven).format("M/D/YYYY") : "",
+          daysPassed: timestampGiven ? moment().diff(timestampGiven, "days") : "Not available",
+          language: languages.join(", ")
+    }));
+
+    // 3.4 Notify the coordinator
+    // Sending the notification Email Finally
+    db.ref(`/email/notifications`).push({
         template: 'sqr-submission',
-        to: coordinator.email_address,
-        params: {
-          submission,
-          fileData,
-          currentSet: [],
-          isFirstSubmission: Object.keys(allSubmissions).length <= 1,
-        },
-      });
-    }
+      to: coordinator.email_address,
+      params: {
+        submission,
+        fileData,
+        currentSet: currentSet,
+        isFirstSubmission: Object.keys(allSubmissions).length <= 1,
+      },
+    });
+  }
 
-    return 1;
+  return 1;
   });
 
 /**
@@ -391,12 +406,12 @@ export const importSpreadSheetData = functions.https.onCall(
       if (fileNameHasForbiddenChars) {
         console.warn(
           `File "${fileName}" has forbidden characters that can't be used as a node name.`
-        );
+    );
         continue;
       }
 
       const list = helpers.extractListFromFilename(fileName);
-      const allotment = {
+          const allotment = {
         status: row['Status'] || null,
         timestampGiven: row['Date Given']
           ? new Date(row['Date Given']).getTime() / 1000
@@ -404,17 +419,17 @@ export const importSpreadSheetData = functions.https.onCall(
         timestampDone: row['Date Done']
           ? new Date(row['Date Done']).getTime() / 1000
           : null,
-        assignee: {
+            assignee: {
           emailAddress: row['Email'] || null,
           name: row['Devotee'] || null,
-        },
+            },
         followUp: row['Follow-up'] || null,
-      };
+          };
       db.ref(`/files/${list}/${fileName}/soundQualityReporting`).update(
         allotment
       );
-    }
-  }
+        }
+      }
 );
 
 /**
