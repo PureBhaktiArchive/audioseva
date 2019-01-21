@@ -37,7 +37,7 @@ export default class InlineStatusEdit extends Vue {
 
     //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
-    path["itemPath"] = this.value ? this.value.split(".").join("/"): "";
+    path["itemPath"] = this.value ? this.value.split(".").join("/") : "";
     this.$emit("save", item, path, e, { newValue: e, itemPath: this.value });
   }
 }
