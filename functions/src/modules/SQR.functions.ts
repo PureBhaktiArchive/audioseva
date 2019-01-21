@@ -290,6 +290,47 @@ export const processSubmission = functions.database
     return 1;
   });
 
+
+
+
+/**
+ * Parse "Sound Issue" or "Unwanted parts" string to extract its different parts
+ * 
+ * @param string "Sound Issue" or "Unwanted parts" string to parse
+ * @param array array of "Sound Issues" or "Unwanted parts"
+ */
+const parseSI_UP = (string, array) => {
+  /**
+   * Regex to parse the value "Sound Issues" & "Unwanted Parts"
+   * 'g' flag is used to match one or more occurences of the pattern
+   */
+  const sI_UPGlobalRegex = /((Entire file)|(.*?)–(.*)):(.*)—(.*)/g;
+
+  /**
+   * Same as above with no 'g' flag
+   * Used to capture the different parts of the parsed string
+   */
+  const sI_UPRegex = /((Entire file)|(.*?)–(.*)):(.*)—(.*)/;
+
+  const allMatching = string.match(sI_UPGlobalRegex);
+
+  for (const match of allMatching) {
+    const parts = sI_UPRegex.exec(match);
+    if (parts[2]) // if 'Entire file' is found
+      array.push({
+        entireFile: true,
+        type: parts[5].trim(),
+        description: parts[6].trim()
+      });
+    else 
+      array.push({
+        beginning: parts[3],
+        ending: parts[4],
+        type: parts[5].trim(),
+        description: parts[6].trim()
+      });      
+  }
+}
 /////////////////////////////////////////////////
 //          Import Submission and Allotments from a Spreadsheet(Http Triggered)
 //
@@ -313,35 +354,17 @@ export const importSpreadSheetData = functions.https.onRequest(
 
       const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
-      const regex = /(.*?)–(.*):(.*)—(.*)/g;
-      const soundissuesMatch = regex.exec(row['Sound Issues']);
-      const unwantedpartsMatch = regex.exec(row['Unwanted Parts']);
-
-      if (!soundissuesMatch || !unwantedpartsMatch) {
-        console.warn(`"Sound Issues" or "Unwanted Parts" for file "${audioFileName}" are not in the correct format`);
-        continue;
-      }
-
-      const soundissues = {
-        beginning: soundissuesMatch[1],
-        ending: soundissuesMatch[2],
-        type: soundissuesMatch[3],
-        description: soundissuesMatch[4]
-      };
-      const unwantedparts = {
-        beginning: unwantedpartsMatch[1],
-        ending: unwantedpartsMatch[2],
-        type: unwantedpartsMatch[3],
-        description: unwantedpartsMatch[4]
-      };
+      const soundIssues = [], unwantedParts = [];
+      parseSI_UP(row['Sound Issues'], soundIssues);
+      parseSI_UP(row['Unwanted Parts'], unwantedParts);
 
       const submission = {
         completed: row['Completed'] || null,
         created: row['Created'] || null,
         comments: row['Comments'],
-        soundissues,
+        soundIssues,
         soundqualityrating: row['Sound Quality Rating'],
-        unwantedparts,
+        unwantedParts,
         duration: {
           beginning: row['Beginning'],
           ending: row['Ending'],
