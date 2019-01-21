@@ -38,42 +38,13 @@ export default class GoogleSheets {
   }
 
   /**
-   * Query for a specific google sheets within a spreadsheet
-   *
-   * @param sheet The sheet to query from google sheets api
-   * @param limit How many rows you want including the header titles
-   */
-  public async getRows(limit?: number): Promise<any> {
-    await this.connect();
-    const targetSheet: any = await this.connection.spreadsheets.values.get({
-      spreadsheetId: this.spreadsheetId,
-      majorDimension: IMajorDimensions.Rows,
-      range: this.sheetName + this._computeRange(limit),
-    });
-
-    const { statusText, status, data } = targetSheet;
-    if (statusText !== 'OK' || status !== 200) {
-      console.error('Error: Not able to get google sheet');
-      return null;
-    }
-    const { majorDimension, values } = data;
-    if (majorDimension !== IMajorDimensions.Rows || !values || !values.length) {
-      console.error('Error: Values are wrong format');
-      return null;
-    }
-
-    this.headers = values.shift();
-    return this._convertRows(values);
-  }
-
-  /**
    * Get a number of rows (start - limit) from a specific google sheet within a spreadsheet
    * with a maximum number of rows (limit) of 1000
    * 
    * @param start The row to start reading from
    * @param limit How many rows you want
    */
-  public async getRowsByStart(start: number, limit?: number): Promise<any> {
+  protected async _getRowsByStart(start: number, limit?: number): Promise<any> {
     if (limit > 1000) {
       console.warn(`Maximum number of rows in each single call can't exceed 1000`);
       return;
@@ -99,18 +70,18 @@ export default class GoogleSheets {
   }
 
   /**
-   * Getting the rows of the sheet in increments of 1000s
+   * Getting all the rows of the sheet in increments of 1000s
    * as this is the MAX num of rows allowed in one call
    * 
    */
-  public async __getRows(): Promise<any> {
+  public async getRows(): Promise<any> {
     await this.connect();
     await this.getHeaders();
+
     let rows = [];
     let remainingRows = this.sheetMetadata.rowCount;
     let stopAtRow = 0, startAtRow = 1;
     while (remainingRows > 0) {
-
       if (remainingRows >= 1000) {
         stopAtRow += 1000;
         remainingRows -= 1000;
@@ -118,7 +89,7 @@ export default class GoogleSheets {
         stopAtRow += remainingRows
         remainingRows -= stopAtRow;
       }
-      const result = await this.getRowsByStart(startAtRow, stopAtRow);
+      const result = await this._getRowsByStart(startAtRow, stopAtRow);
       startAtRow += 1000;
       rows = rows.concat(result);
     }
