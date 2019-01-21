@@ -308,7 +308,7 @@ export const importSpreadSheetData = functions.https.onRequest(
     //     Submissions
     ////////////////////////
     const submissionsSheet = new GoogleSheets(spreadsheetId, ISoundQualityReportSheet.Submissions);
-    const submissionsRows = await submissionsSheet.__getRows();
+    const submissionsRows = await submissionsSheet.getRows();
     for (const row of submissionsRows) {
       const audioFileName = row['Audio File Name'];
       const match = audioFileRegex.exec(audioFileName);
@@ -370,7 +370,7 @@ export const importSpreadSheetData = functions.https.onRequest(
     ////////////////////////
 
     const allotmentsSheet = new GoogleSheets(spreadsheetId, ISoundQualityReportSheet.Allotments);
-    const allotmentsRows = await allotmentsSheet.__getRows();
+    const allotmentsRows = await allotmentsSheet.getRows();
 
     for (const row of allotmentsRows) {
       if (!row) continue;
