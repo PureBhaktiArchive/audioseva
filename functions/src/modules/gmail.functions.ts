@@ -2,12 +2,15 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as Google from 'googleapis';
 import { Message } from 'firebase-functions/lib/providers/pubsub';
+import { processSQRDoneFromGmail } from './SQR.functions';
 
 const db = admin.database();
 
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
     const { client_key, secret, redirect } = functions.config().gmail;
+
+    console.log("hostname: ", req.hostname);
     const oauth2Client = new Google.google.auth.OAuth2(
       client_key,
       secret,
@@ -50,7 +53,7 @@ export const oauth2callback = functions.https.onRequest(
 );
 
 const fetchToken = async () => {
-  const queryResults = await db.ref(`/gmail/coordinator/oauth`).once('value');
+  const queryResults = await db.ref(`/gmail/coordinator`).once('value');
   return queryResults.val();
 };
 
@@ -70,7 +73,7 @@ export const initWatch = functions.https.onRequest(
       redirect
     );
 
-    const oauth = await fetchToken();
+    const { oauth } = await fetchToken();
     oauth2Client.setCredentials({
       access_token: oauth.token,
       refresh_token: oauth.refreshToken,
@@ -122,7 +125,7 @@ export const initWatch = functions.https.onRequest(
   }
 );
 
-export const gmailDoneHandler = functions.pubsub
+export const doneHandler = functions.pubsub
   .topic('gmail-labeled-done')
   .onPublish(async (message: Message) => {
     const decodedMessage = JSON.parse(
@@ -137,16 +140,18 @@ export const gmailDoneHandler = functions.pubsub
       redirect
     );
     const { oauth, lastSyncHistoryId } = await fetchToken();
+    console.log("oauthTokenHere: ", oauth);
+
     oauth2Client.setCredentials({
       access_token: oauth.token,
-      refresh_token: oauth.refreshToken,
+      refresh_token: oauth.refresh,
     });
-    const gm = await Google.google.gmail({
+    const gmail = await Google.google.gmail({
       version: 'v1',
       auth: oauth2Client,
     });
 
-    const labelResults = await gm.users.labels.list({
+    const labelResults = await gmail.users.labels.list({
       userId: 'me',
     });
     const doneLabelObj = labelResults.data.labels.filter(label => {
@@ -156,74 +161,71 @@ export const gmailDoneHandler = functions.pubsub
     try {
       // Typescript complains if not initialized and casted to any
       const historyListRequest: any = {
-        userId: decodedMessage.emailAddress || 'me',
+        userId: 'me',
         startHistoryId: lastSyncHistoryId,
         historyTypes: 'labelAdded',
         labelId: [doneLabelObj.id],
       };
 
       // Call the history list api to fetch changes since last synced
-      const results = await gm.users.history.list(historyListRequest);
+      const results = await gmail.users.history.list(historyListRequest);
       if (!results.data.history || !results.data.history.length) {
         // Handle empty history, and update history id
         await storeHistoryIdInDatabase(decodedMessage.historyId);
         throw new Error('History is empty. Nothing to process');
       }
 
-      const onlyLabelAdded = results.data.history.filter(change => {
+      const onlyUniqueLabelsAdded = results.data.history.filter(change => {
         return change.labelsAdded;
-      });
+      })
+      // Get the first message of a thread that has labels added, and get uniques threadIds[]
+      .map(change => change.labelsAdded[0].message.threadId)
+      .filter((threadId, index, array) => array.indexOf(threadId) === index);
 
-      // We only care about the final state of the Done label whether it was applied
-      // or not, so we get rid of the duplicates incase there are any
-      const uniques = {};
-      onlyLabelAdded.forEach(change => {
-        change.labelsAdded.forEach(obj => {
-          uniques[obj.message.id] = {
-            labels: obj.labelIds,
-            threadId: obj.message.threadId,
-          };
-        });
-      });
+      if (!onlyUniqueLabelsAdded || !onlyUniqueLabelsAdded.length) {
+        await storeHistoryIdInDatabase(decodedMessage.historyId);
+        throw new Error('History is empty. Nothing to process');
+      }
 
-      // Call the gmail.users.threads api with the unique changes
-      // and retrieve list of threads and messages
-      const threadHeaders = Object.keys(uniques).map(async threadKey => {
-        const threadResults = await gm.users.threads.get({
+      console.log("onlyUniqueLabelsAdded: ", onlyUniqueLabelsAdded);
+
+      const allThreadsRequest = onlyUniqueLabelsAdded.map(threadId => {
+        const threadResults = gmail.users.threads.get({
           userId: 'me',
-          id: uniques[threadKey].threadId,
+          id: threadId
         });
-        // Only care about the first message headers in the thread
-        return threadResults.data.messages[0].payload.headers;
-      });
-      const allResults = await Promise.all(threadHeaders);
-      // Filter the subject header out from the response
-      const subjectParts = allResults.map(thread => {
-        const subjectValue = thread.filter(
-          header => header.name === 'Subject'
-        )[0].value;
-        if (subjectValue) {
-          const p = subjectValue.split(' - ');
-          return { no: p[0], fileName: p[1], person: p[2] };
-        }
-        return null;
+        return threadResults; // Promise
       });
 
-      subjectParts.forEach(async subjectPart => {
-        const list = subjectPart.fileName.split('-')[0];
-        const Ref = db.ref(
-          `files/${list}/${subjectPart.fileName}/soundQualityReporting`
-        );
-        const sqrResults = await Ref.once('value');
-        if (sqrResults.exists()) {
-          Ref.update({
-            status: 'Done',
-            timestampDone: Date.now() / 1000,
-          });
+      const allThreadsResults = await Promise.all(allThreadsRequest);
+      // Get first message of a thread
+      const allThreadsData = allThreadsResults.map(result => {
+        let fileName = "";
+        let subject = "";
+        result.data.messages[0].payload.headers.forEach(header => {
+          if (header.name === "X-Audio-Seva-File-Name") {
+            fileName = header.value;
+          }
+          if (header.name === "Subject") {
+            subject = header.value;
+          }
+        });
+        return {
+          lastThreadMessageTimestamp: result.data.messages[result.data.messages.length - 1].internalDate,
+          fileName,
+          subject,
         }
       });
+      console.log("allThreadsResults: ", allThreadsData);
+      // Mock filename so we have something to process
+      allThreadsData[0].fileName = "ML2-68 B";
 
-      // If everything goes well, store the new history id for next sync
+      allThreadsData.forEach(async (processObject: any) => {
+        if (processObject.fileName && processObject.subject.indexOf("SQR") > -1) {
+          await processSQRDoneFromGmail(processObject);
+        }
+        // Handle other module processes
+      });
       await storeHistoryIdInDatabase(decodedMessage.historyId);
     } catch (error) {
       console.error(error);
