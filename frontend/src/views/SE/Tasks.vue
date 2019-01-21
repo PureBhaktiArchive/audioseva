@@ -96,7 +96,7 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
   };
 
   componentData = {
-    'restoration.followUp': {
+    "restoration.followUp": {
       on: { ...this.editEvents },
       props: {
         keyPath: this.keyPath
@@ -108,7 +108,7 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
         keyPath: this.keyPath
       }
     },
-    'restoration.status': {
+    "restoration.status": {
       on: { ...this.editEvents },
       props: {
         keyPath: this.keyPath,
@@ -141,8 +141,8 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
   computedComponent = {
     soundIssues: SoundIssuesList,
     assignee: InlineAssignEdit,
-    'restoration.status': InlineStatusEdit,
-    'restoration.followUp': InlineTextEdit
+    "restoration.status": InlineStatusEdit,
+    "restoration.followUp": InlineTextEdit
   };
 
   headers = [
