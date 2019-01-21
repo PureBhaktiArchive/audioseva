@@ -323,7 +323,7 @@ export const importSpreadSheetData = functions.https.onRequest(
       const unwantedpartsMatch = regex.exec(row['Unwanted Parts']);
 
       if (!soundissuesMatch || !unwantedpartsMatch) {
-        console.warn(`"Sound Issues" or "Unwanted Parts" are not in the correct format`);
+        console.warn(`"Sound Issues" or "Unwanted Parts" for file "${audioFileName}" are not in the correct format`);
         continue;
       }
 
@@ -373,7 +373,7 @@ export const importSpreadSheetData = functions.https.onRequest(
 
       const fileNameHasForbiddenChars = fileName.match(/[\.\[\]$#]/g);
       if (fileNameHasForbiddenChars) {
-        console.warn(`File name has forbidden characters that can't be used as a node name.`)
+        console.warn(`File "${fileName}" has forbidden characters that can't be used as a node name.`);
         continue;
       }
 
