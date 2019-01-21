@@ -2,10 +2,16 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
 import uniqid from 'uniqid';
+import * as ffmpeg from 'ffmpeg-static';
+import * as fs from 'fs';
+import * as util from 'util';
+require('util.promisify').shim();
 
 import { taskIdRegex } from "../helpers";
 
 const db = admin.database();
+
+const exec = util.promisify(require('child_process').exec);
 
 /////////////////////////////////////////////////
 //          processNewAllotment (DB create Trigger)
@@ -185,4 +191,144 @@ export const createTaskFromChunks = functions.database.ref(
     duration
   });
   return snapshot.val();
+});
+
+/////////////////////////////////////////////////
+//               rearrangeChunks (DB create Trigger)
+//      1. loops through all the `flac` files under `source` folder in Storage
+//      2. gets corresponding DB nodes and applies CUTTING or MERGING depending
+//          on the data found in the DB node
+//
+/////////////////////////////////////////////////
+
+export const rearrangeChunks = functions.runWith({ memory: "512MB" }).database.ref(
+    `${basePath}tasks/{list}/{taskId}`
+).onCreate( async (snapshot, context) => {
+  const { params: { list: listId, taskId } } = context;
+  const rootDomain = functions.config().storage["root-domain"];
+  const originalBucket = admin.storage().bucket(`original.${rootDomain}`);
+  const roughEditedBucket = admin.storage().bucket(`rough.${rootDomain}`);
+  const ffmpegExecutable = ffmpeg.path;
+
+  const bucketFiles = (await originalBucket.getFiles())[0];
+
+  // Regex to get only files stored inside the `source` folder
+  const regex = /source\/(\w+)\/((\w+|-)+).flac/;
+  const audioChunks = bucketFiles.filter(file => {
+    return file.name.includes(`source/${listId}/${taskId.split("-").slice(0, 2).join("-")}`);
+  });
+
+  // data { Object }
+  //      contains every database node data in addition to
+  //      1. path of corresponding file in storage.
+  //      2. path of the file to create out of this node's corresponding file.
+  const data = {};
+
+
+  // lastChunk { Object }
+  //      Used in creating new names for generated files.
+  //      'Keys': here are serial numbers of each file.
+  //      'Value': number of file names containing this serial number
+  //      Example:
+  //          Files: [ 'BR-01A', 'BR-01B', 'BR-01C', 'BR-02A', 'BR-03A', 'BR-03B'  ]
+  //          lastChunk: { '01': 3, '02': 1, '03' 2 }
+  const lastChunk = {};
+
+  for (const audioChunk of audioChunks) {
+    const match = regex.exec(audioChunk.name);
+    const list = match[1], chunkName = match[2]; // chunkName: list-serialCHAR.flac --> BR-01A.flac
+
+    const chunkData = await db.ref(`/sound-editing/chunks/${list}/${chunkName}`).once('value');
+
+    // extract Serial and Character
+    const rgx = new RegExp(`${list}-(\\d+)(\\w+)`);
+    if (!chunkData.exists())
+      continue;
+
+    const serial = rgx.exec(chunkName)[1];
+    const charsToRemove = rgx.exec(chunkName)[2];
+
+
+    // some of the arrays contain in a strange manner `undefined`,
+    // so here I'm just getting rid of those `undefined`s
+    const chunks = chunkData.val().filter(chunk => chunk !== undefined);
+
+    if (!lastChunk[serial])
+      lastChunk[serial] = 0;
+
+    // Empty array for the current node
+    data[chunkName] = [];
+
+    // loop through the chunks grouped under a particular Serial number
+    for (let j = 0; j < chunks.length; j++) {
+      // incremented number here is used in the TO GENERATE file name
+      lastChunk[serial]++;
+
+      const chunk = chunks[j];
+
+      let newName = chunkName.slice(0, -charsToRemove.length) + `-${lastChunk[serial]}.flac`;
+
+      let beginning = (+chunk.beginning) - 120;
+      beginning = beginning < 0 ? 0: beginning;
+      const ending = +chunk.ending + 120;
+
+      await db
+          .ref(`${basePath}tasks/${listId}/${taskId}/chunks/${j}/editing`)
+          .update({ beginning, ending });
+
+      data[chunkName].push({
+        beginning,
+        duration: (ending) - (beginning),
+        newName: `/tmp/${newName}`,
+        destination: `edited/${newName}`,
+        src: `/tmp/${chunkName}.flac`
+      });
+
+      const flacFile = originalBucket.file(`source/${list}/${chunkName}.flac`); // source file
+
+      if (!fs.existsSync(`/tmp/${chunkName}.flac`))
+        await flacFile.download({ destination: `/tmp/${chunkName}.flac` });
+
+      const duration = (+chunk.ending) - (+chunk.beginning);
+
+      let cmd;
+      if (chunk['continuationFrom']) { // merge
+        //  chunkData['continuationFrom'] ==> Chunk to add to
+        const chunkToAddTo = data[chunk['continuationFrom']];
+
+        const chunkToAddToPath = chunkToAddTo[chunkToAddTo.length - 1].newName;
+
+        // Remove starting `/tmp/` from the name
+        newName = chunkToAddToPath.slice(5);
+
+        await flacFile.download({ destination: `/tmp/${newName}` });
+
+        const chunkToAdd = `/tmp/${chunkName}.flac`;
+
+        // Create a TEXT file having the Flac files to merge listed as follows:
+        //                  file '/path/to/src1.flac'
+        //                  file '/path/to/src2.flac'
+        // Then run the ffmpeg executable to start merging the to files
+        // into a file named `placeholder.flac`
+        // Finally, rename `placeholder.flac` to `src1.flac` (The original file)
+        cmd = `
+                    echo "file '${chunkToAddToPath}'" > /tmp/filesToMerge && echo "file '${chunkToAdd}'" >> /tmp/filesToMerge &&
+                    "${ffmpegExecutable}" -loglevel error -y -f concat -safe 0 -i /tmp/filesToMerge /tmp/placeholder.flac && mv /tmp/placeholder.flac ${chunkToAddToPath}
+                `;
+
+      } else {
+        cmd = `"${ffmpegExecutable}" -loglevel error -ss ${+chunk.beginning} -i /tmp/${chunkName}.flac -t ${duration} /tmp/${newName}`;
+      }
+
+      // Start Cutting/Merging files
+      await exec(cmd, { maxBuffer: 1024 * 10000 });
+      // Upload new created Flac file to `edited` folder on the Storage bucket
+      await roughEditedBucket.upload(
+          `/tmp/${newName}`,
+          { destination: `${listId}/${newName}`, resumable: false }
+      );
+      await db.ref(`${basePath}tasks/${listId}/${taskId}`).update({ roughFileCreated: true });
+      console.log(`/tmp/${newName} was uploaded successfully`);
+    }
+  }
 });
