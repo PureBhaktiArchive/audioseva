@@ -394,8 +394,8 @@ export const importSpreadSheetData = functions.https.onRequest(
       const list = helpers.extractListFromFilename(fileName);
       const allotment = {
         status: row['Status'] || null,
-        timestampGiven: row['Date Given'] ? (new Date(row['Date Given'])).getTime() : null,
-        timestampDone: row['Date Done'] ? (new Date(row['Date Done'])).getTime() : null,
+        timestampGiven: row['Date Given'] ? (new Date(row['Date Given'])).getTime() / 1000 : null,
+        timestampDone: row['Date Done'] ? (new Date(row['Date Done'])).getTime() / 1000 : null,
         assignee: {
           emailAddress: row['Email'] || null,
           name: row['Devotee'] || null
