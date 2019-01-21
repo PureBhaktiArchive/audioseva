@@ -547,7 +547,7 @@ export const processSQRDoneFromGmail = async (processObject: any) => {
   if (sqrResults.exists()) {
     await soundQualityReporting.update({
       status: "Done",
-      timestampDone: moment(processObject.lastThreadMessageTimestamp).unix(),
+      timestampDone: moment(parseInt(processObject.lastThreadMessageTimestamp)).unix(),
     });
   }
 }
