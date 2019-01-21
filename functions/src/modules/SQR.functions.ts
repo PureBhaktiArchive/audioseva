@@ -315,17 +315,8 @@ export const importSpreadSheetData = functions.https.onRequest(
       if (!match) continue;
 
       const list = match[1];
-      // const serial = row['Submission Serial'];
 
-      const fileRef = await db.ref(`/files/${list}/${audioFileName}/soundQualityReporting`).once('value');
-      const audioFile = fileRef.val();
-      let token;
-      if (fileRef.exists()) {
-        token = audioFile.token;
-      } else {
-        console.warn(`Token not found!`)
-        continue;
-      }
+      const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
       const regex = /(.*?)–(.*):(.*)—(.*)/g;
       const soundissuesMatch = regex.exec(row['Sound Issues']);
