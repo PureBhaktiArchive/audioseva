@@ -339,9 +339,8 @@ export const importSpreadSheetData = functions.https.onRequest(
         type: unwantedpartsMatch[3],
         description: unwantedpartsMatch[4]
       };
+
       const submission = {
-        fileName: row['Audio File Name'],
-        changed: row['Changed'] || null,
         completed: row['Completed'] || null,
         created: row['Created'] || null,
         comments: row['Comments'],
