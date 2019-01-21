@@ -301,8 +301,6 @@ export const importSpreadSheetData = functions.https.onRequest(
   async (req, res) => {
     const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
-    // Regex for validating file names in both sheets
-    const audioFileRegex = /(\w+)-\d+.*/;
 
     ////////////////////////
     //     Submissions
@@ -311,10 +309,7 @@ export const importSpreadSheetData = functions.https.onRequest(
     const submissionsRows = await submissionsSheet.getRows();
     for (const row of submissionsRows) {
       const audioFileName = row['Audio File Name'];
-      const match = audioFileRegex.exec(audioFileName);
-      if (!match) continue;
-
-      const list = match[1];
+      const list = helpers.extractListFromFilename(audioFileName);
 
       const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
@@ -366,9 +361,6 @@ export const importSpreadSheetData = functions.https.onRequest(
       if (!row) continue;
 
       const fileName = row['File Name'];
-      const match = audioFileRegex.exec(fileName);
-
-      if (!match) continue;
 
       const fileNameHasForbiddenChars = fileName.match(/[\.\[\]$#]/g);
       if (fileNameHasForbiddenChars) {
@@ -376,7 +368,7 @@ export const importSpreadSheetData = functions.https.onRequest(
         continue;
       }
 
-      const list = match[1];
+      const list = helpers.extractListFromFilename(fileName);
       const allotment = {
         status: row['Status'] || null,
         timestampGiven: row['Date Given'] ? (new Date(row['Date Given'])).getTime() : null,
