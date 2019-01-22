@@ -297,7 +297,6 @@ export const processSubmission = functions.database
  * Parse "Sound Issue" or "Unwanted parts" string to extract its different parts
  * 
  * @param string "Sound Issue" or "Unwanted parts" string to parse
- * @param array array of "Sound Issues" or "Unwanted parts"
  */
 const parseAudioChunkRemark = (string) => {
   /**
@@ -305,7 +304,7 @@ const parseAudioChunkRemark = (string) => {
    * 'g' flag is used to match one or more occurences of the pattern
    */
   const regex = /((Entire file)|(.*?)–(.*)):(.*)—(.*)/g;
-  let tokens = [];
+  const tokens = [];
   let matches;
   while (matches = regex.exec(string)) 
     tokens.push({
