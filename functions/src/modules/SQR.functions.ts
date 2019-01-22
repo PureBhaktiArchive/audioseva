@@ -346,10 +346,10 @@ export const importSpreadSheetData = functions.https.onRequest(
 
       const submission = {
         completed: row['Completed'] || null,
-        created: row['Created'] || null,
+        created: row['Completed'] || null,
         comments: row['Comments'],
         soundIssues,
-        soundqualityrating: row['Sound Quality Rating'],
+        soundQualityRating: row['Sound Quality Rating'],
         unwantedParts,
         duration: {
           beginning: row['Beginning'],
