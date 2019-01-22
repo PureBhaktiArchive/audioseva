@@ -305,8 +305,8 @@ const parseAudioChunkRemark = (string) => {
    */
   const regex = /((Entire file)|(.*?)–(.*)):(.*)—(.*)/g;
   const tokens = [];
-  let matches;
-  while (matches = regex.exec(string)) 
+  let matches = regex.exec(string);
+  while (matches) {
     tokens.push({
       entireFile: matches[2]? true : null,
       beginning: matches[2]? null : matches[3],
@@ -314,6 +314,8 @@ const parseAudioChunkRemark = (string) => {
       type: matches[5].trim(),
       description: matches[6].trim()
     });
+    matches = regex.exec(string);
+  }
   
   return tokens;
 }
