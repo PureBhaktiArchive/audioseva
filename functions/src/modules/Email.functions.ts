@@ -11,7 +11,7 @@ import * as SibApiV3Sdk from 'sib-api-v3-sdk';
  * @method SibApiV3Sdk.checkIfApiKeyExists()
  */
 SibApiV3Sdk.checkIfApiKeyExists = () => {
-  if (!functions.config().send_in_blue) {
+  if (!functions.config().send_in_blue || !functions.config().send_in_blue.key) {
     console.error(`Error! Send in blue api key is not set.`);
     process.abort();
   }
@@ -164,6 +164,17 @@ export const updateTemplatesOnMetadataChange = functions.database
     );
     return 1;
   });
+
+export const createTestNotification = functions.https.onRequest((req, res) => {
+  return db.ref('/email/notifications').push({
+    bcc: ["test@gmail.com"],
+    params: {test: "yes"},
+    template: "2",
+    to: "hamzaavvan@gmail.com"
+  }).then(() => {
+    console.log("Notification created")
+  });
+});
 
 export const sendNotificationEmail = functions.database
   .ref('/email/notifications}')
