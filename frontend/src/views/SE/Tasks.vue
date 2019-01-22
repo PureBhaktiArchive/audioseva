@@ -55,7 +55,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Watch, Vue } from "vue-property-decorator";
+import { Component, Watch, Mixins } from "vue-property-decorator";
 import _ from "lodash";
 import moment from "moment";
 import fb from "@/firebaseApp";
@@ -64,6 +64,7 @@ import SoundIssuesList from "@/components/SE/SoundIssuesList.vue";
 import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
 import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
 import InlineTextEdit from "@/components/InlineTextEdit.vue";
+import InlineSave from "@/mixins/InlineSave";
 import { ITasks } from "@/types/SE";
 import { formatTimestamp, getDayDifference } from "@/utility";
 
@@ -77,7 +78,7 @@ import { formatTimestamp, getDayDifference } from "@/utility";
     InlineTextEdit
   }
 })
-export default class Tasks extends Vue {
+export default class Tasks extends Mixins<InlineSave>(InlineSave) {
   tasks: ITasks[] = [];
   selectedButton = 0;
   lists: string[] = [];
@@ -228,39 +229,10 @@ export default class Tasks extends Vue {
     return matchedItem;
   }
 
-  save(
-    item: any,
-    path: any,
-    updates: any,
-    { itemPath, newValue }: { [key: string]: any } = { itemPath: false }
-  ) {
-    this.snack = true;
-    this.snackColor = "success";
-    this.snackText = "Data saved";
-
-    // firebase Path URL to save data in database.
-    const refPath = `sound-editing/tasks/${this.lists[this.selectedButton]}/${
+  getUpdatePath(item: any, path: any): string {
+    return `sound-editing/tasks/${this.lists[this.selectedButton]}/${
       item[".key"]
     }/${path.itemPath}`;
-
-    // manual update state if component can't use v-model
-    if (itemPath) {
-      this.$set(
-        this.items,
-        this.items.findIndex(i => i[".key"] === item[".key"]),
-        _.setWith(_.clone(item), itemPath, newValue, _.clone)
-      );
-    }
-
-    fb.database()
-      .ref(refPath)
-      .set(updates);
-  }
-
-  cancel() {
-    this.snack = true;
-    this.snackColor = "error";
-    this.snackText = "Canceled";
   }
 }
 </script>
