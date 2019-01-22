@@ -299,37 +299,24 @@ export const processSubmission = functions.database
  * @param string "Sound Issue" or "Unwanted parts" string to parse
  * @param array array of "Sound Issues" or "Unwanted parts"
  */
-const parseSI_UP = (string, array) => {
+const parseAudioChunkRemark = (string) => {
   /**
    * Regex to parse the value "Sound Issues" & "Unwanted Parts"
    * 'g' flag is used to match one or more occurences of the pattern
    */
-  const sI_UPGlobalRegex = /((Entire file)|(.*?)–(.*)):(.*)—(.*)/g;
-
-  /**
-   * Same as above with no 'g' flag
-   * Used to capture the different parts of the parsed string
-   */
-  const sI_UPRegex = /((Entire file)|(.*?)–(.*)):(.*)—(.*)/;
-
-  const allMatching = string.match(sI_UPGlobalRegex);
-
-  for (const match of allMatching) {
-    const parts = sI_UPRegex.exec(match);
-    if (parts[2]) // if 'Entire file' is found
-      array.push({
-        entireFile: true,
-        type: parts[5].trim(),
-        description: parts[6].trim()
-      });
-    else 
-      array.push({
-        beginning: parts[3],
-        ending: parts[4],
-        type: parts[5].trim(),
-        description: parts[6].trim()
-      });      
-  }
+  const regex = /((Entire file)|(.*?)–(.*)):(.*)—(.*)/g;
+  let tokens = [];
+  let matches;
+  while (matches = regex.exec(string)) 
+    tokens.push({
+      entireFile: matches[2]? true : null,
+      beginning: matches[2]? null : matches[3],
+      ending: matches[2]? null : matches[4],
+      type: matches[5].trim(),
+      description: matches[6].trim()
+    });
+  
+  return tokens;
 }
 /////////////////////////////////////////////////
 //          Import Submission and Allotments from a Spreadsheet(Http Triggered)
@@ -354,9 +341,8 @@ export const importSpreadSheetData = functions.https.onRequest(
 
       const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
-      const soundIssues = [], unwantedParts = [];
-      parseSI_UP(row['Sound Issues'], soundIssues);
-      parseSI_UP(row['Unwanted Parts'], unwantedParts);
+      const soundIssues = parseAudioChunkRemark(row['Sound Issues']);
+      const unwantedParts = parseAudioChunkRemark(row['Unwanted Parts']); 
 
       const submission = {
         completed: row['Completed'] || null,
