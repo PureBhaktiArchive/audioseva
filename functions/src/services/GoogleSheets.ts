@@ -17,6 +17,7 @@ enum IValueInputOption {
 export default class GoogleSheets {
   public spreadsheetId: string;
   public sheetName: string;
+  public sheetMetadata: any;
   public headers: any[];
   protected connection: any;
 
@@ -37,17 +38,20 @@ export default class GoogleSheets {
   }
 
   /**
-   * Query for a specific google sheets within a spreadsheet
-   *
-   * @param sheet The sheet to query from google sheets api
-   * @param limit How many rows you want including the header titles
+   * Get a number of rows (start - limit) from a specific google sheet within a spreadsheet
+   * with a maximum number of rows (limit) of 1000
+   * 
+   * @param start The row to start reading from
+   * @param limit How many rows you want
    */
-  public async getRows(limit?: number): Promise<any> {
-    await this.connect();
+  protected async _getRowsByStart(start: number, limit?: number): Promise<any> {
+    if (limit > 1000) 
+      throw new Error(`Maximum number of rows in each single call can't exceed 1000`);
+    
     const targetSheet: any = await this.connection.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
-      range: this.sheetName + this._computeRange(limit),
+      range: this.sheetName + this._computeRangeByStart(start, limit),
     });
 
     const { statusText, status, data } = targetSheet;
@@ -61,8 +65,34 @@ export default class GoogleSheets {
       return null;
     }
 
-    this.headers = values.shift();
     return this._convertRows(values);
+  }
+
+  /**
+   * Getting all the rows of the sheet in increments of 1000s
+   * as this is the MAX num of rows allowed in one call
+   * 
+   */
+  public async getRows(): Promise<any> {
+    await this.connect();
+    await this.getHeaders();
+
+    let rows = [];
+    let remainingRows = this.sheetMetadata.rowCount;
+    let stopAtRow = 0, startAtRow = 1;
+    while (remainingRows > 0) {
+      if (remainingRows >= 1000) {
+        stopAtRow += 1000;
+        remainingRows -= 1000;
+      } else {
+        stopAtRow += remainingRows
+        remainingRows -= stopAtRow;
+      }
+      const result = await this._getRowsByStart(startAtRow, stopAtRow);
+      startAtRow += 1000;
+      rows = rows.concat(result);
+    }
+    return rows;
   }
 
   protected async getHeaders() {
@@ -79,7 +109,14 @@ export default class GoogleSheets {
       console.error('Error: Not able to get google sheet');
       return null;
     }
+    const sheetsMetadata: any = await this.connection.spreadsheets.get({
+      spreadsheetId: this.spreadsheetId
+    });
+    const sheetMetadata = sheetsMetadata.data.sheets
+      .filter(sheet => sheet.properties.title === this.sheetName)[0];
+    const { rowCount, columnCount } = sheetMetadata.properties.gridProperties;
     this.headers = data.values[0];
+    this.sheetMetadata = { rowCount, columnCount };
   }
 
   public async getColumn(columnName: string) {
@@ -191,6 +228,13 @@ export default class GoogleSheets {
       return '';
     }
     return `!A1:${limit + 1}`;
+  }
+
+  protected _computeRangeByStart(start?: number, limit?: number): string {
+    if (!limit) {
+      return '';
+    }
+    return `!A${start}:${limit}`;
   }
 
   protected _errorHandler(error: Error) {
