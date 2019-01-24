@@ -7,14 +7,18 @@ export const extractListFromFilename = (fileName: string): string => {
   return fileName.match(/^[^-]*[^ -]/g)[0];
 };
 
-export const taskIdRegex = "^[a-zA-Z]+-\\d+";
+export const taskIdRegex = '^[a-zA-Z]+-\\d+';
 
 /**
  * Splits an array into a bunch of arrays
  * GROUPED BY a
  * composite key ( 2nd parameter: values )
  */
-export const groupByMulti = (list, values: Array<any>, context: Object): Array<any> => {
+export const groupByMulti = (
+  list,
+  values: Array<any>,
+  context: Object
+): Array<any> => {
   if (!values.length) {
     return list;
   }

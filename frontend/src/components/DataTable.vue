@@ -6,10 +6,7 @@
     :items="items"
     v-bind="datatableProps"
   >
-    <template
-      slot="items"
-      slot-scope="{ item }"
-    >
+    <template slot="items" slot-scope="{ item }">
       <tr :style="getTableRowStyle(item)">
         <td v-for="( value , key, index) in headers" :class="getStyles(value)" :key="index">
           <template v-if="computedComponent[value.value]">
@@ -18,12 +15,9 @@
               :value="value.value"
               :Component="computedComponent[value.value]"
               :componentData="getComponentData(value.value)"
-            >
-            </table-data>
+            ></table-data>
           </template>
-          <template v-else>
-            {{ getItem(item, value) }}
-          </template>
+          <template v-else>{{ getItem(item, value) }}</template>
         </td>
       </tr>
     </template>

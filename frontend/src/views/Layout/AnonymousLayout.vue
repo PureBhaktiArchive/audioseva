@@ -1,6 +1,5 @@
 <template>
-  <base-layout>
-  </base-layout>
+  <base-layout></base-layout>
 </template>
 
 <script lang="ts">
