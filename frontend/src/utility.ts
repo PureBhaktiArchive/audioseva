@@ -77,3 +77,7 @@ export const initialFilter = () => ({
   language: null,
   list: null
 });
+
+export const updateObject = (obj: any, field: string, value: any) => {
+  return _.setWith(_.clone(obj), field, value, _.clone);
+};
