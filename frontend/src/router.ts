@@ -55,7 +55,7 @@ export const router = new Router({
       ]
     },
     {
-      path: "/form/sound-quality-report/:fileName",
+      path: "/form/sound-quality-report/:fileName/:token",
       component: () => import("@/views/Layout/AnonymousLayout.vue"),
       children: [
         {
