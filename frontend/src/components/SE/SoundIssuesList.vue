@@ -1,8 +1,10 @@
 <template>
   <ul>
-    <li :style="{ whiteSpace: 'nowrap' }" v-for="(value, key, index) in item.soundIssues" :key="index">
-      {{ `${formatSeconds(value.beginning)}-${formatSeconds(value.ending)} ${value.type}, ${value.description || ""}` }}
-    </li>
+    <li
+      :style="{ whiteSpace: 'nowrap' }"
+      v-for="(value, key, index) in item.soundIssues"
+      :key="index"
+    >{{ `${formatSeconds(value.beginning)}-${formatSeconds(value.ending)} ${value.type}, ${value.description || ""}` }}</li>
   </ul>
 </template>
 

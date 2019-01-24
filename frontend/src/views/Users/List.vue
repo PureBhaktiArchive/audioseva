@@ -11,21 +11,21 @@
           label="Filter users"
           single-line
           hide-details
-        >
-        </v-text-field>
+        ></v-text-field>
       </v-flex>
       <v-flex d-flex align-self-center xs12 md8>
         <v-layout justify-end wrap>
           <v-flex md9 xl4 align-self-center>
             <v-btn-toggle v-model="selectedButton" mandatory>
-              <v-btn v-for="(value, key, index) in allRoles" :key="index">
-                {{ value }}
-              </v-btn>
+              <v-btn v-for="(value, key, index) in allRoles" :key="index">{{ value }}</v-btn>
             </v-btn-toggle>
           </v-flex>
           <v-flex md3 align-self-center>
-            <v-switch :style="{ justifyContent: 'flex-end' }" v-model="filterActiveUsers" label="Only active">
-            </v-switch>
+            <v-switch
+              :style="{ justifyContent: 'flex-end' }"
+              v-model="filterActiveUsers"
+              label="Only active"
+            ></v-switch>
           </v-flex>
         </v-layout>
       </v-flex>
@@ -38,8 +38,7 @@
       :computedValue="computedValue"
       :datatableProps="{ 'loading': isLoadingUsers }"
       :tableRowStyle="tableRowStyle"
-    >
-    </data-table>
+    ></data-table>
     <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
       {{ snackText }}
       <v-btn flat @click="snack = false">Close</v-btn>
@@ -53,8 +52,8 @@ import _ from "lodash";
 import moment from "moment";
 import fb from "@/firebaseApp";
 import DataTable from "@/components/DataTable.vue";
-import InlineTextEdit from "@/components/Users/InlineTextEdit.vue";
-import InlineStatusEdit from "@/components/Users/InlineStatusEdit.vue";
+import InlineTextEdit from "@/components/InlineTextEdit.vue";
+import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
 import InlineRolesEdit from "@/components/Users/InlineRolesEdit.vue";
 import PhoneNumber from "@/components/Users/PhoneNumber.vue";
 
@@ -68,6 +67,7 @@ export default class List extends Vue {
   roles = ["CR", "TE", "SE", "QC", "FC", "SQR", "Coordinator"];
   statusItems = ["OK", "Opted out", "Lost", "Duplicate", "Incorrect"];
   filterActiveUsers = true;
+  keyPath: string = "users";
   search: string = "";
   selectedButton: number = 0;
   snack = false;
@@ -202,13 +202,14 @@ export default class List extends Vue {
 
   save(
     item: any,
-    path: string,
+    path: any,
     updates: any,
     { itemPath, newValue }: { [key: string]: any } = { itemPath: false }
   ) {
     this.snack = true;
     this.snackColor = "success";
     this.snackText = "Data saved";
+    const refPath = `users/${item[".key"]}/${path.itemPath}`;
 
     // manual update state if component can't use v-model
     if (itemPath) {
@@ -219,7 +220,7 @@ export default class List extends Vue {
       );
     }
     fb.database()
-      .ref(path)
+      .ref(refPath)
       .set(updates);
   }
 

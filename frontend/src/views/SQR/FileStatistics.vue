@@ -7,8 +7,7 @@
       :isLoading="isLoadingFiles"
       :countByStatus="fileCountByStatus"
       :items="filesByStatus"
-    >
-    </files-by-status>
+    ></files-by-status>
     <done-statistics :doneStatistics="doneStatistics"></done-statistics>
     <spare-by-language :spareByLanguage="spareByLanguage"></spare-by-language>
   </div>
