@@ -49,9 +49,11 @@ $ firebase functions:config:set website.base_url="Base url of the website"
 $ firebase functions:config:set send_in_blue.key="sendInBlue secret Key"
 # SQR
 $ firebase functions:config:set sqr.allotment.templateid='String | template name'
-# Sound editing
-$ firebase functions:config:set sound_editing.uploads.bucket_name='Uploads bucket url'
-$ firebase functions:config:set sound_editing.restoration.bucket_name='Restoration bucket url'
+# Sound editing storage
+$ firebase functions:config:set storage.root-domain="Base URL for storage buckets preceeded by a `dot`"
+#example: 
+$ firebase functions:config:set storage.root-domain=".storage.xxxx.com"
+
 # Coordinator information
 $ firebase functions:config:set coordinator.email_address='EMAIL'
 $ firebase functions:config:set coordinator.timeZoneOffset=NUMBER of HOURs
@@ -84,7 +86,7 @@ $ npm run deploy
 # Deploying Firebase Storage Rules!
 So far, one **target name** has been created [ uploads ], so the command needed to deploy the rules is:
 ```sh
-$ firebase target:apply storage uploads <sound editing uploads bucket name>
+$ firebase target:apply storage uploads <uploads bucket name>
 $ firebase deploy --only storage:uploads
 ```
 
