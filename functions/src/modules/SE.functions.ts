@@ -264,11 +264,11 @@ export const processUploadedFile = functions.storage.bucket(`uploads${stoargeBas
     // Update the Task
     const taskRestorationUpdate = {
       status: 'In Review',
-      timestampLastVersion: admin.database.ServerValue.TIMESTAMP
+      timestampLastVersion: object.timeCreated
     };
 
     if (!task.restoration.timestampFirstVersion)
-      taskRestorationUpdate['timestampFirstVersion'] = task.restoration.timestampGiven;
+      taskRestorationUpdate['timestampFirstVersion'] = object.timeCreated;
 
     await taskRef.ref.child('restoration').update(taskRestorationUpdate);
 
