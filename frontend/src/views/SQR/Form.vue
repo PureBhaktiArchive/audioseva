@@ -6,29 +6,33 @@
     <v-form ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
-          <v-flex xs6 v-for="(label, index) in cancelFields" :key="label">
-            <v-list>
-              <v-list-group @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
-                <v-list-tile slot="activator">
-                  <v-list-tile-content>
-                    <v-list-tile-title :style="{ height: 'auto' }">
-                      <v-checkbox
-                        :checked="cancel === index + 1"
-                        :value="cancel === index + 1"
-                        :label="label"
-                      >
-                      </v-checkbox>
-                    </v-list-tile-title>
-                  </v-list-tile-content>
-                </v-list-tile>
-                <div class="pa-1">
-                  <v-textarea v-model="cancelComments[index + 1]" box>
-                  </v-textarea>
-                  <v-btn>Cancel</v-btn>
-                </div>
-              </v-list-group>
-            </v-list>
-          </v-flex>
+          <template v-for="(label, index) in cancelFields" >
+            <v-flex xs12 :key="label" v-if="cancel === null || cancel === index + 1">
+              <v-list>
+                <v-list-group class="overflow" :style="{ border: cancelColors[index].border }" @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
+                  <v-list-tile :style="cancelColors[index]" slot="activator">
+                    <v-list-tile-content>
+                      <v-list-tile-title :style="{ height: 'auto' }">
+                        {{ label }}
+                      </v-list-tile-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+                  <div :style="{ border: cancelColors[index].border }" class="pa-1">
+                    <v-checkbox
+                      class="pa-2"
+                      v-model="cancelCheck[index + 1]"
+                      :label="label"
+                      :rules="rules"
+                    >
+                    </v-checkbox>
+                    <v-textarea class="pa-2" :rules="rules" v-model="cancelComments[index + 1]" box>
+                    </v-textarea>
+                    <v-btn type="submit">Confirm</v-btn>
+                  </div>
+                </v-list-group>
+              </v-list>
+            </v-flex>
+          </template>
           <template v-if="!cancel">
             <v-flex xs12>
               <h3>A. Audio File Name</h3>
@@ -47,8 +51,8 @@
                 ></component>
               </template>
             </v-flex>
+            <v-btn type="submit">Submit</v-btn>
           </template>
-          <v-btn type="submit">Submit</v-btn>
         </v-layout>
       </v-container>
     </v-form>
@@ -105,6 +109,19 @@ export default class Form extends Vue {
   ];
   cancel = null;
   cancelComments = {};
+  cancelCheck = {};
+  cancelColors = {
+    0: {
+      backgroundColor: "#fcf8e3",
+      color: "#8a6d3b",
+      border: "solid .2rem #faebcc"
+    },
+    1: {
+      backgroundColor: "#d9edf7",
+      color: "#31708f",
+      border: "solid .2rem #bce8f1"
+    }
+  };
   form = {
     unwantedParts: {
       [_.uniqueId("unwantedParts_")]: {}
@@ -113,6 +130,8 @@ export default class Form extends Vue {
       [_.uniqueId("soundIssues_")]: {}
     }
   };
+
+  rules = [v => !!v || "Required field"];
 
   handleListClick(cancelField: number) {
     this.cancel = this.cancel === cancelField ? null : cancelField;
@@ -140,4 +159,16 @@ export default class Form extends Vue {
 </script>
 
 <style scoped>
+>>> .v-list__group__header--active {
+  overflow: auto;
+}
+.overflow {
+  overflow: auto;
+}
+
+@media only screen and (min-width: 660px) {
+  .overflow {
+    overflow: hidden;
+  }
+}
 </style>
