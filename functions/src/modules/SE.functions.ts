@@ -243,7 +243,7 @@ export const processUploadedFile = functions.storage.bucket(`uploads${stoargeBas
       // [Check #3] The task should be assigned to a particular sound engineer 
       //  which is identified by the `uploadCode`within the file path.
       if (task.restoration.assignee.emailAddress !== user.val().emailAddress)
-        throw new Error(`Wrong upload code -- ${filePath} will be deleted.`);
+        throw new Error(`Task is assigned to another SE -- ${filePath} will be deleted.`);
 
       // [Check #4] The task should be in `Spare` or `Revise` status.
       if (['Revise', 'Spare'].indexOf(task.restoration.status) < 0)
