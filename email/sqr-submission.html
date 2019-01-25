@@ -17,17 +17,15 @@
     {% endif %}
 
     {% if params.fileData.soundQualityReporting.assignee.emailAddress != params.submission.author.emailAddress %}
-      <div>
-        <p>
-          File is alloted to another email
-          id - {{ params.fileData.soundQualityReporting.assignee.emailAddress }}!
-        </p>
+    <p>
+      File is alloted to another email
+      id - {{ params.fileData.soundQualityReporting.assignee.emailAddress }}!
+    </p>
+    {% endif %}
 
-        {% if !(params.fileData.soundQualityReporting.status in params.acceptedStatuses) %}
-          <p>Status of file is {{ params.fileData.soundQualityReporting.status|default: "Spare" }}</p>
-          <p>Audio file name {{ params.submission.fileName }} is not found in the Backend!</p>
-        {% endif %}
-      </div>
+    {% if !(params.fileData.soundQualityReporting.status in params.acceptedStatuses) %}
+      <p>Status of file is {{ params.fileData.soundQualityReporting.status|default: "Spare" }}</p>
+      <p>Audio file name {{ params.submission.fileName }} is not found in the Backend!</p>
     {% endif %}
 
     {% if params.fileData.soundQualityReporting.status == "Given" %}
