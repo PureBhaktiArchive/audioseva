@@ -4,6 +4,7 @@ import GoogleSheet from '../services/GoogleSheets';
 import { withDefault } from '../utils/parsers';
 
 const db = admin.database();
+const userRoles = functions.database.ref('/users/{userId}/roles');
 
 enum RegistrationColumns {
   Details = 'Details',
@@ -159,4 +160,53 @@ export const restructureRegistrationData = functions.database
     db.ref(`/users/`).push(newUser);
 
     return true;
+  });
+
+const setClaims = async (roles, { params: { userId } }: any, email: string) => {
+  const user = await admin
+    .auth()
+    .getUserByEmail(email)
+    .catch(() => null);
+  if (user) {
+    return admin.auth().setCustomUserClaims(user.uid, roles);
+  }
+  return null;
+};
+
+export const onCreateCustomClaimRoles = userRoles.onCreate(
+  async (snapshot, context) => {
+    const roles = snapshot.val();
+    const email = await snapshot.ref.parent.child('emailAddress').once('value');
+    return setClaims(roles, context, email.val());
+  }
+);
+
+export const onDeleteCustomClaimRoles = userRoles.onDelete(
+  async (snapshot, context) => {
+    const removedRoles = {};
+    for (const role in snapshot.val()) {
+      removedRoles[role] = false;
+    }
+    const email = await snapshot.ref.parent.child('emailAddress').once('value');
+    return setClaims(removedRoles, context, email.val());
+  }
+);
+
+export const onCreateUserCustomClaimRoles = functions.auth
+  .user()
+  .onCreate(async event => {
+    const user = await db
+      .ref(`/users`)
+      .orderByChild('emailAddress')
+      .equalTo(event.email)
+      .once('value')
+      .catch(() => null);
+    const userData = user && user.val();
+    if (userData && userData.roles) {
+      return admin
+        .auth()
+        .setCustomUserClaims(event.uid, userData.roles)
+        .catch(() => null);
+    }
+    return null;
   });
