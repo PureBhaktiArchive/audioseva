@@ -13,7 +13,12 @@ import ItemPath from "@/mixins/ItemPath";
 })
 export default class UnwantedPartsType extends Mixins<ItemPath>(ItemPath) {
   @Prop() fieldProps!: any;
-  issues = ["Blank space", "Glitch", "Irrelevant part", "Other..."];
+  issues = [
+    { label: "Blank space", value: "blank space" },
+    { label: "Glitch", value: "glitch" },
+    { label: "Irrelevant part", value: "irrelevant" },
+    { label: "Other...", value: "other" }
+  ];
 }
 </script>
 

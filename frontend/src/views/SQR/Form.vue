@@ -61,13 +61,13 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import _ from "lodash";
 import SQRField from "@/components/SQRForm/SQRField.vue";
 import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
 import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
 import Duration from "@/components/SQRForm/Duration.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
-import { updateObject } from "@/utility";
+import fb from "@/firebaseApp";
+import { updateObject, getListId, removeObjectKey } from "@/utility";
 
 @Component({
   name: "Form",
@@ -123,12 +123,8 @@ export default class Form extends Vue {
     }
   };
   form = {
-    unwantedParts: {
-      [_.uniqueId("unwantedParts_")]: {}
-    },
-    soundIssues: {
-      [_.uniqueId("soundIssues_")]: {}
-    }
+    unwantedParts: [{}],
+    soundIssues: [{}]
   };
 
   rules = [v => !!v || "Required field"];
@@ -138,23 +134,43 @@ export default class Form extends Vue {
   }
 
   updateForm(field: string, value: any) {
-    const newForm = { ...this.form };
-    this.form = updateObject(newForm, field, value);
+    this.form = updateObject(this.form, field, value);
   }
 
   removeField(field: string) {
-    const newForm = { ...this.form };
-    const paths = field.split(".");
-    paths.reduce((form: any, path: string) => {
-      if (path === paths[paths.length - 1]) {
-        return delete form[path];
-      }
-      return (form[path] = { ...(form[path] ? form[path] : {}) });
-    }, newForm);
-    this.form = newForm;
+    this.form = removeObjectKey(this.form, field);
   }
 
   handleSubmit() {}
+
+  mounted() {
+    this.getSavedData();
+  }
+
+  getSavedData() {
+    const {
+      params: { fileName, token }
+    } = this.$route;
+    const listId = getListId(fileName);
+    this.$bindAsObject(
+      "initialData",
+      fb
+        .database()
+        .ref(
+          `/submissions/soundQualityReporting/${listId}/${fileName}/${token}`
+        ),
+      null,
+      this.populateForm
+    );
+  }
+
+  populateForm() {
+    if (this.initialData[".value"] !== null) {
+      console.log("here", this.initialData);
+      const { [".key"]: token, completed, ...initialData } = this.initialData;
+      this.form = initialData;
+    }
+  }
 }
 </script>
 

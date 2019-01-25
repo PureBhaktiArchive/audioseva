@@ -5,6 +5,7 @@
         placeholder="Enter the timing in (h:)mm:ss format"
         :label="field"
         @input="handleInput(field.toLowerCase(), $event)"
+        :value="getFormData(field.toLowerCase())"
       ></v-text-field>
     </v-flex>
   </v-layout>
@@ -13,6 +14,7 @@
 <script lang="ts">
 import { Component, Mixins } from "vue-property-decorator";
 import FormField from "@/mixins/FormField";
+import _ from "lodash";
 
 @Component({
   name: "Duration"
@@ -22,6 +24,10 @@ export default class Duration extends Mixins<FormField>(FormField) {
 
   handleInput(field, value) {
     this.updateForm(`duration.${field}`, value);
+  }
+
+  getFormData(field) {
+    return _.get(this.form, `duration.${field}`);
   }
 }
 </script>

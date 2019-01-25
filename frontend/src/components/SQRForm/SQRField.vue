@@ -1,5 +1,5 @@
 <template>
-  <radio-group :fields="ratings" updatePath="soundQualityRating" :updateForm="updateForm"></radio-group>
+  <radio-group :form="form" :fields="ratings" updatePath="soundQualityRating" :updateForm="updateForm"></radio-group>
 </template>
 
 <script lang="ts">
@@ -38,6 +38,7 @@ export default class SQRField extends Vue {
       value: "Blank"
     }
   ];
+  @Prop() form!: any;
   @Prop() updateForm!: any;
 }
 </script>

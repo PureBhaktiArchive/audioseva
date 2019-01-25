@@ -105,6 +105,6 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
   }
 
   addField() {
-    this.updateForm(`${this.updatePath}.${_.uniqueId(this.prefix || `${this.updatePath}_`)}`, {});
+    this.updateForm(`${this.updatePath}.${_.get(this.form, this.updatePath, []).length}`, {});
   }
 }
