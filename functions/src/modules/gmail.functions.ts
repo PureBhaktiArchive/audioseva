@@ -143,12 +143,6 @@ export const doneHandler = functions.pubsub
       auth: oauth2Client,
     });
 
-    /**
-     * Just implemented refresh access tokens in fetchTokens()
-     * need to test in production to make sure is working or not
-     * maybe some more refactoring needs to be done as well
-     */
-
     const labelResults = await gmail.users.labels.list({
       userId: 'me',
     });
