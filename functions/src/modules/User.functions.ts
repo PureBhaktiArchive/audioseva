@@ -50,7 +50,7 @@ export const importUserRegistrationData = functions.https.onRequest(
 
     const registrationRows = await gsheets.getRows();
 
-    const readyForDatabaseUpdate = registrationRows.map((elem: any) => {
+    const readyForDatabaseUpdate = registrationRows.map((row: any) => {
       return {
         notes: withDefault(elem[RegistrationColumns.Details]),
         status: elem[RegistrationColumns.Status],
