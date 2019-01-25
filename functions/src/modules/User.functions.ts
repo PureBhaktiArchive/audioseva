@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import GoogleSheet from '../services/GoogleSheets';
 import { withDefault } from '../utils/parsers';
+import moment = require('moment');
 
 const db = admin.database();
 const userRoles = functions.database.ref('/users/{userId}/roles');
@@ -55,7 +56,7 @@ export const importUserRegistrationData = functions.https.onRequest(
         notes: withDefault(row[RegistrationColumns.Details]),
         status: row[RegistrationColumns.Status],
         timestamp:
-          new Date(row[RegistrationColumns.Timestamp]).getTime() / 1000,
+          moment(row[RegistrationColumns.Timestamp]).unix(),
         name: row[RegistrationColumns.Name],
         location: row[RegistrationColumns.Country],
         emailAddress: row[RegistrationColumns.EmailAddress],
