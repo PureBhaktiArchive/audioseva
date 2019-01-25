@@ -24,7 +24,7 @@ export const importFilesFromStorage = functions.storage
   .object()
   .onFinalize(object => {
     const filePath = object.name;
-    const isValidFile = checkValidFile(filePath);//edited
+    const isValidFile = checkValidFile(filePath);
     if (!isValidFile)
       throw new Error(`File "${filePath}" is not uploaded to the appropriate folder`);
 
