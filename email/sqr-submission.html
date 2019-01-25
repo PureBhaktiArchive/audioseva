@@ -56,7 +56,7 @@
     Please update your previous submission using this update link: http://purebhakti.info/audioseva/form/sound-quality-report?token={{params.submission.token}}.<br>Please note &#8212; do not make a new submission using this link. For a new submission, use the link in the allotment email.<br>
   </p>
   <p><b>A. Audio File Name:</b> {{ params.submission.fileName }}</p>
-  <p><b>B. Unwanted parts to be cut:</b><br></p>
+  <p><b>B. Unwanted parts to be cut:</b></p>
   <ul>
     {% for unwantedPart in params.submission.unwantedParts %}
     <li>
@@ -64,7 +64,7 @@
     </li>
     {% endfor %}
   </ul>
-  <p><b>C. Sound Issues:</b><br></p>
+  <p><b>C. Sound Issues:</b></p>
   <ul>
     {% for soundIssue in params.submission.soundIssues %}
     <li>
