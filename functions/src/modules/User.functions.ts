@@ -55,8 +55,7 @@ export const importUserRegistrationData = functions.https.onRequest(
       return {
         notes: withDefault(row[RegistrationColumns.Details]),
         status: row[RegistrationColumns.Status],
-        timestamp:
-          moment(row[RegistrationColumns.Timestamp]).unix(),
+        timestamp: moment(row[RegistrationColumns.Timestamp]).unix(),
         name: row[RegistrationColumns.Name],
         location: row[RegistrationColumns.Country],
         emailAddress: row[RegistrationColumns.EmailAddress],
