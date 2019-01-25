@@ -104,7 +104,7 @@ export const importUserRegistrationData = functions.https.onRequest(
  * 1. Registers user by transferring data into /users/ path
  * 2. Check if users already exists
  *
- * @function processRegistration()
+ * @function restructureRegistrationData()
  */
 export const restructureRegistrationData = functions.database
   .ref('/webforms/registration/{registration_id}')
