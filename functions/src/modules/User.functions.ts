@@ -52,33 +52,33 @@ export const importUserRegistrationData = functions.https.onRequest(
 
     const readyForDatabaseUpdate = registrationRows.map((row: any) => {
       return {
-        notes: withDefault(elem[RegistrationColumns.Details]),
-        status: elem[RegistrationColumns.Status],
+        notes: withDefault(row[RegistrationColumns.Details]),
+        status: row[RegistrationColumns.Status],
         timestamp:
-          new Date(elem[RegistrationColumns.Timestamp]).getTime() / 1000,
-        name: elem[RegistrationColumns.Name],
-        location: elem[RegistrationColumns.Country],
-        emailAddress: elem[RegistrationColumns.EmailAddress],
-        phoneNumber: elem[RegistrationColumns.PhoneNumber],
-        isAvailableOnWhatsApp: elem[RegistrationColumns.WhatsApp],
-        languages: elem[RegistrationColumns.Languages]
+          new Date(row[RegistrationColumns.Timestamp]).getTime() / 1000,
+        name: row[RegistrationColumns.Name],
+        location: row[RegistrationColumns.Country],
+        emailAddress: row[RegistrationColumns.EmailAddress],
+        phoneNumber: row[RegistrationColumns.PhoneNumber],
+        isAvailableOnWhatsApp: row[RegistrationColumns.WhatsApp],
+        languages: row[RegistrationColumns.Languages]
           .split(',')
           .reduce((result: any, language: string) => {
             result[language.trim()] = true;
             return result;
           }, {}),
-        services: elem[RegistrationColumns.Services],
+        services: row[RegistrationColumns.Services],
         roles: {
-          CR: elem[Roles.CR] === Decision.Yes,
-          FC: elem[Roles.FC] === Decision.Yes,
-          QC: elem[Roles.QC] === Decision.Yes,
-          TE: elem[Roles.TE] === Decision.Yes,
-          SE: elem[Roles.SE] === Decision.Yes,
-          SQR: elem[Roles.SQR] === Decision.Yes,
+          CR: row[Roles.CR] === Decision.Yes,
+          FC: row[Roles.FC] === Decision.Yes,
+          QC: row[Roles.QC] === Decision.Yes,
+          TE: row[Roles.TE] === Decision.Yes,
+          SE: row[Roles.SE] === Decision.Yes,
+          SQR: row[Roles.SQR] === Decision.Yes,
         },
-        experience: elem[RegistrationColumns.Experience],
-        influencer: elem[RegistrationColumns.Influencer],
-        recommendedBy: elem[RegistrationColumns.RecommendedBy],
+        experience: row[RegistrationColumns.Experience],
+        influencer: row[RegistrationColumns.Influencer],
+        recommendedBy: row[RegistrationColumns.RecommendedBy],
       };
     });
 
