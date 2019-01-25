@@ -11,21 +11,21 @@
           label="Filter users"
           single-line
           hide-details
-        >
-        </v-text-field>
+        ></v-text-field>
       </v-flex>
       <v-flex d-flex align-self-center xs12 md8>
         <v-layout justify-end wrap>
           <v-flex md9 xl4 align-self-center>
             <v-btn-toggle v-model="selectedButton" mandatory>
-              <v-btn v-for="(value, key, index) in allRoles" :key="index">
-                {{ value }}
-              </v-btn>
+              <v-btn v-for="(value, key, index) in allRoles" :key="index">{{ value }}</v-btn>
             </v-btn-toggle>
           </v-flex>
           <v-flex md3 align-self-center>
-            <v-switch :style="{ justifyContent: 'flex-end' }" v-model="filterActiveUsers" label="Only active">
-            </v-switch>
+            <v-switch
+              :style="{ justifyContent: 'flex-end' }"
+              v-model="filterActiveUsers"
+              label="Only active"
+            ></v-switch>
           </v-flex>
         </v-layout>
       </v-flex>
@@ -38,8 +38,7 @@
       :computedValue="computedValue"
       :datatableProps="{ 'loading': isLoadingUsers }"
       :tableRowStyle="tableRowStyle"
-    >
-    </data-table>
+    ></data-table>
     <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
       {{ snackText }}
       <v-btn flat @click="snack = false">Close</v-btn>
@@ -210,7 +209,7 @@ export default class List extends Vue {
     this.snack = true;
     this.snackColor = "success";
     this.snackText = "Data saved";
-    const refPath = `users/${item['.key']}/${path.itemPath}`;
+    const refPath = `users/${item[".key"]}/${path.itemPath}`;
 
     // manual update state if component can't use v-model
     if (itemPath) {

@@ -1,9 +1,0 @@
-{
-  "git.enabled": true,
-  "editor.formatOnSave": true,
-  "editor.detectIndentation": false,
-  "editor.tabSize": 2,
-  "editor.insertSpaces": true,
-  "eslint.autoFixOnSave": true,
-  "eslint.validate": ["javascript"]
-}
