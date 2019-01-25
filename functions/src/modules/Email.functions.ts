@@ -8,18 +8,17 @@ import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 /**
  * Abort the execution if send_in_blue api key is not set
  * 
- * @method SibApiV3Sdk.checkIfApiKeyExists()
+ * @method checkIfApiKeyExists()
  */
-SibApiV3Sdk.checkIfApiKeyExists = () => {
+export const checkIfApiKeyExists = () => {
   if (!functions.config().send_in_blue || !functions.config().send_in_blue.key) {
     console.error(`Error! Send in blue api key is not set.`);
-    process.abort();
   }
 }
 
-SibApiV3Sdk.checkIfApiKeyExists();
-const sendInBlueSecretKey = functions.config().send_in_blue ? 
-                            functions.config().send_in_blue.key : '';
+
+const sendInBlueSecretKey = functions.config().send_in_blue ?
+  functions.config().send_in_blue.key : '';
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 const apiKey = defaultClient.authentications['api-key'];
 apiKey.apiKey = sendInBlueSecretKey;
@@ -47,6 +46,7 @@ export const sendEmail = async (to, bcc, replyTo, templateId, params) => {
     params,
   };
 
+  checkIfApiKeyExists();
   const sendingResult = await apiInstance.sendTransacEmail(smtpEmail);
   console.log(sendingResult);
 };
@@ -79,6 +79,7 @@ export const createTemplate = async (templateName, sender, html, subject) => {
 export const getTemplateId = async templateName => {
   const opts = { templateStatus: true };
 
+  checkIfApiKeyExists();
   const result = await apiInstance.getSmtpTemplates(opts);
   const { templates } = result;
 
@@ -165,23 +166,14 @@ export const updateTemplatesOnMetadataChange = functions.database
     return 1;
   });
 
-export const createTestNotification = functions.https.onRequest((req, res) => {
-  return db.ref('/email/notifications').push({
-    bcc: ["test@gmail.com"],
-    params: {test: "yes"},
-    template: "2",
-    to: "hamzaavvan@gmail.com"
-  }).then(() => {
-    console.log("Notification created")
-  });
-});
 
 export const sendNotificationEmail = functions.database
-  .ref('/email/notifications}')
+  .ref('/email/notifications/{notification_id}')
   .onCreate(async (snapshot, context) => {
     const data = snapshot.val();
     const templateName = snapshot.key;
 
+    console.log("Running sendNotificationEmail functions");
     let id;
     if (Object.keys(emailTemplates).indexOf(templateName) > -1)
       id = emailTemplates[templateName].id;
