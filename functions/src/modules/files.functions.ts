@@ -1,7 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
-const bucket = admin.storage().bucket();
 const db = admin.database();
 
 import * as helpers from '../helpers';
@@ -59,7 +58,7 @@ export const HandleDeletedFiles = functions.storage
 
     const fileRef = db.ref(`/files/${list}/${fileName}`);
 
-    let update = {};
+    const update = {};
     update[uploadType] = false;
 
     return fileRef.update(update);
