@@ -15,9 +15,9 @@ export default class SoundIssuesType extends Mixins<ItemPath>(ItemPath) {
   @Prop() fieldProps!: any;
   issues = [
     "Background noise",
-    "Low/changing volume",
+    { label: "Low/changing volume", value: "Volume" },
     "Reverberation",
-    "Other..."
+    { label: "Other...", value: "other" }
   ];
 }
 </script>
