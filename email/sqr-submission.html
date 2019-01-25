@@ -43,7 +43,7 @@
         {{ allotment.timestampGiven }}
         {{ allotment.status}}
         {{ allotment.daysPassed }},
-        {{ allotment.language }}
+        {{ allotment.languages|join:", " }}
         {% if allotment.fileName == params.submission.fileName %}
         <strong> -- CURRENT SUBMISSION</strong>
         {% endif %}

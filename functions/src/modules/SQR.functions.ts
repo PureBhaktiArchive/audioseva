@@ -285,7 +285,7 @@ export const processSubmission = functions.database
           status,
           timestampGiven: timestampGiven ? moment(timestampGiven).format("M/D/YYYY") : "",
           daysPassed: timestampGiven ? moment().diff(timestampGiven, "days") : "Not available",
-          language: languages.join(", ")
+          languages
     }));
 
     // 3.4 Notify the coordinator
