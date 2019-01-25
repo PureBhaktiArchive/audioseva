@@ -294,9 +294,9 @@ export const processSubmission = functions.database
         template: 'sqr-submission',
       to: coordinator.email_address,
       params: {
-        submission,
+        currentSet,
         fileData,
-        currentSet: currentSet,
+        submission,
         isFirstSubmission: Object.keys(allSubmissions).length <= 1,
       },
     });
