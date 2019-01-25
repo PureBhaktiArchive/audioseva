@@ -6,16 +6,17 @@ import { processSQRDoneFromGmail } from './SQR.functions';
 
 const db = admin.database();
 
+const { client_key, secret, redirect } = functions.config().gmail;
+const oauth2Client = new Google.google.auth.OAuth2(
+  client_key,
+  secret,
+  redirect
+);
+
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    const { client_key, secret, redirect } = functions.config().gmail;
 
     console.log("hostname: ", req.hostname);
-    const oauth2Client = new Google.google.auth.OAuth2(
-      client_key,
-      secret,
-      redirect
-    );
     const authURL = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
@@ -28,24 +29,18 @@ export const oauth2init = functions.https.onRequest(
 
 const saveTokens = async (values: any) => {
   const newGmailTokensRef = db.ref(`/gmail/coordinator/oauth`);
-  newGmailTokensRef.set({ ...values });
+  newGmailTokensRef.set(values);
 };
 
 export const oauth2callback = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    const { client_key, secret, redirect } = functions.config().gmail;
-    const oauth2Client = new Google.google.auth.OAuth2(
-      client_key,
-      secret,
-      redirect
-    );
-
     const { tokens } = await oauth2Client.getToken(req.query.code);
     oauth2Client.setCredentials(tokens);
 
     await saveTokens({
       token: tokens.access_token,
       refresh: tokens.refresh_token,
+      expiry: tokens.expiry_date,
     });
 
     res.send('Ok');
@@ -54,7 +49,19 @@ export const oauth2callback = functions.https.onRequest(
 
 const fetchToken = async () => {
   const queryResults = await db.ref(`/gmail/coordinator`).once('value');
-  return queryResults.val();
+  const values = queryResults.val();
+  // https://github.com/GoogleCloudPlatform/cloud-functions-gmail-nodejs/blob/master/lib/oauth.js#L62
+  // https://github.com/googleapis/google-auth-library-nodejs/releases/tag/v2.0.0
+  if (false || !values.oauth.expiry_date || values.oauth.expiry_date < Date.now() + 60000) {
+    oauth2Client.credentials.refresh_token = oauth2Client.credentials.refresh_token || values.oauth.refresh_token;
+    const result = await oauth2Client.getAccessToken();
+    await saveTokens(result.res.data);
+    return {
+      ...values,
+      oauth: result.res.data,
+    }
+  }
+  return values;
 };
 
 const storeHistoryIdInDatabase = async (historyId: any) => {
@@ -66,17 +73,10 @@ const storeHistoryIdInDatabase = async (historyId: any) => {
 export const initWatch = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
     // Initiate gmail client
-    const { client_key, secret, redirect } = functions.config().gmail;
-    const oauth2Client = new Google.google.auth.OAuth2(
-      client_key,
-      secret,
-      redirect
-    );
-
     const { oauth } = await fetchToken();
     oauth2Client.setCredentials({
-      access_token: oauth.token,
-      refresh_token: oauth.refreshToken,
+      access_token: oauth.access_token,
+      refresh_token: oauth.refresh_token,
     });
     const gmail = await Google.google.gmail({
       version: 'v1',
@@ -131,25 +131,23 @@ export const doneHandler = functions.pubsub
     const decodedMessage = JSON.parse(
       Buffer.from(message.data, 'base64').toString('ascii')
     );
-
-    // Gmail client and authenticate
-    const { client_key, secret, redirect } = functions.config().gmail;
-    const oauth2Client = new Google.google.auth.OAuth2(
-      client_key,
-      secret,
-      redirect
-    );
     const { oauth, lastSyncHistoryId } = await fetchToken();
     console.log("oauthTokenHere: ", oauth);
 
     oauth2Client.setCredentials({
-      access_token: oauth.token,
-      refresh_token: oauth.refresh,
+      access_token: oauth.access_token,
+      refresh_token: oauth.refresh_token,
     });
     const gmail = await Google.google.gmail({
       version: 'v1',
       auth: oauth2Client,
     });
+
+    /**
+     * Just implemented refresh access tokens in fetchTokens()
+     * need to test in production to make sure is working or not
+     * maybe some more refactoring needs to be done as well
+     */
 
     const labelResults = await gmail.users.labels.list({
       userId: 'me',
