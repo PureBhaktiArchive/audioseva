@@ -201,11 +201,11 @@ export const createTaskFromChunks = functions.database
  * Sends a notification email to the coordinator & udpates the corresponding Task
  */
 const stoargeBaseDomain = functions.config().storage['root-domain'];
-export const processUploadedFile = functions.storage.bucket(`uploads${stoargeBaseDomain}`).object()
+export const processUploadedFile = functions.storage.bucket(`uploads.${stoargeBaseDomain}`).object()
   .onFinalize(async object => {
 
     const filePath = object.name;
-    const seUploadsBucket = admin.storage().bucket(`uploads${stoargeBaseDomain}`);
+    const uploadsBucket = admin.storage().bucket(object.bucket);
     let uploadCode, list, taskId, task, taskRef;
 
     if (!filePath.startsWith('restored'))
@@ -251,13 +251,13 @@ export const processUploadedFile = functions.storage.bucket(`uploads${stoargeBas
 
 
       // Move current file (after passing all validity checks) into `Restored` bucket
-      seUploadsBucket.file(object.name).move(
+      uploadsBucket.file(object.name).move(
         admin.storage().bucket(`restored${stoargeBaseDomain}`)
           .file(`${list}/${taskId}.flac`)
       );
     } catch (err) {
-      console.warn(err.message);
-      await seUploadsBucket.file(filePath).delete();
+      console.error(err.message);
+      await uploadsBucket.file(filePath).delete();
       return -1;
     }
 
