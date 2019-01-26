@@ -143,7 +143,9 @@ export default class Form extends Vue {
     this.form = removeObjectKey(this.form, field);
   }
 
-  handleSubmit() {}
+  async handleSubmit() {
+    await this.submitForm(true);
+  }
 
   mounted() {
     this.getSavedData();
@@ -171,7 +173,10 @@ export default class Form extends Vue {
 
   async submitForm(complete = false) {
     if ((this.$refs as any).form.validate()) {
-      const data: any = { ...this.form };
+      const data: any = {
+        ...this.form,
+        changed: firebase.database.ServerValue.TIMESTAMP
+      };
       if (complete) data.complete = firebase.database.ServerValue.TIMESTAMP;
       if (this.initialData[".value"] === null) {
         data.created = firebase.database.ServerValue.TIMESTAMP;
