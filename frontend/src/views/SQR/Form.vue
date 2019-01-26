@@ -50,6 +50,15 @@
                   :is="field.component"
                 ></component>
               </template>
+              <v-expansion-panel popout inset>
+                <v-expansion-panel-content>
+                  <div slot="header">Guidelines</div>
+                  <v-card>
+                    <v-card-text  v-html="field.guidelines">
+                    </v-card-text>
+                  </v-card>
+                </v-expansion-panel-content>
+              </v-expansion-panel>
             </v-flex>
             <v-btn type="submit" color="success">Submit</v-btn>
             <v-btn v-if="!form.complete" @click="submitDraft" color="secondary">Save draft</v-btn>
@@ -79,23 +88,91 @@ export default class Form extends Vue {
   fields = [
     {
       title: "B. Sound Quality Rating",
-      component: "SQRField"
+      component: "SQRField",
+      guidelines: `Please rate the overall sound quality of the allotted file by selecting one of the options:
+      Good, Average, Bad. The basis of rating will be the audibility of Srila Gurudeva’s voice. In other words,
+      if you find it difficult or strenuous to understand what Srila Gurudeva is speaking, due to too much background
+      noise or volume being too low and so on, please choose ‘Bad’. On the other hand, if the audio is clear, with no
+       background noise and good volume, please choose ‘Good.’ In cases where you can hear Srila Gurudeva well but
+       there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.`
     },
     {
       title: "C. Unwanted parts to be cut",
-      component: "UnwantedParts"
+      component: "UnwantedParts",
+      guidelines: `
+      For each unwanted part you identify, please fill details in one such block Please note:
+       The timing is to be filled in (h:)mm:ss format. Also, please mention the Beginning and Ending time for
+       each such unwanted part. For e.g. If from 20 minutes and 10 seconds to 21 minutes and 20 seconds there is
+       an abrupt blank space, please write 20:10 in the ‘Beginning field’ and 21:20 in the Ending field. Choose
+       ‘Blank Space’ in Type and provide a relevant details in the Description field. For the next unwanted part,
+       please add another such block.
+
+       <ul>
+        <li>
+          Add block by clicking on the green button ‘Add’. You can also choose to add more than one such blocks by
+          entering a number in the field next to the ‘Add’ button.
+        </li>
+        <li>
+          Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right and
+          delete one block by clicking on the red ‘-’ button on the right.
+         </li>
+       </ul>
+       `
     },
     {
       title: "D. Sound issues",
-      component: "SoundIssues"
+      component: "SoundIssues",
+      guidelines: `
+      For every issue you wish to report for the SE’s attention, please fill this part as follows.
+
+      <ul>
+        <li>
+          Enter the Beginning and Ending timing of the section in (h:)mm:ss format. Choose the specific issue from
+          the options listed or enter a different issue by selecting ‘Other’. Please describe the issue in the
+          ‘Description’ field.
+        </li>
+        <li>
+          For instance, from 20:20 - 21:34 if there is loud noise of roadside vehicles, making it difficult to hear
+          what Srila Gurudeva is speaking, then please write ‘20:20’ in the Beginning field and ‘21:34’ in the Ending
+          field. Choose the option ‘Background noise’ in Type and in ‘Description’ field, write ‘Sound of vehicles
+          honking and general traffic noise.’
+        </li>
+        <li>
+          To add another comment for the SE, add another such block by clicking on the green button ‘Add’.
+          You can also choose to add more than one such blocks by entering a number in the field
+          next to the ‘Add’ button.
+        </li>
+        <li>
+          Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right
+          and delete one block by clicking on the red ‘-’ button on the right.
+        </li>
+      </ul>
+      `
     },
     {
       title: "E. Total Duration of the Recording",
-      component: "Duration"
+      component: "Duration",
+      guidelines:
+        "Here, we simply want to know how much the tape has relevant recording. " +
+        "In other words, whether any part of the sound file is blank or inaudible and hence to be discarded. " +
+        "Usually such parts are present towards the end of the file. There might be small parts 5-7 min long " +
+        "in between two lecture recordings, but these can be ignored. Please write the beginning and ending timings" +
+        " of the overall recording in this field in (h:)mm:ss format."
     },
     {
       title: "F. Comments",
       component: "TextArea",
+      guidelines: `
+        <ul>
+          <li>
+           Is there any issue with the overall sound quality? E.g. Background hum throughout, vehicle sound throughout
+           the tape, sound of the fan or wind, low volume, etc. Please provide these details here.
+          </li>
+          <li>
+            Any other comments you wish to provide can be filled here.
+          </li>
+         </ul>
+      `,
       props: {
         pathOverride: "comments",
         fieldProps: {
@@ -128,6 +205,7 @@ export default class Form extends Vue {
     unwantedParts: [{}],
     soundIssues: [{}]
   };
+  guidelines: any = {};
 
   rules = [v => !!v || "Required field"];
 
