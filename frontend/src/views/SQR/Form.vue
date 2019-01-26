@@ -17,7 +17,7 @@
                       </v-list-tile-title>
                     </v-list-tile-content>
                   </v-list-tile>
-                  <div :style="{ border: cancelColors[index].border }" class="pa-1">
+                  <div v-if="cancel !== null" :style="{ border: cancelColors[index].border }" class="pa-1">
                     <v-checkbox
                       class="pa-2"
                       v-model="cancelCheck[index + 1]"
@@ -51,7 +51,8 @@
                 ></component>
               </template>
             </v-flex>
-            <v-btn type="submit">Submit</v-btn>
+            <v-btn type="submit" color="success">Submit</v-btn>
+            <v-btn v-if="!form.complete" @click="submitDraft" color="secondary">Save draft</v-btn>
           </template>
         </v-layout>
       </v-container>
@@ -61,6 +62,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+import firebase from "firebase";
 import SQRField from "@/components/SQRForm/SQRField.vue";
 import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
 import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
@@ -122,7 +124,7 @@ export default class Form extends Vue {
       border: "solid .2rem #bce8f1"
     }
   };
-  form = {
+  form: any = {
     unwantedParts: [{}],
     soundIssues: [{}]
   };
@@ -148,17 +150,9 @@ export default class Form extends Vue {
   }
 
   getSavedData() {
-    const {
-      params: { fileName, token }
-    } = this.$route;
-    const listId = getListId(fileName);
     this.$bindAsObject(
       "initialData",
-      fb
-        .database()
-        .ref(
-          `/submissions/soundQualityReporting/${listId}/${fileName}/${token}`
-        ),
+      fb.database().ref(this.submissionPath()),
       null,
       this.populateForm
     );
@@ -166,10 +160,35 @@ export default class Form extends Vue {
 
   populateForm() {
     if (this.initialData[".value"] !== null) {
-      console.log("here", this.initialData);
-      const { [".key"]: token, completed, ...initialData } = this.initialData;
+      const { [".key"]: token, ...initialData } = this.initialData;
       this.form = initialData;
     }
+  }
+
+  async submitDraft() {
+    await this.submitForm();
+  }
+
+  async submitForm(complete = false) {
+    if ((this.$refs as any).form.validate()) {
+      const data: any = { ...this.form };
+      if (complete) data.complete = firebase.database.ServerValue.TIMESTAMP;
+      if (this.initialData[".value"] === null) {
+        data.created = firebase.database.ServerValue.TIMESTAMP;
+      }
+      await fb
+        .database()
+        .ref(this.submissionPath())
+        .update(data);
+    }
+  }
+
+  submissionPath() {
+    const {
+      params: { fileName, token }
+    } = this.$route;
+    const listId = getListId(fileName);
+    return `/submissions/soundQualityReporting/${listId}/${fileName}/${token}`;
   }
 }
 </script>
