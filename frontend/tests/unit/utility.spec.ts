@@ -67,5 +67,5 @@ describe("utility", function() {
     };
     const newData = removeObjectKey(data, "nested.0");
     expect(newData.nested).toEqual([{}]);
-  })
+  });
 });

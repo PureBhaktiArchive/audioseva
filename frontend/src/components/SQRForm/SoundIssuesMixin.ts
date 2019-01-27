@@ -24,7 +24,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           form: this.form,
           fieldProps: {
             placeholder: "(h:)mm:ss format",
-            rules: [(value: any) => !!value || 'Required']
+            rules: [(value: any) => !!value || "Required"]
           }
         },
         style: this.style
@@ -35,7 +35,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           form: this.form,
           fieldProps: {
             placeholder: "(h:)mm:ss format",
-            rules: [(value: any) => !!value || 'Required']
+            rules: [(value: any) => !!value || "Required"]
           }
         },
         style: this.style
@@ -53,7 +53,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           fieldProps: {
             box: true,
             class: "pa-2",
-            rules: [(value: any) => !!value || 'Required']
+            rules: [(value: any) => !!value || "Required"]
           }
         },
         style: this.style
@@ -63,12 +63,12 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           ...this.formProps,
           form: this.form,
           fieldProps: {
-            rules: [(value: any) => !!value || 'Required']
+            rules: [(value: any) => !!value || "Required"]
           }
         }
       }
     };
-  };
+  }
 
   headers = [
     {
@@ -100,11 +100,14 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
     return this.headers.map((header: any) => ({ ...header, sortable: false }));
   }
 
-  get items() {
+  get items(): any {
     return [];
   }
 
   addField() {
-    this.updateForm(`${this.updatePath}.${_.get(this.form, this.updatePath, []).length}`, {});
+    this.updateForm(
+      `${this.updatePath}.${_.get(this.form, this.updatePath, []).length}`,
+      {}
+    );
   }
 }

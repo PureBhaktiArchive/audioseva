@@ -11,7 +11,9 @@ export default class ItemPath extends Vue {
   @Prop() form!: any;
 
   get itemPath() {
-    return this.pathOverride ? this.pathOverride : `${this.updatePath}.${this.item}.${this.value}`;
+    return this.pathOverride
+      ? this.pathOverride
+      : `${this.updatePath}.${this.item}.${this.value}`;
   }
 
   getValue(): any {

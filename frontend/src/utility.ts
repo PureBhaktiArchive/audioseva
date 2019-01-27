@@ -98,5 +98,5 @@ export const removeObjectKey = (obj: any, field: string) => {
     }
     return (form[path] = { ...(formData ? formData : {}) });
   }, newObj);
-  return newObj
+  return newObj;
 };

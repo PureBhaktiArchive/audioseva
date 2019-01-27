@@ -22,11 +22,11 @@ import _ from "lodash";
 export default class Duration extends Mixins<FormField>(FormField) {
   fields = ["Beginning", "Ending"];
 
-  handleInput(field, value) {
+  handleInput(field: any, value: any) {
     this.updateForm(`duration.${field}`, value);
   }
 
-  getFormData(field) {
+  getFormData(field: any) {
     return _.get(this.form, `duration.${field}`);
   }
 }
