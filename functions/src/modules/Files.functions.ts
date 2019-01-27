@@ -4,6 +4,8 @@ import * as admin from 'firebase-admin';
 const db = admin.database();
 
 import * as helpers from '../helpers';
+
+const originalBucket = `original.${functions.config().storage['root-domain']}`;
 ///////////////////////////////////
 //   Sync-Related Helper Functions
 ///////////////////////////////////
@@ -19,7 +21,7 @@ const checkValidFile = filePath =>
 /////////////////////////////////////////////////
 
 export const handleOriginalFileUploading = functions.storage
-  .bucket(`original${functions.config().storage['root-domain']}`)
+  .bucket(originalBucket)
   .object()
   .onFinalize(object => {
     const filePath = object.name;
@@ -40,7 +42,7 @@ export const handleOriginalFileUploading = functions.storage
   });
 
 export const handleOriginalFileDeletion = functions.storage
-  .bucket(`original${functions.config().storage['root-domain']}`)
+  .bucket(originalBucket)
   .object()
   .onDelete(async object => {
     const filePath = object.name;
