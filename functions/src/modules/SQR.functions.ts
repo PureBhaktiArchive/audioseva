@@ -273,20 +273,24 @@ export const processSubmission = functions.database
   if (allSubmissionsSnapshot.exists()) {
     const allSubmissions = allSubmissionsSnapshot.val();
 
-    let currentSet = (await db
+    const allotments = (await db
         .ref(`/files/${list}`)
         .orderByChild("soundQualityReporting/assignee/emailAddress")
         .equalTo(submission.author.emailAddress).once("value")
     ).val();
 
-    currentSet = Object.entries(currentSet).map(
-        ([fileName, { languages, soundQualityReporting: { timestampGiven, status } }]: any) => ({
-          fileName,
-          status,
-          timestampGiven: timestampGiven ? moment(timestampGiven).format("M/D/YYYY") : "",
-          daysPassed: timestampGiven ? moment().diff(timestampGiven, "days") : "Not available",
-          languages
-    }));
+    const currentSet = [];
+
+    Object.entries(allotments).forEach(
+        ([fileName, { languages, soundQualityReporting: { timestampGiven, status } }]: any) => {
+          currentSet.push({
+            fileName,
+            status,
+            timestampGiven: timestampGiven ? moment(timestampGiven).format("M/D/YYYY") : "",
+            daysPassed: timestampGiven ? moment().diff(timestampGiven, "days") : "Not available",
+            languages
+          });
+        });
 
     // 3.4 Notify the coordinator
     // Sending the notification Email Finally
