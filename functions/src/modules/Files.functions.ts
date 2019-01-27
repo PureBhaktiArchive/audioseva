@@ -23,7 +23,7 @@ const checkValidFile = filePath =>
 export const handleOriginalFileUploading = functions.storage
   .bucket(originalBucket)
   .object()
-  .onFinalize(object => {
+  .onFinalize(async object => {
     const filePath = object.name;
     const isValidFile = checkValidFile(filePath);
     if (!isValidFile)
@@ -33,11 +33,13 @@ export const handleOriginalFileUploading = functions.storage
     const list = helpers.extractListFromFilename(fileName);
 
     const fileRef = db.ref(`/files/${list}/${fileName}`);
+    const file = (await fileRef.once('value')).val();
 
     fileRef.set({
-      mp3Uploaded: isValidFile[3] ? true : false,
-      flacUploaded: isValidFile[5] ? true : false,
+      mp3Uploaded: isValidFile[3] ? true : file.mp3Uploaded,
+      flacUploaded: isValidFile[5] ? true : file.flacUploaded
     });
+
     return 1;
   });
 
@@ -47,22 +49,18 @@ export const handleOriginalFileDeletion = functions.storage
   .onDelete(async object => {
     const filePath = object.name;
     const nameParts = checkValidFile(filePath);
-    if (!nameParts) return -1;
+    if (!nameParts) {
+      console.warn(`File: "${filePath}" was deleted.`);
+      return -1;
+    }
 
     const fileName = nameParts[2] || nameParts[4];
     const list = helpers.extractListFromFilename(fileName);
-
-    let uploadType;
-    if (nameParts[3])
-      uploadType = 'mp3Uploaded';
-    else if (nameParts[5])
-      uploadType = 'flacUploaded';
-
+    const fileTypeFlag = nameParts[3] ? 'mp3Uploaded' : 'flacUploaded';
     const fileRef = db.ref(`/files/${list}/${fileName}`);
-
-    const update = {};
-    update[uploadType] = false;
-
+    const update = {
+      [fileTypeFlag]: false
+    };
     return fileRef.update(update);
   });
 
@@ -91,10 +89,11 @@ export const syncStorageToDB = functions.https
       const list = helpers.extractListFromFilename(fileName);
 
       const fileRef = db.ref(`/files/${list}/${fileName}`);
+      const file = (await fileRef.once('value')).val();
 
       fileRef.update({
-        mp3Uploaded: parts[3] ? true : false,
-        flacUploaded: parts[5] ? true : false,
+        mp3Uploaded: parts[3] ? true : file.mp3Uploaded,
+        flacUploaded: parts[5] ? true : file.flacUploaded,
       });
     });
 
