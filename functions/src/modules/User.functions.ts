@@ -51,8 +51,6 @@ export const importUserRegistrationData = functions.https.onRequest(
 
     const registrationRows = await gsheets.getRows();
 
-    // Removes the header rows
-    registrationRows.splice(0, 1);
 
     const readyForDatabaseUpdate = registrationRows.map((row: any) => {
       return {

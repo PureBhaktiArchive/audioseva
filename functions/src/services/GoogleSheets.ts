@@ -45,9 +45,9 @@ export default class GoogleSheets {
    * @param limit How many rows you want
    */
   protected async _getRowsByStart(start: number, limit?: number): Promise<any> {
-    if (limit > 1000) 
+    if (limit > 1000)
       throw new Error(`Maximum number of rows in each single call can't exceed 1000`);
-    
+
     const targetSheet: any = await this.connection.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
@@ -64,6 +64,8 @@ export default class GoogleSheets {
       console.error('Error: Values are wrong format');
       return null;
     }
+    if (start === 1)
+      values.shift();
 
     return this._convertRows(values);
   }
