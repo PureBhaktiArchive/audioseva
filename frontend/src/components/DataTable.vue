@@ -57,7 +57,7 @@ export default class DataTable extends Vue {
   separator!: string;
 
   @Prop({ default: () => ({}) })
-  styles!: { [key: string]: boolean };
+  styles!: { [key: string]: any };
 
   @Prop({ default: () => ({}), type: Function })
   tableRowStyle!: (item: any) => { [key: string]: string };

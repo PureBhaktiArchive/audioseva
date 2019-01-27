@@ -16,12 +16,12 @@ import _ from "lodash";
 export default class RadioGroup extends Vue {
   @Prop() updateForm!: any;
   @Prop() fields!: any[];
-  @Prop() updatePath: string;
+  @Prop() updatePath!: string;
   @Prop({ default: () => ({}) })
   fieldProps!: any;
   @Prop() form!: any;
 
-  handleRadioSelect(value) {
+  handleRadioSelect(value: any) {
     this.updateForm(this.updatePath, value);
   }
 

@@ -186,7 +186,7 @@ export default class Form extends Vue {
     "I'm unable to play or download the audio",
     "The alloted lecture is not in my preferred language"
   ];
-  cancel = null;
+  cancel: number | null = null;
   cancelComments = {};
   cancelCheck = {};
   cancelColors = {
@@ -207,7 +207,7 @@ export default class Form extends Vue {
   };
   guidelines: any = {};
 
-  rules = [v => !!v || "Required field"];
+  rules = [(v: any) => !!v || "Required field"];
 
   handleListClick(cancelField: number) {
     this.cancel = this.cancel === cancelField ? null : cancelField;
