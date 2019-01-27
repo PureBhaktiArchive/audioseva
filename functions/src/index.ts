@@ -24,9 +24,9 @@ try {
  **
  **********************************************/
 import * as SQR from './modules/SQR.functions';
-import * as files from './modules/files.functions';
+import * as Files from './modules/Files.functions';
 import * as Email from './modules/email.functions';
 import * as SE from './modules/SE.functions';
 import * as Authorization from './modules/Authorization.functions';
 
-export { SQR, files, Email, Authorization, SE };
+export { SQR, Files, Email, Authorization, SE };
