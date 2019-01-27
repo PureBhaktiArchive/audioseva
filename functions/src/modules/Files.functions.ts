@@ -18,7 +18,7 @@ const checkValidFile = filePath =>
 //
 /////////////////////////////////////////////////
 
-export const importFilesFromStorage = functions.storage
+export const handleOriginalFileUploading = functions.storage
   .bucket(`original${functions.config().storage['root-domain']}`)
   .object()
   .onFinalize(object => {
@@ -39,7 +39,7 @@ export const importFilesFromStorage = functions.storage
     return 1;
   });
 
-export const HandleDeletedFiles = functions.storage
+export const handleOriginalFileDeletion = functions.storage
   .bucket(`original${functions.config().storage['root-domain']}`)
   .object()
   .onDelete(async object => {
