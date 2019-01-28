@@ -6,18 +6,15 @@ import { processSQRDoneFromGmail } from './SQR.functions';
 
 const db = admin.database();
 
-const { client_key, secret, redirect } = functions.config().gmail;
+const { client_key, secret } = functions.config().gmail;
 const oauth2Client = new Google.google.auth.OAuth2(
   client_key,
   secret,
-  redirect
+  'https://us-central1-audio-seva-team-test.cloudfunctions.net/Gmail-oauth2callback'
 );
 
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-
-    console.log("hostname: ", req.hostname);
-
     const authURL = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
@@ -48,14 +45,18 @@ const fetchToken = async () => {
 
   // https://github.com/GoogleCloudPlatform/cloud-functions-gmail-nodejs/blob/master/lib/oauth.js#L62
   // https://github.com/googleapis/google-auth-library-nodejs/releases/tag/v2.0.0
-  if (!values.oauth.expiry_date || values.oauth.expiry_date < Date.now() + 60000) {
-    oauth2Client.credentials.refresh_token = oauth2Client.credentials.refresh_token || values.oauth.refresh_token;
+  if (
+    !values.oauth.expiry_date ||
+    values.oauth.expiry_date < Date.now() + 60000
+  ) {
+    oauth2Client.credentials.refresh_token =
+      oauth2Client.credentials.refresh_token || values.oauth.refresh_token;
     const result = await oauth2Client.getAccessToken();
     await saveTokens(result.res.data);
     return {
       ...values,
       oauth: result.res.data,
-    }
+    };
   }
   return values;
 };
@@ -128,7 +129,6 @@ export const doneHandler = functions.pubsub
       Buffer.from(message.data, 'base64').toString('ascii')
     );
     const { oauth, lastSyncHistoryId } = await fetchToken();
-    console.log("1. oauthTokenHere: ", oauth);
 
     oauth2Client.setCredentials({
       access_token: oauth.access_token,
@@ -163,12 +163,13 @@ export const doneHandler = functions.pubsub
         throw new Error('History is empty. Nothing to process');
       }
 
-      const onlyUniqueLabelsAdded = results.data.history.filter(change => {
-        return change.labelsAdded;
-      })
-      // Get the first message of a thread that has labels added, and get uniques threadIds[]
-      .map(change => change.labelsAdded[0].message.threadId)
-      .filter((threadId, index, array) => array.indexOf(threadId) === index);
+      const onlyUniqueLabelsAdded = results.data.history
+        .filter(change => {
+          return change.labelsAdded;
+        })
+        // Get the first message of a thread that has labels added, and get uniques threadIds[]
+        .map(change => change.labelsAdded[0].message.threadId)
+        .filter((threadId, index, array) => array.indexOf(threadId) === index);
 
       if (!onlyUniqueLabelsAdded || !onlyUniqueLabelsAdded.length) {
         await storeHistoryIdInDatabase(decodedMessage.historyId);
@@ -178,7 +179,7 @@ export const doneHandler = functions.pubsub
       const allThreadsRequest = onlyUniqueLabelsAdded.map(threadId => {
         const threadResults = gmail.users.threads.get({
           userId: 'me',
-          id: threadId
+          id: threadId,
         });
         return threadResults; // Promise
       });
@@ -186,29 +187,29 @@ export const doneHandler = functions.pubsub
       const allThreadsResults = await Promise.all(allThreadsRequest);
       // Get first message of a thread
       const allThreadsData = allThreadsResults.map(result => {
-        let fileName = "";
-        let subject = "";
+        let fileName = '';
+        let subject = '';
         result.data.messages[0].payload.headers.forEach(header => {
-          if (header.name === "X-Audio-Seva-File-Name") {
+          if (header.name === 'X-Audio-Seva-File-Name') {
             fileName = header.value;
           }
-          if (header.name === "Subject") {
+          if (header.name === 'Subject') {
             subject = header.value;
           }
         });
         return {
-          lastThreadMessageTimestamp: result.data.messages[result.data.messages.length - 1].internalDate,
+          lastThreadMessageTimestamp:
+            result.data.messages[result.data.messages.length - 1].internalDate,
           fileName,
           subject,
-        }
+        };
       });
-      console.log("2. allThreadsResults: ", allThreadsData);
 
       allThreadsData.forEach(async (processObject: any) => {
         if (processObject.fileName && processObject.subject.match(/SQR/g)) {
           await processSQRDoneFromGmail(processObject);
         }
-        // Handle other module processes
+        // Add handle other module processes if statements
       });
       await storeHistoryIdInDatabase(decodedMessage.historyId);
     } catch (error) {

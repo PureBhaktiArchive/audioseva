@@ -540,7 +540,6 @@ export const exportSubmissionsToSpreadsheet = functions.database
   )
 
 export const processSQRDoneFromGmail = async (processObject: any) => {
-  console.log("processSubjectHeadersForSQR: ", processObject);
   const listName = processObject.fileName.split("-")[0];
   const soundQualityReporting = db.ref(`files/${listName}/${processObject.fileName}/soundQualityReporting`);
   const sqrResults = await soundQualityReporting.once('value');
