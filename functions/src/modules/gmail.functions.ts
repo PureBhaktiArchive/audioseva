@@ -17,6 +17,7 @@ export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
 
     console.log("hostname: ", req.hostname);
+
     const authURL = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
@@ -36,13 +37,7 @@ export const oauth2callback = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
     const { tokens } = await oauth2Client.getToken(req.query.code);
     oauth2Client.setCredentials(tokens);
-
-    await saveTokens({
-      token: tokens.access_token,
-      refresh: tokens.refresh_token,
-      expiry: tokens.expiry_date,
-    });
-
+    await saveTokens(tokens);
     res.send('Ok');
   }
 );
@@ -50,9 +45,10 @@ export const oauth2callback = functions.https.onRequest(
 const fetchToken = async () => {
   const queryResults = await db.ref(`/gmail/coordinator`).once('value');
   const values = queryResults.val();
+
   // https://github.com/GoogleCloudPlatform/cloud-functions-gmail-nodejs/blob/master/lib/oauth.js#L62
   // https://github.com/googleapis/google-auth-library-nodejs/releases/tag/v2.0.0
-  if (false || !values.oauth.expiry_date || values.oauth.expiry_date < Date.now() + 60000) {
+  if (!values.oauth.expiry_date || values.oauth.expiry_date < Date.now() + 60000) {
     oauth2Client.credentials.refresh_token = oauth2Client.credentials.refresh_token || values.oauth.refresh_token;
     const result = await oauth2Client.getAccessToken();
     await saveTokens(result.res.data);
@@ -132,7 +128,7 @@ export const doneHandler = functions.pubsub
       Buffer.from(message.data, 'base64').toString('ascii')
     );
     const { oauth, lastSyncHistoryId } = await fetchToken();
-    console.log("oauthTokenHere: ", oauth);
+    console.log("1. oauthTokenHere: ", oauth);
 
     oauth2Client.setCredentials({
       access_token: oauth.access_token,
@@ -179,8 +175,6 @@ export const doneHandler = functions.pubsub
         throw new Error('History is empty. Nothing to process');
       }
 
-      console.log("onlyUniqueLabelsAdded: ", onlyUniqueLabelsAdded);
-
       const allThreadsRequest = onlyUniqueLabelsAdded.map(threadId => {
         const threadResults = gmail.users.threads.get({
           userId: 'me',
@@ -208,12 +202,10 @@ export const doneHandler = functions.pubsub
           subject,
         }
       });
-      console.log("allThreadsResults: ", allThreadsData);
-      // Mock filename so we have something to process
-      allThreadsData[0].fileName = "ML2-68 B";
+      console.log("2. allThreadsResults: ", allThreadsData);
 
       allThreadsData.forEach(async (processObject: any) => {
-        if (processObject.fileName && processObject.subject.indexOf("SQR") > -1) {
+        if (processObject.fileName && processObject.subject.match(/SQR/g)) {
           await processSQRDoneFromGmail(processObject);
         }
         // Handle other module processes
