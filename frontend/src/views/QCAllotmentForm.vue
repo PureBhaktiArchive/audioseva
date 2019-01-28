@@ -30,11 +30,9 @@
           :componentData="componentData()"
           :headers="headers"
           :items="items"
-        >
-        </data-table>
+        ></data-table>
       </div>
-      <v-textarea box label="Comment" v-model="allotment.comment">
-      </v-textarea>
+      <v-textarea box label="Comment" v-model="allotment.comment"></v-textarea>
       <v-btn @click="submit">submit</v-btn>
     </v-form>
     <div v-else>
