@@ -8,6 +8,7 @@ interface ITimeSpan {
 }
 
 interface ISoundIssue extends ITimeSpan {
+  entireFile?: boolean;
   type: string;
   description: string;
 }
