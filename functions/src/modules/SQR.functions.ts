@@ -207,6 +207,41 @@ export const restructureExternalSubmission = functions.database
   return 1;
   });
 
+const acceptedStatuses: string[] = ["Given", "WIP"];
+
+const addSubmissionWarnings = async (
+    currentSet,
+    { soundQualityReporting: { status, assignee } },
+    { cancellation: { notPreferredLanguage, audioProblem }, fileName, changed, completed, author, comments },
+    isFirstSubmission
+) => {
+  const listId = fileName.split("-")[0];
+  const warnings = [];
+  if (isFirstSubmission) warnings.push("This is the first submission by this devotee!");
+  if (notPreferredLanguage) warnings.push("The lecture is not in devotee's preferred language!");
+  if (audioProblem) warnings.push(`Unable to play or download the audio ${comments}`);
+  if (changed !== completed) warnings.push("This is an updated submission!");
+  if (assignee.emailAddress !== author.emailAddress) {
+    warnings.push(`File is alloted to another email id - ${assignee.emailAddress}`)
+  }
+  if (!(acceptedStatuses.includes(status))) {
+    warnings.push(`Status of file is ${status || "Spare"}`)
+  }
+  const response = (await db.ref(`/files/${listId}/${fileName}`).once("value")).val();
+  if (!response) warnings.push(`Audio file name ${fileName} is not found in the backend!`);
+  let shouldShowStatusWarning = true;
+  if (status === "Given") {
+    for (const allotment of currentSet) {
+      if (allotment.status === "Given") {
+        shouldShowStatusWarning = false;
+        break;
+      }
+    }
+    if (shouldShowStatusWarning) warnings.push("It's time to allot!");
+  }
+  return warnings;
+};
+
 /**
  * SQR Process Submission
  * 1. Notifying the coordinator using a mail that holds the following information
@@ -292,6 +327,9 @@ export const processSubmission = functions.database
           });
         });
 
+    const isFirstSubmission = Object.keys(allSubmissions).length <= 1;
+    const warnings = await addSubmissionWarnings(currentSet, fileData, submission, isFirstSubmission);
+
     // 3.4 Notify the coordinator
     // Sending the notification Email Finally
     db.ref(`/email/notifications`).push({
@@ -301,7 +339,8 @@ export const processSubmission = functions.database
         currentSet,
         fileData,
         submission,
-        isFirstSubmission: Object.keys(allSubmissions).length <= 1,
+        isFirstSubmission,
+        warnings
       },
     });
   }
