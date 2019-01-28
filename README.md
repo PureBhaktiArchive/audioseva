@@ -55,6 +55,8 @@ $ firebase functions:config:set coordinator.timeZoneOffset=NUMBER of HOURs
 $ firebase functions:config:set sqr.spreadsheetId='Google Spreadsheet ID'
 # Gmail account triggers
 $ firebase functions:config:set coordinator.gmail.account="audiaseva.test@gmail.com"
+$ firebase functions:config:set coordinator.gmail.client_key="YOUR CLIENT KEY"
+$ firebase functions:config:set coordinator.gmail.secret="YOUR SECRET"
 ```
 
 Firebase Cloud Functions is written in **TypeScript**, if you are uploading the functions for the first time make sure you're selecting the language used in the project as **TypeScript** instead of the default **JavaScript**.
