@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import * as Google from 'googleapis';
 import { Message } from 'firebase-functions/lib/providers/pubsub';
 import { processSQRDoneFromGmail } from './SQR.functions';
-import moment = require('moment');
+import * as moment from 'moment';
 
 const db = admin.database();
 
