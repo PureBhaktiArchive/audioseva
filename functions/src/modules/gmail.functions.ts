@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin';
 import * as Google from 'googleapis';
 import { Message } from 'firebase-functions/lib/providers/pubsub';
 import { processSQRDoneFromGmail } from './SQR.functions';
+import moment = require('moment');
 
 const db = admin.database();
 
@@ -47,7 +48,8 @@ const fetchToken = async () => {
   // https://github.com/googleapis/google-auth-library-nodejs/releases/tag/v2.0.0
   if (
     !values.oauth.expiry_date ||
-    values.oauth.expiry_date < Date.now() + 60000
+    // moment().valueOf() = Unix timestamp in milliseconds + 1 minute
+    values.oauth.expiry_date < moment().valueOf() + 60000
   ) {
     oauth2Client.credentials.refresh_token =
       oauth2Client.credentials.refresh_token || values.oauth.refresh_token;
