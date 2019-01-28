@@ -115,8 +115,8 @@ export const initWatch = functions.https.onRequest(
           .status(301)
           .send(`Something went wrong, check logs for Gmail-initWatch`);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       return res
         .status(301)
         .send(`Something went wrong, check logs for Gmail-initWatch`);
