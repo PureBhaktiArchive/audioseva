@@ -96,7 +96,7 @@ export const initWatch = functions.https.onRequest(
         userId: 'me',
         requestBody: {
           labelIds: [doneLabelObj.id],
-          topicName: 'projects/audio-seva-team-test/topics/gmail-labeled-done',
+          topicName: `projects/${process.env.GCLOUD_PROJECT}/topics/gmail-labeled-done`,
         },
       });
 
