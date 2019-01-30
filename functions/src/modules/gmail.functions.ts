@@ -89,7 +89,7 @@ export const initWatch = functions.https.onRequest(
         userId: 'me',
       });
       const doneLabelObj = labelResults.data.labels.filter(label => {
-        return label.name === 'SQRDone';
+        return label.name === 'Done';
       })[0];
 
       const watchResults = await gmail.users.watch({
@@ -145,7 +145,7 @@ export const doneHandler = functions.pubsub
       userId: 'me',
     });
     const doneLabelObj = labelResults.data.labels.filter(label => {
-      return label.name === 'SQRDone';
+      return label.name === 'Done';
     })[0];
 
     try {
