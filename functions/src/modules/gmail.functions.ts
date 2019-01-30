@@ -104,7 +104,7 @@ export const initWatch = functions.https.onRequest(
 
       if (!watchResults.data || !doneLabelObj) {
         return res
-          .status(301)
+          .status(404)
           .send(`Something went wrong, check logs for Gmail-initWatch`);
       }
 
@@ -120,7 +120,7 @@ export const initWatch = functions.https.onRequest(
     } catch (error) {
       console.error(error);
       return res
-        .status(301)
+        .status(500)
         .send(`Something went wrong, check logs for Gmail-initWatch`);
     }
   }
