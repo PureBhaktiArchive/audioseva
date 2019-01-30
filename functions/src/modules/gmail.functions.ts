@@ -96,25 +96,27 @@ export const initWatch = functions.https.onRequest(
         userId: 'me',
         requestBody: {
           labelIds: [doneLabelObj.id],
-          topicName: `projects/${process.env.GCLOUD_PROJECT}/topics/gmail-labeled-done`,
+          topicName: `projects/${
+            process.env.GCLOUD_PROJECT
+          }/topics/gmail-labeled-done`,
         },
       });
 
-      if (watchResults.data && doneLabelObj) {
-        // Store the most recent historyId
-        await storeHistoryIdInDatabase(watchResults.data.historyId);
-        return res
-          .status(200)
-          .send(
-            `Watch (${watchResults.data.historyId}) created on ${
-              doneLabelObj.name
-            }/${doneLabelObj.id} for coordinator`
-          );
-      } else {
+      if (!watchResults.data || !doneLabelObj) {
         return res
           .status(301)
           .send(`Something went wrong, check logs for Gmail-initWatch`);
       }
+
+      // Store the most recent historyId
+      await storeHistoryIdInDatabase(watchResults.data.historyId);
+      return res
+        .status(200)
+        .send(
+          `Watch (${watchResults.data.historyId}) created on ${
+            doneLabelObj.name
+          }/${doneLabelObj.id} for coordinator`
+        );
     } catch (error) {
       console.error(error);
       return res
