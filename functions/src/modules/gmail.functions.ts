@@ -126,7 +126,7 @@ export const initWatch = functions.https.onRequest(
   }
 );
 
-export const doneHandler = functions.pubsub
+export const processMarkingSubmissionAsDone = functions.pubsub
   .topic('gmail-labeled-done')
   .onPublish(async (message: Message) => {
     const decodedMessage = JSON.parse(
