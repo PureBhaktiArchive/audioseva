@@ -162,9 +162,10 @@ export const processMarkingSubmissionAsDone = functions.pubsub
       // Call the history list api to fetch changes since last synced
       const results = await gmail.users.history.list(historyListRequest);
       if (!results.data.history || !results.data.history.length) {
-        // Handle empty history, and update history id
+        // Handle empty history, and update history id, then end the function
         await storeHistoryIdInDatabase(decodedMessage.historyId);
-        throw new Error('History is empty. Nothing to process');
+        console.warn('History is empty, this should not happen');
+        return;
       }
 
       const onlyUniqueLabelsAdded = results.data.history
