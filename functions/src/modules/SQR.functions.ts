@@ -546,7 +546,7 @@ export const processMarkingSubmissionAsDone = async (processObject: any) => {
   if (sqrResults.exists()) {
     await soundQualityReporting.update({
       status: "Done",
-      timestampDone: moment(parseInt(processObject.lastThreadMessageTimestamp)).unix(),
+      timestampDone: processObject.lastThreadMessageTimestamp,
     });
   }
 }
