@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as Google from 'googleapis';
 import { Message } from 'firebase-functions/lib/providers/pubsub';
-import { processSQRDoneFromGmail } from './SQR.functions';
+import * as SQR from './SQR.functions';
 import * as moment from 'moment';
 
 const db = admin.database();
@@ -212,7 +212,7 @@ export const processMarkingSubmissionAsDone = functions.pubsub
 
       allThreadsData.forEach(async (processObject: any) => {
         if (processObject.fileName && processObject.subject.match(/SQR/g)) {
-          await processSQRDoneFromGmail(processObject);
+          await SQR.processMarkingSubmissionAsDone(processObject);
         }
         // Add handle other module processes if statements
       });
