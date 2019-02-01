@@ -4,7 +4,7 @@ import * as admin from 'firebase-admin';
 import uniqid from 'uniqid';
 
 import { taskIdRegex } from "../helpers";
-import { IChunk } from "../../../types/SE";
+import { IChunk, ISoundEditingAllotment } from "../../../types/SE";
 
 const db = admin.database();
 
@@ -21,7 +21,7 @@ export const processNewAllotment = functions.database
   .onCreate(async (snapshot, context) => {
     const coordinator = functions.config().coordinator;
 
-    const allotment = snapshot.val();
+    const allotment: ISoundEditingAllotment = snapshot.val();
 
     const timestamp = new Date(allotment.timestamp);
 
