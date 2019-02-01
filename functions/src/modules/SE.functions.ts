@@ -4,6 +4,7 @@ import * as admin from 'firebase-admin';
 import uniqid from 'uniqid';
 
 import { taskIdRegex } from "../helpers";
+import { IChunk } from "../../../types/SE";
 
 const db = admin.database();
 
@@ -112,7 +113,7 @@ export const createTaskFromChunks = functions.database.ref(
     taskId: currentTaskId,
     beginning,
     ending
-  } = snapshot.val();
+  }: IChunk = snapshot.val();
 
   if (processingResolution.toLowerCase() !== "ok" || currentTaskId) return;
   const chunksPath = `${basePath}chunks/${listId}/`;
@@ -122,7 +123,7 @@ export const createTaskFromChunks = functions.database.ref(
       .orderByKey()
       .limitToLast(1)
       .once("value");
-  const chunks = chunkResponse.val() || [];
+  const chunks: IChunk[] = chunkResponse.val() || [];
   let taskId;
   let duration;
   const allChunks = [snapshot.val()];
@@ -132,7 +133,7 @@ export const createTaskFromChunks = functions.database.ref(
     const nextChunkResponse = await db
         .ref(`${chunksPath}${continuationTo}`)
         .once("value");
-    const nextChunks = nextChunkResponse.val();
+    const nextChunks: IChunk[] = nextChunkResponse.val();
     if (nextChunks) {
       const nextChunk = nextChunks[0];
       allChunks.push(nextChunk);
@@ -156,7 +157,7 @@ export const createTaskFromChunks = functions.database.ref(
         .ref(`${chunksPath}${continuationFrom}`)
         .orderByKey()
         .limitToLast(1).once("value");
-    const previousChunks = previousChunkResponse.val();
+    const previousChunks: IChunk[] = previousChunkResponse.val();
     const previousChunk = previousChunks[previousChunks.length - 1];
     allChunks.unshift(previousChunk);
     taskId = makeTaskId(fileName, previousChunks.length + chunks.length - 1);

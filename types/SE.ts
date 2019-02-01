@@ -29,4 +29,17 @@ export interface ITask {
   soundIssues: ISoundIssue[];
   unwantedParts: IUnwantedPart[];
   restoration: IRestoration;
+  soundQualityRating: "Good" | "Average" | "Bad";
+  chunks: IChunk[];
+}
+
+export interface IChunk {
+  beginning: number;
+  ending: number;
+  continuationFrom?: string;
+  continuationTo?: string;
+  contentReporting?: any;
+  importTimestamp?: number;
+  processingResolution?: any;
+  taskId?: string;
 }
