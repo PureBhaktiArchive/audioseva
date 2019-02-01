@@ -13,3 +13,7 @@ export interface IFile {
   soundQualityReporting?: IReporting;
   contentReporting?: IReporting;
 }
+
+export interface IFiles {
+  [key: string]: { [key: string]: IFile };
+}

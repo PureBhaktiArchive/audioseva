@@ -14,6 +14,7 @@ import {
   withDefault,
   commaSeparated,
 } from '../utils/parsers';
+import { IFile } from "../../../types/Files";
 
 export enum ISoundQualityReportSheet {
   Allotments = 'Allotments',
@@ -261,7 +262,7 @@ export const processSubmission = functions.database
   );
 
   const coordinator = functions.config().coordinator;
-  const fileData = fileSnapshot.val();
+  const fileData: IFile = fileSnapshot.val();
 
   /**
    * 3.2 Get the author's Allotments in ('given' || 'WIP') state
