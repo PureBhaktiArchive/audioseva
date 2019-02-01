@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { IFiles } from "../../../types/Files";
 
 const bucket = admin.storage().bucket();
 const db = admin.database();
@@ -71,7 +72,7 @@ export const syncStorageToDB = functions.https.onRequest(async (req, res) => {
   //      2. Remove DB entries for MP3s that don't exist
   ///////////////////////////////////////////////////////
   const filesSnapshot = await db.ref(`/files`).once('value');
-  const files = filesSnapshot.val();
+  const files: IFiles = filesSnapshot.val();
 
   for (const list in files) {
     for (const file in files[list]) {
