@@ -47,7 +47,7 @@
         <div v-if="tasks.length">
           <v-layout align-center v-for="task in tasks" :key="task['.key']">
             <div :style="{ width: '60%' }">
-              <v-checkbox v-model="allotment.tasks" :value="task['.key']">
+              <v-checkbox v-model="allotment.taskIds" :value="task['.key']">
                 <div slot="label">
                   <code class="mr-2">{{ task[".key"] }}</code>
                   <v-chip :color="soundQualityRatingColor[task.soundQualityRating]">
@@ -100,7 +100,7 @@ export default class Allotment extends Mixins<
 >(UsersByRole, FirebaseShallowQuery) {
   allotment: ISoundEditingAllotment = {
     assignee: null,
-    tasks: [],
+    taskIds: [],
     comment: ""
   };
   selectedList: string = "";
@@ -145,31 +145,31 @@ export default class Allotment extends Mixins<
 
   async allot() {
     this.submissionStatus = "inProgress";
-    const {
-      assignee: { emailAddress, name },
-      ...other
-    } = this.allotmentt;
-    const data = {
-      ...other,
-      assignee: {
-        emailAddress,
-        name
-      },
-      timestamp: firebase.database.ServerValue.TIMESTAMP,
-      // @ts-ignore
-      user: fb.auth().currentUser.email
-    };
+    const { assignee, ...other } = this.allotment;
+    if (assignee) {
+      const { emailAddress, name } = assignee;
+      const data = {
+        ...other,
+        assignee: {
+          emailAddress,
+          name
+        },
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        // @ts-ignore
+        user: fb.auth().currentUser.email
+      };
 
-    await fb
-      .database()
-      .ref("/sound-editing/restoration/allotments")
-      .push()
-      .set(data);
-    this.submissionStatus = "complete";
+      await fb
+        .database()
+        .ref("/sound-editing/restoration/allotments")
+        .push()
+        .set(data);
+      this.submissionStatus = "complete";
+    }
   }
 
   reset() {
-    this.allotment = { assignee: null, tasks: [], comment: "" };
+    this.allotment = { assignee: null, taskIds: [], comment: "" };
     this.submissionStatus = "";
   }
 }

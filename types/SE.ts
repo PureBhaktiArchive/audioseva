@@ -1,4 +1,4 @@
-import { IAllotment } from "./Common";
+import { IAllotment, IBaseAllotment } from "./Common";
 
 type Status = "Spare" | "Given" | "In Review" | "Revise" | "Done";
 
@@ -42,4 +42,8 @@ export interface IChunk {
   importTimestamp?: number;
   processingResolution?: any;
   taskId?: string;
+}
+
+export interface ISoundEditingAllotment extends IBaseAllotment {
+  taskIds: string[];
 }
