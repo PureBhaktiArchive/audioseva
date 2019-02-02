@@ -7,13 +7,13 @@ interface ITimeSpan {
   ending: number;
 }
 
-interface ISoundIssue extends ITimeSpan {
+export interface ISoundIssue extends ITimeSpan {
   entireFile?: boolean;
   type: string;
   description: string;
 }
 
-interface IUnwantedPart extends ITimeSpan {
+export interface IUnwantedPart extends ITimeSpan {
   type: string;
   description: string;
 }
