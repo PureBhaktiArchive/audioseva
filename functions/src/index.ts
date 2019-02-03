@@ -23,10 +23,11 @@ try {
  **      On Cloud Fucntions this will appear as SQR-updateFilesOnNewAllotment
  **
  **********************************************/
+import * as CR from './modules/CR.functions';
 import * as SQR from './modules/SQR.functions';
 import * as Files from './modules/Files.functions';
 import * as Email from './modules/Email.functions';
 import * as SE from './modules/SE.functions';
 import * as User from './modules/User.functions';
 
-export { SQR, Files, Email, SE, User };
+export { CR, SQR, Files, Email, SE, User };
