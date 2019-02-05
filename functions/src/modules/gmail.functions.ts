@@ -87,10 +87,10 @@ const saveLabelId = (labelId: string) => {
 
 // Fetch labelId from database if exists if not fetch from API and save in database
 const fetchLabelId = async (gmailClient: any): Promise<string> => {
-  const newGmailTokensRef = await db
+  const result = await db
     .ref(`/gmail/coordinator/labelId`)
     .once('value');
-  let labelId = newGmailTokensRef.val();
+  let labelId = result.val();
 
   if (!labelId) {
     const labelResults = await gmailClient.users.labels.list({ userId: 'me' });
