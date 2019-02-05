@@ -118,8 +118,6 @@ export const initWatch = functions.https.onRequest(
 
     try {
       const labelId: string = await fetchLabelId(gmail);
-      console.log('fetched label id: ', labelId);
-
       const watchResults = await gmail.users.watch({
         userId: 'me',
         requestBody: {
@@ -168,8 +166,6 @@ export const processMarkingSubmissionAsDone = functions.pubsub
     });
 
     const labelId: string = await fetchLabelId(gmail);
-    console.log('fetched label id: ', labelId);
-
     try {
       // Typescript complains if not initialized and casted to any
       const historyListRequest: any = {
