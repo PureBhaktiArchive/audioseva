@@ -9,7 +9,6 @@ const db = admin.database();
 
 const { client_key, secret } = functions.config().gmail;
 const oauth2Client = new Google.google.auth.OAuth2(client_key, secret);
-const DONE_LABEL = 'SQRDone';
 
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
@@ -96,10 +95,11 @@ const fetchLabelId = async (gmailClient: any): Promise<string> => {
   if (!labelId) {
     const labelResults = await gmailClient.users.labels.list({ userId: 'me' });
     labelId = labelResults.data.labels.filter(label => {
-      return label.name === DONE_LABEL;
+      return label.name === functions.config().gmail.label_name;
     })[0].id;
     saveLabelId(labelId);
   }
+
   return labelId;
 };
 
