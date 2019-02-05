@@ -2,25 +2,16 @@
   <div class="pa-2 elevation-2">
     <h1>Quality Check Submission Form</h1>
     <div :style="{ display: 'flex', justifyContent: 'center' }" v-if="isValidForm === null">
-      <p><v-progress-circular indeterminate></v-progress-circular></p>
+      <p>
+        <v-progress-circular indeterminate></v-progress-circular>
+      </p>
     </div>
     <div v-else-if="submissionComplete">
       <h3>Thank you! We have received your feedback</h3>
     </div>
     <v-form ref="form" v-else-if="isValidForm">
-      <v-text-field
-        :value="$route.params.taskId"
-        disabled
-        label="Task ID"
-      >
-      </v-text-field>
-      <v-checkbox
-        label="Approved"
-        v-model="qcForm.approved"
-        required
-        @change="validateForm"
-      >
-      </v-checkbox>
+      <v-text-field :value="$route.params.taskId" disabled label="Task ID"></v-text-field>
+      <v-checkbox label="Approved" v-model="qcForm.approved" required @change="validateForm"></v-checkbox>
       <v-select
         required
         v-model="qcForm.soundQualityRating"
@@ -28,8 +19,7 @@
         :rules="[v => !!v || 'This field is required']"
         label="Sound Quality Rating"
         v-if="qcForm.approved"
-      >
-      </v-select>
+      ></v-select>
       <v-textarea
         box
         ref="comments"
@@ -37,8 +27,7 @@
         :rules="commentRules"
         label="Comments"
         @blur="validateForm"
-      >
-      </v-textarea>
+      ></v-textarea>
       <v-btn @click="submit">submit</v-btn>
     </v-form>
     <div v-else>

@@ -1,7 +1,13 @@
 <template>
   <base-layout>
     <template slot="aboveContent">
-      <v-navigation-drawer fixed :clipped="$vuetify.breakpoint.lgAndUp" v-model="sidebar" app v-if="currentUser">
+      <v-navigation-drawer
+        fixed
+        :clipped="$vuetify.breakpoint.lgAndUp"
+        v-model="sidebar"
+        app
+        v-if="currentUser"
+      >
         <v-toolbar flat class="transparent">
           <v-list class="pa-0">
             <v-list-tile avatar>
@@ -36,14 +42,16 @@
               </v-list-tile>
               <menu-links :parentRoute="item" :routes="item.children"></menu-links>
             </v-list-group>
-            <v-list-tile :to="`/${item.path}`" v-else-if="item.meta.menuItem" :key="`no-nested-${index}`">
+            <v-list-tile
+              :to="`/${item.path}`"
+              v-else-if="item.meta.menuItem"
+              :key="`no-nested-${index}`"
+            >
               <v-list-tile-action>
                 <v-icon>{{ item.meta.menuIcon }}</v-icon>
               </v-list-tile-action>
               <v-list-tile-content>
-                <v-list-tile-title>
-                  {{ item.meta.menuName }}
-                </v-list-tile-title>
+                <v-list-tile-title>{{ item.meta.menuName }}</v-list-tile-title>
               </v-list-tile-content>
             </v-list-tile>
           </template>
@@ -58,12 +66,9 @@
       </v-navigation-drawer>
 
       <v-toolbar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
-        <v-toolbar-side-icon @click="sidebar = !sidebar" v-if="currentUser">
-        </v-toolbar-side-icon>
+        <v-toolbar-side-icon @click="sidebar = !sidebar" v-if="currentUser"></v-toolbar-side-icon>
         <v-toolbar-title>
-          <router-link to="/" tag="span" style="cursor: pointer">
-            {{ appTitle }}
-          </router-link>
+          <router-link to="/" tag="span" style="cursor: pointer">{{ appTitle }}</router-link>
         </v-toolbar-title>
       </v-toolbar>
     </template>
