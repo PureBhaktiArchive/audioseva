@@ -8,15 +8,18 @@ import * as moment from 'moment';
 const db = admin.database();
 
 const { client_key, secret } = functions.config().gmail;
-const oauth2Client = new Google.google.auth.OAuth2(
-  client_key,
-  secret,
-  'https://us-central1-audio-seva-team-test.cloudfunctions.net/Gmail-oauth2callback'
-);
+const oauth2Client = new Google.google.auth.OAuth2(client_key, secret);
+const DONE_LABEL = 'SQRDone';
 
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    const authURL = oauth2Client.generateAuthUrl({
+    const functionsURL = `https://${req.headers.host}/Gmail-oauth2callback`;
+    const client = new Google.google.auth.OAuth2(
+      client_key,
+      secret,
+      functionsURL
+    );
+    const authURL = client.generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
       scope: ['https://www.googleapis.com/auth/gmail.modify'],
@@ -33,8 +36,15 @@ const saveTokens = async (values: any) => {
 
 export const oauth2callback = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    const { tokens } = await oauth2Client.getToken(req.query.code);
-    oauth2Client.setCredentials(tokens);
+    const functionsURL = `https://${req.headers.host}/Gmail-oauth2callback`;
+    const oauth2ClientWithRedirect = new Google.google.auth.OAuth2(
+      client_key,
+      secret,
+      functionsURL
+    );
+
+    const { tokens } = await oauth2ClientWithRedirect.getToken(req.query.code);
+    oauth2ClientWithRedirect.setCredentials(tokens);
     await saveTokens(tokens);
     res.send('Ok');
   }
@@ -69,6 +79,30 @@ const storeHistoryIdInDatabase = async (historyId: any) => {
   });
 };
 
+const saveLabelId = (labelId: string) => {
+  const newGmailTokensRef = db.ref(`/gmail/coordinator`);
+  newGmailTokensRef.update({
+    labelId,
+  });
+};
+
+// Fetch labelId from database if exists if not fetch from API and save in database
+const fetchLabelId = async (gmailClient: any): Promise<string> => {
+  const newGmailTokensRef = await db
+    .ref(`/gmail/coordinator/labelId`)
+    .once('value');
+  let labelId = newGmailTokensRef.val();
+
+  if (!labelId) {
+    const labelResults = await gmailClient.users.labels.list({ userId: 'me' });
+    labelId = labelResults.data.labels.filter(label => {
+      return label.name === DONE_LABEL;
+    })[0].id;
+    saveLabelId(labelId);
+  }
+  return labelId;
+};
+
 export const initWatch = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
     // Initiate gmail client
@@ -83,26 +117,20 @@ export const initWatch = functions.https.onRequest(
     });
 
     try {
-      // Make sure we have the correct labelId because GMail internally gives a random one that is
-      // not based on the given name, so we need to filter it by the given name
-      const labelResults = await gmail.users.labels.list({
-        userId: 'me',
-      });
-      const doneLabelObj = labelResults.data.labels.filter(label => {
-        return label.name === 'Done';
-      })[0];
+      const labelId: string = await fetchLabelId(gmail);
+      console.log('fetched label id: ', labelId);
 
       const watchResults = await gmail.users.watch({
         userId: 'me',
         requestBody: {
-          labelIds: [doneLabelObj.id],
+          labelIds: [labelId],
           topicName: `projects/${
             process.env.GCLOUD_PROJECT
           }/topics/gmail-labeled-done`,
         },
       });
 
-      if (!watchResults.data || !doneLabelObj) {
+      if (!watchResults.data || !labelId) {
         return res
           .status(404)
           .send(`Something went wrong, check logs for Gmail-initWatch`);
@@ -112,11 +140,7 @@ export const initWatch = functions.https.onRequest(
       await storeHistoryIdInDatabase(watchResults.data.historyId);
       return res
         .status(200)
-        .send(
-          `Watch (${watchResults.data.historyId}) created on ${
-            doneLabelObj.name
-          }/${doneLabelObj.id} for coordinator`
-        );
+        .send(`Watch (${watchResults.data.historyId}) created`);
     } catch (error) {
       console.error(error);
       return res
@@ -143,12 +167,8 @@ export const processMarkingSubmissionAsDone = functions.pubsub
       auth: oauth2Client,
     });
 
-    const labelResults = await gmail.users.labels.list({
-      userId: 'me',
-    });
-    const doneLabelObj = labelResults.data.labels.filter(label => {
-      return label.name === 'Done';
-    })[0];
+    const labelId: string = await fetchLabelId(gmail);
+    console.log('fetched label id: ', labelId);
 
     try {
       // Typescript complains if not initialized and casted to any
@@ -156,7 +176,7 @@ export const processMarkingSubmissionAsDone = functions.pubsub
         userId: 'me',
         startHistoryId: lastSyncHistoryId,
         historyTypes: 'labelAdded',
-        labelId: [doneLabelObj.id],
+        labelId: [labelId],
       };
 
       // Call the history list api to fetch changes since last synced
