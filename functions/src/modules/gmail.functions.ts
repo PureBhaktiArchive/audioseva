@@ -184,7 +184,7 @@ export const processMarkingSubmissionAsDone = functions.pubsub
       if (!results.data.history || !results.data.history.length) {
         // Handle empty history, and update history id, then end the function
         await storeHistoryIdInDatabase(decodedMessage.historyId);
-        console.warn('History is empty, this should not happen');
+        console.info('History is empty, nothing to process');
         return;
       }
 
@@ -198,7 +198,8 @@ export const processMarkingSubmissionAsDone = functions.pubsub
 
       if (!onlyUniqueLabelsAdded || !onlyUniqueLabelsAdded.length) {
         await storeHistoryIdInDatabase(decodedMessage.historyId);
-        throw new Error('History is empty. Nothing to process');
+        console.info('History is empty, nothing to process');
+        return;
       }
 
       const allThreadsRequest = onlyUniqueLabelsAdded.map(threadId => {
