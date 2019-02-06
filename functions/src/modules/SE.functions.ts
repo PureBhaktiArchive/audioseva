@@ -131,7 +131,7 @@ export const createTaskFromChunks = functions.database.ref(
   const chunks = chunkResponse.val() || [];
   let taskId;
   let duration;
-  const allChunks = [snapshot.val()];
+  const allChunks = [{ ...snapshot.val(), fileName }];
 
   // check for next chunk and create task id with current chunk and next chunk
   if (continuationTo) {
@@ -151,11 +151,12 @@ export const createTaskFromChunks = functions.database.ref(
         duration = ending - beginning + (nextChunk.ending - nextChunk.beginning);
         await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
         await db.ref(`${chunksPath}${continuationTo}/0`).update({ taskId });
+        await snapshot.ref.child("fileName").set(fileName);
       } else {
         return;
       }
     } else {
-      return;
+      return await snapshot.ref.child("fileName").set(fileName);
     }
   } else if (continuationFrom) { // check for previous chunk
     const previousChunkResponse = await db
@@ -174,6 +175,7 @@ export const createTaskFromChunks = functions.database.ref(
       duration = chunkDuration + (previousChunk.ending - previousChunk.beginning);
       await db.ref(`${chunksPath}${continuationFrom}/${previousChunks.length - 1}`).update({ taskId });
       await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
+      await snapshot.ref.child("fileName").set(fileName);
     } else {
       console.error("Invalid continuationTo from previous chunk");
       return;
@@ -185,6 +187,8 @@ export const createTaskFromChunks = functions.database.ref(
       console.error("Task exists");
       return;
     }
+    await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
+    await snapshot.ref.child("fileName").set(fileName);
   }
   await db.ref(`${tasksPath}${taskId}`).set({
     chunks: allChunks,
@@ -195,140 +199,62 @@ export const createTaskFromChunks = functions.database.ref(
 
 /////////////////////////////////////////////////
 //               rearrangeChunks (DB create Trigger)
-//      1. loops through all the `flac` files under `source` folder in Storage
-//      2. gets corresponding DB nodes and applies CUTTING or MERGING depending
-//          on the data found in the DB node
+//      1. Loop through all chunks under task
+//      2. Cut files based on beginning and duration
+//      3. Merge files
 //
 /////////////////////////////////////////////////
 
-export const rearrangeChunks = functions.runWith({ memory: "512MB" }).database.ref(
+export const produceRoughEditedFile = functions.runWith({ memory: "512MB" }).database.ref(
     `${basePath}tasks/{list}/{taskId}`
 ).onCreate( async (snapshot, context) => {
   const { params: { list: listId, taskId } } = context;
   const rootDomain = functions.config().storage["root-domain"];
   const originalBucket = admin.storage().bucket(`original.${rootDomain}`);
   const roughEditedBucket = admin.storage().bucket(`rough.${rootDomain}`);
-  const ffmpegExecutable = ffmpeg.path;
+  const { chunks } = snapshot.val();
+  console.log(snapshot.val(), "snapshot");
+  const filesToCleanUp = ["/tmp/placeholder.flac", "/tmp/filesToMerge"];
 
-  const bucketFiles = (await originalBucket.getFiles())[0];
-
-  // Regex to get only files stored inside the `source` folder
-  const regex = /source\/(\w+)\/((\w+|-)+).flac/;
-  const audioChunks = bucketFiles.filter(file => {
-    return file.name.includes(`source/${listId}/${taskId.split("-").slice(0, 2).join("-")}`);
-  });
-
-  // data { Object }
-  //      contains every database node data in addition to
-  //      1. path of corresponding file in storage.
-  //      2. path of the file to create out of this node's corresponding file.
-  const data = {};
-
-
-  // lastChunk { Object }
-  //      Used in creating new names for generated files.
-  //      'Keys': here are serial numbers of each file.
-  //      'Value': number of file names containing this serial number
-  //      Example:
-  //          Files: [ 'BR-01A', 'BR-01B', 'BR-01C', 'BR-02A', 'BR-03A', 'BR-03B'  ]
-  //          lastChunk: { '01': 3, '02': 1, '03' 2 }
-  const lastChunk = {};
-
-  for (const audioChunk of audioChunks) {
-    const match = regex.exec(audioChunk.name);
-    const list = match[1], chunkName = match[2]; // chunkName: list-serialCHAR.flac --> BR-01A.flac
-
-    const chunkData = await db.ref(`/sound-editing/chunks/${list}/${chunkName}`).once('value');
-
-    // extract Serial and Character
-    const rgx = new RegExp(`${list}-(\\d+)(\\w+)`);
-    if (!chunkData.exists())
-      continue;
-
-    const serial = rgx.exec(chunkName)[1];
-    const charsToRemove = rgx.exec(chunkName)[2];
-
-
-    // some of the arrays contain in a strange manner `undefined`,
-    // so here I'm just getting rid of those `undefined`s
-    const chunks = chunkData.val().filter(chunk => chunk !== undefined);
-
-    if (!lastChunk[serial])
-      lastChunk[serial] = 0;
-
-    // Empty array for the current node
-    data[chunkName] = [];
-
-    // loop through the chunks grouped under a particular Serial number
-    for (let j = 0; j < chunks.length; j++) {
-      // incremented number here is used in the TO GENERATE file name
-      lastChunk[serial]++;
-
-      const chunk = chunks[j];
-
-      let newName = chunkName.slice(0, -charsToRemove.length) + `-${lastChunk[serial]}.flac`;
-
-      let beginning = (+chunk.beginning) - 120;
-      beginning = beginning < 0 ? 0: beginning;
-      const ending = +chunk.ending + 120;
-
-      await db
-          .ref(`${basePath}tasks/${listId}/${taskId}/chunks/${j}/editing`)
-          .update({ beginning, ending });
-
-      data[chunkName].push({
-        beginning,
-        duration: (ending) - (beginning),
-        newName: `/tmp/${newName}`,
-        destination: `edited/${newName}`,
-        src: `/tmp/${chunkName}.flac`
-      });
-
-      const flacFile = originalBucket.file(`source/${list}/${chunkName}.flac`); // source file
-
-      if (!fs.existsSync(`/tmp/${chunkName}.flac`))
-        await flacFile.download({ destination: `/tmp/${chunkName}.flac` });
-
-      const duration = (+chunk.ending) - (+chunk.beginning);
-
-      let cmd;
-      if (chunk['continuationFrom']) { // merge
-        //  chunkData['continuationFrom'] ==> Chunk to add to
-        const chunkToAddTo = data[chunk['continuationFrom']];
-
-        const chunkToAddToPath = chunkToAddTo[chunkToAddTo.length - 1].newName;
-
-        // Remove starting `/tmp/` from the name
-        newName = chunkToAddToPath.slice(5);
-
-        await flacFile.download({ destination: `/tmp/${newName}` });
-
-        const chunkToAdd = `/tmp/${chunkName}.flac`;
-
-        // Create a TEXT file having the Flac files to merge listed as follows:
-        //                  file '/path/to/src1.flac'
-        //                  file '/path/to/src2.flac'
-        // Then run the ffmpeg executable to start merging the to files
-        // into a file named `placeholder.flac`
-        // Finally, rename `placeholder.flac` to `src1.flac` (The original file)
-        cmd = `
-                    echo "file '${chunkToAddToPath}'" > /tmp/filesToMerge && echo "file '${chunkToAdd}'" >> /tmp/filesToMerge &&
-                    "${ffmpegExecutable}" -loglevel error -y -f concat -safe 0 -i /tmp/filesToMerge /tmp/placeholder.flac && mv /tmp/placeholder.flac ${chunkToAddToPath}
-                `;
-
-      } else {
-        cmd = `"${ffmpegExecutable}" -loglevel error -ss ${+chunk.beginning} -i /tmp/${chunkName}.flac -t ${duration} /tmp/${newName}`;
-      }
-
-      // Start Cutting/Merging files
-      await exec(cmd, { maxBuffer: 1024 * 10000 });
-      // Upload new created Flac file to `edited` folder on the Storage bucket
-      await roughEditedBucket.upload(
-          `/tmp/${newName}`,
-          { destination: `${listId}/${newName}`, resumable: false }
-      );
-      await db.ref(`${basePath}tasks/${listId}/${taskId}`).update({ roughFileCreated: true });
-      console.log(`/tmp/${newName} was uploaded successfully`);
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    const { fileName } = chunk;
+    const tmpFile = `/tmp/${fileName}.flac`;
+    const currentFile = originalBucket.file(`source/${listId}/${fileName}.flac`);
+    if (!fs.existsSync(tmpFile)) {
+      await currentFile.download({ destination: tmpFile});
+      filesToCleanUp.push(tmpFile);
     }
+
+    let beginning = (+chunk.beginning) - 120;
+    beginning = beginning < 0 ? 0: beginning;
+    const ending = +chunk.ending + 120;
+    const duration = (+chunk.ending) - (+chunk.beginning);
+    const chunkPath = `/tmp/${fileName}-${i}.flac`;
+
+    filesToCleanUp.push(chunkPath);
+    await db
+        .ref(`${basePath}tasks/${listId}/${taskId}/chunks/${i}/editing`)
+        .update({ beginning, ending });
+
+    const cutFileCommand = `
+    echo "file '/tmp/${fileName}-${i}.flac'" >> /tmp/filesToMerge && 
+    "${ffmpeg.path}" -loglevel error -ss ${+chunk.beginning} -i ${tmpFile} -t ${duration} ${chunkPath}
+    `;
+    await exec(cutFileCommand, { maxBuffer: 1024 * 10000 });
   }
+
+  const mergeCommand = `
+  "${ffmpeg.path}" -loglevel error -y -f concat -safe 0 -i /tmp/filesToMerge -c copy /tmp/placeholder.flac
+  `;
+  await exec(mergeCommand, { maxBuffer: 1024 * 10000 });
+  await roughEditedBucket.upload(
+      "/tmp/placeholder.flac",
+      { destination: `/${listId}/${taskId}.flac`, resumable: false }
+      );
+  await db.ref(`${basePath}tasks/${listId}/${taskId}`).update({ roughFileCreated: true });
+  for (const file of filesToCleanUp) {
+    fs.unlinkSync(file);
+  }
+  console.log(`/${listId}/${taskId}.flac uploaded successfully`);
 });
