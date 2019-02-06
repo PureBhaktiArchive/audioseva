@@ -26,7 +26,7 @@ export enum ISoundQualityReportSheet {
 //              Function --> sendEmailOnNewAllotment
 /////////////////////////////////////////////////
 export const updateFilesOnNewAllotment = functions.database
-  .ref('/sqr/allotments/{allotment_id}')
+  .ref('/allotments/soundQualityReporting/{pushId}')
   .onCreate((snapshot, context) => {
     const allotment = snapshot.val();
     const newDocKey = snapshot.key;
@@ -35,7 +35,7 @@ export const updateFilesOnNewAllotment = functions.database
     // and update their corresponding file objects
     allotment.files.forEach(async file => {
       const sqrRef = db.ref(
-        `/files/${allotment.list}/${file}/soundQualityReporting`
+        `/files/${file.split("-")[0]}/${file}/soundQualityReporting`
       );
 
       const sqrError = await sqrRef.update({
@@ -50,17 +50,18 @@ export const updateFilesOnNewAllotment = functions.database
 
         // case 1 -- the allotmnet is read from the spreadsheet
         if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
+          db.ref(`/allotments/soundQualityReporting/${newDocKey}`).update({
             filesAlloted: true,
           });
         // case 2 -- the allotmnet is inputted manually
         else
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
+          db.ref(`/allotments/soundQualityReporting/${newDocKey}`).update({
             filesAlloted: true,
             sendNotificationEmail: true,
           });
       }
     });
+    return Promise.resolve();
   });
 
 /**
@@ -71,7 +72,7 @@ export const updateFilesOnNewAllotment = functions.database
  * @function processAllotment()
  */
 export const processAllotment = functions.database
-  .ref('/sqr/allotments/{allotment_id}')
+  .ref('/allotments/soundQualityReporting/{pushId}')
   .onWrite(async (snapshot, context) => {
     const allotment = snapshot.after.val(); // new allotment
     const newDocKey = snapshot.after.key;
@@ -98,13 +99,13 @@ export const processAllotment = functions.database
       if (sqrError === undefined) {
         // case 1 -- the allotmnet is read from the spreadsheet
         if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1) {
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
+          db.ref(`/allotments/soundQualityReporting/${newDocKey}`).update({
             filesAlloted: true,
           });
         }
         // case 2 -- the allotmnet is inputted manually
         else {
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
+          db.ref(`/allotments/soundQualityReporting/'${newDocKey}`).update({
             filesAlloted: true,
             sendNotificationEmail: true,
           });
@@ -114,7 +115,7 @@ export const processAllotment = functions.database
 
     // Sends a notification to the assignee of the files he's allotted.
     const allotmentSnapshot = await db
-      .ref('/sqr/allotments')
+      .ref('/allotments/soundQualityReporting')
       .orderByChild('assignee/emailAddress')
       .equalTo(allotment.assignee.emailAddress)
       .once('value');
@@ -293,7 +294,7 @@ export const processSubmission = functions.database
 
 /**
  * Parse "Sound Issue" or "Unwanted parts" string to extract its different parts
- * 
+ *
  * @param string "Sound Issue" or "Unwanted parts" string to parse
  */
 const parseAudioChunkRemark = (string) => {
@@ -314,7 +315,7 @@ const parseAudioChunkRemark = (string) => {
     });
     matches = regex.exec(string);
   }
-  
+
   return tokens;
 }
 /////////////////////////////////////////////////
@@ -341,7 +342,7 @@ export const importSpreadSheetData = functions.https.onRequest(
       const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
       const soundIssues = parseAudioChunkRemark(row['Sound Issues']);
-      const unwantedParts = parseAudioChunkRemark(row['Unwanted Parts']); 
+      const unwantedParts = parseAudioChunkRemark(row['Unwanted Parts']);
 
       const submission = {
         completed: row['Completed'] || null,
