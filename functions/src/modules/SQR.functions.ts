@@ -82,11 +82,8 @@ export const processAllotment = functions.database
     // loop through the FILES array in the NEW ALLOTMENT object
     // and update their corresponding file objects
     allotment.files.forEach(async file => {
-      // Skip the current iteration if allotment.list doesn't exist
-      if (!allotment.list) return;
-
       const sqrRef = db.ref(
-        `/files/${allotment.list}/${file}/soundQualityReporting`
+        `/files/${file.split("-")[0]}/${file}/soundQualityReporting`
       );
       const sqrError = await sqrRef.update({
         status: 'Given',
