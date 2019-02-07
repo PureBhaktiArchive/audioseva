@@ -112,6 +112,24 @@
           }
         }
       }
+    },
+    "submissions": {
+      "soundQualityReporting": {
+        "$list": {
+          "$fileName": {
+            "$token": {
+              ".read": true,
+              ".write": "newData.exists() && root.child('files').child($list).child($fileName).child('soundQualityReporting').child('token').val() == $token && root.child('files').child($list).child($fileName).child('soundQualityReporting').child('status').val() != 'Done'",
+              "complete": {
+                ".validate": "!data.exists()"
+              },
+              "created": {
+                ".validate": "!data.exists()"
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
