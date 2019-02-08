@@ -50,7 +50,7 @@
         <div class="col-sm-10">
           <div class="checkbox-inline" v-for="language in languages">
             <label>
-              <input type="checkbox" v-model="filesSelector.languages" :value="language"></input>
+              <input type="checkbox" v-model="filesSelector.languages" :value="language" :disabled="loading"></input>
                 {{ language }}
               </label>
           </div>
@@ -63,7 +63,7 @@
           <template v-if="lists">
             <div class="radio-inline" v-for="list in lists">
               <label>
-                <input type="radio" v-model="filesSelector.list" :value="list" name="list" required>
+                <input type="radio" v-model="filesSelector.list" :value="list" name="list" required :disabled="loading">
                 {{ list }}
               </label>
             </div>
