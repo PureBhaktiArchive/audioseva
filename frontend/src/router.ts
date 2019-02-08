@@ -25,6 +25,11 @@ export const router = new Router({
       ]
     },
     {
+      path: "/restricted",
+      component: () => import("@/views/RestrictedView.vue"),
+      meta: { accessDenied: true }
+    },
+    {
       path: "/sound-editing/:taskId/quality-check/feedback",
       component: () => import("@/views/Layout/AnonymousLayout.vue"),
       children: [
@@ -125,7 +130,8 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Sound Engineering",
-            menuIcon: "fas fa-music"
+            menuIcon: "fas fa-music",
+            role: "SE"
           },
           children: [
             {
@@ -145,10 +151,12 @@ export const router = new Router({
   ]
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   let currentUser = firebase.auth().currentUser;
   let requireAuth = to.matched.some(record => record.meta.requireAuth);
   let guestOnly = to.matched.some(record => record.meta.guestOnly);
+  const userRoles = currentUser ? (await currentUser.getIdTokenResult()).claims : null;
+  if (to.meta.accessDenied) return next();
 
   if (requireAuth && !currentUser)
     next({
@@ -156,5 +164,17 @@ router.beforeEach((to, from, next) => {
       query: { redirect: to.fullPath }
     });
   else if (guestOnly && currentUser) next("/");
+  // restrict route access based on user role
+  else if (userRoles) {
+    if (userRoles.Coordinator) {
+      next();
+    }
+    else {
+      // reverse routes so nested routes can restrict access
+      const role = [...to.matched].reverse().find(({ meta }) => userRoles[meta.role]);
+      if (role) next();
+      else next({ path: "/restricted" })
+    }
+  }
   else next();
 });
