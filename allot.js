@@ -19,9 +19,9 @@ var app = new Vue({
     files: null,
     loading: false,
     filesSelector: {
-      language: null,
+      languages: [],
       list: null,
-      count: 20
+      count: 50
     },
     allotment: {
       devotee: null,
@@ -48,6 +48,8 @@ var app = new Vue({
     ).then(data => {
       this.lists = data;
     });
+
+    this.filesSelector.languages = this.languages;
   },
   methods: {
     allot: function() {
@@ -72,9 +74,9 @@ var app = new Vue({
         comment: null
       };
       this.filesSelector = {
-        language: null,
+        languages: [],
         list: null,
-        count: 20
+        count: 50
       };
       this.files = null;
       this.submissionStatus = null;
@@ -84,13 +86,10 @@ var app = new Vue({
     "allotment.devotee": function(newValue, oldValue) {
       if (newValue == null) return;
 
-      for (var language of this.languages) {
-        if (newValue.languages.includes(language))
-          this.filesSelector.language = language;
-      }
+      this.filesSelector.languages = this.languages;
     },
     filesSelector: {
-      handler: function(val, oldVal) {
+      handler: _.debounce(function(val, oldVal) {
         this.files = null;
         this.allotment.files = [];
 
@@ -109,7 +108,7 @@ var app = new Vue({
             this.loading = false;
             this.files = response.data;
           });
-      },
+      }, 1000),
       deep: true
     }
   },
