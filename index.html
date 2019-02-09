@@ -84,8 +84,8 @@
               <label>
                   <input type="checkbox" v-model="allotment.files" :value="file"></input>
                   <code>{{ file.filename }}</code>
-                  <span class="label label-default">{{ file.date || "No date" }}</span>
-                  <span class="label label-info">{{ file.language || "No language" }}</span>
+                  <span>{{ file.date || "No date" }}</span>
+                  <span>{{ file.language || "No language" }}</span>
                   <span>{{ file.notes }}</span>
                 </label>
             </div>
