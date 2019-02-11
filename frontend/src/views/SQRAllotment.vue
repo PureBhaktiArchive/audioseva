@@ -24,7 +24,7 @@
           <template v-else>
             <v-list-tile-content>
               <v-list-tile-title v-html="item.name"></v-list-tile-title>
-              <v-list-tile-sub-title v-html="item.emailAddress"></v-list-tile-sub-title>
+              <v-list-tile-sub-title v-html="item.emailaddress"></v-list-tile-sub-title>
             </v-list-tile-content>
           </template>
         </template>
@@ -106,14 +106,14 @@ export default {
   mounted: function() {
     // Getting devotees
     this.$http
-      .jsonp(process.env.VUE_APP_SCRIPT_URL, {
-        params: { path: "devotees", role: "SQR" }
+      .get(process.env.VUE_APP_DEVOTEES_URL, {
+        params: { phase: "SQR" }
       })
       .then(response => {
         this.devotees = response.body;
         if (this.$route.query.emailAddress) {
           this.allotment.devotee = this.devotees.find(
-            devotee => devotee.emailAddress === this.$route.query.emailAddress
+            devotee => devotee.emailaddress === this.$route.query.emailAddress
           );
         }
       });
@@ -143,9 +143,9 @@ export default {
         if (this.filter.list == null) return;
 
         this.$http
-          .jsonp(process.env.VUE_APP_SCRIPT_URL, {
+          .get(process.env.VUE_APP_FILES_URL, {
             params: {
-              path: "sqr/files",
+              phase: "sqr",
               list: this.filter.list,
               language: this.filter.language
             }
