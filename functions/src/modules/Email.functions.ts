@@ -1,20 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-
-// SendInBlue Helper Imports
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
-
-
-/**
- * Abort the execution if send_in_blue api key is not set
- * 
- * @method checkIfApiKeyExists()
- */
-export const checkIfApiKeyExists = () => {
-  if (!functions.config().send_in_blue || !functions.config().send_in_blue.key) {
-    console.error(`Error! Send in blue api key is not set.`);
-  }
-}
 
 
 const sendInBlueSecretKey = functions.config().send_in_blue ?
@@ -31,11 +17,26 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-// used for caching in `sendNotificationEmail` function
+// used for caching template IDs in `sendNotificationEmail` function
 const emailTemplates = {};
+
+
+
+/**
+ * Abort the execution if send_in_blue api key is not set
+ * 
+ * @method checkIfApiKeyExists()
+ */
+export const checkIfApiKeyExists = () => {
+  if (!functions.config().send_in_blue || !functions.config().send_in_blue.key) {
+    console.error(`Error! Send in blue api key is not set.`);
+  }
+}
+
 
 // SendInBlue Helper Functions
 export const sendEmail = async (to, bcc, replyTo, templateId, params) => {
+  checkIfApiKeyExists();
   let smtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
   smtpEmail = {
@@ -46,12 +47,12 @@ export const sendEmail = async (to, bcc, replyTo, templateId, params) => {
     params,
   };
 
-  checkIfApiKeyExists();
   const sendingResult = await apiInstance.sendTransacEmail(smtpEmail);
   console.log(sendingResult);
 };
 
 export const updateTemplate = async (templateId, html) => {
+  checkIfApiKeyExists();
   const updatedTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
 
   updatedTemplate.htmlContent = html;
@@ -64,6 +65,7 @@ export const updateTemplate = async (templateId, html) => {
 };
 
 export const createTemplate = async (templateName, sender, html, subject) => {
+  checkIfApiKeyExists();
   const smtpTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
 
   smtpTemplate.templateName = templateName;
@@ -77,6 +79,7 @@ export const createTemplate = async (templateName, sender, html, subject) => {
 };
 
 export const getTemplateId = async templateName => {
+  checkIfApiKeyExists();
   const opts = { templateStatus: true };
 
   checkIfApiKeyExists();
@@ -85,9 +88,10 @@ export const getTemplateId = async templateName => {
 
   const template = templates.filter(temp => temp['name'] === templateName)[0];
 
-  if (template === undefined) return -1;
-  // template not found
-  else return templates['id'];
+  if (!template)
+    return -1;
+
+  return template.id;
 };
 
 /////////////////////////////////////////////////
@@ -171,14 +175,15 @@ export const sendNotificationEmail = functions.database
   .ref('/email/notifications/{notification_id}')
   .onCreate(async (snapshot, context) => {
     const data = snapshot.val();
-    const templateName = snapshot.key;
+    const templateName = data.template;
 
-    console.log("Running sendNotificationEmail functions");
     let id;
     if (Object.keys(emailTemplates).indexOf(templateName) > -1)
       id = emailTemplates[templateName].id;
     else {
       id = await getTemplateId(templateName);
+      if (id === -1)
+        throw new Error(`Template "${templateName}" was not found on SendInBlue!`);
       emailTemplates[templateName] = { id };
     }
 
