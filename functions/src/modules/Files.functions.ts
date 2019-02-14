@@ -33,11 +33,9 @@ export const handleOriginalFileUploading = functions.storage
     const list = helpers.extractListFromFilename(fileName);
 
     const fileRef = db.ref(`/files/${list}/${fileName}`);
-    const file = (await fileRef.once('value')).val();
 
-    fileRef.set({
-      mp3Uploaded: isValidFile[3] ? true : file.mp3Uploaded,
-      flacUploaded: isValidFile[5] ? true : file.flacUploaded
+    await fileRef.update({
+      [isValidFile[3] ? 'mp3Uploaded' : 'flacUploaded']: true
     });
 
     return 1;
@@ -56,12 +54,11 @@ export const handleOriginalFileDeletion = functions.storage
 
     const fileName = nameParts[2] || nameParts[4];
     const list = helpers.extractListFromFilename(fileName);
-    const fileTypeFlag = nameParts[3] ? 'mp3Uploaded' : 'flacUploaded';
     const fileRef = db.ref(`/files/${list}/${fileName}`);
-    const update = {
-      [fileTypeFlag]: false
-    };
-    return fileRef.update(update);
+
+    return fileRef.update({
+      [nameParts[3] ? 'mp3Uploaded' : 'flacUploaded']: false
+    });
   });
 
 
@@ -89,11 +86,9 @@ export const syncStorageToDB = functions.https
       const list = helpers.extractListFromFilename(fileName);
 
       const fileRef = db.ref(`/files/${list}/${fileName}`);
-      const file = (await fileRef.once('value')).val();
 
-      fileRef.update({
-        mp3Uploaded: parts[3] ? true : file.mp3Uploaded,
-        flacUploaded: parts[5] ? true : file.flacUploaded,
+      await fileRef.update({
+        [parts[3] ? 'mp3Uploaded' : 'flacUploaded']: true
       });
     });
 

@@ -47,12 +47,19 @@ The main credentials, **databaseURL** & the **storageBucket** are automatically 
 # each arg must have at least 2-part key (e.g foo.bar)
 $ firebase functions:config:set website.base_url="Base url of the website"
 $ firebase functions:config:set send_in_blue.key="sendInBlue secret Key"
-# Coordinator details
+# SQR
 $ firebase functions:config:set sqr.allotment.templateid='String | template name'
+# Sound editing storage
+$ firebase functions:config:set storage.root-domain="Base URL for storage buckets"
+
+# Coordinator information
 $ firebase functions:config:set coordinator.email_address='EMAIL'
 $ firebase functions:config:set coordinator.timeZoneOffset=NUMBER of HOURs
 #Importing a spreadsheet to the database variables
 $ firebase functions:config:set sqr.spreadsheetId='Google Spreadsheet ID'
+# Import user registration to database
+$ firebase functions:config:set registrations.spreadsheet_id="Google Spreadsheet ID"
+
 ```
 
 Firebase Cloud Functions is written in **TypeScript**, if you are uploading the functions for the first time make sure you're selecting the language used in the project as **TypeScript** instead of the default **JavaScript**.
@@ -76,3 +83,12 @@ Deploy the functions:
 ```sh
 $ npm run deploy
 ```
+
+# Deploying Firebase Storage Rules!
+So far, one **target name** has been created [ uploads ], so the command needed to deploy the rules is:
+```sh
+$ firebase target:apply storage uploads <uploads bucket name>
+$ firebase deploy --only storage:uploads
+```
+
+later, when other **target name**s are added to the `firebase.json` file under the `storage` section, similar commands will be needed to deploy the new rules.

@@ -27,6 +27,6 @@ import * as SQR from './modules/SQR.functions';
 import * as Files from './modules/Files.functions';
 import * as Email from './modules/email.functions';
 import * as SE from './modules/SE.functions';
-import * as Authorization from './modules/Authorization.functions';
+import * as User from './modules/User.functions';
 
-export { SQR, Files, Email, Authorization, SE };
+export { SQR, Files, Email, SE, User };
