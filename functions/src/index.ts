@@ -25,7 +25,7 @@ try {
  **********************************************/
 import * as SQR from './modules/SQR.functions';
 import * as ReportingSync from './modules/reporting.sync.functions';
-import * as Email from './modules/email.functions';
+import * as Email from './modules/Email.functions';
 import * as SE from './modules/SE.functions';
 import * as User from './modules/User.functions';
 
