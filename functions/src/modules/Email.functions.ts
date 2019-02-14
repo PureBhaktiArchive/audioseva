@@ -154,13 +154,17 @@ export const sendNotificationEmail = functions.database
   .ref('/email/notifications}')
   .onCreate(async (snapshot, context) => {
     const data = snapshot.val();
-    const templateName = snapshot.key;
+    const templateName = data.template;
 
     let id;
     if (Object.keys(emailTemplates).indexOf(templateName) > -1)
       id = emailTemplates[templateName].id;
     else {
       id = await getTemplateId(templateName);
+
+      if (id === -1)
+        throw new Error(`Template "${templateName}" was not found on SendInBlue!`);
+
       emailTemplates[templateName] = { id };
     }
 
