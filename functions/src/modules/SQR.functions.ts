@@ -516,7 +516,7 @@ export const exportSubmissionsToSpreadsheet = functions.database
 
 export const processMarkingSubmissionAsDone = async (processObject: any) => {
   const listName = processObject.fileName.split("-")[0];
-  const soundQualityReporting = db.ref(`files/${listName}/${processObject.fileName}/soundQualityReporting`);
+  const fileRef = db.ref(`files/${listName}/${processObject.fileName}/soundQualityReporting`);
   const sqrResults = await soundQualityReporting.once('value');
   if (sqrResults.exists()) {
     await soundQualityReporting.update({
