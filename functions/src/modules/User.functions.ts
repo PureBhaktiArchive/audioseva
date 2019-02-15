@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin';
 import GoogleSheet from '../services/GoogleSheets';
 import { withDefault } from '../utils/parsers';
 import moment = require('moment');
+import { validateFirebaseIdToken } from '../utils/authorize';
 
 const db = admin.database();
 const userRoles = functions.database.ref('/users/{userId}/roles');
@@ -44,6 +45,7 @@ enum Decision {
  */
 export const importUserRegistrationData = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
+    await validateFirebaseIdToken(req, res);
     const gsheets: GoogleSheet = new GoogleSheet(
       functions.config().registrations.spreadsheet_id,
       'Registrations'

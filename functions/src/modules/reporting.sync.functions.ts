@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { validateFirebaseIdToken } from '../utils/authorize';
 
 const bucket = admin.storage().bucket();
 const db = admin.database();
@@ -50,6 +51,7 @@ export const importFilesFromStorage = functions.storage
 //      2. Remove DB entries for MP3s that don't exist (removeNonExistingMp3DBEntries)
 /////////////////////////////////////////////////
 export const syncStorageToDB = functions.https.onRequest(async (req, res) => {
+  await validateFirebaseIdToken(req, res);
   ///////////////////////////////////////////////////////
   //      1. Add the currently uploaded MP3s into the DB
   ///////////////////////////////////////////////////////

@@ -326,6 +326,7 @@ const parseAudioChunkRemark = string => {
 /////////////////////////////////////////////////
 export const importSpreadSheetData = functions.https.onRequest(
   async (req, res) => {
+    await validateFirebaseIdToken(req, res);
     const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
     ////////////////////////
@@ -530,11 +531,8 @@ export const exportSubmissionsToSpreadsheet = functions.database
 
 export const testAuthenticatedFunction = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    const authenticatedUser: any = await validateFirebaseIdToken(req, res);
-
-
-
-    console.log('Authenticated if it gets here, User: ', authenticatedUser);
+    await validateFirebaseIdToken(req, res);
+    console.log('Authenticated if it gets here, User: ');
     res.send('Authenticated, heres the stuff');
   }
 );
