@@ -7,7 +7,7 @@ import * as moment from 'moment';
 
 const db = admin.database();
 
-const { client_key, secret } = functions.config().gmail;
+const { client_key, secret } = functions.config().oauth;
 const oauth2Client = new Google.google.auth.OAuth2(client_key, secret);
 
 export const oauth2init = functions.https.onRequest(
@@ -87,9 +87,7 @@ const saveLabelId = (labelId: string) => {
 
 // Fetch labelId from database if exists if not fetch from API and save in database
 const fetchLabelId = async (gmailClient: any): Promise<string> => {
-  const result = await db
-    .ref(`/gmail/coordinator/labelId`)
-    .once('value');
+  const result = await db.ref(`/gmail/coordinator/labelId`).once('value');
   let labelId = result.val();
 
   if (!labelId) {

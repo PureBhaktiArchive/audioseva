@@ -59,8 +59,9 @@ $ firebase functions:config:set coordinator.timeZoneOffset=NUMBER of HOURs
 $ firebase functions:config:set sqr.spreadsheetId='Google Spreadsheet ID'
 # Gmail account triggers
 $ firebase functions:config:set coordinator.gmail.account="audiaseva.test@gmail.com"
-$ firebase functions:config:set coordinator.gmail.client_key="YOUR CLIENT KEY"
-$ firebase functions:config:set coordinator.gmail.secret="YOUR SECRET"
+# Oauth keys and secret
+$ firebase functions:config:set oauth.client_key="YOUR CLIENT KEY"
+$ firebase functions:config:set oauth.secret="YOUR SECRET"
 # Import user registration to database
 $ firebase functions:config:set registrations.spreadsheet_id="Google Spreadsheet ID"
 ```
