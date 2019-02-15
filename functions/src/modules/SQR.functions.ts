@@ -529,12 +529,12 @@ export const exportSubmissionsToSpreadsheet = functions.database
 
 export const processMarkingSubmissionAsDone = async (processObject: any) => {
   const listName = helpers.extractListFromFilename(processObject.fileName);
-  const soundQualityReporting = db.ref(
+  const fileRef = db.ref(
     `files/${listName}/${processObject.fileName}/soundQualityReporting`
   );
-  const sqrResults = await soundQualityReporting.once('value');
+  const sqrResults = await fileRef.once('value');
   if (sqrResults.exists()) {
-    await soundQualityReporting.update({
+    await fileRef.update({
       status: 'Done',
       timestampDone: processObject.lastThreadMessageTimestamp,
     });
