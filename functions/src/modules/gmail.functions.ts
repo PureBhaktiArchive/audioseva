@@ -127,9 +127,7 @@ export const initWatch = functions.https.onRequest(
       });
 
       if (!watchResults.data || !labelId) {
-        return res
-          .status(404)
-          .send(`Something went wrong, check logs for Gmail-initWatch`);
+        throw new Error('Empty watch results data or label id');
       }
 
       // Store the most recent historyId
