@@ -28,6 +28,6 @@ import * as ReportingSync from './modules/reporting.sync.functions';
 import * as Email from './modules/email.functions';
 import * as SE from './modules/SE.functions';
 import * as User from './modules/User.functions';
-import * as Gmail from './modules/gmail.functions';
+import * as Gmail from './modules/Gmail.functions';
 
 export { SQR, ReportingSync, Email, SE, User, Gmail };
