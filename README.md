@@ -61,6 +61,8 @@ $ firebase functions:config:set sqr.spreadsheetId='Google Spreadsheet ID'
 $ firebase functions:config:set coordinator.gmail.account="audiaseva.test@gmail.com"
 $ firebase functions:config:set coordinator.gmail.client_key="YOUR CLIENT KEY"
 $ firebase functions:config:set coordinator.gmail.secret="YOUR SECRET"
+# Import user registration to database
+$ firebase functions:config:set registrations.spreadsheet_id="Google Spreadsheet ID"
 ```
 
 Firebase Cloud Functions is written in **TypeScript**, if you are uploading the functions for the first time make sure you're selecting the language used in the project as **TypeScript** instead of the default **JavaScript**.
@@ -86,7 +88,9 @@ $ npm run deploy
 ```
 
 # Deploying Firebase Storage Rules!
+
 So far, one **target name** has been created [ uploads ], so the command needed to deploy the rules is:
+
 ```sh
 $ firebase target:apply storage uploads <uploads bucket name>
 $ firebase deploy --only storage:uploads
