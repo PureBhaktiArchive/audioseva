@@ -9,6 +9,7 @@ const db = admin.database();
 
 const { client_key, secret } = functions.config().oauth;
 const oauth2Client = new Google.google.auth.OAuth2(client_key, secret);
+const DONE_LABEL = 'gmail-labeled-done';
 
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
@@ -122,7 +123,7 @@ export const initWatch = functions.https.onRequest(
           labelIds: [labelId],
           topicName: `projects/${
             process.env.GCLOUD_PROJECT
-          }/topics/gmail-labeled-done`,
+          }/topics/${DONE_LABEL}`,
         },
       });
 
@@ -145,7 +146,7 @@ export const initWatch = functions.https.onRequest(
 );
 
 export const processMarkingSubmissionAsDone = functions.pubsub
-  .topic('gmail-labeled-done')
+  .topic(DONE_LABEL)
   .onPublish(async (message: Message) => {
     const decodedMessage = JSON.parse(
       Buffer.from(message.data, 'base64').toString('ascii')
