@@ -51,26 +51,30 @@ export const oauth2callback = functions.https.onRequest(
 );
 
 const fetchToken = async () => {
-  const queryResults = await db.ref(`/gmail/coordinator`).once('value');
-  const values = queryResults.val();
+  const queryResults = await db.ref(`/gmail/coordinator/oauth`).once('value');
+  const oauth = queryResults.val();
 
   // https://github.com/GoogleCloudPlatform/cloud-functions-gmail-nodejs/blob/master/lib/oauth.js#L62
   // https://github.com/googleapis/google-auth-library-nodejs/releases/tag/v2.0.0
   if (
-    !values.oauth.expiry_date ||
+    !oauth.expiry_date ||
     // moment().valueOf() = Unix timestamp in milliseconds + 1 minute
-    values.oauth.expiry_date < moment().valueOf() + 60000
+    oauth.expiry_date < moment().valueOf() + 60000
   ) {
     oauth2Client.credentials.refresh_token =
-      oauth2Client.credentials.refresh_token || values.oauth.refresh_token;
+      oauth2Client.credentials.refresh_token || oauth.refresh_token;
     const result = await oauth2Client.getAccessToken();
     await saveTokens(result.res.data);
-    return {
-      ...values,
-      oauth: result.res.data,
-    };
+    return result.res.data;
   }
-  return values;
+  return oauth;
+};
+
+const fetchHistorySyncId = async () => {
+  const queryResults = await db
+    .ref(`/gmail/coordinator/lastSyncHistoryId`)
+    .once('value');
+  return queryResults.val();
 };
 
 const storeHistoryIdInDatabase = async (historyId: any) => {
@@ -105,7 +109,7 @@ const fetchLabelId = async (gmailClient: any): Promise<string> => {
 export const initWatch = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
     // Initiate gmail client
-    const { oauth } = await fetchToken();
+    const oauth = await fetchToken();
     oauth2Client.setCredentials({
       access_token: oauth.access_token,
       refresh_token: oauth.refresh_token,
@@ -151,7 +155,8 @@ export const processMarkingSubmissionAsDone = functions.pubsub
     const decodedMessage = JSON.parse(
       Buffer.from(message.data, 'base64').toString('ascii')
     );
-    const { oauth, lastSyncHistoryId } = await fetchToken();
+    const oauth = await fetchToken();
+    const lastSyncHistoryId = await fetchHistorySyncId();
 
     oauth2Client.setCredentials({
       access_token: oauth.access_token,
