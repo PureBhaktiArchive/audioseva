@@ -17,8 +17,8 @@ import DataTable from "@/components/DataTable.vue";
 import TextField from "@/components/Inputs/TextField.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
 import Button from "@/components/SQRForm/DeleteButton.vue";
-import UnwantedPartsType from "@/components/SQRForm/UnwantedPartsType.vue";
 import SoundIssuesMixin from "@/components/SQRForm/SoundIssuesMixin";
+import SoundTypeRadioGroup from "@/components/SQRForm/SoundTypeRadioGroup.vue";
 
 @Component({
   name: "UnwantedParts",
@@ -38,7 +38,7 @@ export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
     beginning: TextField,
     ending: TextField,
     actions: Button,
-    type: UnwantedPartsType,
+    type: SoundTypeRadioGroup,
     description: TextArea
   };
 
@@ -50,6 +50,18 @@ export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
         props: {
           ...this.componentData.beginning.props,
           form: this.form
+        }
+      },
+      type: {
+        ...this.componentData.type,
+        props: {
+          ...this.componentData.type.props,
+          fields: [
+            { label: "Blank space", value: "blank space" },
+            { label: "Glitch", value: "glitch" },
+            { label: "Irrelevant part", value: "irrelevant" },
+            { label: "Other...", value: "other" }
+          ]
         }
       }
     };

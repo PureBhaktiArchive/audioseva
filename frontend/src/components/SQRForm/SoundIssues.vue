@@ -18,9 +18,9 @@ import DataTable from "@/components/DataTable.vue";
 import TextField from "@/components/Inputs/TextField.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
 import Button from "@/components/SQRForm/DeleteButton.vue";
-import SoundIssuesType from "@/components/SQRForm/SoundIssuesType.vue";
 import Checkbox from "@/components/Inputs/Checkbox.vue";
 import SoundIssuesMixin from "@/components/SQRForm/SoundIssuesMixin";
+import SoundTypeRadioGroup from "@/components/SQRForm/SoundTypeRadioGroup.vue";
 import _ from "lodash";
 
 @Component({
@@ -41,7 +41,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
     beginning: TextField,
     ending: TextField,
     actions: Button,
-    type: SoundIssuesType,
+    type: SoundTypeRadioGroup,
     description: TextArea,
     entireFile: Checkbox
   };
@@ -69,6 +69,18 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
         props: {
           ...this.formProps,
           form: this.form
+        }
+      },
+      type: {
+        ...this.componentData.type,
+        props: {
+          ...this.componentData.type.props,
+          fields: [
+            "Background noise",
+            { label: "Low/changing volume", value: "Volume" },
+            "Reverberation",
+            { label: "Other...", value: "other" }
+          ]
         }
       }
     };
