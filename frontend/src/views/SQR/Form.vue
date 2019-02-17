@@ -6,22 +6,22 @@
     <v-form ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
-          <template v-for="(label, index) in cancelFields" >
-            <v-flex xs12 :key="label" v-if="cancel === null || cancel === index + 1">
+          <template v-for="(item, index) in cancelFields" >
+            <v-flex xs12 :key="item.label" v-if="cancel === null || cancel === index + 1">
               <v-list class="cancel-list">
-                <v-list-group class="overflow" :style="{ border: cancelColors[index].border }" @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
-                  <v-list-tile :style="cancelColors[index]" slot="activator">
+                <v-list-group :style="{ border: item.colors.border }" @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
+                  <v-list-tile :style="item.colors" slot="activator">
                     <v-list-tile-content>
                       <v-list-tile-title :style="{ height: 'auto' }">
-                        {{ label }}
+                        {{ item.header }}
                       </v-list-tile-title>
                     </v-list-tile-content>
                   </v-list-tile>
-                  <div v-if="cancel !== null" :style="{ border: cancelColors[index].border }" class="pa-1">
+                  <div v-if="cancel !== null" :style="{ border: item.colors.border }" class="pa-1">
                     <v-checkbox
                       class="pa-2"
                       v-model="cancelCheck[index + 1]"
-                      :label="label"
+                      :label="item.label"
                       :rules="rules"
                     >
                     </v-checkbox>
@@ -186,24 +186,29 @@ export default class Form extends Vue {
     }
   ];
   cancelFields = [
-    "I'm unable to play or download the audio",
-    "The alloted lecture is not in my preferred language"
+    {
+      header: "CLICK HERE if you are unable to play or download the audio",
+      label: "I'm unable to play or download the audio",
+      colors: {
+        backgroundColor: "#fcf8e3",
+        color: "#8a6d3b",
+        border: "solid .2rem #faebcc"
+      }
+    },
+    {
+      header:
+        "CLICK HERE if the allotted lecture is not in your preferred language",
+      label: "The alloted lecture is not in my preferred language",
+      colors: {
+        backgroundColor: "#d9edf7",
+        color: "#31708f",
+        border: "solid .2rem #bce8f1"
+      }
+    }
   ];
   cancel: number | null = null;
   cancelComments = {};
   cancelCheck = {};
-  cancelColors = {
-    0: {
-      backgroundColor: "#fcf8e3",
-      color: "#8a6d3b",
-      border: "solid .2rem #faebcc"
-    },
-    1: {
-      backgroundColor: "#d9edf7",
-      color: "#31708f",
-      border: "solid .2rem #bce8f1"
-    }
-  };
   form: any = {};
   guidelines: any = {};
 
@@ -289,6 +294,10 @@ export default class Form extends Vue {
 <style scoped>
 >>> .v-list__group__header--active {
   overflow: auto;
+}
+
+.cancel-list {
+  padding: 0;
 }
 
 >>> .cancel-list .v-list__group__header__append-icon {
