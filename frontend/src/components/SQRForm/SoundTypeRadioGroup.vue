@@ -33,13 +33,15 @@ const statuses = [
   "Reverberation"
 ];
 
+type Field = { label: string; value: string } | string;
+
 @Component({
   name: "SoundTypeRadioGroup"
 })
 export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
   @Prop({ default: () => ({}) })
   fieldProps!: any;
-  @Prop() fields!: ({ label: string; value: string } | string)[];
+  @Prop() fields!: Field[];
   otherField: any = 1;
   otherTextField = "";
   selectedField: any = null;
@@ -71,15 +73,15 @@ export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
     this.updateForm(this.itemPath, e);
   }
 
-  getLabel(field: any) {
+  getLabel(field: Field) {
     return typeof field === "string" ? field : field.label;
   }
 
-  getFieldValue(field: any) {
+  getFieldValue(field: Field) {
     return typeof field === "string" ? field : field.value;
   }
 
-  isOtherOption(field) {
+  isOtherOption(field: Field) {
     if (typeof field === "string") return false;
     return field.value === "other";
   }
