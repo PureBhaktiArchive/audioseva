@@ -33,7 +33,7 @@
               </v-list>
             </v-flex>
           </template>
-          <template v-if="!cancel">
+          <template v-if="!cancel && Object.keys(form).length">
             <v-flex xs12>
               <h3>A. Audio File Name</h3>
               <v-text-field disabled :value="$route.params.fileName">
@@ -201,10 +201,7 @@ export default class Form extends Vue {
       border: "solid .2rem #bce8f1"
     }
   };
-  form: any = {
-    unwantedParts: [{}],
-    soundIssues: [{}]
-  };
+  form: any = {};
   guidelines: any = {};
 
   rules = [(v: any) => !!v || "Required field"];
@@ -242,6 +239,11 @@ export default class Form extends Vue {
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
       this.form = initialData;
+    } else {
+      this.form = {
+        unwantedParts: [{}],
+        soundIssues: [{}]
+      };
     }
   }
 
