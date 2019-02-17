@@ -29,7 +29,8 @@ Vue.use(Vuetify, {
     track: "fas fa-cut",
     quality: "fas fa-check",
     sound: "fas fa-music",
-    download: "fas fa-file-download"
+    download: "fas fa-file-download",
+    delete: "fas fa-trash"
   }
 });
 

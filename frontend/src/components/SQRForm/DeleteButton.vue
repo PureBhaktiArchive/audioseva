@@ -1,5 +1,5 @@
 <template>
-  <v-btn color="error" v-bind="buttonProps" @click="handleDelete">Delete</v-btn>
+  <v-icon v-text="'$vuetify.icons.delete'" color="error" v-bind="buttonProps" @click="handleDelete"></v-icon>
 </template>
 
 <script lang="ts">
