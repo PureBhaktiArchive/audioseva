@@ -25,9 +25,11 @@
                       :rules="rules"
                     >
                     </v-checkbox>
-                    <v-textarea outline class="pa-2" :rules="rules" v-model="cancelComments[index + 1]" box>
-                    </v-textarea>
-                    <v-btn type="submit">Confirm</v-btn>
+                    <div v-if="cancelCheck[index + 1]">
+                      <v-textarea outline class="pa-2" :rules="rules" v-model="cancelComments[index + 1]" box>
+                      </v-textarea>
+                      <v-btn type="submit">Confirm</v-btn>
+                    </div>
                   </div>
                 </v-list-group>
               </v-list>
