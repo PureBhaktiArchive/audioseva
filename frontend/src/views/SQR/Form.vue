@@ -8,7 +8,7 @@
         <v-layout wrap>
           <template v-for="(label, index) in cancelFields" >
             <v-flex xs12 :key="label" v-if="cancel === null || cancel === index + 1">
-              <v-list>
+              <v-list class="cancel-list">
                 <v-list-group class="overflow" :style="{ border: cancelColors[index].border }" @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
                   <v-list-tile :style="cancelColors[index]" slot="activator">
                     <v-list-tile-content>
@@ -288,6 +288,11 @@ export default class Form extends Vue {
 >>> .v-list__group__header--active {
   overflow: auto;
 }
+
+>>> .cancel-list .v-list__group__header__append-icon {
+  display: none;
+}
+
 .overflow {
   overflow: auto;
 }
