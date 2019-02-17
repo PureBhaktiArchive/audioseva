@@ -25,7 +25,7 @@
                       :rules="rules"
                     >
                     </v-checkbox>
-                    <v-textarea class="pa-2" :rules="rules" v-model="cancelComments[index + 1]" box>
+                    <v-textarea outline class="pa-2" :rules="rules" v-model="cancelComments[index + 1]" box>
                     </v-textarea>
                     <v-btn type="submit">Confirm</v-btn>
                   </div>
@@ -177,6 +177,7 @@ export default class Form extends Vue {
         pathOverride: "comments",
         fieldProps: {
           box: true,
+          outline: true,
           required: true
         }
       }
