@@ -33,7 +33,7 @@
               </v-list>
             </v-flex>
           </template>
-          <template v-if="!cancel && Object.keys(form).length">
+          <template v-if="!isCancelChecked && Object.keys(form).length">
             <v-flex xs12>
               <h3>A. Audio File Name</h3>
               <v-text-field disabled :value="$route.params.fileName">
@@ -276,6 +276,10 @@ export default class Form extends Vue {
     } = this.$route;
     const listId = getListId(fileName);
     return `/submissions/soundQualityReporting/${listId}/${fileName}/${token}`;
+  }
+
+  get isCancelChecked() {
+    return Object.values(this.cancelCheck).includes(true);
   }
 }
 </script>
