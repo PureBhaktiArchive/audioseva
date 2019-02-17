@@ -50,11 +50,11 @@
                   :is="field.component"
                 ></component>
               </template>
-              <v-expansion-panel popout inset>
+              <v-expansion-panel>
                 <v-expansion-panel-content>
-                  <div slot="header">Guidelines</div>
+                  <div :style="{ flex: '0' }" class="pr-2" slot="header">Guidelines</div>
                   <v-card>
-                    <v-card-text  v-html="field.guidelines">
+                    <v-card-text v-html="field.guidelines">
                     </v-card-text>
                   </v-card>
                 </v-expansion-panel-content>
