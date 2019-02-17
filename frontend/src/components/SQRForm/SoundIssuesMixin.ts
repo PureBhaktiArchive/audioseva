@@ -8,7 +8,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
   prefix: string | undefined;
 
   style = {
-    minWidth: "150px"
+    minWidth: "75px"
   };
 
   formProps = {
@@ -80,12 +80,12 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
     {
       text: "Beginning",
       value: "beginning",
-      width: "25%"
+      width: "15%"
     },
     {
       text: "Ending",
       value: "ending",
-      width: "25%"
+      width: "15%"
     },
     {
       text: "Type",

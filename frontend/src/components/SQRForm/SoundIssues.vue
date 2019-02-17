@@ -91,9 +91,10 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
   }
 
   get mappedHeaders(): any[] {
-    return [{ text: "Entire file", value: "entireFile" }, ...this.headers].map(
-      (header: any) => ({ ...header, sortable: false })
-    );
+    return [
+      { text: "Entire file", value: "entireFile", width: "10%" },
+      ...this.headers
+    ].map((header: any) => ({ ...header, sortable: false }));
   }
 }
 </script>
