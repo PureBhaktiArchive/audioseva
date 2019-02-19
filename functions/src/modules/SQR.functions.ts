@@ -306,17 +306,17 @@ export const processSubmission = functions.database
         .equalTo(submission.author.emailAddress).once("value")
     ).val();
 
-    const currentSet = [];
-
-    Object.entries(allotments).forEach(
-        ([fileName, { languages, soundQualityReporting: { timestampGiven, status } }]: any) => {
-          currentSet.push({
+    const currentSet = Object.entries(allotments);
+    currentSet.forEach(
+        (allotment: any, index, arr) => {
+          const [fileName, { languages, soundQualityReporting: { timestampGiven, status } }] = allotment;
+          arr[index] = {
             fileName,
             status,
             timestampGiven: timestampGiven ? moment(timestampGiven).format("M/D/YYYY") : "",
             daysPassed: timestampGiven ? moment().diff(timestampGiven, "days") : "Not available",
             languages
-          });
+          } as any;
         });
 
     const isFirstSubmission = Object.keys(allSubmissions).length <= 1;
