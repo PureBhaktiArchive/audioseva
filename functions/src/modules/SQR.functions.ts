@@ -229,16 +229,8 @@ const addSubmissionWarnings = async (
   }
   const response = (await db.ref(`/files/${listId}/${fileName}`).once("value")).val();
   if (!response) warnings.push(`Audio file name ${fileName} is not found in the backend!`);
-  let shouldShowStatusWarning = true;
-  if (status === "Given") {
-    for (const allotment of currentSet) {
-      if (allotment.status === "Given") {
-        shouldShowStatusWarning = false;
-        break;
-      }
-    }
-    if (shouldShowStatusWarning) warnings.push("It's time to allot!");
-  }
+  const givenAllotments = currentSet.filter((allotment) => allotment.status === "Given");
+  if (givenAllotments.length !== 1) warnings.push("It's time to allot!");
   return warnings;
 };
 
