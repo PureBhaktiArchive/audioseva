@@ -332,7 +332,8 @@ export const processSubmission = functions.database
         fileData,
         submission,
         isFirstSubmission,
-        warnings
+        warnings,
+        baseUrl: functions.config().website.base_url
       },
     });
   }
