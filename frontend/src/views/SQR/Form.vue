@@ -10,14 +10,14 @@
             <v-flex xs12 :key="item.label" v-if="cancel === null || cancel === index + 1">
               <v-list class="cancel-list">
                 <v-list-group @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
-                  <v-list-tile :style="item.colors" slot="activator">
+                  <v-list-tile :style="item.styles" slot="activator">
                     <v-list-tile-content>
                       <v-list-tile-title :style="{ height: 'auto' }">
                         {{ item.header }}
                       </v-list-tile-title>
                     </v-list-tile-content>
                   </v-list-tile>
-                  <div v-if="cancel !== null" :style="{ border: item.colors.border }" class="pa-1">
+                  <div v-if="cancel !== null" :style="{ border: item.styles.border }" class="pa-1">
                     <v-checkbox
                       class="pa-2"
                       v-model="cancelCheck[index + 1]"
@@ -189,20 +189,24 @@ export default class Form extends Vue {
     {
       header: "CLICK HERE if you are unable to play or download the audio",
       label: "I'm unable to play or download the audio",
-      colors: {
+      styles: {
         backgroundColor: "#fcf8e3",
         color: "#8a6d3b",
-        border: "solid .2rem #faebcc"
+        border: "solid .2rem #faebcc",
+        whiteSpace: "none",
+        width: "100%"
       }
     },
     {
       header:
         "CLICK HERE if the allotted lecture is not in your preferred language",
       label: "The alloted lecture is not in my preferred language",
-      colors: {
+      styles: {
         backgroundColor: "#d9edf7",
         color: "#31708f",
-        border: "solid .2rem #bce8f1"
+        border: "solid .2rem #bce8f1",
+        whiteSpace: "none",
+        width: "100%"
       }
     }
   ];
