@@ -38,7 +38,8 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import fb from "@/firebaseApp";
+import firebase from "firebase/app";
+import "firebase/database";
 
 @Component({
   name: "QCSubmissionForm"
@@ -70,7 +71,7 @@ export default class QCSubmissionForm extends Vue {
         params: { taskId },
         query: { token }
       } = this.$route;
-      await fb
+      await firebase
         .database()
         .ref("sound-editing/restoration/quality-check/feedback")
         .push()
