@@ -46,8 +46,9 @@
 import { Component, Mixins } from "vue-property-decorator";
 import _ from "lodash";
 import firebase from "firebase";
+import "firebase/auth";
+import "firebase/database";
 import UsersByRole from "@/mixins/UsersByRole";
-import fb from "@/firebaseApp";
 import SoundQualityBadge from "@/components/SoundQualityBadge.vue";
 import SoundIssuesList from "@/components/SE/SoundIssuesList.vue";
 import { getListId } from "@/utility";
@@ -116,7 +117,7 @@ export default class QCAllotmentForm extends Mixins<UsersByRole>(UsersByRole) {
     const listId = getListId(this.taskId);
     this.$bindAsObject(
       "task",
-      fb.database().ref(`sound-editing/tasks/${listId}/${this.taskId}`)
+      firebase.database().ref(`sound-editing/tasks/${listId}/${this.taskId}`)
     );
   }
 
@@ -146,11 +147,11 @@ export default class QCAllotmentForm extends Mixins<UsersByRole>(UsersByRole) {
       },
       taskIds: [this.taskId],
       // @ts-ignore
-      user: fb.auth().currentUser.email,
+      user: firebase.auth().currentUser.email,
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       ...other
     };
-    await fb
+    await firebase
       .database()
       .ref(`sound-editing/restoration/quality-check/allotments`)
       .push()

@@ -1,5 +1,6 @@
 import { Component, Vue } from "vue-property-decorator";
-import fb from "@/firebaseApp";
+import firebase from "firebase/app";
+import "firebase/database";
 import { IUser } from "@/types/Users";
 
 const filteredStatus = ["Lost", "Opted out", "Incorrect", "Duplicate"];
@@ -14,7 +15,7 @@ export default class UserByRole extends Vue {
     if (!this.usersRole) throw new Error("Must select a role");
     this.$bindAsArray(
       this.usersBindName,
-      fb
+      firebase
         .database()
         .ref("/users")
         .orderByChild(`roles/${this.usersRole}`)

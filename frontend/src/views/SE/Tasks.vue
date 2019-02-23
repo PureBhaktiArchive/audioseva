@@ -58,7 +58,8 @@
 import { Component, Watch, Mixins } from "vue-property-decorator";
 import _ from "lodash";
 import moment from "moment";
-import fb from "@/firebaseApp";
+import firebase from "firebase/app";
+import "firebase/database";
 import DataTable from "@/components/DataTable.vue";
 import SoundIssuesList from "@/components/SE/SoundIssuesList.vue";
 import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
@@ -178,7 +179,7 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
     this.isLoadingLists = true;
     const response: any = await this.$http.get(
       `${
-        process.env.VUE_APP_FIREBASE_DATABASE_URL
+        (firebase.app().options as any).databaseURL
       }/sound-editing/tasks.json?shallow=true`
     );
     this.isLoadingLists = false;
@@ -190,7 +191,7 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
     this.isLoadingTasks = true;
     this.$bindAsArray(
       "tasks",
-      fb
+      firebase
         .database()
         .ref(`sound-editing/tasks/${this.lists[this.selectedButton]}`),
       null,
