@@ -312,6 +312,12 @@ export default class Form extends Vue {
   overflow: auto;
 }
 
+@media screen and (max-width: 1263px) {
+  >>> .hidden {
+    display: none !important;
+  }
+}
+
 @media only screen and (min-width: 660px) {
   .overflow {
     overflow: hidden;
