@@ -41,7 +41,7 @@
               <v-text-field disabled :value="$route.params.fileName">
               </v-text-field>
             </v-flex>
-            <v-flex xs12 v-for="(field, index) of fields" :key="index">
+            <v-flex class="my-2" :style="{ backgroundColor: '#fff' }" xs12 v-for="(field, index) of fields" :key="index">
               <h3>{{ field.title }}</h3>
               <template v-if="field.component">
                 <component
