@@ -1,5 +1,5 @@
 <template>
-  <v-checkbox :input-value="getValue()" @change="handleInput"></v-checkbox>
+  <v-checkbox v-bind="fieldProps" :input-value="getValue()" @change="handleInput"></v-checkbox>
 </template>
 
 <script lang="ts">

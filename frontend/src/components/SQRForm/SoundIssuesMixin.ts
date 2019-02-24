@@ -19,9 +19,15 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
   get componentData() {
     return {
       beginning: {
+        class: {
+          timeField: true
+        },
         props: {
           ...this.formProps,
           form: this.form,
+          styles: {
+            timeField: true
+          },
           fieldProps: {
             label: "Beginning",
             outline: true,
@@ -35,6 +41,9 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
         props: {
           ...this.formProps,
           form: this.form,
+          styles: {
+            timeField: true
+          },
           fieldProps: {
             label: "Ending",
             outline: true,

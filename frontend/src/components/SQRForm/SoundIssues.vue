@@ -1,13 +1,52 @@
 <template>
   <div>
-    <data-table
-      :computedComponent="computedComponent"
-      :componentData="customData"
-      :items="items"
-      :headers="mappedHeaders"
-      :styles="styles"
-    >
-    </data-table>
+    <v-card class="my-3" v-for="(item, index) in items" :key="index">
+      <v-card-title>
+        <v-layout justify-space-around row wrap>
+
+          <v-flex align-self-center xs12 class="d-flex justify-space-around pa-2" lg12>
+            <v-flex xs5>
+              <span>Sound issue #{{ index + 1}}</span>
+            </v-flex>
+            <v-flex :style="{ display: 'flex', justifyContent: 'flex-end' }" xs5>
+              <delete-button v-bind="getFieldProps(item, 'actions')" />
+            </v-flex>
+          </v-flex>
+
+          <v-flex xs12>
+            <v-divider></v-divider>
+          </v-flex>
+
+          <v-flex align-self-center xs12 sm5 md5 lg1>
+            <checkbox v-bind="getFieldProps(item, 'entireFile')"></checkbox>
+          </v-flex>
+          <V-flex xs5 class="hidden-lg-and-up hidden-xs-only" />
+
+          <v-flex
+            :class="hideField('beginning', item)"
+            align-self-center
+            class="d-flex justify-space-around"
+            :style="{ flexWrap: 'wrap', flexDirection: 'column' }"
+            xs12
+            sm5
+            lg2
+          >
+            <v-flex xs12>
+              <text-field v-bind="getFieldProps(item, 'beginning')"></text-field>
+            </v-flex>
+            <v-flex xs12>
+              <text-field v-bind="getFieldProps(item, 'ending')"></text-field>
+            </v-flex>
+          </v-flex>
+          <v-flex align-self-center xs12 sm5 lg3>
+            <sound-type-radio-group v-bind="getFieldProps(item, 'type')"></sound-type-radio-group>
+          </v-flex>
+          <v-flex align-self-center xs12 lg5>
+            <text-area v-bind="getFieldProps(item, 'description')"></text-area>
+          </v-flex>
+        </v-layout>
+      </v-card-title>
+    </v-card>
     <v-btn color="success" @click="addField">Add</v-btn>
   </div>
 </template>
@@ -17,7 +56,7 @@ import { Component, Mixins } from "vue-property-decorator";
 import DataTable from "@/components/DataTable.vue";
 import TextField from "@/components/Inputs/TextField.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
-import Button from "@/components/SQRForm/DeleteButton.vue";
+import DeleteButton from "@/components/SQRForm/DeleteButton.vue";
 import Checkbox from "@/components/Inputs/Checkbox.vue";
 import SoundIssuesMixin from "@/components/SQRForm/SoundIssuesMixin";
 import SoundTypeRadioGroup from "@/components/SQRForm/SoundTypeRadioGroup.vue";
@@ -25,7 +64,14 @@ import _ from "lodash";
 
 @Component({
   name: "SoundIssues",
-  components: { DataTable }
+  components: {
+    DeleteButton,
+    Checkbox,
+    TextArea,
+    SoundTypeRadioGroup,
+    TextField,
+    DataTable
+  }
 })
 export default class SoundIssues extends Mixins<SoundIssuesMixin>(
   SoundIssuesMixin
@@ -40,7 +86,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
   computedComponent = {
     beginning: TextField,
     ending: TextField,
-    actions: Button,
+    actions: DeleteButton,
     type: SoundTypeRadioGroup,
     description: TextArea,
     entireFile: Checkbox
@@ -48,7 +94,10 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
 
   styles = {
     beginning: this.hideField,
-    ending: this.hideField
+    ending: this.hideField,
+    entireFile: {
+      entireFile: true
+    }
   };
 
   hideField(value: any, item: any) {
@@ -58,7 +107,16 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
       false
     );
     return {
-      hidden: field
+      hidden: field,
+      timeField: true
+    };
+  }
+
+  getFieldProps(item, value) {
+    return {
+      ...this.customData[value].props,
+      item,
+      value
     };
   }
 
@@ -68,7 +126,11 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
       entireFile: {
         props: {
           ...this.formProps,
-          form: this.form
+          form: this.form,
+          fieldProps: {
+            class: "entireFile",
+            label: "Entire file"
+          }
         }
       },
       type: {
