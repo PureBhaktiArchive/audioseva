@@ -2,6 +2,7 @@
   <v-layout wrap>
     <v-flex xs6 class="pa-1" v-for="field in fields" :key="field">
       <v-text-field
+        outline
         placeholder="Enter the timing in (h:)mm:ss format"
         :label="field"
         @input="handleInput(field.toLowerCase(), $event)"
