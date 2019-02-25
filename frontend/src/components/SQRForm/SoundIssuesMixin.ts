@@ -65,7 +65,6 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           form: this.form,
           fieldProps: {
             box: true,
-            class: "pa-2",
             label: "Description",
             outline: true,
             rules: [(value: any) => !!value || "Required"]
