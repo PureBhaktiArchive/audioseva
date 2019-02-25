@@ -22,7 +22,7 @@ export const oauth2init = functions.https.onRequest(
     const authURL = client.generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
-      scope: ['https://www.googleapis.com/auth/gmail.modify'],
+      scope: ['https://www.googleapis.com/auth/gmail.readonly'],
       login_hint: functions.config().coordinator.gmail.account,
     });
     res.redirect(authURL);
@@ -44,7 +44,6 @@ export const oauth2callback = functions.https.onRequest(
     );
 
     const { tokens } = await oauth2ClientWithRedirect.getToken(req.query.code);
-    oauth2ClientWithRedirect.setCredentials(tokens);
     await saveTokens(tokens);
     res.send('Ok');
   }
@@ -91,14 +90,24 @@ const saveLabelId = (labelId: string) => {
 };
 
 // Fetch labelId from database if exists if not fetch from API and save in database
-const fetchLabelId = async (gmailClient: any): Promise<string> => {
+const fetchLabelId = async (): Promise<string> => {
   const result = await db.ref(`/gmail/coordinator/labelId`).once('value');
   let labelId = result.val();
 
   if (!labelId) {
+    const oauth = await fetchToken();
+    oauth2Client.setCredentials({
+      access_token: oauth.access_token,
+      refresh_token: oauth.refresh_token,
+    });
+    const gmailClient = await Google.google.gmail({
+      version: 'v1',
+      auth: oauth2Client,
+    });
+
     const labelResults = await gmailClient.users.labels.list({ userId: 'me' });
     labelId = labelResults.data.labels.filter(label => {
-      return label.name === functions.config().gmail.label_name;
+      return label.name === functions.config().coordinator.gmail.done.name;
     })[0].id;
     saveLabelId(labelId);
   }
@@ -120,7 +129,7 @@ export const initWatch = functions.https.onRequest(
     });
 
     try {
-      const labelId: string = await fetchLabelId(gmail);
+      const labelId: string = await fetchLabelId();
       const watchResults = await gmail.users.watch({
         userId: 'me',
         requestBody: {
@@ -167,7 +176,7 @@ export const processMarkingSubmissionAsDone = functions.pubsub
       auth: oauth2Client,
     });
 
-    const labelId: string = await fetchLabelId(gmail);
+    const labelId: string = await fetchLabelId();
     try {
       // Typescript complains if not initialized and casted to any
       const historyListRequest: any = {
