@@ -13,7 +13,7 @@ const DONE_LABEL = 'gmail-labeled-done';
 
 export const oauth2init = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    const functionsURL = `https://${req.headers.host}/Gmail-oauth2callback`;
+    const oauthCallbackURL = `https://${req.headers.host}/Gmail-oauth2callback`;
     const client = new Google.google.auth.OAuth2(
       client_key,
       secret,
