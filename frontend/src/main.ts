@@ -25,6 +25,7 @@ Vue.use(VueFire);
 Vue.use(Vuetify, {
   iconfont: "fa",
   icons: {
+    plus: "fas fa-plus",
     listening: "fas fa-headphones",
     track: "fas fa-cut",
     quality: "fas fa-check",

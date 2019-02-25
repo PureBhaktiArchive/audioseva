@@ -7,7 +7,10 @@
       :headers="mappedHeaders"
     >
     </data-table>
-    <v-btn color="success" @click="addField">Add</v-btn>
+    <v-btn color="success" @click="addField">
+      <v-icon small left v-text="`$vuetify.icons.plus`" />
+      Unwanted Part
+    </v-btn>
   </div>
 </template>
 

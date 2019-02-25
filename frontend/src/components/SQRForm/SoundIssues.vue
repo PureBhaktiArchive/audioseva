@@ -53,7 +53,10 @@
         </v-layout>
       </v-card-title>
     </v-card>
-    <v-btn color="success" @click="addField">Add</v-btn>
+    <v-btn color="success" @click="addField">
+      <v-icon small left v-text="`$vuetify.icons.plus`" />
+      Sound Issues
+    </v-btn>
   </div>
 </template>
 
