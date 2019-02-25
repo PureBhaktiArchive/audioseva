@@ -8,7 +8,12 @@
               <v-radio :value="getFieldValue(field)" label="Other...">
               </v-radio>
             </div>
-            <v-text-field @input="handleTextInput" :value="otherTextField" placeholder="Other"></v-text-field>
+            <v-text-field
+              outline
+              @input="handleTextInput"
+              :value="otherTextField"
+              placeholder="Other"
+            />
           </v-expansion-panel-content>
         </v-expansion-panel>
       </div>
