@@ -30,4 +30,4 @@ import * as SE from './modules/SE.functions';
 import * as User from './modules/User.functions';
 import * as Gmail from './modules/Gmail.functions';
 
-export { SQR, ReportingSync, Email, SE, User, Gmail };
+export { SQR, Files, Email, SE, User, Gmail };

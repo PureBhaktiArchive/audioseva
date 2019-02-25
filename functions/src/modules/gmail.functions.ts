@@ -17,7 +17,7 @@ export const oauth2init = functions.https.onRequest(
     const client = new Google.google.auth.OAuth2(
       client_key,
       secret,
-      functionsURL
+      oauthCallbackURL
     );
     const authURL = client.generateAuthUrl({
       access_type: 'offline',
