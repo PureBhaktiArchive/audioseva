@@ -308,13 +308,17 @@ export default class Form extends Vue {
   display: none;
 }
 
+>>> .v-expansion-panel {
+  box-shadow: none;
+}
+
 .overflow {
   overflow: auto;
 }
 
-@media screen and (max-width: 1263px) {
-  >>> .hidden {
-    display: none !important;
+@media screen and (min-width: 1904px) {
+  >>> .justify-xl-evenly {
+    justify-content: space-evenly;
   }
 }
 

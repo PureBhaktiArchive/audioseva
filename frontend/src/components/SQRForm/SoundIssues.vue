@@ -2,14 +2,14 @@
   <div>
     <v-card class="my-3" v-for="(item, index) in items" :key="index">
       <v-card-title>
-        <v-layout justify-space-around row wrap>
+        <v-layout class="justify-xl-evenly" justify-space-between wrap>
 
           <v-flex align-self-center xs12 class="d-flex justify-space-around pa-2" lg12>
             <v-flex xs5>
               <span>Sound issue #{{ index + 1}}</span>
             </v-flex>
             <v-flex :style="{ display: 'flex', justifyContent: 'flex-end' }" xs5>
-              <delete-button v-bind="getFieldProps(item, 'actions')" />
+              <delete-button v-bind="getFieldProps('actions', item)" />
             </v-flex>
           </v-flex>
 
@@ -17,32 +17,38 @@
             <v-divider></v-divider>
           </v-flex>
 
-          <v-flex align-self-center xs12 sm5 md5 lg1>
-            <checkbox v-bind="getFieldProps(item, 'entireFile')"></checkbox>
-          </v-flex>
-          <V-flex xs5 class="hidden-lg-and-up hidden-xs-only" />
-
           <v-flex
-            :class="hideField('beginning', item)"
             align-self-center
-            class="d-flex justify-space-around"
-            :style="{ flexWrap: 'wrap', flexDirection: 'column' }"
+            class="d-flex justify-space-between"
+            :style="{ flexWrap: 'wrap', flexDirection: 'row' }"
             xs12
-            sm5
-            lg2
+            sm6
+            md3
+            xl2
           >
-            <v-flex xs12>
-              <text-field v-bind="getFieldProps(item, 'beginning')"></text-field>
+            <v-flex xs12 md12 lg12>
+              <checkbox v-bind="getFieldProps('entireFile', item)"></checkbox>
             </v-flex>
-            <v-flex xs12>
-              <text-field v-bind="getFieldProps(item, 'ending')"></text-field>
+            <v-flex
+              :class="hideField('beginning', item)"
+              class="d-flex justify-space-between"
+              :style="{ flexWrap: 'wrap' }"
+              xs12>
+              <v-flex xs6 md12>
+                <text-field v-bind="getFieldProps('beginning', item)"></text-field>
+              </v-flex>
+              <v-flex xs6 md12>
+                <text-field v-bind="getFieldProps('ending', item)"></text-field>
+              </v-flex>
             </v-flex>
           </v-flex>
-          <v-flex align-self-center xs12 sm5 lg3>
-            <sound-type-radio-group v-bind="getFieldProps(item, 'type')"></sound-type-radio-group>
+
+          <v-flex align-self-center xs12 sm5 md3 xl2>
+            <sound-type-radio-group v-bind="getFieldProps('type', item)"></sound-type-radio-group>
           </v-flex>
-          <v-flex align-self-center xs12 lg5>
-            <text-area v-bind="getFieldProps(item, 'description')"></text-area>
+
+          <v-flex align-self-center xs12 md5 lg4 xl4>
+            <text-area v-bind="getFieldProps('description', item)"></text-area>
           </v-flex>
         </v-layout>
       </v-card-title>
@@ -83,23 +89,6 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
     updatePath: this.updatePath
   };
 
-  computedComponent = {
-    beginning: TextField,
-    ending: TextField,
-    actions: DeleteButton,
-    type: SoundTypeRadioGroup,
-    description: TextArea,
-    entireFile: Checkbox
-  };
-
-  styles = {
-    beginning: this.hideField,
-    ending: this.hideField,
-    entireFile: {
-      entireFile: true
-    }
-  };
-
   hideField(value: any, item: any) {
     const field = _.get(
       this.form,
@@ -107,12 +96,11 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
       false
     );
     return {
-      hidden: field,
-      timeField: true
+      hidden: field
     };
   }
 
-  getFieldProps(item, value) {
+  getFieldProps(value: string, item: any) {
     return {
       ...this.customData[value].props,
       item,
@@ -120,7 +108,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
     };
   }
 
-  get customData() {
+  get customData(): any {
     return {
       ...this.componentData,
       entireFile: {
@@ -128,8 +116,8 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
           ...this.formProps,
           form: this.form,
           fieldProps: {
-            class: "entireFile",
-            label: "Entire file"
+            label: "Entire file",
+            hideDetails: true
           }
         }
       },
@@ -163,6 +151,6 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
 
 <style>
 .hidden {
-  opacity: 0;
+  display: none !important;
 }
 </style>
