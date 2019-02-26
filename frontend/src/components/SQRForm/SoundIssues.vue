@@ -7,7 +7,7 @@
 
             <v-flex align-self-center xs12 class="d-flex justify-space-between justify-xl-evenly pb-2" lg12>
               <v-flex xs5>
-                <span>Sound issue #{{ index + 1}}</span>
+                <h3>Sound issue #{{ index + 1}}</h3>
               </v-flex>
               <v-flex :style="{ display: 'flex', justifyContent: 'flex-end' }" xs5>
                 <delete-button v-bind="getFieldProps('actions', item)" />
