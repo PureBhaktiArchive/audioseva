@@ -5,7 +5,7 @@
         <v-card-title>
           <v-layout class="justify-xl-evenly" justify-space-between wrap>
 
-            <v-flex align-self-center xs12 class="d-flex justify-space-around pa-2" lg12>
+            <v-flex align-self-center xs12 class="d-flex justify-space-between justify-xl-evenly pb-2" lg12>
               <v-flex xs5>
                 <span>Sound issue #{{ index + 1}}</span>
               </v-flex>
