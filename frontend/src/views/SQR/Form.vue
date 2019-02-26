@@ -7,7 +7,7 @@
       <v-container>
         <v-layout wrap>
           <template v-for="(item, index) in cancelFields" >
-            <v-flex xs12 :key="item.label" v-if="cancel === null || cancel === index + 1">
+            <v-flex xs12 :key="item.label">
               <v-list class="cancel-list">
                 <v-list-group @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
                   <v-list-tile :style="item.styles" slot="activator">
