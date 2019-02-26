@@ -240,10 +240,11 @@ export default class Form extends Vue {
 
   async removeField(field: string) {
     this.form = removeObjectKey(this.form, field);
+    const [updateFieldPath] = field.split(".");
     await fb
       .database()
-      .ref(`${this.submissionPath()}/${field.split(".").join("/")}`)
-      .remove();
+      .ref(`${this.submissionPath()}/${updateFieldPath}`)
+      .set(this.form[updateFieldPath]);
   }
 
   async handleSubmit() {
