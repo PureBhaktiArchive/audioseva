@@ -1,58 +1,60 @@
 <template>
   <div>
-    <v-card class="my-3" v-for="(item, index) in items" :key="index">
-      <v-card-title>
-        <v-layout class="justify-xl-evenly" justify-space-between wrap>
+    <template v-for="(item, index) in items">
+      <v-card class="my-3" v-if="form.soundIssues[item]" :key="index">
+        <v-card-title>
+          <v-layout class="justify-xl-evenly" justify-space-between wrap>
 
-          <v-flex align-self-center xs12 class="d-flex justify-space-around pa-2" lg12>
-            <v-flex xs5>
-              <span>Sound issue #{{ index + 1}}</span>
+            <v-flex align-self-center xs12 class="d-flex justify-space-around pa-2" lg12>
+              <v-flex xs5>
+                <span>Sound issue #{{ index + 1}}</span>
+              </v-flex>
+              <v-flex :style="{ display: 'flex', justifyContent: 'flex-end' }" xs5>
+                <delete-button v-bind="getFieldProps('actions', item)" />
+              </v-flex>
             </v-flex>
-            <v-flex :style="{ display: 'flex', justifyContent: 'flex-end' }" xs5>
-              <delete-button v-bind="getFieldProps('actions', item)" />
-            </v-flex>
-          </v-flex>
 
-          <v-flex xs12>
-            <v-divider></v-divider>
-          </v-flex>
-
-          <v-flex
-            align-self-center
-            class="d-flex justify-space-between"
-            :style="{ flexWrap: 'wrap', flexDirection: 'row' }"
-            xs12
-            sm6
-            md3
-            xl2
-          >
-            <v-flex xs12 md12 lg12>
-              <checkbox v-bind="getFieldProps('entireFile', item)"></checkbox>
+            <v-flex xs12>
+              <v-divider></v-divider>
             </v-flex>
+
             <v-flex
-              :class="hideField('beginning', item)"
+              align-self-center
               class="d-flex justify-space-between"
-              :style="{ flexWrap: 'wrap' }"
-              xs12>
-              <v-flex xs6 md12>
-                <text-field v-bind="getFieldProps('beginning', item)"></text-field>
+              :style="{ flexWrap: 'wrap', flexDirection: 'row' }"
+              xs12
+              sm6
+              md3
+              xl2
+            >
+              <v-flex xs12 md12 lg12>
+                <checkbox v-bind="getFieldProps('entireFile', item)"></checkbox>
               </v-flex>
-              <v-flex xs6 md12>
-                <text-field v-bind="getFieldProps('ending', item)"></text-field>
+              <v-flex
+                :class="hideField('beginning', item)"
+                class="d-flex justify-space-between"
+                :style="{ flexWrap: 'wrap' }"
+                xs12>
+                <v-flex xs6 md12>
+                  <text-field v-bind="getFieldProps('beginning', item)"></text-field>
+                </v-flex>
+                <v-flex xs6 md12>
+                  <text-field v-bind="getFieldProps('ending', item)"></text-field>
+                </v-flex>
               </v-flex>
             </v-flex>
-          </v-flex>
 
-          <v-flex align-self-center xs12 sm5 md3 xl2>
-            <sound-type-radio-group v-bind="getFieldProps('type', item)"></sound-type-radio-group>
-          </v-flex>
+            <v-flex align-self-center xs12 sm5 md3 xl2>
+              <sound-type-radio-group v-bind="getFieldProps('type', item)"></sound-type-radio-group>
+            </v-flex>
 
-          <v-flex align-self-center xs12 md5 lg4 xl4>
-            <text-area v-bind="getFieldProps('description', item)"></text-area>
-          </v-flex>
-        </v-layout>
-      </v-card-title>
-    </v-card>
+            <v-flex align-self-center xs12 md5 lg4 xl4>
+              <text-area v-bind="getFieldProps('description', item)"></text-area>
+            </v-flex>
+          </v-layout>
+        </v-card-title>
+      </v-card>
+    </template>
     <v-btn color="success" @click="addField">
       <v-icon small left v-text="`$vuetify.icons.plus`" />
       Sound Issues

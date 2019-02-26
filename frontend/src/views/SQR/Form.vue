@@ -238,8 +238,12 @@ export default class Form extends Vue {
     this.form = updateObject(this.form, field, value);
   }
 
-  removeField(field: string) {
+  async removeField(field: string) {
     this.form = removeObjectKey(this.form, field);
+    await fb
+      .database()
+      .ref(`${this.submissionPath()}/${field.split(".").join("/")}`)
+      .remove();
   }
 
   async handleSubmit() {
