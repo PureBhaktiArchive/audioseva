@@ -26,7 +26,15 @@
                     >
                     </v-checkbox>
                     <div v-if="cancelCheck[index + 1]">
-                      <v-textarea outline class="pa-2" :rules="rules" v-model="cancelComments[index + 1]" box>
+                      <v-textarea
+                        :placeholder="item.placeholder"
+                        label="Comment"
+                        outline
+                        class="pa-2"
+                        :rules="rules"
+                        v-model="cancelComments[index + 1]"
+                        box
+                      >
                       </v-textarea>
                       <v-btn type="submit">Confirm</v-btn>
                     </div>
@@ -189,6 +197,8 @@ export default class Form extends Vue {
     {
       header: "CLICK HERE if you are unable to play or download the audio",
       label: "I'm unable to play or download the audio",
+      placeholder:
+        "Please describe the problem here, we will allot you new lectures shortly",
       styles: {
         backgroundColor: "#fcf8e3",
         color: "#8a6d3b",
@@ -201,6 +211,8 @@ export default class Form extends Vue {
       header:
         "CLICK HERE if the allotted lecture is not in your preferred language",
       label: "The alloted lecture is not in my preferred language",
+      placeholder:
+        "Please let us know which language it is in here, we will allot you new lectures shortly.",
       styles: {
         backgroundColor: "#d9edf7",
         color: "#31708f",
