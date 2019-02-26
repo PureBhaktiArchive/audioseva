@@ -4,7 +4,7 @@
       <v-card-title>
         <v-layout class="justify-xl-evenly" justify-space-between wrap>
 
-          <v-flex align-self-center xs12 class="d-flex justify-space-between justify-xl-evenly pb-2" lg12>
+          <v-flex align-self-center xs12 class="d-flex justify-space-between pb-2" lg12>
             <v-flex xs5>
               <h3>Sound issue #{{ index + 1}}</h3>
             </v-flex>
@@ -34,10 +34,10 @@
               class="d-flex justify-space-between"
               :style="{ flexWrap: 'wrap' }"
               xs12>
-              <v-flex xs6 md12>
+              <v-flex class="pr-1" xs6>
                 <text-field v-bind="getFieldProps('beginning', item)"></text-field>
               </v-flex>
-              <v-flex xs6 md12>
+              <v-flex class="pl-1" xs6>
                 <text-field v-bind="getFieldProps('ending', item)"></text-field>
               </v-flex>
             </v-flex>
