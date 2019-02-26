@@ -312,6 +312,10 @@ export default class Form extends Vue {
   box-shadow: none;
 }
 
+>>> .v-card {
+  box-shadow: none;
+}
+
 .overflow {
   overflow: auto;
 }
