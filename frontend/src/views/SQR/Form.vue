@@ -317,6 +317,10 @@ export default class Form extends Vue {
   overflow: auto;
 }
 
+>>> .v-expansion-panel__header {
+  padding: 0;
+}
+
 .cancel-list {
   padding: 0;
 }
