@@ -321,6 +321,11 @@ export default class Form extends Vue {
   padding: 0;
 }
 
+>>> .v-card .v-input {
+  padding-top: 0;
+  margin-top: 0;
+}
+
 .cancel-list {
   padding: 0;
 }
