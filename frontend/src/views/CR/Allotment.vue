@@ -161,7 +161,7 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
         emailAddress
       },
       timestamp: firebase.database.ServerValue.TIMESTAMP,
-      user: firebase.auth().currentUser.email
+      user: (firebase as any).auth().currentUser.email
     };
     await firebase
       .database()
