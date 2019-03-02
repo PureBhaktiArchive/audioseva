@@ -2,7 +2,7 @@
   <v-radio-group :value="selectedField" v-bind="fieldProps" @change="handleRadioSelect">
     <template v-for="(field, index) in fields">
       <div class="other-option" v-if="isOtherOption(field)" :key="index">
-        <v-expansion-panel :value="otherField">
+        <v-expansion-panel :disabled="otherField === 0" :value="otherField">
           <v-expansion-panel-content hide-actions>
             <div slot="header">
               <v-radio :value="getFieldValue(field)" label="Other...">
