@@ -11,6 +11,7 @@
         :items="devotees || []"
         :loading="devotees === null"
         item-text="name"
+        item-value="id"
         label="Select a devotee"
         persistent-hint
         return-object
