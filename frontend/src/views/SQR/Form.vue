@@ -3,7 +3,10 @@
     <v-container>
       <h2>Sound Quality Report for {{ $route.params.fileName }}</h2>
     </v-container>
-    <v-form ref="form" @submit.prevent="handleSubmit">
+    <div v-if="isLoadingForm" class="d-flex justify-center">
+      <v-progress-circular indeterminate />
+    </div>
+    <v-form v-else ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
           <template v-for="(item, index) in cancelFields" >
@@ -227,6 +230,7 @@ export default class Form extends Vue {
   cancelCheck = {};
   form: any = {};
   guidelines: any = {};
+  isLoadingForm = true;
 
   rules = [(v: any) => !!v || "Required field"];
 
@@ -265,6 +269,7 @@ export default class Form extends Vue {
   }
 
   populateForm() {
+    this.isLoadingForm = false;
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
       this.form = initialData;
