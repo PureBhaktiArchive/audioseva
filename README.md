@@ -59,6 +59,9 @@ $ firebase functions:config:set coordinator.timeZoneOffset=NUMBER of HOURs
 $ firebase functions:config:set sqr.spreadsheetId='Google Spreadsheet ID'
 # Import user registration to database
 $ firebase functions:config:set registrations.spreadsheet_id="Google Spreadsheet ID"
+# "Copy submissions into the processing sheet" sheet IDs
+$ firebase functions:config:set cr.submissions.spreadsheet.id="Google Spreadsheet ID"
+$ firebase functions:config:set cr.processing.spreadsheet.id="Google Spreadsheet ID"
 
 ```
 
