@@ -26,8 +26,15 @@ export const router = new Router({
     },
     {
       path: "/restricted",
-      component: () => import("@/views/RestrictedView.vue"),
-      meta: { accessDenied: true }
+      component: () => import("@/views/Layout/AnonymousLayout.vue"),
+      meta: { accessDenied: true },
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/RestrictedView.vue"),
+          meta: { accessDenied: true }
+        }
+      ]
     },
     {
       path: "/sound-editing/:taskId/quality-check/feedback",
