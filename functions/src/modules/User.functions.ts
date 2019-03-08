@@ -48,12 +48,10 @@ export const importUserRegistrationData = functions.https.onRequest(
     if (!(await validateFirebaseIdToken(req, res)))
       return res.status(403).send('Unauthorized');
 
-    const gsheets: GoogleSheet = new GoogleSheet(
-      functions.config().registrations.spreadsheet_id,
-      'Registrations'
-    );
+    const gsheets: GoogleSheet = new GoogleSheet(functions.config().registrations.spreadsheet_id);
+    const sheet = await gsheets.useSheet('Registrations');
 
-    const registrationRows = await gsheets.getRows();
+    const registrationRows = await sheet.getRows();
 
 
     const readyForDatabaseUpdate = registrationRows.map((row: any) => {

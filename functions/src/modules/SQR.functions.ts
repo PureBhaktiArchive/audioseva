@@ -334,10 +334,8 @@ export const importSpreadSheetData = functions.https.onRequest(
     ////////////////////////
     //     Submissions
     ////////////////////////
-    const submissionsSheet = new GoogleSheets(
-      spreadsheetId,
-      ISoundQualityReportSheet.Submissions
-    );
+    const submissionsSpreadsheet = new GoogleSheets(spreadsheetId);
+    const submissionsSheet = await submissionsSpreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
     const submissionsRows = await submissionsSheet.getRows();
     for (const row of submissionsRows) {
       const audioFileName = row['Audio File Name'];
@@ -369,10 +367,8 @@ export const importSpreadSheetData = functions.https.onRequest(
     //     Allotments
     ////////////////////////
 
-    const allotmentsSheet = new GoogleSheets(
-      spreadsheetId,
-      ISoundQualityReportSheet.Allotments
-    );
+    const allotmentsSpreadsheet = new GoogleSheets(spreadsheetId);
+    const allotmentsSheet = await allotmentsSpreadsheet.useSheet(ISoundQualityReportSheet.Allotments);
     const allotmentsRows = await allotmentsSheet.getRows();
 
     for (const row of allotmentsRows) {
@@ -425,11 +421,9 @@ export const exportAllotmentsToSpreadsheet = functions.database
       const { fileName } = context.params;
       const changedValues = change.after.val();
 
-      const gsheets = new GoogleSheets(
-        functions.config().sqr.spreadsheet_id,
-        ISoundQualityReportSheet.Allotments
-      );
-      const allotmentFileNames = await gsheets.getColumn('File Name');
+      const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
+      const sheet = await gsheets.useSheet(ISoundQualityReportSheet.Allotments);
+      const allotmentFileNames = await sheet.getColumn('File Name');
       const rowNumber = allotmentFileNames.indexOf(fileName) + 1;
       const { languages, notes, soundQualityReporting } = changedValues;
 
@@ -440,7 +434,7 @@ export const exportAllotmentsToSpreadsheet = functions.database
         followUp,
       } = soundQualityReporting;
 
-      const row: any = await gsheets.getRow(rowNumber);
+      const row: any = await sheet.getRow(rowNumber);
       row['Date Given'] = spreadsheetDateFormat(timestampGiven);
       row['Notes'] = withDefault(notes);
       row['Language'] = commaSeparated(languages);
@@ -449,7 +443,7 @@ export const exportAllotmentsToSpreadsheet = functions.database
       row['Email'] = withDefault(assignee.emailAddress);
       row['Date Done'] = spreadsheetDateFormat(timestampDone);
       row['Follow Up'] = withDefault(followUp);
-      await gsheets.updateRow(rowNumber, row);
+      await sheet.updateRow(rowNumber, row);
     }
   );
 
@@ -497,10 +491,9 @@ export const exportSubmissionsToSpreadsheet = functions.database
       snapshot: functions.database.DataSnapshot,
       context: functions.EventContext
     ): Promise<any> => {
-      const gsheets = new GoogleSheets(
-        functions.config().sqr.spreadsheet_id,
-        ISoundQualityReportSheet.Submissions
-      );
+
+      const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id)
+      const submissionSheet = await gsheets.useSheet(ISoundQualityReportSheet.Submissions);
       const {
         author,
         changed,
@@ -514,7 +507,7 @@ export const exportSubmissionsToSpreadsheet = functions.database
         unwantedParts,
       } = snapshot.val();
 
-      await gsheets.appendRow({
+      await submissionSheet.appendRow({
         Completed: spreadsheetDateFormat(completed),
         Updated: spreadsheetDateFormat(changed),
         'Submission Serial': context.params.submission_id,
