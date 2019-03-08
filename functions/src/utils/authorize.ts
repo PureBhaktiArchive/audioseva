@@ -18,8 +18,7 @@ export const validateFirebaseIdToken = async (
       'Authorization: Bearer <Firebase ID Token>',
       'or by passing a "__session" cookie.'
     );
-    res.status(403).send('Unauthorized');
-    return;
+    return false;
   }
 
   let idToken;
@@ -33,8 +32,7 @@ export const validateFirebaseIdToken = async (
     console.log('Found "__session" cookie');
     idToken = req.cookies.__session;
   } else {
-    res.status(403).send('Unauthorized');
-    return;
+    return false;
   }
   admin
     .auth()
@@ -46,10 +44,10 @@ export const validateFirebaseIdToken = async (
         console.error('Error while verifying Firebase ID token. User is null');
         res.status(403).send('Unauthorized');
       }
-      return user;
+      return true;
     })
     .catch(error => {
       console.error('Error while verifying Firebase ID token:', error);
-      res.status(403).send('Unauthorized');
+      return false
     });
 };
