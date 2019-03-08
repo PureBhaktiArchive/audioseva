@@ -40,6 +40,17 @@ export const validateFirebaseIdToken = async (
   try {
     if (!email)
       throw new Error('Error while trying to extract the email out of the token.');
+
+    const user = (await admin.database().ref(`/users`).orderByChild('emailAddress')
+      .equalTo(email).once(`value`)).val();
+
+    if (!user)
+      throw new Error(`No user exists with the following email at the database: ${email}`);
+
+    const roles = user[Object.keys(user)[0]].roles;
+    if (!roles || !roles.coordinator)
+      throw new Error(`User has no coordinator role`);
+
     return true;
   } catch (error) {
     console.error(error);
