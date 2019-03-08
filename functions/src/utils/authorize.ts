@@ -34,17 +34,15 @@ export const validateFirebaseIdToken = async (
   } else {
     return false;
   }
-  admin
-    .auth()
-    .verifyIdToken(idToken)
-    .then(decodedIdToken => {
-      const email = decodedIdToken.email;
-      if (!email)
-        throw new Error('Error while trying to extract the email out of the token.');
-      return true;
-    })
-    .catch(error => {
-      console.error(error);
-      return false
-    });
+
+  const decodedIdToken = await admin.auth().verifyIdToken(idToken);
+  const email = decodedIdToken.email;
+  try {
+    if (!email)
+      throw new Error('Error while trying to extract the email out of the token.');
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
 };
