@@ -45,7 +45,9 @@ enum Decision {
  */
 export const importUserRegistrationData = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    await validateFirebaseIdToken(req, res);
+    if (!(await validateFirebaseIdToken(req, res)))
+      return res.status(403).send('Unauthorized');
+
     const gsheets: GoogleSheet = new GoogleSheet(
       functions.config().registrations.spreadsheet_id,
       'Registrations'

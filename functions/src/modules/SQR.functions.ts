@@ -244,7 +244,7 @@ export const processSubmission = functions.database
     if (audioFileStatus !== 'WIP') {
       fileUpdate['notes'] = `${fileSnapshot.val().notes}\n${
         submission.comments
-      }`;
+        }`;
     }
 
     // if the audio has any cancellation then REMOVE the assignee from the file allotment
@@ -326,7 +326,9 @@ const parseAudioChunkRemark = string => {
 /////////////////////////////////////////////////
 export const importSpreadSheetData = functions.https.onRequest(
   async (req, res) => {
-    await validateFirebaseIdToken(req, res);
+    if (!(await validateFirebaseIdToken(req, res)))
+      return res.status(403).send('Unauthorized');
+
     const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
     ////////////////////////
@@ -531,7 +533,9 @@ export const exportSubmissionsToSpreadsheet = functions.database
 
 export const testAuthenticatedFunction = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    await validateFirebaseIdToken(req, res);
+    if (!(await validateFirebaseIdToken(req, res)))
+      return res.status(403).send('Unauthorized');
+
     console.log('Authenticated if it gets here, User: ');
     res.send('Authenticated, heres the stuff');
   }
