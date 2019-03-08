@@ -38,16 +38,13 @@ export const validateFirebaseIdToken = async (
     .auth()
     .verifyIdToken(idToken)
     .then(decodedIdToken => {
-      console.log('ID Token correctly decoded', decodedIdToken);
-      const user = decodedIdToken;
-      if (!user) {
-        console.error('Error while verifying Firebase ID token. User is null');
-        res.status(403).send('Unauthorized');
-      }
+      const email = decodedIdToken.email;
+      if (!email)
+        throw new Error('Error while trying to extract the email out of the token.');
       return true;
     })
     .catch(error => {
-      console.error('Error while verifying Firebase ID token:', error);
+      console.error(error);
       return false
     });
 };
