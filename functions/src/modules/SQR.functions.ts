@@ -407,6 +407,7 @@ export const importSpreadSheetData = functions.https.onRequest(
         allotment
       );
     }
+    return res.status(200).send('Function Ran Successfully');
   }
 );
 
@@ -537,6 +538,6 @@ export const testAuthenticatedFunction = functions.https.onRequest(
       return res.status(403).send('Unauthorized');
 
     console.log('Authenticated if it gets here, User: ');
-    res.send('Authenticated, heres the stuff');
+    return res.send('Authenticated, heres the stuff');
   }
 );

@@ -99,7 +99,7 @@ export const importUserRegistrationData = functions.https.onRequest(
       }
     });
 
-    res.status(200).send('Ok');
+    return res.status(200).send('Ok');
   }
 );
 
