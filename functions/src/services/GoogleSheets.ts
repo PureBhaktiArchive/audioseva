@@ -34,8 +34,7 @@ export default class GoogleSheets {
    * @param title the title of the new sheet
    */
   public async createSheet(title: String): Promise<any> {
-    if (!this.connection)
-      await this.connect();
+    if (!this.connection) await this.connect();
     const creatingResult = await this.connection.spreadsheets.batchUpdate({
       spreadsheetId: this.spreadsheetId,
       resource: {
@@ -45,12 +44,10 @@ export default class GoogleSheets {
     return creatingResult;
   }
 
-
   public async getSheetNames() {
-    if (!this.connection)
-      await this.connect();
+    if (!this.connection) await this.connect();
     const sheetsMetadata: any = await this.connection.spreadsheets.get({
-      spreadsheetId: this.spreadsheetId
+      spreadsheetId: this.spreadsheetId,
     });
     return sheetsMetadata.data.sheets.map(sheet => sheet.properties.title);
   }

@@ -44,11 +44,12 @@ enum Decision {
  */
 export const importUserRegistrationData = functions.https.onRequest(
   async (req: functions.Request, res: functions.Response) => {
-    const gsheets: GoogleSheet = new GoogleSheet(functions.config().registrations.spreadsheet_id);
+    const gsheets: GoogleSheet = new GoogleSheet(
+      functions.config().registrations.spreadsheet_id
+    );
     const sheet = await gsheets.useSheet('Registrations');
 
     const registrationRows = await sheet.getRows();
-
 
     const readyForDatabaseUpdate = registrationRows.map((row: any) => {
       return {
