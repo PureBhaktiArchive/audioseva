@@ -10,6 +10,7 @@ import {
   withDefault,
   commaSeparated,
 } from '../utils/parsers';
+import { URL } from 'url';
 
 export enum ISoundQualityReportSheet {
   Allotments = 'Allotments',
@@ -353,6 +354,12 @@ export const processSubmission = functions.database
         isFirstSubmission
       );
 
+      const allotmentUrl = new URL(
+        '/sqr/allot',
+        functions.config().website.base_url
+      );
+      allotmentUrl.search = `emailaddress=${submission.author.emailAddress}`;
+
       // 3.4 Notify the coordinator
       // Sending the notification Email Finally
       db.ref(`/email/notifications`).push({
@@ -364,7 +371,7 @@ export const processSubmission = functions.database
           submission,
           isFirstSubmission,
           warnings,
-          baseUrl: functions.config().website.base_url,
+          allotmentUrl,
         },
       });
     }
