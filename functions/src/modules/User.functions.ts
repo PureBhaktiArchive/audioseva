@@ -42,8 +42,19 @@ enum Decision {
  * 2. Do not import if user email already exists
  *
  */
-export const importUserRegistrationData = functions.https.onRequest(
-  async (req: functions.Request, res: functions.Response) => {
+export const importUserRegistrationData = functions.https.onCall(
+  async (data, context) => {
+    if (
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
+    ) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
+    }
+
     const gsheets: GoogleSheet = new GoogleSheet(
       functions.config().registrations.spreadsheet_id
     );
@@ -93,8 +104,6 @@ export const importUserRegistrationData = functions.https.onRequest(
         await usersRef.push(spreadsheetRecord);
       }
     });
-
-    res.status(200).send('Ok');
   }
 );
 
