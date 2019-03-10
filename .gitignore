@@ -1,7 +1,9 @@
 .DS_Store
 node_modules
 dist
-.firebase
+lib
+*.local
+*.cache
 .firebaserc
 
 # local env files
