@@ -90,7 +90,6 @@ import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
 import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
 import Duration from "@/components/SQRForm/Duration.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
-import fb from "@/firebaseApp";
 import { updateObject, getListId, removeObjectKey } from "@/utility";
 
 @Component({
@@ -245,7 +244,7 @@ export default class Form extends Vue {
   async removeField(field: string) {
     this.form = removeObjectKey(this.form, field);
     const [updateFieldPath] = field.split(".");
-    await fb
+    await firebase
       .database()
       .ref(`${this.submissionPath()}/${updateFieldPath}`)
       .set(this.form[updateFieldPath]);
@@ -262,7 +261,7 @@ export default class Form extends Vue {
   getSavedData() {
     this.$bindAsObject(
       "initialData",
-      fb.database().ref(this.submissionPath()),
+      firebase.database().ref(this.submissionPath()),
       null,
       this.populateForm
     );
@@ -296,7 +295,7 @@ export default class Form extends Vue {
       if (this.initialData[".value"] === null) {
         data.created = firebase.database.ServerValue.TIMESTAMP;
       }
-      await fb
+      await firebase
         .database()
         .ref(this.submissionPath())
         .update(data);
