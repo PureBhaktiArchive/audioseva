@@ -46,6 +46,7 @@ The main credentials, **databaseURL** & the **storageBucket** are automatically 
 ```sh
 # each arg must have at least 2-part key (e.g foo.bar)
 $ firebase functions:config:set website.base_url="Base url of the website"
+$ firebase functions:config:set website.old.base_url="Base url of the old website"
 $ firebase functions:config:set send_in_blue.key="sendInBlue secret Key"
 # SQR
 $ firebase functions:config:set sqr.allotment.templateid='String | template name'
@@ -88,7 +89,9 @@ $ npm run deploy
 ```
 
 # Deploying Firebase Storage Rules!
+
 So far, one **target name** has been created [ uploads ], so the command needed to deploy the rules is:
+
 ```sh
 $ firebase target:apply storage uploads <uploads bucket name>
 $ firebase deploy --only storage:uploads
