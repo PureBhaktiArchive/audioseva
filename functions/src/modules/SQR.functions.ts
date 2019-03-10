@@ -323,8 +323,19 @@ const parseAudioChunkRemark = string => {
 //      2. Looks for two sheets --> Allotments & Submissions
 //      3. Loads their data into the equivalent Firebase database paths
 /////////////////////////////////////////////////
-export const importSpreadSheetData = functions.https.onRequest(
-  async (req, res) => {
+export const importSpreadSheetData = functions.https.onCall(
+  async (data, context) => {
+    if (
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
+    ) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
+    }
+
     const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
     ////////////////////////
