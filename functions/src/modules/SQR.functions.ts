@@ -353,6 +353,12 @@ export const processSubmission = functions.database
       );
       allotmentUrl.search = `emailaddress=${submission.author.emailAddress}`;
 
+      const updateUrl = new URL(
+        '/form/sound-quality-report',
+        functions.config().website.old.base_url
+      );
+      updateUrl.search = `token=${submission.token}`;
+
       // 3.4 Notify the coordinator
       // Sending the notification Email Finally
       db.ref(`/email/notifications`).push({
@@ -365,6 +371,7 @@ export const processSubmission = functions.database
           isFirstSubmission,
           warnings,
           allotmentUrl,
+          updateUrl,
         },
       });
     }
