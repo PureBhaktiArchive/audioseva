@@ -245,10 +245,10 @@ const addSubmissionWarnings = async (
     .once('value')).val();
   if (!response)
     warnings.push(`Audio file name ${fileName} is not found in the backend!`);
-  const givenAllotments = currentSet.filter(
-    allotment => allotment.status === 'Given'
-  );
-  if (givenAllotments.length !== 1) warnings.push("It's time to allot!");
+
+  if (currentSet.filter(allotment => allotment.status === 'Given').length === 1)
+    warnings.push("It's time to allot!");
+
   return warnings;
 };
 
@@ -327,23 +327,16 @@ export const processSubmission = functions.database
       const currentSet = Object.entries(allotments);
       currentSet.forEach((allotment: any, index, arr) => {
         const [
-          fileName,
           {
-            languages,
-            soundQualityReporting: { timestampGiven, status },
+            soundQualityReporting: { timestampGiven },
           },
         ] = allotment;
-        arr[index] = {
-          fileName,
-          status,
-          timestampGiven: timestampGiven
-            ? moment(timestampGiven).format('M/D/YYYY')
-            : '',
-          daysPassed: timestampGiven
-            ? moment().diff(timestampGiven, 'days')
-            : 'Not available',
-          languages,
-        } as any;
+        allotment.timestampGiven = timestampGiven
+          ? moment(timestampGiven).format('M/D/YYYY')
+          : '';
+        allotment.daysPassed = timestampGiven
+          ? moment().diff(timestampGiven, 'days')
+          : '';
       });
 
       const isFirstSubmission = Object.keys(allSubmissions).length <= 1;
