@@ -5,23 +5,21 @@
     {% endfor %}
   </div>
   <p>Current set:</p>
-  <div style="font-family: Courier,serif">
-    <ul>
-      {% for allotment in params.currentSet %}
-      <li>
-        {{ allotment.fileName }}
-        {{ allotment.timestampGiven }}
-        {{ allotment.status }}
-        {{ allotment.daysPassed }},
-        {{ allotment.languages | join: ", " }}
-        {% if allotment.fileName == params.submission.fileName %}
-        <strong> -- CURRENT SUBMISSION</strong>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-  </div>
-  <a href="{{ params.allotmentUrl }}">Allot the next set</a><br />
+  <ul style="font-family: Courier,serif">
+    {% for allotment in params.currentSet %}
+    <li>
+      {{ allotment.fileName }}
+      {{ allotment.timestampGiven }}
+      {{ allotment.status }}
+      {{ allotment.daysPassed }},
+      {{ allotment.languages | join: ", " }}
+      {% if allotment.fileName == params.submission.fileName %}
+      <strong> -- CURRENT SUBMISSION</strong>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <p><a href="{{ params.allotmentUrl }}">Allot the next set</a></p>
   <p>
     Please update your previous submission using this update link:
     <a href="{{ params.updateUrl }}">{{ params.updateUrl }}</a
