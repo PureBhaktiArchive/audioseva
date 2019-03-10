@@ -87,9 +87,9 @@
 
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
-import fb from "@/firebaseApp";
-// need this to use timestamp
 import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/database";
 import _ from "lodash";
 import UsersByRole from "@/mixins/UsersByRole";
 import ShallowQuery from "@/mixins/FirebaseShallowQuery";
@@ -141,7 +141,7 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
 
     this.$bindAsArray(
       "sqrFiles",
-      (fb as any)
+      firebase
         .database()
         .ref(`files/${this.filter.list}`)
         .orderByChild("soundQualityReporting/status")
@@ -183,10 +183,10 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
         emailAddress
       },
       timestamp: firebase.database.ServerValue.TIMESTAMP,
-      user: (fb as any).auth().currentUser.email
+      user: (firebase as any).auth().currentUser.email
     };
 
-    await (fb as any)
+    await firebase
       .database()
       .ref("sqr/allotments")
       .push()
