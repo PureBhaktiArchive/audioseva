@@ -87,8 +87,9 @@
 
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
-import fb from "@/firebaseApp";
 import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/database";
 import _ from "lodash";
 import UsersByRole from "@/mixins/UsersByRole";
 import ShallowQuery from "@/mixins/FirebaseShallowQuery";
@@ -140,7 +141,7 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
     if (language == null || list == null) return;
     this.$bindAsArray(
       "crFiles",
-      fb.database().ref(`files/${list}`),
+      firebase.database().ref(`files/${list}`),
       null,
       this.filterSelectedFiles
     );
@@ -160,9 +161,9 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
         emailAddress
       },
       timestamp: firebase.database.ServerValue.TIMESTAMP,
-      user: (fb as any).auth().currentUser.email
+      user: (firebase as any).auth().currentUser.email
     };
-    await fb
+    await firebase
       .database()
       .ref("cr/allotments")
       .push()

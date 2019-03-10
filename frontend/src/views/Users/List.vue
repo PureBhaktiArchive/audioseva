@@ -50,7 +50,8 @@
 import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
 import moment from "moment";
-import fb from "@/firebaseApp";
+import firebase from "firebase/app";
+import "firebase/database";
 import DataTable from "@/components/DataTable.vue";
 import InlineTextEdit from "@/components/InlineTextEdit.vue";
 import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
@@ -194,7 +195,7 @@ export default class List extends Vue {
   fetchUsers() {
     this.$bindAsArray(
       "users",
-      fb.database().ref("users"),
+      firebase.database().ref("users"),
       null,
       () => (this.isLoadingUsers = false)
     );
@@ -219,7 +220,8 @@ export default class List extends Vue {
         _.setWith(_.clone(item), itemPath, newValue, _.clone)
       );
     }
-    fb.database()
+    firebase
+      .database()
       .ref(refPath)
       .set(updates);
   }

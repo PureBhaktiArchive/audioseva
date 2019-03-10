@@ -2,7 +2,8 @@
  * sri sri guru gauranga jayatah
  */
 
-import fb from "@/firebaseApp";
+import firebase from "firebase/app";
+import "firebase/auth";
 
 import Vue from "vue";
 import VueResource from "vue-resource";
@@ -32,16 +33,35 @@ Vue.use(Vuetify, {
   }
 });
 
-// breaks tests
-export const db = fb.database();
+async function getFirebaseConfig(): Promise<Object> {
+  return process.env.NODE_ENV === "production"
+    ? /// loading config from Firebase Hosting reserved URL
+      /// https://firebase.google.com/docs/hosting/reserved-urls#sdk_auto-configuration
+      (await fetch("/__/firebase/init.json")).json()
+    : {
+        apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
+        authDomain: process.env.VUE_APP_FIREBASE_AUTH_DOMAIN,
+        databaseURL: process.env.VUE_APP_FIREBASE_DATABASE_URL,
+        projectId: process.env.VUE_APP_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.VUE_APP_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.VUE_APP_FIREBASE_MESSAGING_SENDER_ID
+      };
+}
 
-var unsubscribe = fb.auth().onAuthStateChanged(() => {
-  new Vue({
-    router,
-    store,
-    firebase: {},
-    render: h => h(App)
-  }).$mount("#app");
+getFirebaseConfig().then(config => {
+  firebase.initializeApp(config);
+  firebase.auth().onAuthStateChanged(user => {
+    store.commit("user/setCurrentUser", user);
+  });
 
-  unsubscribe();
+  const unsubscribe: any = firebase.auth().onAuthStateChanged(() => {
+    new Vue({
+      router,
+      store,
+      firebase: {},
+      render: h => h(App)
+    }).$mount("#app");
+
+    unsubscribe();
+  });
 });
