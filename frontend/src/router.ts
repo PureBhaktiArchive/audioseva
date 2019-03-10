@@ -55,6 +55,16 @@ export const router = new Router({
       ]
     },
     {
+      path: "/form/sound-quality-report/:fileName/:token",
+      component: () => import("@/views/Layout/AnonymousLayout.vue"),
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/SQR/Form.vue")
+        }
+      ]
+    },
+    {
       path: "/",
       meta: { requireAuth: true },
       component: () => import("@/views/Dashboard.vue"),
