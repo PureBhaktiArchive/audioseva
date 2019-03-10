@@ -243,7 +243,7 @@ export const processSubmission = functions.database
     if (audioFileStatus !== 'WIP') {
       fileUpdate['notes'] = `${fileSnapshot.val().notes}\n${
         submission.comments
-        }`;
+      }`;
     }
 
     // if the audio has any cancellation then REMOVE the assignee from the file allotment
@@ -290,15 +290,12 @@ export const processSubmission = functions.database
     return 1;
   });
 
-
-
-
 /**
  * Parse "Sound Issue" or "Unwanted parts" string to extract its different parts
- * 
+ *
  * @param string "Sound Issue" or "Unwanted parts" string to parse
  */
-const parseAudioChunkRemark = (string) => {
+const parseAudioChunkRemark = string => {
   /**
    * Regex to parse the value "Sound Issues" & "Unwanted Parts"
    * 'g' flag is used to match one or more occurences of the pattern
@@ -312,13 +309,13 @@ const parseAudioChunkRemark = (string) => {
       beginning: matches[2] ? null : matches[3],
       ending: matches[2] ? null : matches[4],
       type: matches[5].trim(),
-      description: matches[6].trim()
+      description: matches[6].trim(),
     });
     matches = regex.exec(string);
   }
 
   return tokens;
-}
+};
 /////////////////////////////////////////////////
 //          Import Submission and Allotments from a Spreadsheet(Http Triggered)
 //
@@ -330,12 +327,13 @@ export const importSpreadSheetData = functions.https.onRequest(
   async (req, res) => {
     const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
-
     ////////////////////////
     //     Submissions
     ////////////////////////
     const submissionsSpreadsheet = new GoogleSheets(spreadsheetId);
-    const submissionsSheet = await submissionsSpreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
+    const submissionsSheet = await submissionsSpreadsheet.useSheet(
+      ISoundQualityReportSheet.Submissions
+    );
     const submissionsRows = await submissionsSheet.getRows();
     for (const row of submissionsRows) {
       const audioFileName = row['Audio File Name'];
@@ -356,9 +354,11 @@ export const importSpreadSheetData = functions.https.onRequest(
         duration: {
           beginning: row['Beginning'],
           ending: row['Ending'],
-        }
+        },
       };
-      db.ref(`/submissions/soundQualityReporting/${list}/${audioFileName}/${token}`).set(submission);
+      db.ref(
+        `/submissions/soundQualityReporting/${list}/${audioFileName}/${token}`
+      ).set(submission);
     }
 
     ////////////////////////
@@ -366,7 +366,9 @@ export const importSpreadSheetData = functions.https.onRequest(
     ////////////////////////
 
     const allotmentsSpreadsheet = new GoogleSheets(spreadsheetId);
-    const allotmentsSheet = await allotmentsSpreadsheet.useSheet(ISoundQualityReportSheet.Allotments);
+    const allotmentsSheet = await allotmentsSpreadsheet.useSheet(
+      ISoundQualityReportSheet.Allotments
+    );
     const allotmentsRows = await allotmentsSheet.getRows();
 
     for (const row of allotmentsRows) {
@@ -376,24 +378,33 @@ export const importSpreadSheetData = functions.https.onRequest(
 
       const fileNameHasForbiddenChars = fileName.match(/[\.\[\]$#]/g);
       if (fileNameHasForbiddenChars) {
-        console.warn(`File "${fileName}" has forbidden characters that can't be used as a node name.`);
+        console.warn(
+          `File "${fileName}" has forbidden characters that can't be used as a node name.`
+        );
         continue;
       }
 
       const list = helpers.extractListFromFilename(fileName);
       const allotment = {
         status: row['Status'] || null,
-        timestampGiven: row['Date Given'] ? (new Date(row['Date Given'])).getTime() / 1000 : null,
-        timestampDone: row['Date Done'] ? (new Date(row['Date Done'])).getTime() / 1000 : null,
+        timestampGiven: row['Date Given']
+          ? new Date(row['Date Given']).getTime() / 1000
+          : null,
+        timestampDone: row['Date Done']
+          ? new Date(row['Date Done']).getTime() / 1000
+          : null,
         assignee: {
           emailAddress: row['Email'] || null,
-          name: row['Devotee'] || null
+          name: row['Devotee'] || null,
         },
-        followUp: row['Follow-up'] || null
-      }
-      db.ref(`/files/${list}/${fileName}/soundQualityReporting`).update(allotment);
+        followUp: row['Follow-up'] || null,
+      };
+      db.ref(`/files/${list}/${fileName}/soundQualityReporting`).update(
+        allotment
+      );
     }
-  });
+  }
+);
 
 /**
  * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
@@ -479,9 +490,10 @@ export const exportSubmissionsToSpreadsheet = functions.database
       snapshot: functions.database.DataSnapshot,
       context: functions.EventContext
     ): Promise<any> => {
-
-      const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id)
-      const submissionSheet = await gsheets.useSheet(ISoundQualityReportSheet.Submissions);
+      const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
+      const submissionSheet = await gsheets.useSheet(
+        ISoundQualityReportSheet.Submissions
+      );
       const {
         author,
         changed,

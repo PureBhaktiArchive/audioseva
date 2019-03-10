@@ -45,8 +45,7 @@ export default class Sheet {
       return null;
     }
 
-    if (start === 1)
-      values.shift();
+    if (start === 1) values.shift();
     return this._convertRows(values);
   }
 
@@ -55,7 +54,8 @@ export default class Sheet {
     let rows = [];
     let remainingRows = this.sheetMetadata.rowCount;
 
-    let stopAtRow = 0, startAtRow = 1;
+    let stopAtRow = 0,
+      startAtRow = 1;
     while (remainingRows > 0) {
       // Getting the rows of the sheet in increments of 1000s
       // as this is the MAX num of rowss allowed in one call
@@ -64,7 +64,7 @@ export default class Sheet {
         stopAtRow += 1000;
         remainingRows -= 1000;
       } else {
-        stopAtRow += remainingRows
+        stopAtRow += remainingRows;
         remainingRows -= stopAtRow;
       }
       const result = await this._getRowsByStart(startAtRow, stopAtRow);
@@ -77,7 +77,6 @@ export default class Sheet {
     return rows;
   }
 
-
   /**
    * Adds a list of data to specific row indices.
    * First it adds empty rows, then it fills these empty rows
@@ -87,54 +86,55 @@ export default class Sheet {
    * @param ranges Array of row indices, where the data should be placed
    */
   public async addRows(rows: String[]): Promise<any> {
-    if (rows.length === 0)
-      return;
+    if (rows.length === 0) return;
 
     await this.getHeaders();
-
 
     await this.connection.spreadsheets.batchUpdate({
       spreadsheetId: this.spreadsheetId,
       resource: {
-        requests: rows.map((row, rowIndex) => {
-          return {
-            insertDimension: {
-              range: {
-                sheetId: this.sheetMetadata.sheetId,
-                dimension: 'ROWS',
-                startIndex: rowIndex + 1,
-                endIndex: rowIndex + 2
+        requests: rows
+          .map((row, rowIndex) => {
+            return {
+              insertDimension: {
+                range: {
+                  sheetId: this.sheetMetadata.sheetId,
+                  dimension: 'ROWS',
+                  startIndex: rowIndex + 1,
+                  endIndex: rowIndex + 2,
+                },
+                inheritFromBefore: false,
               },
-              inheritFromBefore: false,
-            }
-          }
-        }).filter(row => row)
-      }
+            };
+          })
+          .filter(row => row),
+      },
     });
 
     const updateResult = await this.connection.spreadsheets.values.batchUpdate({
       spreadsheetId: this.spreadsheetId,
       resource: {
         valueInputOption: IValueInputOption.USER_ENTERED,
-        data: rows.map((row, rowIndex) => {
-          if (!row)
-            return null;
-          const rowAsArray = this._convertColumnFormat(row);
-          const lastColumnNotation = this._getNotationLetterFromIndex(rowAsArray.length - 1);
-          return {
-            range: `${this.sheetName}!A${rowIndex + 2}:${lastColumnNotation}${rowIndex + 2}`,
-            majorDimension: IMajorDimensions.Rows,
-            values: [
-              rowAsArray
-            ]
-          }
-        }).filter(row => row),
-      }
+        data: rows
+          .map((row, rowIndex) => {
+            if (!row) return null;
+            const rowAsArray = this._convertColumnFormat(row);
+            const lastColumnNotation = this._getNotationLetterFromIndex(
+              rowAsArray.length - 1
+            );
+            return {
+              range: `${this.sheetName}!A${rowIndex +
+                2}:${lastColumnNotation}${rowIndex + 2}`,
+              majorDimension: IMajorDimensions.Rows,
+              values: [rowAsArray],
+            };
+          })
+          .filter(row => row),
+      },
     });
 
     return updateResult;
   }
-
 
   public async getHeaders() {
     if (this.headers && this.headers.length) {
@@ -147,12 +147,12 @@ export default class Sheet {
     });
 
     const sheetsMetadata: any = await this.connection.spreadsheets.get({
-      spreadsheetId: this.spreadsheetId
+      spreadsheetId: this.spreadsheetId,
     });
 
-
-    const sheetMetadata = sheetsMetadata.data.sheets
-      .filter(sheet => sheet.properties.title === this.sheetName)[0];
+    const sheetMetadata = sheetsMetadata.data.sheets.filter(
+      sheet => sheet.properties.title === this.sheetName
+    )[0];
 
     const { sheetId } = sheetMetadata.properties;
     const { rowCount, columnCount } = sheetMetadata.properties.gridProperties;
@@ -163,7 +163,8 @@ export default class Sheet {
       return null;
     }
 
-    if (data.values)  // `undefined` when a brand new sheet has just been created
+    if (data.values)
+      // `undefined` when a brand new sheet has just been created
       this.headers = data.values[0];
     this.sheetMetadata = { sheetId, rowCount, columnCount };
   }
@@ -229,9 +230,9 @@ export default class Sheet {
   public async appendRow<T>(appendValues: T, isArray?: boolean): Promise<any> {
     await this.getHeaders();
 
-
-    const updateValues = isArray ? appendValues : this._convertColumnFormat(appendValues);
-
+    const updateValues = isArray
+      ? appendValues
+      : this._convertColumnFormat(appendValues);
 
     const appendResponse: any = await this.connection.spreadsheets.values.append(
       {
@@ -261,7 +262,7 @@ export default class Sheet {
     return rows.map((row: any[]) => {
       const obj = {};
       this.headers.forEach((key: string, i2) => {
-        obj[key] = (row[i2] === '' || row[i2] === undefined) ? null : row[i2];
+        obj[key] = row[i2] === '' || row[i2] === undefined ? null : row[i2];
       });
       return obj;
     });
@@ -276,7 +277,6 @@ export default class Sheet {
       return columnValue;
     });
   }
-
 
   protected _computeRangeByStart(start?: number, limit?: number): string {
     if (!limit) {
