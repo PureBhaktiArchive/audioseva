@@ -30,7 +30,7 @@ export const router = new Router({
       children: [
         {
           path: "",
-          component: () => import("@/views/DonationForm.vue")
+          component: () => import("@/views/DonationReceiptForm.vue")
         }
       ]
     },
