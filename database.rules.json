@@ -1,5 +1,13 @@
 {
   "rules": {
+    "donations": {
+      "cash": {
+        ".read": "auth.token.coordinator === true",
+        "$push_id": {
+          ".write": "!data.exists() && root.child('donations').child('tokens').child(newData.child('token').val()).child('valid').val() === true"
+        }
+      }
+    },
     "files": {
       ".read": "auth.token.Coordinator === true",
       "$list": {
