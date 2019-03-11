@@ -10,7 +10,7 @@ import {
   withDefault,
   commaSeparated,
 } from '../utils/parsers';
-import { validateFirebaseIdToken } from '../utils/authorize';
+import { URL } from 'url';
 
 export enum ISoundQualityReportSheet {
   Allotments = 'Allotments',
@@ -208,6 +208,50 @@ export const restructureExternalSubmission = functions.database
     return 1;
   });
 
+const acceptedStatuses: string[] = ['Given', 'WIP'];
+
+const addSubmissionWarnings = async (
+  currentSet,
+  { soundQualityReporting: { status, assignee } },
+  {
+    cancellation: { notPreferredLanguage, audioProblem },
+    fileName,
+    changed,
+    completed,
+    author,
+    comments,
+  },
+  isFirstSubmission
+) => {
+  const listId = fileName.split('-')[0];
+  const warnings = [];
+  if (isFirstSubmission)
+    warnings.push('This is the first submission by this devotee!');
+  if (notPreferredLanguage)
+    warnings.push("The lecture is not in devotee's preferred language!");
+  if (audioProblem)
+    warnings.push(`Unable to play or download the audio ${comments}`);
+  if (changed !== completed) warnings.push('This is an updated submission!');
+  if (assignee.emailAddress !== author.emailAddress) {
+    warnings.push(
+      `File is alloted to another email id - ${assignee.emailAddress}`
+    );
+  }
+  if (!acceptedStatuses.includes(status)) {
+    warnings.push(`Status of file is ${status || 'Spare'}`);
+  }
+  const response = (await db
+    .ref(`/files/${listId}/${fileName}`)
+    .once('value')).val();
+  if (!response)
+    warnings.push(`Audio file name ${fileName} is not found in the backend!`);
+
+  if (currentSet.filter(allotment => allotment.status === 'Given').length === 1)
+    warnings.push("It's time to allot!");
+
+  return warnings;
+};
+
 /**
  * SQR Process Submission
  * 1. Notifying the coordinator using a mail that holds the following information
@@ -274,16 +318,60 @@ export const processSubmission = functions.database
     if (allSubmissionsSnapshot.exists()) {
       const allSubmissions = allSubmissionsSnapshot.val();
 
+      const allotments = (await db
+        .ref(`/files/${list}`)
+        .orderByChild('soundQualityReporting/assignee/emailAddress')
+        .equalTo(submission.author.emailAddress)
+        .once('value')).val();
+
+      const currentSet = Object.entries(allotments);
+      currentSet.forEach((allotment: any, index, arr) => {
+        const [
+          {
+            soundQualityReporting: { timestampGiven },
+          },
+        ] = allotment;
+        allotment.timestampGiven = timestampGiven
+          ? moment(timestampGiven).format('M/D/YYYY')
+          : '';
+        allotment.daysPassed = timestampGiven
+          ? moment().diff(timestampGiven, 'days')
+          : '';
+      });
+
+      const isFirstSubmission = Object.keys(allSubmissions).length <= 1;
+      const warnings = await addSubmissionWarnings(
+        currentSet,
+        fileData,
+        submission,
+        isFirstSubmission
+      );
+
+      const allotmentUrl = new URL(
+        '/sqr/allot',
+        functions.config().website.base_url
+      );
+      allotmentUrl.search = `emailaddress=${submission.author.emailAddress}`;
+
+      const updateUrl = new URL(
+        '/form/sound-quality-report',
+        functions.config().website.old.base_url
+      );
+      updateUrl.search = `token=${submission.token}`;
+
       // 3.4 Notify the coordinator
       // Sending the notification Email Finally
       db.ref(`/email/notifications`).push({
         template: 'sqr-submission',
         to: coordinator.email_address,
         params: {
-          submission,
+          currentSet,
           fileData,
-          currentSet: [],
-          isFirstSubmission: Object.keys(allSubmissions).length <= 1,
+          submission,
+          isFirstSubmission,
+          warnings,
+          allotmentUrl,
+          updateUrl,
         },
       });
     }
@@ -324,10 +412,18 @@ const parseAudioChunkRemark = string => {
 //      2. Looks for two sheets --> Allotments & Submissions
 //      3. Loads their data into the equivalent Firebase database paths
 /////////////////////////////////////////////////
-export const importSpreadSheetData = functions.https.onRequest(
-  async (req, res) => {
-    if (!(await validateFirebaseIdToken(req, res)))
-      return res.status(403).send('Unauthorized');
+export const importSpreadSheetData = functions.https.onCall(
+  async (data, context) => {
+    if (
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
+    ) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
+    }
 
     const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
@@ -335,7 +431,9 @@ export const importSpreadSheetData = functions.https.onRequest(
     //     Submissions
     ////////////////////////
     const submissionsSpreadsheet = new GoogleSheets(spreadsheetId);
-    const submissionsSheet = await submissionsSpreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
+    const submissionsSheet = await submissionsSpreadsheet.useSheet(
+      ISoundQualityReportSheet.Submissions
+    );
     const submissionsRows = await submissionsSheet.getRows();
     for (const row of submissionsRows) {
       const audioFileName = row['Audio File Name'];
@@ -368,7 +466,9 @@ export const importSpreadSheetData = functions.https.onRequest(
     ////////////////////////
 
     const allotmentsSpreadsheet = new GoogleSheets(spreadsheetId);
-    const allotmentsSheet = await allotmentsSpreadsheet.useSheet(ISoundQualityReportSheet.Allotments);
+    const allotmentsSheet = await allotmentsSpreadsheet.useSheet(
+      ISoundQualityReportSheet.Allotments
+    );
     const allotmentsRows = await allotmentsSheet.getRows();
 
     for (const row of allotmentsRows) {
@@ -403,7 +503,6 @@ export const importSpreadSheetData = functions.https.onRequest(
         allotment
       );
     }
-    return res.status(200).send('Function Ran Successfully');
   }
 );
 
@@ -491,9 +590,10 @@ export const exportSubmissionsToSpreadsheet = functions.database
       snapshot: functions.database.DataSnapshot,
       context: functions.EventContext
     ): Promise<any> => {
-
-      const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id)
-      const submissionSheet = await gsheets.useSheet(ISoundQualityReportSheet.Submissions);
+      const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
+      const submissionSheet = await gsheets.useSheet(
+        ISoundQualityReportSheet.Submissions
+      );
       const {
         author,
         changed,
@@ -524,13 +624,3 @@ export const exportSubmissionsToSpreadsheet = functions.database
       });
     }
   );
-
-export const testAuthenticatedFunction = functions.https.onRequest(
-  async (req: functions.Request, res: functions.Response) => {
-    if (!(await validateFirebaseIdToken(req, res)))
-      return res.status(403).send('Unauthorized');
-
-    console.log('Authenticated if it gets here, User: ');
-    return res.send('Authenticated, heres the stuff');
-  }
-);

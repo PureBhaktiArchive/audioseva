@@ -1,7 +1,13 @@
 {
+  "[yaml]": {
+    "editor.formatOnSave": true
+  },
   "editor.detectIndentation": false,
   "editor.insertSpaces": true,
   "editor.formatOnSave": true,
+  "html.format.enable": true,
+  "html.format.indentHandlebars": true,
+  "html.format.maxPreserveNewLines": 0,
   "editor.tabSize": 2,
   "editor.quickSuggestions": {
     "other": true,

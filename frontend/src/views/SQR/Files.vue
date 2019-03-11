@@ -70,7 +70,8 @@ import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
 import InlineTextEdit from "@/components/InlineTextEdit.vue";
 import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
 import InlineSave from "@/mixins/InlineSave";
-import fb from "@/firebaseApp";
+import firebase from "firebase/app";
+import "firebase/database";
 
 @Component({
   name: "Files",
@@ -175,7 +176,7 @@ export default class Files extends Mixins<ShallowQuery, InlineSave>(
     if (this.lists) {
       this.$bindAsArray(
         "files",
-        fb.database().ref(`/files/${this.list}`),
+        firebase.database().ref(`/files/${this.list}`),
         null,
         () => (this.isLoadingFiles = false)
       );

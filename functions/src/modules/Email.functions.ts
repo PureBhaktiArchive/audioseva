@@ -1,15 +1,14 @@
-
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
 // SendInBlue Helper Imports
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 
-SibApiV3Sdk
-  .ApiClient
-  .instance
-  .authentications['api-key']
-  .apiKey = functions.config().send_in_blue ? functions.config().send_in_blue.key : '';
+SibApiV3Sdk.ApiClient.instance.authentications[
+  'api-key'
+].apiKey = functions.config().send_in_blue
+  ? functions.config().send_in_blue.key
+  : '';
 const apiInstance = new SibApiV3Sdk.SMTPApi();
 
 const bucket = admin.storage().bucket();
@@ -24,15 +23,13 @@ const emailTemplates = {};
 
 // SendInBlue Helper Functions
 export const sendEmail = async (to, bcc, replyTo, templateId, params) => {
-  await apiInstance
-    .sendTransacEmail({
-      to: [{ email: to }],
-      bcc,
-      replyTo,
-      templateId,
-      params,
-    });
-
+  await apiInstance.sendTransacEmail({
+    to: [{ email: to }],
+    bcc,
+    replyTo,
+    templateId,
+    params,
+  });
 };
 
 export const updateTemplate = async (templateId, html) => {
@@ -61,15 +58,13 @@ export const createTemplate = async (templateName, sender, html, subject) => {
 };
 
 export const getTemplateId = async templateName => {
-
   const result = await apiInstance.getSmtpTemplates({ templateStatus: true });
 
   const { templates } = result;
 
   const template = templates.filter(temp => temp['name'] === templateName)[0];
 
-  if (!template)
-    return -1;
+  if (!template) return -1;
 
   return template.id;
 };
@@ -163,7 +158,9 @@ export const sendNotificationEmail = functions.database
       id = await getTemplateId(templateName);
 
       if (id === -1)
-        throw new Error(`Template "${templateName}" was not found on SendInBlue!`);
+        throw new Error(
+          `Template "${templateName}" was not found on SendInBlue!`
+        );
 
       emailTemplates[templateName] = { id };
     }

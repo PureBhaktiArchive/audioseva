@@ -1,6 +1,6 @@
 import { Component, Vue } from "vue-property-decorator";
 
-import fb from "@/firebaseApp";
+import firebase from "firebase/app";
 
 @Component
 export default class FirebaseShallowQuery extends Vue {
@@ -9,7 +9,7 @@ export default class FirebaseShallowQuery extends Vue {
 
   async getLists() {
     const response: any = await this.$http.get(
-      `${(fb.options as any).databaseURL}/${
+      `${(firebase.app().options as any).databaseURL}/${
         this.listsBasePath
       }.json?shallow=true`
     );

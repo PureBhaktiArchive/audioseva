@@ -46,106 +46,23 @@ audio_file_name:
   "#type": textfield
   "#title": "A. Audio File Name"
   "#more_title": Guidelines
-  "#more": |
-    This field will be pre-filled in the form.
+  "#more": "This field will be pre-filled in the form."
   "#autocomplete": "off"
   "#readonly": true
   "#prepopulate": true
   "#required": true
-  "#unique": true
-  "#unique_error": "Sound Quality Report was already submitted for “%value” audio file. Please contact your coordinator."
-unwanted_parts:
-  "#type": custom_composite
-  "#title": "B. Unwanted parts to be cut"
-  "#more_title": Guidelines
-  "#more": |
-    For each unwanted part you identify, please fill details in one such block
-    Please note: The timing is to be filled in (h:)mm:ss format. Also, please mention the Beginning and Ending time for each such unwanted part. For e.g. If from 20 minutes and 10 seconds to 21 minutes and 20 seconds there is an abrupt blank space, please write 20:10 in the ‘Beginning field’ and 21:20 in the Ending field. Choose ‘Blank Space’ in Type and provide a relevant details in the Description field. For the next unwanted part, please add another such block.
-    <ul>
-      <li>Add block by clicking on the green button ‘Add’. You can also choose to add more than one such blocks by entering a number in the field next to the ‘Add’ button.</li>
-      <li>Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right and delete one block by clicking on the red ‘-’ button on the right.</li>
-    </ul>
-  "#states":
-    visible:
-      ':input[name="not_preferred_language"]':
-        checked: false
-      ':input[name="unable_to_play_or_download"]':
-        checked: false
-  "#multiple__header": false
-  "#multiple__sorting": false
-  "#element":
-    beginning:
-      "#type": textfield
-      "#title": Beginning
-      "#placeholder": "Enter the timing in (h:)mm:ss format"
-      "#autocomplete": "off"
-      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
-    ending:
-      "#type": textfield
-      "#title": Ending
-      "#placeholder": "Enter the timing in (h:)mm:ss format"
-      "#autocomplete": "off"
-      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
-    type:
-      "#type": webform_radios_other
-      "#options":
-        "blank space": "Blank space"
-        glitch: Glitch
-        irrelevant: "Irrelevant part"
-      "#title": Type
-    description:
-      "#type": textarea
-      "#title": Description
-sound_issues:
-  "#type": custom_composite
-  "#title": "C. Sound Issues"
-  "#more_title": Guidelines
-  "#more": |
-    For every issue you wish to report for the SE’s attention, please fill this part as follows.
-    <ul>
-      <li>Enter the Beginning and Ending timing of the section in (h:)mm:ss format. Choose the specific issue from the options listed or enter a different issue by selecting ‘Other’. Please describe the issue in the ‘Description’ field.</li>
-      <li>For instance, from 20:20 - 21:34 if there is loud noise of roadside vehicles, making it difficult to hear what Srila Gurudeva is speaking, then please write ‘20:20’ in the Beginning field and ‘21:34’ in the Ending field. Choose the option ‘Background noise’ in Type and in ‘Description’ field, write ‘Sound of vehicles honking and general traffic noise.’</li>
-      <li>To add another comment for the SE, add another such block by clicking on the green button ‘Add’. You can also choose to add more than one such blocks by entering a number in the field next to the ‘Add’ button.</li>
-      <li>Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right and delete one block by clicking on the red ‘-’ button on the right.</li>
-    </ul>
-  "#states":
-    visible:
-      ':input[name="not_preferred_language"]':
-        checked: false
-      ':input[name="unable_to_play_or_download"]':
-        checked: false
-  "#multiple__header": false
-  "#multiple__sorting": false
-  "#element":
-    beginning:
-      "#type": textfield
-      "#title": Beginning
-      "#placeholder": "Enter the timing in (h:)mm:ss format"
-      "#autocomplete": "off"
-      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
-    ending:
-      "#type": textfield
-      "#title": Ending
-      "#placeholder": "Enter the timing in (h:)mm:ss format"
-      "#autocomplete": "off"
-      "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
-    issue:
-      "#type": webform_radios_other
-      "#options":
-        "Background noise": "Background noise"
-        Volume: "Low volume or changing volume"
-        Reverberation: Reverberation
-      "#title": Issue
-    description:
-      "#type": textarea
-      "#title": Description
 sound_quality_rating:
   "#type": radios
-  "#title": "D. Sound Quality Rating"
+  "#title": "B. Sound Quality Rating"
   "#more_title": Guidelines
   "#more": |
     Please rate the overall sound quality of the allotted file by selecting one of the options: Good, Average, Bad. The basis of rating will be the audibility of Srila Gurudeva’s voice. In other words, if you find it difficult or strenuous to understand what Srila Gurudeva is speaking, due to too much background noise or volume being too low and so on, please choose ‘Bad’. On the other hand, if the audio is clear, with no background noise and good volume, please choose ‘Good.’ In cases where you can hear Srila Gurudeva well but there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.
-  "#options": sound_quality_rating
+  "#options":
+    Good: "<b>Good</b> - You can hear Srila Gurudeva clearly with very little or no disturbance"
+    Average: "<b>Average</b> - Srila Gurudeva can be heard clearly but there are background noises or the volumn is low"
+    Bad: "<b>Bad</b> - You can hear Srila Gurudeva but need to strain because of either very low volume, or too much background noise, constant distractions, etc"
+    Inaudible: "<b>Entire file is Inaudible</b> - You can make out that there is some recording but cannot hear anything clearly"
+    Blank: "<b>Entire file is Blank</b> - There is no sound at all or just irrelevant sound (like someone forgot to stop recording)"
   "#options_display": side_by_side
   "#required": true
   "#states":
@@ -154,6 +71,103 @@ sound_quality_rating:
         checked: false
       ':input[name="unable_to_play_or_download"]':
         checked: false
+details_container:
+  "#type": container
+  "#states":
+    invisible:
+      - ':input[name="sound_quality_rating"]':
+          value: Inaudible
+      - or
+      - ':input[name="sound_quality_rating"]':
+          value: Blank
+  unwanted_parts:
+    "#type": custom_composite
+    "#title": "C. Unwanted parts to be cut"
+    "#more_title": Guidelines
+    "#more": |
+      For each unwanted part you identify, please fill details in one such block
+      Please note: The timing is to be filled in (h:)mm:ss format. Also, please mention the Beginning and Ending time for each such unwanted part. For e.g. If from 20 minutes and 10 seconds to 21 minutes and 20 seconds there is an abrupt blank space, please write 20:10 in the ‘Beginning field’ and 21:20 in the Ending field. Choose ‘Blank Space’ in Type and provide a relevant details in the Description field. For the next unwanted part, please add another such block.
+      <ul>
+        <li>Add block by clicking on the green button ‘Add’. You can also choose to add more than one such blocks by entering a number in the field next to the ‘Add’ button.</li>
+        <li>Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right and delete one block by clicking on the red ‘-’ button on the right.</li>
+      </ul>
+    "#states":
+      visible:
+        ':input[name="not_preferred_language"]':
+          unchecked: true
+        ':input[name="unable_to_play_or_download"]':
+          unchecked: true
+    "#multiple__sorting": false
+    "#format_items": table
+    "#element":
+      beginning:
+        "#type": textfield
+        "#title": Beginning
+        "#placeholder": "(h:)mm:ss format"
+        "#autocomplete": "off"
+        "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+      ending:
+        "#type": textfield
+        "#title": Ending
+        "#placeholder": "(h:)mm:ss format"
+        "#autocomplete": "off"
+        "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+      type:
+        "#type": webform_radios_other
+        "#options":
+          "blank space": "Blank space"
+          glitch: Glitch
+          irrelevant: "Irrelevant part"
+        "#title": Type
+      description:
+        "#type": textarea
+        "#title": Description
+  sound_issues:
+    "#type": custom_composite
+    "#title": "D. Sound Issues"
+    "#more_title": Guidelines
+    "#more": |
+      For every issue you wish to report for the SE’s attention, please fill this part as follows.
+      <ul>
+        <li>Enter the Beginning and Ending timing of the section in (h:)mm:ss format. Choose the specific issue from the options listed or enter a different issue by selecting ‘Other’. Please describe the issue in the ‘Description’ field.</li>
+        <li>For instance, from 20:20 - 21:34 if there is loud noise of roadside vehicles, making it difficult to hear what Srila Gurudeva is speaking, then please write ‘20:20’ in the Beginning field and ‘21:34’ in the Ending field. Choose the option ‘Background noise’ in Type and in ‘Description’ field, write ‘Sound of vehicles honking and general traffic noise.’</li>
+        <li>To add another comment for the SE, add another such block by clicking on the green button ‘Add’. You can also choose to add more than one such blocks by entering a number in the field next to the ‘Add’ button.</li>
+        <li>Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right and delete one block by clicking on the red ‘-’ button on the right.</li>
+      </ul>
+    "#states":
+      visible:
+        ':input[name="not_preferred_language"]':
+          unchecked: true
+        ':input[name="unable_to_play_or_download"]':
+          unchecked: true
+    "#multiple__sorting": false
+    "#format_items": table
+    "#element":
+      entire_file:
+        "#type": checkbox
+        "#title": "Entire File"
+      beginning:
+        "#type": textfield
+        "#title": Beginning
+        "#placeholder": "(h:)mm:ss format"
+        "#autocomplete": "off"
+        "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+      ending:
+        "#type": textfield
+        "#title": Ending
+        "#placeholder": "(h:)mm:ss format"
+        "#autocomplete": "off"
+        "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
+      issue:
+        "#type": webform_radios_other
+        "#options":
+          "Background noise": "Background noise"
+          Volume: "Low/changing volume"
+          Reverberation: Reverberation
+        "#title": Issue
+      description:
+        "#type": textarea
+        "#title": Description
 duration_group:
   "#type": container
   "#states":
@@ -162,6 +176,12 @@ duration_group:
         checked: false
       ':input[name="unable_to_play_or_download"]':
         checked: false
+    invisible:
+      - ':input[name="sound_quality_rating"]':
+          value: Blank
+      - or
+      - ':input[name="sound_quality_rating"]':
+          value: Inaudible
   duration_label:
     "#type": label
     "#title": "E. Total Duration of the Recording"
@@ -174,7 +194,6 @@ duration_group:
       "#title": Beginning
       "#placeholder": "Enter the timing in (h:)mm:ss format"
       "#autocomplete": "off"
-      "#required": true
       "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
       "#more_title": Guidelines
       "#more": |
@@ -185,12 +204,20 @@ duration_group:
             checked: false
           ':input[name="unable_to_play_or_download"]':
             checked: false
+        required:
+          - ':input[name="sound_quality_rating"]':
+              value: Good
+          - or
+          - ':input[name="sound_quality_rating"]':
+              value: Average
+          - or
+          - ':input[name="sound_quality_rating"]':
+              value: Bad
     ending:
       "#type": textfield
       "#title": Ending
       "#placeholder": "Enter the timing in (h:)mm:ss format"
       "#autocomplete": "off"
-      "#required": true
       "#pattern": '(\d[:.])?\d{1,2}[:.]\d{1,2}'
       "#states":
         visible:
@@ -198,6 +225,15 @@ duration_group:
             checked: false
           ':input[name="unable_to_play_or_download"]':
             checked: false
+        required:
+          - ':input[name="sound_quality_rating"]':
+              value: Good
+          - or
+          - ':input[name="sound_quality_rating"]':
+              value: Average
+          - or
+          - ':input[name="sound_quality_rating"]':
+              value: Bad
 comments:
   "#type": textarea
   "#title": "F. Comments"

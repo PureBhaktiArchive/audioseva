@@ -4,7 +4,8 @@ import {
   getLastDays,
   mergeDoneStatistics,
   formatTimestamp,
-  validateFlacFile
+  validateFlacFile,
+  removeObjectKey
 } from "@/utility";
 
 describe("utility", function() {
@@ -58,5 +59,13 @@ describe("utility", function() {
     expect(() => validateFlacFile({ name: "badname.txt" })).toThrowError(
       "File type must be flac"
     );
+  });
+
+  test("removeObjectKey", () => {
+    const data = {
+      nested: [{}, {}]
+    };
+    const newData = removeObjectKey(data, "nested.0");
+    expect(newData.nested).toEqual([{}]);
   });
 });
