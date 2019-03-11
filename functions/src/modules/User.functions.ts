@@ -3,7 +3,6 @@ import * as admin from 'firebase-admin';
 import GoogleSheet from '../services/GoogleSheets';
 import { withDefault } from '../utils/parsers';
 import moment = require('moment');
-import { validateFirebaseIdToken } from '../utils/authorize';
 
 const db = admin.database();
 const userRoles = functions.database.ref('/users/{userId}/roles');
