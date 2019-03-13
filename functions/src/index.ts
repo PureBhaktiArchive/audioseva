@@ -29,5 +29,6 @@ import * as Files from './modules/Files.functions';
 import * as Email from './modules/Email.functions';
 import * as SE from './modules/SE.functions';
 import * as User from './modules/User.functions';
+import * as Donations from './modules/Donations.functions';
 
-export { CR, SQR, Files, Email, SE, User };
+export { CR, SQR, Files, Email, SE, User, Donations };
