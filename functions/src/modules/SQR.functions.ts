@@ -145,7 +145,7 @@ export const processAllotment = functions.database
         db.ref(`/email/notifications`).push({
           template: 'sqr-allotment',
           to: allotment.assignee.emailAddress,
-          bcc: [{ email: coordinatorConfig.email_address }],
+          bcc: coordinatorConfig.email_address,
           params: {
             files: allotment.files,
             assignee: allotment.assignee,
