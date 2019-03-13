@@ -115,6 +115,11 @@ export const router = new Router({
             },
             {
               path: "allot",
+              component: () => import("@/views/SQRAllotment.vue"),
+              meta: { menuItem: true }
+            },
+            {
+              path: "allot-new",
               component: () => import("@/views/SQR/Allotment.vue"),
               meta: { menuItem: true }
             },
