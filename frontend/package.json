@@ -19,6 +19,7 @@
     "moment": "^2.24.0",
     "vue": "^2.6.8",
     "vue-class-component": "^6.0.0",
+    "vue-phone-number-input": "^0.1.8",
     "vue-property-decorator": "^7.3.0",
     "vue-resource": "^1.5.1",
     "vue-router": "^3.0.2",

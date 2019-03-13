@@ -25,6 +25,16 @@ export const router = new Router({
       ]
     },
     {
+      path: "/form/donation/cash/:token",
+      component: () => import("@/views/Layout/AnonymousLayout.vue"),
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/DonationReceiptForm.vue")
+        }
+      ]
+    },
+    {
       path: "/sound-editing/:taskId/quality-check/feedback",
       component: () => import("@/views/Layout/AnonymousLayout.vue"),
       children: [
