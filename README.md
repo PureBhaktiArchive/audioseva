@@ -63,7 +63,10 @@ $ firebase functions:config:set registrations.spreadsheet_id="Google Spreadsheet
 # "Copy submissions into the processing sheet" sheet IDs
 $ firebase functions:config:set cr.submissions.spreadsheet.id="Google Spreadsheet ID"
 $ firebase functions:config:set cr.processing.spreadsheet.id="Google Spreadsheet ID"
-
+# "Donations"
+$ firebase functions:config:set donations.cash.spreadsheet.id="Google Spreadsheet ID"
+$ firebase functions:config:set donations.cash.spreadsheet.name="Sheet Name"
+$ firebase functions:config:set donations.contact.email_address="Email address used in donations communication"
 ```
 
 Firebase Cloud Functions is written in **TypeScript**, if you are uploading the functions for the first time make sure you're selecting the language used in the project as **TypeScript** instead of the default **JavaScript**.
