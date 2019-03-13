@@ -31,7 +31,8 @@ Vue.use(Vuetify, {
     quality: "fas fa-check",
     sound: "fas fa-music",
     download: "fas fa-file-download",
-    delete: "fas fa-trash"
+    delete: "fas fa-trash",
+    event: "fas fa-calendar"
   }
 });
 

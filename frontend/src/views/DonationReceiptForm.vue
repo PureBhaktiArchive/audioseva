@@ -36,13 +36,16 @@
         <v-flex xs12 sm7>
           <v-flex xs4 sm4 md3 lg2 class="py-1 pl-1">
             <v-combobox
+              @input.native="showAutocomplete = !!$event.target.value"
+              @input="showAutocomplete = false"
+              append-icon=""
+              :menu-props="{ value: showAutocomplete }"
               class="currency"
               outline
               label="Currency"
               v-model="form.sum.currency"
               :items="currencies"
-            >
-            </v-combobox>
+            />
           </v-flex>
           <v-flex xs8 sm8 md9 lg10 class="py-1 pr-1">
             <v-text-field class="amount" :rules="amountRules" outline label="Amount" v-model="form.sum.amount" />
@@ -93,7 +96,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import firebase from "firebase/app";
-import fb from "../firebaseApp";
+import "firebase/database";
 import VuePhoneNumberInput from "vue-phone-number-input";
 import "vue-phone-number-input/dist/vue-phone-number-input.css";
 
@@ -132,6 +135,7 @@ export default class DonationForm extends Vue {
   phoneError = "";
   isSubmitting = false;
   submissionStatus = "";
+  showAutocomplete = false;
 
   getSubmissionData() {
     return {
@@ -189,7 +193,7 @@ export default class DonationForm extends Vue {
     const isValidPhone = this.validatePhone();
     if (isValidForm && isValidPhone) {
       this.isSubmitting = true;
-      await fb
+      await firebase
         .database()
         .ref("/donations/cash")
         .push()
@@ -230,7 +234,7 @@ export default class DonationForm extends Vue {
   border: 2px solid #ff5252;
 }
 >>> .v-input__slot {
-  min-height: 60px;
+  min-height: 60px !important;
 }
 >>> .amount .v-input__slot {
   border-top-left-radius: 0;
