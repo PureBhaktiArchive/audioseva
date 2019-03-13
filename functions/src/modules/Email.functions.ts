@@ -21,17 +21,6 @@ const fs = require('fs');
 // used for caching template IDs in `sendNotificationEmail` function
 const emailTemplates = {};
 
-// SendInBlue Helper Functions
-export const sendEmail = async (to, bcc, replyTo, templateId, params) => {
-  await apiInstance.sendTransacEmail({
-    to: [{ email: to }],
-    bcc,
-    replyTo,
-    templateId,
-    params,
-  });
-};
-
 export const updateTemplate = async (templateId, html) => {
   const updatedTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
 
@@ -137,7 +126,7 @@ export const updateTemplatesOnTemplateUpload = functions.storage
   });
 
 export const updateTemplatesOnMetadataChange = functions.database
-  .ref('/email/templates}')
+  .ref('/email/templates/{fileName}')
   .onUpdate(async (change, context) => {
     updateEmailTemplates(change.after.key).catch(err =>
       console.error('Error: updateTemplatesOnMetadataChange ', err)
@@ -146,7 +135,7 @@ export const updateTemplatesOnMetadataChange = functions.database
   });
 
 export const sendNotificationEmail = functions.database
-  .ref('/email/notifications}')
+  .ref('/email/notifications/{pushId}')
   .onCreate(async (snapshot, context) => {
     const data = snapshot.val();
     const templateName = data.template;
@@ -166,7 +155,17 @@ export const sendNotificationEmail = functions.database
     }
 
     if (!data['sentTimestamp']) {
-      await sendEmail(data.to, data.bcc, data.replyTo, id, data.params);
+      await apiInstance.sendTransacEmail({
+        to: [{ email: data.to }],
+        bcc: [
+          {
+            email: data.bcc,
+          },
+        ],
+        replyTo: { email: data.replyTo },
+        templateId: id,
+        params: data.params,
+      });
       await snapshot.ref.update({
         sentTimestamp: admin.database.ServerValue.TIMESTAMP,
       });

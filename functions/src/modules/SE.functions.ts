@@ -76,7 +76,7 @@ export const processNewAllotment = functions.database
     await db.ref(`/email/notifications`).push({
       template: 'sound-editing-allotment',
       to: allotment.assignee.emailAddress,
-      bcc: [{ email: coordinator.email_address }],
+      bcc: coordinator.email_address,
       params: {
         tasks,
         assignee: allotment.assignee,
