@@ -1,9 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as helpers from './../helpers';
-const moment = require('moment');
-
-const db = admin.database();
+import * as moment from 'moment';
 import GoogleSheets from '../services/GoogleSheets';
 import {
   spreadsheetDateFormat,
@@ -34,9 +32,9 @@ export const updateFilesOnNewAllotment = functions.database
     // loop through the FILES array in the NEW ALLOTMENT object
     // and update their corresponding file objects
     allotment.files.forEach(async file => {
-      const sqrRef = db.ref(
-        `/files/${allotment.list}/${file}/soundQualityReporting`
-      );
+      const sqrRef = admin
+        .database()
+        .ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
 
       const sqrError = await sqrRef.update({
         status: 'Given',
@@ -50,15 +48,21 @@ export const updateFilesOnNewAllotment = functions.database
 
         // case 1 -- the allotmnet is read from the spreadsheet
         if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-          });
+          admin
+            .database()
+            .ref(`/sqr/allotments/${newDocKey}`)
+            .update({
+              filesAlloted: true,
+            });
         // case 2 -- the allotmnet is inputted manually
         else
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-            sendNotificationEmail: true,
-          });
+          admin
+            .database()
+            .ref(`/sqr/allotments/${newDocKey}`)
+            .update({
+              filesAlloted: true,
+              sendNotificationEmail: true,
+            });
       }
     });
   });
@@ -84,9 +88,9 @@ export const processAllotment = functions.database
       // Skip the current iteration if allotment.list doesn't exist
       if (!allotment.list) return;
 
-      const sqrRef = db.ref(
-        `/files/${allotment.list}/${file}/soundQualityReporting`
-      );
+      const sqrRef = admin
+        .database()
+        .ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
       const sqrError = await sqrRef.update({
         status: 'Given',
         assignee: allotment.assignee,
@@ -98,22 +102,29 @@ export const processAllotment = functions.database
       if (sqrError === undefined) {
         // case 1 -- the allotmnet is read from the spreadsheet
         if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1) {
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-          });
+          admin
+            .database()
+            .ref(`/sqr/allotments/${newDocKey}`)
+            .update({
+              filesAlloted: true,
+            });
         }
         // case 2 -- the allotmnet is inputted manually
         else {
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-            sendNotificationEmail: true,
-          });
+          admin
+            .database()
+            .ref(`/sqr/allotments/${newDocKey}`)
+            .update({
+              filesAlloted: true,
+              sendNotificationEmail: true,
+            });
         }
       }
     });
 
     // Sends a notification to the assignee of the files he's allotted.
-    const allotmentSnapshot = await db
+    const allotmentSnapshot = await admin
+      .database()
       .ref('/sqr/allotments')
       .orderByChild('assignee/emailAddress')
       .equalTo(allotment.assignee.emailAddress)
@@ -142,18 +153,21 @@ export const processAllotment = functions.database
           utcMsec + 3600000 * coordinatorConfig.timeZoneOffset
         );
 
-        db.ref(`/email/notifications`).push({
-          template: 'sqr-allotment',
-          to: allotment.assignee.emailAddress,
-          bcc: coordinatorConfig.email_address,
-          params: {
-            files: allotment.files,
-            assignee: allotment.assignee,
-            comment: allotment.comment,
-            date: `${localDate.getDate() + 1}.${moment().month() + 1}`,
-            repeated: Object.keys(allotments).length > 1,
-          },
-        });
+        admin
+          .database()
+          .ref(`/email/notifications`)
+          .push({
+            template: 'sqr-allotment',
+            to: allotment.assignee.emailAddress,
+            bcc: coordinatorConfig.email_address,
+            params: {
+              files: allotment.files,
+              assignee: allotment.assignee,
+              comment: allotment.comment,
+              date: `${localDate.getDate() + 1}.${moment().month() + 1}`,
+              repeated: Object.keys(allotments).length > 1,
+            },
+          });
 
         snapshot.after.ref
           .child('mailSent')
@@ -203,7 +217,10 @@ export const restructureExternalSubmission = functions.database
       },
     };
 
-    db.ref(`/sqr/submissions/${original.serial}`).update(submission);
+    admin
+      .database()
+      .ref(`/sqr/submissions/${original.serial}`)
+      .update(submission);
 
     return 1;
   });
@@ -240,7 +257,8 @@ const addSubmissionWarnings = async (
   if (!acceptedStatuses.includes(status)) {
     warnings.push(`Status of file is ${status || 'Spare'}`);
   }
-  const response = (await db
+  const response = (await admin
+    .database()
     .ref(`/files/${listId}/${fileName}`)
     .once('value')).val();
   if (!response)
@@ -275,7 +293,8 @@ export const processSubmission = functions.database
 
     // 2. Update the allotment ( first get the previous NOTES )
     // 3.1 Get the submitted audio file data
-    const fileSnapshot = await db
+    const fileSnapshot = await admin
+      .database()
       .ref(`/files/${list}/${submission.fileName}`)
       .once('value');
 
@@ -298,7 +317,10 @@ export const processSubmission = functions.database
     )
       fileUpdate['assignee'] = {};
 
-    db.ref(`/files/${list}/${submission.fileName}`).update(fileUpdate);
+    admin
+      .database()
+      .ref(`/files/${list}/${submission.fileName}`)
+      .update(fileUpdate);
 
     const coordinator = functions.config().coordinator;
     const fileData = fileSnapshot.val();
@@ -308,7 +330,8 @@ export const processSubmission = functions.database
      * TO BE ADDED LATER
      * Currently passing an empty array
      */
-    const allSubmissionsSnapshot = await db
+    const allSubmissionsSnapshot = await admin
+      .database()
       .ref(`/sqr/submissions`)
       .orderByChild('author/emailAddress')
       .equalTo(submission.author.emailAddress)
@@ -318,7 +341,8 @@ export const processSubmission = functions.database
     if (allSubmissionsSnapshot.exists()) {
       const allSubmissions = allSubmissionsSnapshot.val();
 
-      const allotments = (await db
+      const allotments = (await admin
+        .database()
         .ref(`/files/${list}`)
         .orderByChild('soundQualityReporting/assignee/emailAddress')
         .equalTo(submission.author.emailAddress)
@@ -361,19 +385,22 @@ export const processSubmission = functions.database
 
       // 3.4 Notify the coordinator
       // Sending the notification Email Finally
-      db.ref(`/email/notifications`).push({
-        template: 'sqr-submission',
-        to: coordinator.email_address,
-        params: {
-          currentSet,
-          fileData,
-          submission,
-          isFirstSubmission,
-          warnings,
-          allotmentUrl,
-          updateUrl,
-        },
-      });
+      admin
+        .database()
+        .ref(`/email/notifications`)
+        .push({
+          template: 'sqr-submission',
+          to: coordinator.email_address,
+          params: {
+            currentSet,
+            fileData,
+            submission,
+            isFirstSubmission,
+            warnings,
+            allotmentUrl,
+            updateUrl,
+          },
+        });
     }
 
     return 1;
@@ -456,9 +483,12 @@ export const importSpreadSheetData = functions.https.onCall(
           ending: row['Ending'],
         },
       };
-      db.ref(
-        `/submissions/soundQualityReporting/${list}/${audioFileName}/${token}`
-      ).set(submission);
+      admin
+        .database()
+        .ref(
+          `/submissions/soundQualityReporting/${list}/${audioFileName}/${token}`
+        )
+        .set(submission);
     }
 
     ////////////////////////
@@ -499,9 +529,10 @@ export const importSpreadSheetData = functions.https.onCall(
         },
         followUp: row['Follow-up'] || null,
       };
-      db.ref(`/files/${list}/${fileName}/soundQualityReporting`).update(
-        allotment
-      );
+      admin
+        .database()
+        .ref(`/files/${list}/${fileName}/soundQualityReporting`)
+        .update(allotment);
     }
   }
 );
