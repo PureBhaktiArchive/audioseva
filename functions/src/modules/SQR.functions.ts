@@ -655,3 +655,48 @@ export const exportSubmissionsToSpreadsheet = functions.database
       });
     }
   );
+
+/**
+ * Gets spare files for specified list and languages
+ */
+export const getSpareFiles = functions.https.onCall(
+  async ({ list, languages, count }, context) => {
+    if (
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
+    ) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
+    }
+
+    const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
+    const allotmentsSheet = await gsheets.useSheet(
+      ISoundQualityReportSheet.Allotments
+    );
+
+    const allotmentsRows = await allotmentsSheet.getRows();
+
+    return allotmentsRows
+      .filter(
+        item =>
+          !item['Status'] &&
+          item['List'] === list &&
+          languages.contains(item['Language'] || 'None')
+      )
+      .map(item => ({
+        filename: item['File Name'],
+        list: item['List'],
+        serial: item['Serial'],
+        notes:
+          item['Notes'] + item['Devotee']
+            ? ` Devotee column is not empty: ${item['Devotee']}`
+            : '',
+        language: item['Language'],
+        date: item['Serial'],
+      }))
+      .slice(0, count || 20);
+  }
+);

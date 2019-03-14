@@ -86,6 +86,9 @@
 </style>
 
 <script>
+import firebase from "firebase/app";
+import "firebase/functions";
+
 export default {
   name: "SQRAllotment",
   data: () => ({
@@ -137,23 +140,18 @@ export default {
     },
     filter: {
       deep: true,
-      handler: function() {
+      handler: async function() {
         this.files = null;
         this.allotment.files = [];
 
         if (this.filter.list == null) return;
 
-        this.$http
-          .get(process.env.VUE_APP_FILES_URL, {
-            params: {
-              phase: "sqr",
-              list: this.filter.list,
-              language: this.filter.language
-            }
-          })
-          .then(response => {
-            this.files = response.body;
-          });
+        const getSpareFiles = firebase
+          .functions()
+          .httpsCallable("SQR-getSpareFiles");
+
+        let result = await getSpareFiles(this.filter);
+        this.files = result.data;
       }
     }
   },
