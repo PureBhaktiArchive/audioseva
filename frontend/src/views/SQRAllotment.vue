@@ -107,20 +107,19 @@ export default {
     },
     submissionStatus: null
   }),
-  mounted: function() {
+  mounted: async function() {
     // Getting devotees
-    this.$http
-      .get(process.env.VUE_APP_DEVOTEES_URL, {
-        params: { phase: "SQR" }
-      })
-      .then(response => {
-        this.devotees = response.body;
-        if (this.$route.query.emailAddress) {
-          this.allotment.devotee = this.devotees.find(
-            devotee => devotee.emailaddress === this.$route.query.emailAddress
-          );
-        }
-      });
+    const result = await firebase
+      .functions()
+      .httpsCallable("User-getAssignees")({
+      phase: "SQR"
+    });
+    this.devotees = result.data;
+    if (this.$route.query.emailAddress) {
+      this.allotment.devotee = this.devotees.find(
+        devotee => devotee.emailaddress === this.$route.query.emailAddress
+      );
+    }
 
     // Getting lists
     this.$http
