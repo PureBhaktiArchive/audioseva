@@ -122,11 +122,9 @@ export default {
     }
 
     // Getting lists
-    this.$http
-      .jsonp(process.env.VUE_APP_SCRIPT_URL, { params: { path: "sqr/lists" } })
-      .then(response => {
-        this.lists = response.body;
-      });
+    this.lists = (await firebase
+      .functions()
+      .httpsCallable("SQR-getLists")()).data;
   },
   watch: {
     "allotment.devotee": function(newValue) {

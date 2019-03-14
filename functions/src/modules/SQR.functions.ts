@@ -657,6 +657,30 @@ export const exportSubmissionsToSpreadsheet = functions.database
   );
 
 /**
+ * Gets lists with spare files
+ */
+export const getLists = functions.https.onCall(async (data, context) => {
+  if (!context.auth || !context.auth.token || !context.auth.token.coordinator) {
+    throw new functions.https.HttpsError(
+      'permission-denied',
+      'The function must be called by an authenticated coordinator.'
+    );
+  }
+
+  const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
+  const allotmentsSheet = await gsheets.useSheet(
+    ISoundQualityReportSheet.Allotments
+  );
+
+  const rows = await allotmentsSheet.getRows();
+
+  return rows
+    .filter(item => !item['Status'] && item['List'])
+    .map(item => item['List'])
+    .filter((value, index, self) => self.indexOf(value) === index);
+});
+
+/**
  * Gets spare files for specified list and languages
  */
 export const getSpareFiles = functions.https.onCall(
