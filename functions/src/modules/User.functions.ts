@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import GoogleSheet from '../services/GoogleSheets';
+import GoogleSheets from '../services/GoogleSheets';
 import { withDefault } from '../utils/parsers';
 import moment = require('moment');
 
@@ -55,7 +55,7 @@ export const importUserRegistrationData = functions.https.onCall(
       );
     }
 
-    const gsheets: GoogleSheet = new GoogleSheet(
+    const gsheets: GoogleSheets = new GoogleSheets(
       functions.config().registrations.spreadsheet_id
     );
     const sheet = await gsheets.useSheet('Registrations');
