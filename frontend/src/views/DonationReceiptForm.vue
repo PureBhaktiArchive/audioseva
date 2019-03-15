@@ -33,13 +33,9 @@
             </v-menu>
           </v-flex>
         </v-flex>
-        <v-flex xs12 sm7>
+        <v-flex class="d-flex" xs12 sm7>
           <v-flex xs4 sm4 md3 lg2 class="py-1 pl-1">
             <v-combobox
-              @input.native="showAutocomplete = !!$event.target.value"
-              @input="showAutocomplete = false"
-              append-icon=""
-              :menu-props="{ value: showAutocomplete }"
               class="currency"
               outline
               label="Currency"
@@ -51,7 +47,7 @@
             <v-text-field class="amount" :rules="amountRules" outline label="Amount" v-model="form.sum.amount" />
           </v-flex>
         </v-flex>
-        <v-flex xs12 sm6 lg4 class="pa-1">
+        <v-flex xs12 sm6 lg3 class="pa-1">
           <v-text-field :rules="rules" outline label="Name" v-model="form.donor.name" />
         </v-flex>
         <v-flex xs12 sm6 lg4 class="pa-1">
@@ -62,18 +58,24 @@
             v-model="form.donor.emailAddress"
           />
         </v-flex>
-        <v-flex xs12 lg4 class="d-flex" :style="{ flexDirection: 'row', flexWrap: 'wrap', padding: '4px 4px 4px 4px' }">
-          <vue-phone-number-input
-            :class="{ 'mb-2': true, 'phone-error': phoneError }"
-            @update="handleUpdatePhone"
-            :style="{ width: '100%' }"
-            no-flags
-            v-model="form.donor.phoneNumber"
-            required
-            no-validator-state
-            no-use-browser-locale
-          />
-          <div class="phone-error-message">{{ phoneError }}</div>
+        <v-flex xs12 sm12 lg5 class="d-flex">
+          <v-flex xs5 sm4 md3 lg4 class="py-1 pl-1">
+            <v-text-field
+              class="currency country-code"
+              outline
+              label="Country code"
+              v-model="phoneData.countryCode"
+            />
+          </v-flex>
+          <v-flex xs7 sm8 md9 lg8 class="py-1 pr-1">
+            <v-text-field
+              class="amount"
+              :rules="rules"
+              outline
+              label="Phone number"
+              v-model="phoneData.phoneNumber"
+            />
+          </v-flex>
         </v-flex>
         <v-flex xs12 class="pa-1">
           <v-text-field :rules="rules" outline label="Collected By" v-model="form.collectedBy" />
@@ -97,12 +99,9 @@
 import { Component, Vue } from "vue-property-decorator";
 import firebase from "firebase/app";
 import "firebase/database";
-import VuePhoneNumberInput from "vue-phone-number-input";
-import "vue-phone-number-input/dist/vue-phone-number-input.css";
 
 @Component({
-  name: "DonationReceiptForm",
-  components: { VuePhoneNumberInput }
+  name: "DonationReceiptForm"
 })
 export default class DonationForm extends Vue {
   date = new Date().toISOString().substr(0, 10);
@@ -130,33 +129,27 @@ export default class DonationForm extends Vue {
     collectedBy: "",
     comment: ""
   };
-  phone = null;
-  validPhone = false;
-  phoneError = "";
+  phoneData = {
+    countryCode: "",
+    phoneNumber: ""
+  };
   isSubmitting = false;
   submissionStatus = "";
-  showAutocomplete = false;
 
   getSubmissionData() {
     return {
       ...this.form,
       donor: {
         ...this.form.donor,
-        phoneNumber: this.phone
+        phoneNumber: this.phoneNumber
       },
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       token: this.$route.params.token
     };
   }
 
-  validatePhone() {
-    if (this.validPhone) {
-      this.phoneError = "";
-      return true;
-    } else {
-      this.phoneError = "Invalid phone";
-      return false;
-    }
+  get phoneNumber() {
+    return `+${this.phoneData.countryCode} ${this.phoneData.phoneNumber}`;
   }
 
   get submissionMessage() {
@@ -182,6 +175,10 @@ export default class DonationForm extends Vue {
         },
         comment: ""
       };
+      this.phoneData = {
+        countryCode: "",
+        phoneNumber: ""
+      };
     }
   }
 
@@ -189,9 +186,7 @@ export default class DonationForm extends Vue {
     if (this.isSubmitting) return;
     this.submissionStatus = "";
     const data = this.getSubmissionData();
-    const isValidForm = (this.$refs.form as any).validate();
-    const isValidPhone = this.validatePhone();
-    if (isValidForm && isValidPhone) {
+    if ((this.$refs.form as any).validate()) {
       this.isSubmitting = true;
       await firebase
         .database()
@@ -205,14 +200,6 @@ export default class DonationForm extends Vue {
       this.clearForm();
     }
     this.isSubmitting = false;
-  }
-
-  handleUpdatePhone(phone: any) {
-    this.validPhone = phone.isValid;
-    this.validatePhone();
-    if (phone.formatInternational) {
-      this.phone = phone.formatInternational;
-    }
   }
 }
 </script>
@@ -230,12 +217,19 @@ export default class DonationForm extends Vue {
   border: 2px solid rgba(0, 0, 0, 0.54);
   min-height: 60px;
 }
+
 >>> .phone-error .field .field-input {
   border: 2px solid #ff5252;
 }
+
 >>> .v-input__slot {
   min-height: 60px !important;
 }
+
+>>> .country-code .v-label {
+  max-width: 100%;
+}
+
 >>> .amount .v-input__slot {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -245,5 +239,11 @@ export default class DonationForm extends Vue {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   border-right: none;
+}
+
+@media screen and (max-width: 371px) {
+  >>> .country-code .v-label {
+    font-size: 14px;
+  }
 }
 </style>
