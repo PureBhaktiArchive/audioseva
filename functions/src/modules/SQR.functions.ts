@@ -20,48 +20,45 @@ export enum ISoundQualityReportSheet {
 /////////////////////////////////////////////////
 //          OnNewAllotment (DB create and update Trigger)
 //      1. Mark the files in the database --> { status: "Given" }
-//              Function --> updateFilesOnNewAllotment
+//              Function --> processAllotmentV2
 //
 //      2. Send an email to the assignee to notify them of the new allotments
 //              Function --> sendEmailOnNewAllotment
 /////////////////////////////////////////////////
-export const updateFilesOnNewAllotment = functions.database
-  .ref('/sqr/allotments/{allotment_id}')
-  .onCreate((snapshot, context) => {
-    const allotment = snapshot.val();
-    const newDocKey = snapshot.key;
+export const processAllotmentV2 = functions.https.onCall((data, context) => {
+  const allotment = data.allotment;
+  const newDocKey = data.docKey;
+  // loop through the FILES array in the NEW ALLOTMENT object
+  // and update their corresponding file objects
+  allotment.files.forEach(async file => {
+    const sqrRef = db.ref(
+      `/files/${allotment.list}/${file}/soundQualityReporting`
+    );
 
-    // loop through the FILES array in the NEW ALLOTMENT object
-    // and update their corresponding file objects
-    allotment.files.forEach(async file => {
-      const sqrRef = db.ref(
-        `/files/${allotment.list}/${file}/soundQualityReporting`
-      );
-
-      const sqrError = await sqrRef.update({
-        status: 'Given',
-        assignee: allotment.assignee,
-        timestampGiven: Math.round(new Date().getTime() / 1000),
-        timestampDone: null,
-      });
-
-      if (sqrError === undefined) {
-        // if Successful FILE Update, update the ALLOTMENT accordingly
-
-        // case 1 -- the allotmnet is read from the spreadsheet
-        if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-          });
-        // case 2 -- the allotmnet is inputted manually
-        else
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-            sendNotificationEmail: true,
-          });
-      }
+    const sqrError = await sqrRef.update({
+      status: 'Given',
+      assignee: allotment.assignee,
+      timestampGiven: Math.round(new Date().getTime() / 1000),
+      timestampDone: null,
     });
+
+    if (sqrError === undefined) {
+      // if Successful FILE Update, update the ALLOTMENT accordingly
+
+      // case 1 -- the allotmnet is read from the spreadsheet
+      if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
+        db.ref(`/sqr/allotments/${newDocKey}`).update({
+          filesAlloted: true,
+        });
+      // case 2 -- the allotmnet is inputted manually
+      else
+        db.ref(`/sqr/allotments/${newDocKey}`).update({
+          filesAlloted: true,
+          sendNotificationEmail: true,
+        });
+    }
   });
+});
 
 /**
  * OnNewAllotment (DB create and update Trigger)
@@ -69,6 +66,7 @@ export const updateFilesOnNewAllotment = functions.database
  * 2. Send an email to the assignee to notify them of the new allotments
  *
  * @function processAllotment()
+ * @deprecated use processAllotmentV2
  */
 export const processAllotment = functions.database
   .ref('/sqr/allotments/{allotment_id}')
