@@ -20,23 +20,72 @@ export default class Sheet {
     this.metadata = metadata;
   }
 
+  /**
+   * Constructs an A1 notation of the range. For example: A3:D5.
+   * @param firstColumnLetter First column letter, optional
+   * @param firstRowNumber First row number, optional
+   * @param lastColumnLetter Last column letter, optional
+   * @param lastRowNumber Last row number, optional
+   */
+  protected toA1Notation(
+    firstColumnLetter: string,
+    firstRowNumber: number,
+    lastColumnLetter: string,
+    lastRowNumber: number
+  ): string {
+    return `${this.metadata.properties.title}!${firstColumnLetter ||
+      ''}${firstRowNumber || ''}:${lastColumnLetter || ''}${lastRowNumber ||
+      ''}`;
+  }
+
+  /**
+   * Returns A1 notation for a row span. For example: 1:5.
+   * @param firstRowNumber First row number
+   * @param lastRowNumber Last row number
+   */
+  protected rowsToA1Notation(firstRowNumber: number, lastRowNumber: number) {
+    return this.toA1Notation(null, firstRowNumber, null, lastRowNumber);
+  }
+
+  /**
+   * Returns A1 notation for the row. For example: 1:1.
+   * @param rowNumber Row number on the sheet
+   */
+  protected rowToA1Notation(rowNumber: number): string {
+    return this.toA1Notation(null, rowNumber, null, rowNumber);
+  }
+
+  /**
+   * Converts data row number into the sheet row number.
+   * @param dataRowNumber Number of the row in the data section, 1-based
+   */
+  protected fromDataRowNumber(dataRowNumber: number): number {
+    return (
+      dataRowNumber +
+      Math.min(this.metadata.properties.gridProperties.frozenRowCount, 1)
+    );
+  }
+
+  /**
+   * Gets all the rows on the sheet.
+   */
   public async getRows(): Promise<any> {
     await this.getHeaders();
     let rows = [];
 
-    let firstRow = 2;
-    while (firstRow < this.metadata.properties.gridProperties.rowCount) {
+    let firstRowNumber = this.fromDataRowNumber(1);
+    while (firstRowNumber < this.metadata.properties.gridProperties.rowCount) {
       // Getting the rows of the sheet in increments of 1000s
       // as this is the MAX num of rowss allowed in one call
 
-      const lastRow = Math.min(
-        firstRow + 1000,
+      const lastRowNumber = Math.min(
+        firstRowNumber + 1000,
         this.metadata.properties.gridProperties.rowCount
       );
 
       const response = await this.connection.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
-        range: `${this.metadata.properties.title}!${firstRow}:${lastRow}`,
+        range: this.rowsToA1Notation(firstRowNumber, lastRowNumber),
       });
 
       const { statusText, status, data } = response;
@@ -44,12 +93,10 @@ export default class Sheet {
         throw new Error('Error: Not able to get google sheet');
       }
 
-      const result = this._convertRows(data.values || []);
+      if (!data.values || data.values.length === 0) break;
 
-      if (result.length === 0) break;
-
-      rows = rows.concat(result);
-      firstRow += result.length;
+      rows = rows.concat(data.values.map(row => this.decodeRow(row)));
+      firstRowNumber += data.values.length;
     }
 
     return rows;
@@ -67,60 +114,53 @@ export default class Sheet {
 
     await this.getHeaders();
 
+    /// Inserting empty rows
     await this.connection.spreadsheets.batchUpdate({
       spreadsheetId: this.spreadsheetId,
       resource: {
-        requests: rows
-          .map((row, rowIndex) => {
-            return {
-              insertDimension: {
-                range: {
-                  sheetId: this.metadata.properties.sheetId,
-                  dimension: 'ROWS',
-                  startIndex: rowIndex + 1,
-                  endIndex: rowIndex + 2,
-                },
-                inheritFromBefore: false,
-              },
-            };
-          })
-          .filter(row => row),
+        requests: rows.map((row, rowIndex) => ({
+          insertDimension: {
+            range: {
+              sheetId: this.metadata.properties.sheetId,
+              dimension: 'ROWS',
+              startIndex: rowIndex + 1,
+              endIndex: rowIndex + 2,
+            },
+            inheritFromBefore: false,
+          },
+        })),
       },
     });
 
+    /// Updating the rows
     const updateResult = await this.connection.spreadsheets.values.batchUpdate({
       spreadsheetId: this.spreadsheetId,
       resource: {
         valueInputOption: IValueInputOption.USER_ENTERED,
         data: rows
-          .map((row, rowIndex) => {
-            if (!row) return null;
-            const rowAsArray = this._convertColumnFormat(row);
-            const lastColumnNotation = this._getNotationLetterFromIndex(
-              rowAsArray.length - 1
-            );
-            return {
-              range: `${this.metadata.properties.title}!A${rowIndex +
-                2}:${lastColumnNotation}${rowIndex + 2}`,
-              majorDimension: IMajorDimensions.Rows,
-              values: [rowAsArray],
-            };
-          })
-          .filter(row => row),
+          .filter(row => row)
+          .map((row, rowIndex) => ({
+            range: this.toA1Notation(null, rowIndex + 2, null, rowIndex + 2),
+            majorDimension: IMajorDimensions.Rows,
+            values: [this.encodeRow(row)],
+          })),
       },
     });
 
     return updateResult;
   }
 
-  public async getHeaders() {
+  /**
+   * Gets the header row. Should be called inside all other methods to ensure the column names to exist.
+   */
+  protected async getHeaders() {
     if (this.headers && this.headers.length) {
       return;
     }
     const response: any = await this.connection.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
-      range: `${this.metadata.properties.title}!1:1`,
+      range: this.rowToA1Notation(1),
     });
 
     const { statusText, status, data } = response;
@@ -131,118 +171,110 @@ export default class Sheet {
     if (data.values) this.headers = data.values[0];
   }
 
+  /**
+   * Gets the entire column values
+   * @param columnName Name of the column to get
+   */
   public async getColumn(columnName: string) {
     await this.getHeaders();
+    const columnLetter = this.getColumnLetter(columnName);
 
-    let targetedColumn;
-    const index = this.headers.indexOf(columnName);
-    if (index > -1) {
-      targetedColumn = this._getNotationLetterFromIndex(index);
-    } else {
-      throw Error('Column not found');
-    }
-
-    const entireColumn: any = await this.connection.spreadsheets.values.get({
+    const response = await this.connection.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
-      majorDimension: IMajorDimensions.Rows,
-      range: `${
-        this.metadata.properties.title
-      }!${targetedColumn}:${targetedColumn}`,
+      majorDimension: IMajorDimensions.Columns,
+      range: this.toA1Notation(
+        columnLetter,
+        this.fromDataRowNumber(1),
+        columnLetter,
+        null
+      ),
     });
 
-    // Remove column header name
-    entireColumn.data.values.shift();
-
-    return [].concat.apply([], entireColumn.data.values);
-  }
-
-  public async getRow(rowNumber: number): Promise<any> {
-    await this.getHeaders();
-
-    const rowRange = `${
-      this.metadata.properties.title
-    }!${rowNumber}:${rowNumber}`;
-    const row: any = await this.connection.spreadsheets.values.get({
-      spreadsheetId: this.spreadsheetId,
-      majorDimension: IMajorDimensions.Rows,
-      range: rowRange,
-    });
-    return this._convertRows(row.data.values)[0];
-  }
-
-  public async updateRow(rowNumber: number, updateValues: any): Promise<any> {
-    await this.getHeaders();
-
-    const rowRange = `${
-      this.metadata.properties.title
-    }!${rowNumber}:${rowNumber}`;
-    const updateRow = this._convertColumnFormat(updateValues);
-    const afterUpdate = await this.connection.spreadsheets.values.update({
-      spreadsheetId: this.spreadsheetId,
-      range: rowRange,
-      valueInputOption: IValueInputOption.USER_ENTERED,
-      resource: {
-        values: [updateRow],
-      },
-    });
-    return afterUpdate;
+    return response.data.values[0];
   }
 
   /**
-   * Add a new row to specified spread sheet
    *
-   * @param sheetId The sheet to query from google sheets api
-   * @param appendValues Data values to add to Google Sheets
-   * @param isArray optional: set to true when appendValues is an array not an object
+   * @param dataRowNumber Number of the row in the data section, 1-based
    */
-  public async appendRow<T>(appendValues: T, isArray?: boolean): Promise<any> {
+  public async getRow(dataRowNumber: number): Promise<any> {
     await this.getHeaders();
 
-    const updateValues = isArray
-      ? appendValues
-      : this._convertColumnFormat(appendValues);
-
-    const appendResponse: any = await this.connection.spreadsheets.values.append(
-      {
-        spreadsheetId: this.spreadsheetId,
-        range: this.metadata.properties.title,
-        valueInputOption: IValueInputOption.USER_ENTERED,
-        resource: {
-          values: [updateValues],
-        },
-      }
-    );
-
-    const { spreadsheetId, updatedRows } = appendResponse.data.updates;
-
-    return { spreadsheetId, updatedRows };
-  }
-
-  protected _getNotationLetterFromIndex(index: number): string {
-    return (
-      (index >= 26
-        ? this._getNotationLetterFromIndex(((index / 26) >> 0) - 1)
-        : '') + 'abcdefghijklmnopqrstuvwxyz'[index % 26 >> 0].toUpperCase()
-    );
-  }
-
-  protected _convertRows(rows: any[]): any[] {
-    return rows.map((row: any[]) => {
-      const obj = {};
-      this.headers.forEach((key: string, i2) => {
-        obj[key] = row[i2] === '' || row[i2] === undefined ? null : row[i2];
-      });
-      return obj;
+    const response: any = await this.connection.spreadsheets.values.get({
+      spreadsheetId: this.spreadsheetId,
+      majorDimension: IMajorDimensions.Rows,
+      range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
     });
+    return this.decodeRow(response.data.values[0]);
   }
 
-  protected _convertColumnFormat(appendValues: any) {
-    return this.headers.map((c: string) => {
-      let columnValue = appendValues[c];
-      if (columnValue === null || columnValue === undefined) {
-        columnValue = '';
-      }
-      return columnValue;
+  /**
+   *
+   * @param dataRowNumber Number of the row in the data section, 1-based
+   * @param row Object to be saved into the row
+   */
+  public async updateRow(dataRowNumber: number, row: any): Promise<any> {
+    await this.getHeaders();
+    await this.connection.spreadsheets.values.update({
+      spreadsheetId: this.spreadsheetId,
+      range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
+      valueInputOption: IValueInputOption.USER_ENTERED,
+      resource: {
+        values: [this.encodeRow(row)],
+      },
     });
+    return true;
+  }
+
+  /**
+   * Appends a new row to specified spread sheet
+   *
+   * @param sheetId The sheet to query from google sheets api
+   * @param object Data values to add to Google Sheets
+   */
+  public async appendRow<T>(object: T): Promise<any> {
+    await this.getHeaders();
+
+    await this.connection.spreadsheets.values.append({
+      spreadsheetId: this.spreadsheetId,
+      range: this.metadata.properties.title,
+      valueInputOption: IValueInputOption.USER_ENTERED,
+      resource: {
+        values: [this.encodeRow(object)],
+      },
+    });
+
+    return true;
+  }
+
+  protected getColumnLetter(columnName: string): string {
+    let index = this.headers.indexOf(columnName);
+    if (index < 0) {
+      throw Error(`Column ${columnName} not found`);
+    }
+
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    let encoded = '';
+    while (index) {
+      encoded = alphabet[index % alphabet.length] + encoded;
+      index = Math.floor(index / alphabet.length);
+    }
+    return encoded;
+  }
+
+  protected decodeRow(row: any[]): any {
+    return this.headers.reduce(
+      (result: any, fieldName: string, index: number) => {
+        result[fieldName] =
+          row[index] === '' || row[index] === undefined ? null : row[index];
+        return result;
+      },
+      {}
+    );
+  }
+
+  protected encodeRow(object: any): any[] {
+    return this.headers.map((fieldName: string) => object[fieldName] || '');
   }
 }
