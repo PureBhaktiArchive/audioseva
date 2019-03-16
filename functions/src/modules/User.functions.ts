@@ -242,7 +242,7 @@ export const getAssignees = functions.https.onCall(
     return rows
       .filter(item => item[phase || Roles.CR] === Decision.Yes)
       .map(item => ({
-        emailaddress: item['Email Address'],
+        emailAddress: item['Email Address'],
         name: item['Name'],
         location: item['Country'],
         languages: item['Languages'] ? item['Languages'].split(/,\s?/) : [],

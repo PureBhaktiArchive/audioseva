@@ -6,13 +6,13 @@
     <h1>Sound Quality Reporting</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
       <v-autocomplete
-        v-model="allotment.devotee"
-        :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''"
-        :items="devotees || []"
-        :loading="devotees === null"
+        v-model="allotment.assignee"
+        :hint="allotment.assignee ? `Languages: ${allotment.assignee.languages.join(', ')}`: ''"
+        :items="assignees || []"
+        :loading="assignees === null"
         item-text="name"
         item-value="id"
-        label="Select a devotee"
+        label="Select an assignee"
         persistent-hint
         return-object
         clearable
@@ -25,7 +25,7 @@
           <template v-else>
             <v-list-tile-content>
               <v-list-tile-title v-html="item.name"></v-list-tile-title>
-              <v-list-tile-sub-title v-html="item.emailaddress"></v-list-tile-sub-title>
+              <v-list-tile-sub-title v-html="item.emailAddress"></v-list-tile-sub-title>
             </v-list-tile-content>
           </template>
         </template>
@@ -92,7 +92,7 @@ import "firebase/functions";
 export default {
   name: "SQRAllotment",
   data: () => ({
-    devotees: null,
+    assignees: null,
     languages: ["English", "Hindi", "Bengali"],
     lists: null,
     files: null,
@@ -101,23 +101,23 @@ export default {
       list: null
     },
     allotment: {
-      devotee: null,
+      assignee: null,
       files: [],
       comment: null
     },
     submissionStatus: null
   }),
   mounted: async function() {
-    // Getting devotees
+    // Getting assignees
     const result = await firebase
       .functions()
       .httpsCallable("User-getAssignees")({
       phase: "SQR"
     });
-    this.devotees = result.data;
+    this.assignees = result.data;
     if (this.$route.query.emailAddress) {
-      this.allotment.devotee = this.devotees.find(
-        devotee => devotee.emailaddress === this.$route.query.emailAddress
+      this.allotment.assignee = this.assignees.find(
+        assignee => assignee.emailAddress === this.$route.query.emailAddress
       );
     }
 
@@ -127,7 +127,7 @@ export default {
       .httpsCallable("SQR-getLists")()).data;
   },
   watch: {
-    "allotment.devotee": function(newValue) {
+    "allotment.assignee": function(newValue) {
       if (newValue == null) return;
 
       for (let language of this.languages) {
@@ -143,11 +143,9 @@ export default {
 
         if (this.filter.list == null) return;
 
-        const getSpareFiles = firebase
+        const result = await firebase
           .functions()
-          .httpsCallable("SQR-getSpareFiles");
-
-        let result = await getSpareFiles(this.filter);
+          .httpsCallable("SQR-getSpareFiles")(this.filter);
         this.files = result.data;
       }
     }
