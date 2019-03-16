@@ -15,169 +15,76 @@ export enum ISoundQualityReportSheet {
   Submissions = 'Submissions',
 }
 
-/////////////////////////////////////////////////
-//          OnNewAllotment (DB create and update Trigger)
-//      1. Mark the files in the database --> { status: "Given" }
-//              Function --> updateFilesOnNewAllotment
-//
-//      2. Send an email to the assignee to notify them of the new allotments
-//              Function --> sendEmailOnNewAllotment
-/////////////////////////////////////////////////
-export const updateFilesOnNewAllotment = functions.database
-  .ref('/sqr/allotments/{allotment_id}')
-  .onCreate((snapshot, context) => {
-    const allotment = snapshot.val();
-    const newDocKey = snapshot.key;
-
-    // loop through the FILES array in the NEW ALLOTMENT object
-    // and update their corresponding file objects
-    allotment.files.forEach(async file => {
-      const sqrRef = admin
-        .database()
-        .ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
-
-      const sqrError = await sqrRef.update({
-        status: 'Given',
-        assignee: allotment.assignee,
-        timestampGiven: Math.round(new Date().getTime() / 1000),
-        timestampDone: null,
-      });
-
-      if (sqrError === undefined) {
-        // if Successful FILE Update, update the ALLOTMENT accordingly
-
-        // case 1 -- the allotmnet is read from the spreadsheet
-        if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
-          admin
-            .database()
-            .ref(`/sqr/allotments/${newDocKey}`)
-            .update({
-              filesAlloted: true,
-            });
-        // case 2 -- the allotmnet is inputted manually
-        else
-          admin
-            .database()
-            .ref(`/sqr/allotments/${newDocKey}`)
-            .update({
-              filesAlloted: true,
-              sendNotificationEmail: true,
-            });
-      }
-    });
-  });
-
 /**
- * OnNewAllotment (DB create and update Trigger)
- * 1. Mark the files in the database --> { status: "Given" }
- * 2. Send an email to the assignee to notify them of the new allotments
- *
- * @function processAllotment()
+ * Saves allotment to the spreadsheet and sends an email notification
  */
-export const processAllotment = functions.database
-  .ref('/sqr/allotments/{allotment_id}')
-  .onWrite(async (snapshot, context) => {
-    const allotment = snapshot.after.val(); // new allotment
-    const newDocKey = snapshot.after.key;
-    const old = snapshot.before.val();
-    const coordinatorConfig = functions.config().coordinator;
-
-    // loop through the FILES array in the NEW ALLOTMENT object
-    // and update their corresponding file objects
-    allotment.files.forEach(async file => {
-      // Skip the current iteration if allotment.list doesn't exist
-      if (!allotment.list) return;
-
-      const sqrRef = admin
-        .database()
-        .ref(`/files/${allotment.list}/${file}/soundQualityReporting`);
-      const sqrError = await sqrRef.update({
-        status: 'Given',
-        assignee: allotment.assignee,
-        timestampGiven: moment().format('x'), // gives timestamp in ms
-        timestampDone: null,
-      });
-
-      // if Successful FILE Update, update the ALLOTMENT accordingly
-      if (sqrError === undefined) {
-        // case 1 -- the allotmnet is read from the spreadsheet
-        if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1) {
-          admin
-            .database()
-            .ref(`/sqr/allotments/${newDocKey}`)
-            .update({
-              filesAlloted: true,
-            });
-        }
-        // case 2 -- the allotmnet is inputted manually
-        else {
-          admin
-            .database()
-            .ref(`/sqr/allotments/${newDocKey}`)
-            .update({
-              filesAlloted: true,
-              sendNotificationEmail: true,
-            });
-        }
-      }
-    });
-
-    // Sends a notification to the assignee of the files he's allotted.
-    const allotmentSnapshot = await admin
-      .database()
-      .ref('/sqr/allotments')
-      .orderByChild('assignee/emailAddress')
-      .equalTo(allotment.assignee.emailAddress)
-      .once('value');
-
-    const allotments = allotmentSnapshot.val();
-
-    /**
-     * 1. sending mail ( only if sendNotificationEmail is TRUE
-     * 2. old allotment's filesAlloted is False
-     * 3. allotment has valid assignee )
-     * sendNotificationEmail is FASLE if the record is read from the spreadsheet
-     */
+export const processAllotment = functions.https.onCall(
+  async ({ assignee, files, comment }, context) => {
     if (
-      !old.filesAlloted &&
-      allotment.filesAlloted &&
-      allotment.assignee &&
-      allotment.sendNotificationEmail
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
     ) {
-      if (allotment.assignee.emailAddress) {
-        const utcMsec = moment()
-          .zone('utc')
-          .format('x'); // returns ms in utc
-
-        const localDate = new Date(
-          utcMsec + 3600000 * coordinatorConfig.timeZoneOffset
-        );
-
-        admin
-          .database()
-          .ref(`/email/notifications`)
-          .push({
-            template: 'sqr-allotment',
-            to: allotment.assignee.emailAddress,
-            bcc: coordinatorConfig.email_address,
-            params: {
-              files: allotment.files,
-              assignee: allotment.assignee,
-              comment: allotment.comment,
-              date: `${localDate.getDate() + 1}.${moment().month() + 1}`,
-              repeated: Object.keys(allotments).length > 1,
-            },
-          });
-
-        snapshot.after.ref
-          .child('mailSent')
-          .set(true)
-          .catch(err => console.log(err));
-      }
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
     }
 
-    return 1;
-  });
+    if (!assignee || !files || files.length === 0)
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Devotee and Files are required.'
+      );
+
+    const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
+    const sheet = await gsheets.useSheet(ISoundQualityReportSheet.Allotments);
+    const fileNameColumn = await sheet.getColumn('File Name');
+    const emailColumn = await sheet.getColumn('Email');
+
+    /// Update files in the Allotments sheet, in parallel
+    await Promise.all(
+      files.map(async file => {
+        const index = fileNameColumn.indexOf(file.filename);
+        if (index < 0) {
+          console.warn(
+            `File ${file.filename} is not found in the SQR allotments.`
+          );
+          return;
+        }
+        const rowNumber = index + 1;
+        const row = await sheet.getRow(rowNumber);
+        row['Date Given'] = moment().format('MM/DD/YYYY');
+        row['Status'] = 'Given';
+        row['Devotee'] = assignee.name;
+        row['Email'] = assignee.emailAddress;
+        await sheet.updateRow(rowNumber, row);
+      })
+    );
+
+    /// Send the allotment email
+    const coordinator = functions.config().coordinator;
+
+    await admin
+      .database()
+      .ref(`/email/notifications`)
+      .push({
+        template: 'sqr-allotment',
+        to: assignee.emailAddress,
+        bcc: coordinator.email_address,
+        replyTo: coordinator.email_address,
+        params: {
+          files,
+          assignee,
+          comment,
+          date: moment()
+            .utcOffset(coordinator.utc_offset)
+            .format('DD.MM'),
+          repeated: emailColumn.indexOf(assignee.emailAddress) > 0,
+        },
+      });
+  }
+);
 
 /**
  * Restructure External Submission
@@ -684,7 +591,7 @@ export const getLists = functions.https.onCall(async (data, context) => {
  * Gets spare files for specified list and languages
  */
 export const getSpareFiles = functions.https.onCall(
-  async ({ list, languages, count }, context) => {
+  async ({ list, language, languages, count }, context) => {
     if (
       !context.auth ||
       !context.auth.token ||
@@ -708,7 +615,7 @@ export const getSpareFiles = functions.https.onCall(
         item =>
           !item['Status'] &&
           item['List'] === list &&
-          languages.contains(item['Language'] || 'None')
+          (languages || [language]).includes(item['Language'] || 'None')
       )
       .map(item => ({
         filename: item['File Name'],
