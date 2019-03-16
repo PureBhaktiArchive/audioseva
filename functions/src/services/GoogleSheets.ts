@@ -16,6 +16,9 @@ export default class GoogleSheets {
 
   async useSheet(sheetName: string) {
     await this.connect();
+    if (!this.sheets.has(sheetName))
+      throw new Error(`No "${sheetName}" sheet in the spreadsheet.`);
+
     return this.sheets.get(sheetName);
   }
 
