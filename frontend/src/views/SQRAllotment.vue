@@ -151,19 +151,17 @@ export default {
     }
   },
   methods: {
-    allot() {
+    async allot() {
       this.submissionStatus = "inProgress";
-      this.$http
-        .post(process.env.VUE_APP_SQR_ALLOTMENT_URL, this.allotment)
-        .then(
-          () => {
-            this.submissionStatus = "complete";
-          },
-          response => {
-            alert(response.text());
-            this.submissionStatus = "error";
-          }
+      try {
+        await firebase.functions().httpsCallable("SQR-processAllotment")(
+          this.allotment
         );
+        this.submissionStatus = "complete";
+      } catch (error) {
+        alert(error.message);
+        this.submissionStatus = "error";
+      }
     },
     reset() {
       Object.assign(this.$data.allotment, this.$options.data().allotment);
