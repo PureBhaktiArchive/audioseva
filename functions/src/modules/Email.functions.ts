@@ -18,9 +18,6 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-// used for caching template IDs in `sendNotificationEmail` function
-const emailTemplates = {};
-
 export const updateTemplate = async (templateId, html) => {
   const updatedTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
 
@@ -46,16 +43,20 @@ export const createTemplate = async (templateName, sender, html, subject) => {
   return result['id'];
 };
 
+const emailTemplates = new Map<string, number>();
+
 export const getTemplateId = async templateName => {
-  const result = await apiInstance.getSmtpTemplates({ templateStatus: true });
+  if (!emailTemplates.has(templateName)) {
+    const { templates } = await apiInstance.getSmtpTemplates({
+      templateStatus: true,
+    });
 
-  const { templates } = result;
+    templates.forEach(template => {
+      emailTemplates.set(template.name, template.id);
+    });
+  }
 
-  const template = templates.filter(temp => temp['name'] === templateName)[0];
-
-  if (!template) return -1;
-
-  return template.id;
+  return emailTemplates.get(templateName);
 };
 
 /////////////////////////////////////////////////
@@ -97,7 +98,7 @@ const updateEmailTemplates = async filePath => {
 
   let id = getTemplateId(fileName);
 
-  if (+id === -1) {
+  if (id === undefined) {
     // New Template
     id = await createTemplate(fileName, sender, htmlContent, subject);
     await db
@@ -138,38 +139,28 @@ export const sendNotificationEmail = functions.database
   .ref('/email/notifications/{pushId}')
   .onCreate(async (snapshot, context) => {
     const data = snapshot.val();
-    const templateName = data.template;
 
-    let id;
-    if (Object.keys(emailTemplates).indexOf(templateName) > -1)
-      id = emailTemplates[templateName].id;
-    else {
-      id = await getTemplateId(templateName);
+    if (data.sentTimestamp) return false;
 
-      if (id === -1)
-        throw new Error(
-          `Template "${templateName}" was not found on SendInBlue!`
-        );
+    console.log(
+      `Sending an email to ${data.to} with template "${data.template}"`
+    );
 
-      emailTemplates[templateName] = { id };
-    }
+    await apiInstance.sendTransacEmail({
+      to: [{ email: data.to }],
+      bcc: [
+        {
+          email: data.bcc,
+        },
+      ],
+      replyTo: { email: data.replyTo },
+      templateId: await getTemplateId(data.template),
+      params: data.params,
+    });
 
-    if (!data['sentTimestamp']) {
-      await apiInstance.sendTransacEmail({
-        to: [{ email: data.to }],
-        bcc: [
-          {
-            email: data.bcc,
-          },
-        ],
-        replyTo: { email: data.replyTo },
-        templateId: id,
-        params: data.params,
-      });
-      await snapshot.ref.update({
-        sentTimestamp: admin.database.ServerValue.TIMESTAMP,
-      });
-    }
+    await snapshot.ref.update({
+      sentTimestamp: admin.database.ServerValue.TIMESTAMP,
+    });
 
-    return 1;
+    return true;
   });
