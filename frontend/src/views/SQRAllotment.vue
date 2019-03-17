@@ -119,24 +119,30 @@ export default {
     },
     submissionStatus: null
   }),
-  mounted: async function() {
+  mounted: function() {
     // Getting assignees
-    const result = await firebase
+    firebase
       .functions()
       .httpsCallable("User-getAssignees")({
-      phase: "SQR"
-    });
-    this.assignees = result.data;
-    if (this.$route.query.emailAddress) {
-      this.allotment.assignee = this.assignees.find(
-        assignee => assignee.emailAddress === this.$route.query.emailAddress
-      );
-    }
+        phase: "SQR"
+      })
+      .then(result => {
+        this.assignees = result.data;
+        if (this.$route.query.emailAddress) {
+          this.allotment.assignee = this.assignees.find(
+            assignee => assignee.emailAddress === this.$route.query.emailAddress
+          );
+        }
+      });
 
     // Getting lists
-    this.lists = (await firebase
+    firebase
       .functions()
-      .httpsCallable("SQR-getLists")()).data;
+      .httpsCallable("SQR-getLists")()
+      .then(result => {
+        this.lists = result.data;
+      });
+
     this.filter.languages = this.languages;
   },
   watch: {
