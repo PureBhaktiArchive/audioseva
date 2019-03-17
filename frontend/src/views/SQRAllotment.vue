@@ -32,7 +32,7 @@
       </v-autocomplete>
       <!-- Language -->
       <v-layout row class="py-2">
-        <v-btn-toggle v-model="filter.language">
+        <v-btn-toggle v-model="filter.languages" multiple>
           <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
         </v-btn-toggle>
       </v-layout>
@@ -44,15 +44,26 @@
         <p v-else>Loading lists…</p>
       </v-layout>
       <!-- Files -->
-      <template v-if="filter.list && filter.language">
+      <template v-if="filter.list && filter.languages.length">
         <template v-if="files">
           <template v-if="files.length > 0">
-            <v-layout align-center v-for="file in files" :key="file.filename">
-              <v-checkbox v-model="allotment.files" :value="file" :loading="!files">
-                <code slot="label">{{ file.filename }}</code>
-              </v-checkbox>
-              <span>{{ file.notes }}</span>
-            </v-layout>
+            <template v-for="(file, index) in files">
+              <div :key="file.filename">
+                <v-divider v-if="index > 0 && files[index - 1].date !== file.date"/>
+                <v-layout align-center>
+                  <v-checkbox
+                    :style="{ flex: 'none' }"
+                    v-model="allotment.files"
+                    :value="file"
+                    :loading="!files"
+                    class="mr-2"
+                  >
+                    <code slot="label">{{ file.filename }}</code>
+                  </v-checkbox>
+                  <span>{{ file.date || "No date" }} {{ file.language || "No language" }} {{ file.notes }}</span>
+                </v-layout>
+              </div>
+            </template>
           </template>
           <p v-else>No spare files found for selected language in {{filter.list}} list.</p>
         </template>
@@ -97,7 +108,7 @@ export default {
     lists: null,
     files: null,
     filter: {
-      language: null,
+      languages: [],
       list: null
     },
     allotment: {
@@ -125,22 +136,19 @@ export default {
     this.lists = (await firebase
       .functions()
       .httpsCallable("SQR-getLists")()).data;
+    this.filter.languages = this.languages;
   },
   watch: {
     "allotment.assignee": function(newValue) {
       if (newValue == null) return;
 
-      for (let language of this.languages) {
-        if (newValue.languages.includes(language))
-          this.filter.language = language;
-      }
+      this.filter.languages = this.languages;
     },
     filter: {
       deep: true,
       handler: async function() {
         this.files = null;
         this.allotment.files = [];
-
         if (this.filter.list == null) return;
 
         const result = await firebase
