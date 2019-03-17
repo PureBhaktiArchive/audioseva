@@ -99,12 +99,13 @@
 <script>
 import firebase from "firebase/app";
 import "firebase/functions";
+import * as _ from "lodash";
 
 export default {
   name: "SQRAllotment",
   data: () => ({
     assignees: null,
-    languages: ["English", "Hindi", "Bengali"],
+    languages: ["English", "Hindi", "Bengali", "None"],
     lists: null,
     files: null,
     filter: {
@@ -146,7 +147,7 @@ export default {
     },
     filter: {
       deep: true,
-      handler: async function() {
+      handler: _.debounce(async function() {
         this.files = null;
         this.allotment.files = [];
         if (this.filter.list == null) return;
@@ -155,7 +156,7 @@ export default {
           .functions()
           .httpsCallable("SQR-getSpareFiles")(this.filter);
         this.files = result.data;
-      }
+      }, 1000)
     }
   },
   methods: {
