@@ -8,6 +8,7 @@ export enum GoogleScopes {
 export default class GoogleSheets {
   public spreadsheetId: string;
   protected connection: any;
+  protected sheets: Map<string, Sheet>;
 
   constructor(spreadsheetId: string) {
     this.spreadsheetId = spreadsheetId;
@@ -15,7 +16,10 @@ export default class GoogleSheets {
 
   async useSheet(sheetName: string) {
     await this.connect();
-    return new Sheet(this.spreadsheetId, this.connection, sheetName);
+    if (!this.sheets.has(sheetName))
+      throw new Error(`No "${sheetName}" sheet in the spreadsheet.`);
+
+    return this.sheets.get(sheetName);
   }
 
   protected async connect() {
@@ -26,6 +30,18 @@ export default class GoogleSheets {
       scopes: [GoogleScopes.SpreadSheets],
     });
     this.connection = await gapi.sheets({ version: 'v4', auth });
+
+    const response: any = await this.connection.spreadsheets.get({
+      spreadsheetId: this.spreadsheetId,
+    });
+
+    this.sheets = new Map(
+      response.data.sheets.map(sheetMetadata => [
+        sheetMetadata.properties.title,
+        new Sheet(this.spreadsheetId, this.connection, sheetMetadata),
+      ])
+    );
+
     return this.connection;
   }
 
@@ -42,13 +58,5 @@ export default class GoogleSheets {
       },
     });
     return creatingResult;
-  }
-
-  public async getSheetNames() {
-    if (!this.connection) await this.connect();
-    const sheetsMetadata: any = await this.connection.spreadsheets.get({
-      spreadsheetId: this.spreadsheetId,
-    });
-    return sheetsMetadata.data.sheets.map(sheet => sheet.properties.title);
   }
 }

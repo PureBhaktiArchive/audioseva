@@ -6,13 +6,13 @@
     <h1>Sound Quality Reporting</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
       <v-autocomplete
-        v-model="allotment.devotee"
-        :hint="allotment.devotee ? `Languages: ${allotment.devotee.languages.join(', ')}`: ''"
-        :items="devotees || []"
-        :loading="devotees === null"
+        v-model="allotment.assignee"
+        :hint="allotment.assignee ? `Languages: ${allotment.assignee.languages.join(', ')}`: ''"
+        :items="assignees || []"
+        :loading="assignees === null"
         item-text="name"
         item-value="id"
-        label="Select a devotee"
+        label="Select an assignee"
         persistent-hint
         return-object
         clearable
@@ -25,14 +25,14 @@
           <template v-else>
             <v-list-tile-content>
               <v-list-tile-title v-html="item.name"></v-list-tile-title>
-              <v-list-tile-sub-title v-html="item.emailaddress"></v-list-tile-sub-title>
+              <v-list-tile-sub-title v-html="item.emailAddress"></v-list-tile-sub-title>
             </v-list-tile-content>
           </template>
         </template>
       </v-autocomplete>
       <!-- Language -->
       <v-layout row class="py-2">
-        <v-btn-toggle v-model="filter.language">
+        <v-btn-toggle v-model="filter.languages" multiple>
           <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
         </v-btn-toggle>
       </v-layout>
@@ -44,15 +44,26 @@
         <p v-else>Loading lists…</p>
       </v-layout>
       <!-- Files -->
-      <template v-if="filter.list && filter.language">
+      <template v-if="filter.list && filter.languages.length">
         <template v-if="files">
           <template v-if="files.length > 0">
-            <v-layout align-center v-for="file in files" :key="file.filename">
-              <v-checkbox v-model="allotment.files" :value="file" :loading="!files">
-                <code slot="label">{{ file.filename }}</code>
-              </v-checkbox>
-              <span>{{ file.notes }}</span>
-            </v-layout>
+            <template v-for="(file, index) in files">
+              <div :key="file.filename">
+                <v-divider v-if="index > 0 && files[index - 1].date !== file.date"/>
+                <v-layout align-center>
+                  <v-checkbox
+                    :style="{ flex: 'none' }"
+                    v-model="allotment.files"
+                    :value="file"
+                    :loading="!files"
+                    class="mr-2"
+                  >
+                    <code slot="label">{{ file.filename }}</code>
+                  </v-checkbox>
+                  <span>{{ file.date || "No date" }} {{ file.language || "No language" }} {{ file.notes }}</span>
+                </v-layout>
+              </div>
+            </template>
           </template>
           <p v-else>No spare files found for selected language in {{filter.list}} list.</p>
         </template>
@@ -86,91 +97,86 @@
 </style>
 
 <script>
+import firebase from "firebase/app";
+import "firebase/functions";
+import * as _ from "lodash";
+
 export default {
   name: "SQRAllotment",
   data: () => ({
-    devotees: null,
-    languages: ["English", "Hindi", "Bengali"],
+    assignees: null,
+    languages: ["English", "Hindi", "Bengali", "None"],
     lists: null,
     files: null,
     filter: {
-      language: null,
+      languages: [],
       list: null
     },
     allotment: {
-      devotee: null,
+      assignee: null,
       files: [],
       comment: null
     },
     submissionStatus: null
   }),
   mounted: function() {
-    // Getting devotees
-    this.$http
-      .get(process.env.VUE_APP_DEVOTEES_URL, {
-        params: { phase: "SQR" }
+    // Getting assignees
+    firebase
+      .functions()
+      .httpsCallable("User-getAssignees")({
+        phase: "SQR"
       })
-      .then(response => {
-        this.devotees = response.body;
+      .then(result => {
+        this.assignees = result.data;
         if (this.$route.query.emailAddress) {
-          this.allotment.devotee = this.devotees.find(
-            devotee => devotee.emailaddress === this.$route.query.emailAddress
+          this.allotment.assignee = this.assignees.find(
+            assignee => assignee.emailAddress === this.$route.query.emailAddress
           );
         }
       });
 
     // Getting lists
-    this.$http
-      .jsonp(process.env.VUE_APP_SCRIPT_URL, { params: { path: "sqr/lists" } })
-      .then(response => {
-        this.lists = response.body;
+    firebase
+      .functions()
+      .httpsCallable("SQR-getLists")()
+      .then(result => {
+        this.lists = result.data;
       });
+
+    this.filter.languages = this.languages;
   },
   watch: {
-    "allotment.devotee": function(newValue) {
+    "allotment.assignee": function(newValue) {
       if (newValue == null) return;
 
-      for (let language of this.languages) {
-        if (newValue.languages.includes(language))
-          this.filter.language = language;
-      }
+      this.filter.languages = this.languages;
     },
     filter: {
       deep: true,
-      handler: function() {
+      handler: _.debounce(async function() {
         this.files = null;
         this.allotment.files = [];
-
         if (this.filter.list == null) return;
 
-        this.$http
-          .get(process.env.VUE_APP_FILES_URL, {
-            params: {
-              phase: "sqr",
-              list: this.filter.list,
-              language: this.filter.language
-            }
-          })
-          .then(response => {
-            this.files = response.body;
-          });
-      }
+        const result = await firebase
+          .functions()
+          .httpsCallable("SQR-getSpareFiles")(this.filter);
+        this.files = result.data;
+      }, 1000)
     }
   },
   methods: {
-    allot() {
+    async allot() {
       this.submissionStatus = "inProgress";
-      this.$http
-        .post(process.env.VUE_APP_SQR_ALLOTMENT_URL, this.allotment)
-        .then(
-          () => {
-            this.submissionStatus = "complete";
-          },
-          response => {
-            alert(response.text());
-            this.submissionStatus = "error";
-          }
+      try {
+        await firebase.functions().httpsCallable("SQR-processAllotment")(
+          this.allotment
         );
+        this.submissionStatus = "complete";
+      } catch (error) {
+        alert(error.message);
+        this.submissionStatus = "error";
+      }
     },
     reset() {
       Object.assign(this.$data.allotment, this.$options.data().allotment);
