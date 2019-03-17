@@ -51,12 +51,16 @@
               <div :key="file.filename">
                 <v-divider v-if="index > 0 && files[index - 1].date !== file.date" />
                 <v-layout align-center>
-                  <v-checkbox v-model="allotment.files" :value="file" :loading="!files">
+                  <v-checkbox
+                    :style="{ flex: 'none' }"
+                    v-model="allotment.files"
+                    :value="file"
+                    :loading="!files"
+                    class="mr-2"
+                  >
                     <code slot="label">{{ file.filename }}</code>
                   </v-checkbox>
-                  <v-chip>{{ file.date || "No date" }}</v-chip>
-                  <v-chip text-color="white" color="info">{{ file.language || "No language" }}</v-chip>
-                  <span>{{ file.notes }}</span>
+                  <span>{{ file.date || "No date" }} {{ file.language || "No language" }} {{ file.notes }}</span>
                 </v-layout>
               </div>
             </template>
