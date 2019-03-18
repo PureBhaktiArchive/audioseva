@@ -46,6 +46,7 @@ The main credentials, **databaseURL** & the **storageBucket** are automatically 
 ```sh
 # each arg must have at least 2-part key (e.g foo.bar)
 $ firebase functions:config:set website.base_url="Base url of the website"
+$ firebase functions:config:set website.old.base_url="Base url of the old website"
 $ firebase functions:config:set send_in_blue.key="sendInBlue secret Key"
 # SQR
 $ firebase functions:config:set sqr.allotment.templateid='String | template name'
@@ -54,7 +55,7 @@ $ firebase functions:config:set storage.root-domain="Base URL for storage bucket
 
 # Coordinator information
 $ firebase functions:config:set coordinator.email_address='EMAIL'
-$ firebase functions:config:set coordinator.timeZoneOffset=NUMBER of HOURs
+$ firebase functions:config:set coordinator.utc_offset=NUMBER of HOURs
 #Importing a spreadsheet to the database variables
 $ firebase functions:config:set sqr.spreadsheetId='Google Spreadsheet ID'
 # Import user registration to database
@@ -62,7 +63,10 @@ $ firebase functions:config:set registrations.spreadsheet_id="Google Spreadsheet
 # "Copy submissions into the processing sheet" sheet IDs
 $ firebase functions:config:set cr.submissions.spreadsheet.id="Google Spreadsheet ID"
 $ firebase functions:config:set cr.processing.spreadsheet.id="Google Spreadsheet ID"
-
+# "Donations"
+$ firebase functions:config:set donations.cash.spreadsheet.id="Google Spreadsheet ID"
+$ firebase functions:config:set donations.cash.spreadsheet.name="Sheet Name"
+$ firebase functions:config:set donations.contact.email_address="Email address used in donations communication"
 ```
 
 Firebase Cloud Functions is written in **TypeScript**, if you are uploading the functions for the first time make sure you're selecting the language used in the project as **TypeScript** instead of the default **JavaScript**.
@@ -88,7 +92,9 @@ $ npm run deploy
 ```
 
 # Deploying Firebase Storage Rules!
+
 So far, one **target name** has been created [ uploads ], so the command needed to deploy the rules is:
+
 ```sh
 $ firebase target:apply storage uploads <uploads bucket name>
 $ firebase deploy --only storage:uploads

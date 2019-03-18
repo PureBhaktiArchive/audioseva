@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Content Reporting Allotment</title>
+
+  <!-- Bootstrap -->
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="allot.css">
+</head>
+
+<body>
+  <div class="container" id="app" v-cloak>
+    <h1 class="col-sm-offset-2 col-sm-10">Content Reporting Allotment</h1>
+    <form class="form-horizontal" @submit.stop.prevent="allot" v-show="submissionStatus != 'complete'">
+      <div class="form-group">
+        <label for="devotee" class="col-sm-2 control-label">Devotee</label>
+        <div class="col-sm-10">
+          <v-select name="devotee" required :options="devotees" v-model="allotment.devotee" label="name">
+            <template slot="option" slot-scope="option">
+              <div>
+                <div class="row">
+                  <div class="col-md-4"><strong>{{option.name}}</strong></div>
+                  <div class="col-md-4">{{option.emailaddress}}</div>
+                </div>
+              </div>
+            </template>
+          </v-select>
+        </div>
+        <div class="col-sm-offset-2 col-sm-10" v-if="allotment.devotee != null">Devotee languages: <strong>{{ allotment.devotee.languages.join(', ')}}</strong></div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" v-model="allotment.repeated"> This devotee was allotted before
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Langauges</label>
+        <div class="col-sm-10">
+          <div class="checkbox-inline" v-for="language in languages">
+            <label>
+              <input type="checkbox" :id="'language-' + language" v-model="filesSelector.languages" :value="language" :disabled="loading"></input>
+                {{ language }}
+              </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-sm-2 control-label">List</label>
+        <div class="col-sm-10">
+          <template v-if="lists">
+            <div class="radio-inline" v-for="list in lists">
+              <label>
+                <input type="radio" v-model="filesSelector.list" :value="list" name="list" required :disabled="loading">
+                {{ list }}
+              </label>
+            </div>
+          </template>
+          <p class="form-control-static" v-else>Loading…</p>
+        </div>
+      </div>
+
+      <div class="form-group" v-show="loading || files != null">
+        <label for="files" class="col-sm-2 control-label">Files</label>
+        <div class="col-sm-10">
+          <div v-show="loading">
+            <span class='glyphicon glyphicon-refresh rotate'></span>
+          </div>
+          <template v-for="(file, index) in files">
+            <hr v-if="index > 0 && files[index-1].date != file.date" />
+            <div class="checkbox" >
+              <label>
+                  <input type="checkbox" v-model="allotment.files" :value="file"></input>
+                  <code>{{ file.filename }}</code>
+                  <span>{{ file.date || "No date" }}</span>
+                  <span>{{ file.language || "No language" }}</span>
+                  <span>{{ file.notes }}</span>
+                </label>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="comment" class="col-sm-2 control-label">Comment</label>
+        <div class="col-sm-10">
+          <textarea v-model="allotment.comment" class="form-control" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <button type="submit" class="btn btn-primary" :disabled="submissionStatus === 'inProgress'">Allot <span class="glyphicon glyphicon-refresh rotate" aria-hidden="true" v-show="submissionStatus === 'inProgress'"></button>
+        </div>
+      </div>
+    </form>
+
+    <div id="confirmation-message" class="col-sm-offset-2 col-sm-10" v-show="submissionStatus === 'complete'">
+      <div class="alert alert-success" role="alert">
+        Lectures allotted successfully. <button type="button" class="btn btn-default" @click="reset">Make another allotment</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-router@3/dist/vue-router.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-resource@1/dist/vue-resource.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-jsonp@0.1.8/dist/vue-jsonp.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue-select@2/dist/vue-select.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4/lodash.min.js"></script>
+  <script src="allot.js"></script>
+</body>
+
+</html>

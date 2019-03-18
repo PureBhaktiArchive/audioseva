@@ -67,7 +67,8 @@ import { Component, Vue } from "vue-property-decorator";
 import VueDropzone from "vue2-dropzone";
 import "vue2-dropzone/dist/vue2Dropzone.min.css";
 import moment from "moment";
-import fb from "@/firebaseApp";
+import firebase from "firebase/app";
+import "firebase/storage";
 import { getTaskId, validateFlacFile } from "@/utility";
 
 interface IFileStatus {
@@ -81,7 +82,7 @@ interface IFileStatus {
   downloadUrl?: string;
 }
 
-const seUpload = fb.storage(process.env.VUE_APP_SOUND_EDITING_UPLOADS_BUCKET);
+const seUpload = firebase.storage();
 
 @Component({
   name: "Upload",

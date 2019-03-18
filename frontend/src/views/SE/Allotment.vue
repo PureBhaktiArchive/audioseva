@@ -84,7 +84,8 @@
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
 import firebase from "firebase/app";
-import fb from "@/firebaseApp";
+import "firebase/database";
+import "firebase/auth";
 import UsersByRole from "@/mixins/UsersByRole";
 import FirebaseShallowQuery from "@/mixins/FirebaseShallowQuery";
 import SoundIssuesList from "@/components/SE/SoundIssuesList.vue";
@@ -137,7 +138,7 @@ export default class Allotment extends Mixins<
     this.isLoadingTasks = true;
     this.$bindAsArray(
       "tasks",
-      fb.database().ref(`${this.listsBasePath}/${this.selectedList}`),
+      firebase.database().ref(`${this.listsBasePath}/${this.selectedList}`),
       null,
       () => (this.isLoadingTasks = false)
     );
@@ -157,10 +158,10 @@ export default class Allotment extends Mixins<
       },
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       // @ts-ignore
-      user: fb.auth().currentUser.email
+      user: firebase.auth().currentUser.email
     };
 
-    await fb
+    await firebase
       .database()
       .ref("/sound-editing/restoration/allotments")
       .push()

@@ -1,5 +1,13 @@
 {
   "rules": {
+    "donations": {
+      "cash": {
+        ".read": "auth.token.coordinator === true",
+        "$push_id": {
+          ".write": "!data.exists() && root.child('donations').child('tokens').child(newData.child('token').val()).child('valid').val() === true"
+        }
+      }
+    },
     "files": {
       ".read": "auth.token.Coordinator === true",
       "$list": {
@@ -109,6 +117,24 @@
           ".write": "auth.token.Coordinator === true",
           "$roleId": {
             ".validate": "newData.isBoolean()"
+          }
+        }
+      }
+    },
+    "submissions": {
+      "soundQualityReporting": {
+        "$list": {
+          "$fileName": {
+            "$token": {
+              ".read": true,
+              ".write": "newData.exists() && root.child('files').child($list).child($fileName).child('soundQualityReporting').child('token').val() == $token && root.child('files').child($list).child($fileName).child('soundQualityReporting').child('status').val() != 'Done'",
+              "complete": {
+                ".validate": "!data.exists()"
+              },
+              "created": {
+                ".validate": "!data.exists()"
+              }
+            }
           }
         }
       }

@@ -1,7 +1,8 @@
 import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
 
-import fb from "@/firebaseApp";
+import firebase from "firebase/app";
+import "firebase/database";
 
 @Component
 export default class InlineSave extends Vue {
@@ -22,17 +23,17 @@ export default class InlineSave extends Vue {
     this.snack = true;
     this.snackColor = "error";
     this.snackText = "Canceled";
-  };
+  }
 
   get items() {
     return this[this.itemsKey];
   }
 
   save(
-      item: any,
-      path: any,
-      updates: any,
-      { itemPath, newValue }: { [key: string]: any } = { itemPath: false }
+    item: any,
+    path: any,
+    updates: any,
+    { itemPath, newValue }: { [key: string]: any } = { itemPath: false }
   ) {
     this.openSnackbar();
 
@@ -42,14 +43,17 @@ export default class InlineSave extends Vue {
     // manual update state if component can't use v-model
     if (itemPath) {
       this.$set(
-          this.items,
-          this.items.findIndex((i: any) => i[this.itemComparePath] === item[this.itemComparePath]),
-          _.setWith(_.clone(item), itemPath, newValue, _.clone)
+        this.items,
+        this.items.findIndex(
+          (i: any) => i[this.itemComparePath] === item[this.itemComparePath]
+        ),
+        _.setWith(_.clone(item), itemPath, newValue, _.clone)
       );
     }
 
-    fb.database()
-        .ref(refPath)
-        .set(updates);
+    firebase
+      .database()
+      .ref(refPath)
+      .set(updates);
   }
 }

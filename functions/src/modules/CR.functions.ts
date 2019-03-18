@@ -14,16 +14,16 @@ export const copySubmissionsToProcessing = functions.pubsub
       functions.config().cr.processing.spreadsheet.id
     );
     const destinations = new Map();
-    const sheetNames = await destSpreadsheet.getSheetNames();
 
     for (const row of await onlineSheet.getRows()) {
       const list = helpers.extractListFromFilename(row['Audio File Name']);
 
       if (!destinations.has(list)) {
-        /// We are not creating new sheets
-        if (sheetNames.indexOf(list) < 0) continue;
-
         const sheet = await destSpreadsheet.useSheet(list);
+
+        /// We are not creating new sheets
+        if (!sheet) continue;
+
         destinations.set(list, {
           sheet,
           submissionSerials: await sheet.getColumn('Submission Serial'),

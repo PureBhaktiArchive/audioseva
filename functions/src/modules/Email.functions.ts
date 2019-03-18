@@ -1,15 +1,14 @@
-
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
 // SendInBlue Helper Imports
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 
-SibApiV3Sdk
-  .ApiClient
-  .instance
-  .authentications['api-key']
-  .apiKey = functions.config().send_in_blue ? functions.config().send_in_blue.key : '';
+SibApiV3Sdk.ApiClient.instance.authentications[
+  'api-key'
+].apiKey = functions.config().send_in_blue
+  ? functions.config().send_in_blue.key
+  : '';
 const apiInstance = new SibApiV3Sdk.SMTPApi();
 
 const bucket = admin.storage().bucket();
@@ -18,22 +17,6 @@ const db = admin.database();
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-
-// used for caching template IDs in `sendNotificationEmail` function
-const emailTemplates = {};
-
-// SendInBlue Helper Functions
-export const sendEmail = async (to, bcc, replyTo, templateId, params) => {
-  await apiInstance
-    .sendTransacEmail({
-      to: [{ email: to }],
-      bcc,
-      replyTo,
-      templateId,
-      params,
-    });
-
-};
 
 export const updateTemplate = async (templateId, html) => {
   const updatedTemplate = new SibApiV3Sdk.CreateSmtpTemplate();
@@ -60,18 +43,20 @@ export const createTemplate = async (templateName, sender, html, subject) => {
   return result['id'];
 };
 
+const emailTemplates = new Map<string, number>();
+
 export const getTemplateId = async templateName => {
+  if (!emailTemplates.has(templateName)) {
+    const { templates } = await apiInstance.getSmtpTemplates({
+      templateStatus: true,
+    });
 
-  const result = await apiInstance.getSmtpTemplates({ templateStatus: true });
+    templates.forEach(template => {
+      emailTemplates.set(template.name, template.id);
+    });
+  }
 
-  const { templates } = result;
-
-  const template = templates.filter(temp => temp['name'] === templateName)[0];
-
-  if (!template)
-    return -1;
-
-  return template.id;
+  return emailTemplates.get(templateName);
 };
 
 /////////////////////////////////////////////////
@@ -113,7 +98,7 @@ const updateEmailTemplates = async filePath => {
 
   let id = getTemplateId(fileName);
 
-  if (+id === -1) {
+  if (id === undefined) {
     // New Template
     id = await createTemplate(fileName, sender, htmlContent, subject);
     await db
@@ -142,7 +127,7 @@ export const updateTemplatesOnTemplateUpload = functions.storage
   });
 
 export const updateTemplatesOnMetadataChange = functions.database
-  .ref('/email/templates}')
+  .ref('/email/templates/{fileName}')
   .onUpdate(async (change, context) => {
     updateEmailTemplates(change.after.key).catch(err =>
       console.error('Error: updateTemplatesOnMetadataChange ', err)
@@ -151,29 +136,31 @@ export const updateTemplatesOnMetadataChange = functions.database
   });
 
 export const sendNotificationEmail = functions.database
-  .ref('/email/notifications}')
+  .ref('/email/notifications/{pushId}')
   .onCreate(async (snapshot, context) => {
     const data = snapshot.val();
-    const templateName = data.template;
 
-    let id;
-    if (Object.keys(emailTemplates).indexOf(templateName) > -1)
-      id = emailTemplates[templateName].id;
-    else {
-      id = await getTemplateId(templateName);
+    if (data.sentTimestamp) return false;
 
-      if (id === -1)
-        throw new Error(`Template "${templateName}" was not found on SendInBlue!`);
+    console.log(
+      `Sending an email to ${data.to} with template "${data.template}"`
+    );
 
-      emailTemplates[templateName] = { id };
-    }
+    await apiInstance.sendTransacEmail({
+      to: [{ email: data.to }],
+      bcc: [
+        {
+          email: data.bcc,
+        },
+      ],
+      replyTo: { email: data.replyTo },
+      templateId: await getTemplateId(data.template),
+      params: data.params,
+    });
 
-    if (!data['sentTimestamp']) {
-      await sendEmail(data.to, data.bcc, data.replyTo, id, data.params);
-      await snapshot.ref.update({
-        sentTimestamp: admin.database.ServerValue.TIMESTAMP,
-      });
-    }
+    await snapshot.ref.update({
+      sentTimestamp: admin.database.ServerValue.TIMESTAMP,
+    });
 
-    return 1;
+    return true;
   });
