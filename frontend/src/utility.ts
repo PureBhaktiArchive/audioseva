@@ -77,3 +77,26 @@ export const initialFilter = () => ({
   language: null,
   list: null
 });
+
+export const updateObject = (obj: any, field: string, value: any) => {
+  return _.setWith(_.clone(obj), field, value, _.clone);
+};
+
+export const removeObjectKey = (obj: any, field: string) => {
+  const newObj = { ...obj };
+  const paths = field.split(".");
+  paths.reduce((form: any, path: string) => {
+    if (path === paths[paths.length - 1]) {
+      if (Array.isArray(form)) {
+        return form.splice(parseInt(path), 1);
+      }
+      return delete form[path];
+    }
+    const formData = form[path];
+    if (formData && Array.isArray(formData)) {
+      return (form[path] = [...formData]);
+    }
+    return (form[path] = { ...(formData ? formData : {}) });
+  }, newObj);
+  return newObj;
+};

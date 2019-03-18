@@ -16,7 +16,8 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
-import fb from "@/firebaseApp";
+import firebase from "firebase/app";
+import "firebase/database";
 import {
   IFileVueFire,
   ISpareByLanguage,
@@ -54,13 +55,13 @@ export default class FileStatistics extends Vue {
     const date = new Date();
     this.$bindAsObject(
       "lists",
-      fb.database().ref("files"),
+      firebase.database().ref("files"),
       null,
       this.extractFiles
     );
     this.$bindAsArray(
       "doneFiles",
-      fb
+      firebase
         .database()
         .ref("sqr/submissions")
         .orderByChild("completed")

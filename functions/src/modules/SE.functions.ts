@@ -76,7 +76,7 @@ export const processNewAllotment = functions.database
     await db.ref(`/email/notifications`).push({
       template: 'sound-editing-allotment',
       to: allotment.assignee.emailAddress,
-      bcc: [{ email: coordinator.email_address }],
+      bcc: coordinator.email_address,
       params: {
         tasks,
         assignee: allotment.assignee,
@@ -84,7 +84,7 @@ export const processNewAllotment = functions.database
         date: `${timestamp.getDate()}.${timestamp.getMonth() + 1}`,
         uploadURL: `${
           functions.config().website.base_url
-          }/sound-editing/upload/${uploadCode}`,
+        }/sound-editing/upload/${uploadCode}`,
         repeated: Object.keys(assigneeAllotments).length > 1,
       },
     });
@@ -195,64 +195,69 @@ export const createTaskFromChunks = functions.database
     return snapshot.val();
   });
 
-
-
 /**
  * Sends a notification email to the coordinator & udpates the corresponding Task
  */
 const stoargeBaseDomain = functions.config().storage['root-domain'];
-export const processUploadedFile = functions.storage.bucket(`uploads.${stoargeBaseDomain}`).object()
+export const processUploadedFile = functions.storage
+  .bucket(`uploads.${stoargeBaseDomain}`)
+  .object()
   .onFinalize(async object => {
-
     const filePath = object.name;
     const uploadsBucket = admin.storage().bucket(object.bucket);
     let uploadCode, list, taskId, task, taskRef;
 
-    if (!filePath.startsWith('restored'))
-      return -1;
+    if (!filePath.startsWith('restored')) return -1;
 
     try {
       const filePathRegex = /restored\/(\w+)\/(?:\w+\/)*(([\w]+)-\d+-\d+)\.flac/;
       const match = filePathRegex.exec(filePath);
 
       // [Check #1] File name should match `$taskId.flac` pattern.
-      if (!match)
-        throw new Error(`Wrong Path -- ${filePath} will be deleted.`);
+      if (!match) throw new Error(`Wrong Path -- ${filePath} will be deleted.`);
 
       uploadCode = match[1];
       taskId = match[2];
       list = match[3];
 
-      const user = await db.ref(`/users`)
+      const user = await db
+        .ref(`/users`)
         .orderByChild('uploadCode')
         .equalTo(uploadCode)
         .once('value');
 
       if (!user.exists())
-        throw new Error(`No User with the given upload code -- ${filePath} will be deleted.`);
+        throw new Error(
+          `No User with the given upload code -- ${filePath} will be deleted.`
+        );
 
-
-      taskRef = await db.ref(`/sound-editing/tasks/${list}/${taskId}`).once('value');
+      taskRef = await db
+        .ref(`/sound-editing/tasks/${list}/${taskId}`)
+        .once('value');
       task = taskRef.val();
 
       // [Check #2] The task should be found in the database by Id.
       if (!taskRef.exists())
         throw new Error(`Task does not exist -- ${filePath} will be deleted.`);
 
-
-      // [Check #3] The task should be assigned to a particular sound engineer 
+      // [Check #3] The task should be assigned to a particular sound engineer
       //  which is identified by the `uploadCode`within the file path.
       if (task.restoration.assignee.emailAddress !== user.val().emailAddress)
-        throw new Error(`Task is assigned to another SE -- ${filePath} will be deleted.`);
+        throw new Error(
+          `Task is assigned to another SE -- ${filePath} will be deleted.`
+        );
 
       // [Check #4] The task should be in `Spare` or `Revise` status.
       if (['Revise', 'Spare'].indexOf(task.restoration.status) < 0)
-        throw new Error(`Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`);
-
+        throw new Error(
+          `Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`
+        );
 
       // Move current file (after passing all validity checks) into `Restored` bucket
       uploadsBucket.file(object.name).move(
-        admin.storage().bucket(`restored${stoargeBaseDomain}`)
+        admin
+          .storage()
+          .bucket(`restored${stoargeBaseDomain}`)
           .file(`${list}/${taskId}.flac`)
       );
     } catch (err) {
@@ -264,7 +269,7 @@ export const processUploadedFile = functions.storage.bucket(`uploads.${stoargeBa
     // Update the Task
     const taskRestorationUpdate = {
       status: 'In Review',
-      timestampLastVersion: object.timeCreated
+      timestampLastVersion: object.timeCreated,
     };
 
     if (!task.restoration.timestampFirstVersion)
@@ -272,13 +277,12 @@ export const processUploadedFile = functions.storage.bucket(`uploads.${stoargeBa
 
     await taskRef.ref.child('restoration').update(taskRestorationUpdate);
 
-
     // Send an email notification to the coordinator
     db.ref(`/email/notifications`).push({
       template: 'se-upload',
       to: functions.config().coordinator.email_address,
       replyTo: task.restoration.assignee.emailAddress,
-      params: { task }
+      params: { task },
     });
 
     return 1;

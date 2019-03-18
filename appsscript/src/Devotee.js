@@ -41,13 +41,6 @@ export class Devotee {
   }
 
   static getByRole(role) {
-    return this.devoteesTable
-      .select({ [role]: 'Yes' })
-      .filter(
-        item =>
-          ['Lost', 'Opted out', 'Incorrect', 'Duplicate'].indexOf(item.getFieldValue('Status')) ===
-          -1
-      )
-      .map(item => new Devotee(item));
+    return this.devoteesTable.select({ [role]: 'Yes' }).map(item => new Devotee(item));
   }
 }

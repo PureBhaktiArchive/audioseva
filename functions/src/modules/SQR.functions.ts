@@ -1,168 +1,90 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as helpers from './../helpers';
-const moment = require('moment');
-
-const db = admin.database();
+import * as moment from 'moment';
 import GoogleSheets from '../services/GoogleSheets';
 import {
   spreadsheetDateFormat,
   withDefault,
   commaSeparated,
 } from '../utils/parsers';
+import { URL } from 'url';
 
 export enum ISoundQualityReportSheet {
   Allotments = 'Allotments',
   Submissions = 'Submissions',
 }
 
-/////////////////////////////////////////////////
-//          OnNewAllotment (DB create and update Trigger)
-//      1. Mark the files in the database --> { status: "Given" }
-//              Function --> updateFilesOnNewAllotment
-//
-//      2. Send an email to the assignee to notify them of the new allotments
-//              Function --> sendEmailOnNewAllotment
-/////////////////////////////////////////////////
-export const updateFilesOnNewAllotment = functions.database
-  .ref('/sqr/allotments/{allotment_id}')
-  .onCreate((snapshot, context) => {
-    const allotment = snapshot.val();
-    const newDocKey = snapshot.key;
-
-    // loop through the FILES array in the NEW ALLOTMENT object
-    // and update their corresponding file objects
-    allotment.files.forEach(async file => {
-      const sqrRef = db.ref(
-        `/files/${allotment.list}/${file}/soundQualityReporting`
-      );
-
-      const sqrError = await sqrRef.update({
-        status: 'Given',
-        assignee: allotment.assignee,
-        timestampGiven: Math.round(new Date().getTime() / 1000),
-        timestampDone: null,
-      });
-
-      if (sqrError === undefined) {
-        // if Successful FILE Update, update the ALLOTMENT accordingly
-
-        // case 1 -- the allotmnet is read from the spreadsheet
-        if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1)
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-          });
-        // case 2 -- the allotmnet is inputted manually
-        else
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-            sendNotificationEmail: true,
-          });
-      }
-    });
-  });
-
 /**
- * OnNewAllotment (DB create and update Trigger)
- * 1. Mark the files in the database --> { status: "Given" }
- * 2. Send an email to the assignee to notify them of the new allotments
- *
- * @function processAllotment()
+ * Saves allotment to the spreadsheet and sends an email notification
  */
-export const processAllotment = functions.database
-  .ref('/sqr/allotments/{allotment_id}')
-  .onWrite(async (snapshot, context) => {
-    const allotment = snapshot.after.val(); // new allotment
-    const newDocKey = snapshot.after.key;
-    const old = snapshot.before.val();
-    const coordinatorConfig = functions.config().coordinator;
-
-    // loop through the FILES array in the NEW ALLOTMENT object
-    // and update their corresponding file objects
-    allotment.files.forEach(async file => {
-      // Skip the current iteration if allotment.list doesn't exist
-      if (!allotment.list) return;
-
-      const sqrRef = db.ref(
-        `/files/${allotment.list}/${file}/soundQualityReporting`
-      );
-      const sqrError = await sqrRef.update({
-        status: 'Given',
-        assignee: allotment.assignee,
-        timestampGiven: moment().format('x'), // gives timestamp in ms
-        timestampDone: null,
-      });
-
-      // if Successful FILE Update, update the ALLOTMENT accordingly
-      if (sqrError === undefined) {
-        // case 1 -- the allotmnet is read from the spreadsheet
-        if (Object.keys(allotment).indexOf('sendNotificationEmail') > -1) {
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-          });
-        }
-        // case 2 -- the allotmnet is inputted manually
-        else {
-          db.ref(`/sqr/allotments/${newDocKey}`).update({
-            filesAlloted: true,
-            sendNotificationEmail: true,
-          });
-        }
-      }
-    });
-
-    // Sends a notification to the assignee of the files he's allotted.
-    const allotmentSnapshot = await db
-      .ref('/sqr/allotments')
-      .orderByChild('assignee/emailAddress')
-      .equalTo(allotment.assignee.emailAddress)
-      .once('value');
-
-    const allotments = allotmentSnapshot.val();
-
-    /**
-     * 1. sending mail ( only if sendNotificationEmail is TRUE
-     * 2. old allotment's filesAlloted is False
-     * 3. allotment has valid assignee )
-     * sendNotificationEmail is FASLE if the record is read from the spreadsheet
-     */
+export const processAllotment = functions.https.onCall(
+  async ({ assignee, files, comment }, context) => {
     if (
-      !old.filesAlloted &&
-      allotment.filesAlloted &&
-      allotment.assignee &&
-      allotment.sendNotificationEmail
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
     ) {
-      if (allotment.assignee.emailAddress) {
-        const utcMsec = moment()
-          .zone('utc')
-          .format('x'); // returns ms in utc
-
-        const localDate = new Date(
-          utcMsec + 3600000 * coordinatorConfig.timeZoneOffset
-        );
-
-        db.ref(`/email/notifications`).push({
-          template: 'sqr-allotment',
-          to: allotment.assignee.emailAddress,
-          bcc: [{ email: coordinatorConfig.email_address }],
-          params: {
-            files: allotment.files,
-            assignee: allotment.assignee,
-            comment: allotment.comment,
-            date: `${localDate.getDate() + 1}.${moment().month() + 1}`,
-            repeated: Object.keys(allotments).length > 1,
-          },
-        });
-
-        snapshot.after.ref
-          .child('mailSent')
-          .set(true)
-          .catch(err => console.log(err));
-      }
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
     }
 
-    return 1;
-  });
+    if (!assignee || !files || files.length === 0)
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Devotee and Files are required.'
+      );
+
+    const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
+    const sheet = await gsheets.useSheet(ISoundQualityReportSheet.Allotments);
+    const fileNameColumn = await sheet.getColumn('File Name');
+    const emailColumn = await sheet.getColumn('Email');
+
+    /// Update files in the Allotments sheet, in parallel
+    await Promise.all(
+      files.map(async file => {
+        const index = fileNameColumn.indexOf(file.filename);
+        if (index < 0) {
+          console.warn(
+            `File ${file.filename} is not found in the SQR allotments.`
+          );
+          return;
+        }
+        const rowNumber = index + 1;
+        const row = await sheet.getRow(rowNumber);
+        row['Date Given'] = moment().format('MM/DD/YYYY');
+        row['Status'] = 'Given';
+        row['Devotee'] = assignee.name;
+        row['Email'] = assignee.emailAddress;
+        await sheet.updateRow(rowNumber, row);
+      })
+    );
+
+    /// Send the allotment email
+    const coordinator = functions.config().coordinator;
+
+    await admin
+      .database()
+      .ref(`/email/notifications`)
+      .push({
+        template: 'sqr-allotment',
+        to: assignee.emailAddress,
+        bcc: coordinator.email_address,
+        replyTo: coordinator.email_address,
+        params: {
+          files,
+          assignee,
+          comment,
+          date: moment()
+            .utcOffset(coordinator.utc_offset)
+            .format('DD.MM'),
+          repeated: emailColumn.indexOf(assignee.emailAddress) > 0,
+        },
+      });
+  }
+);
 
 /**
  * Restructure External Submission
@@ -202,10 +124,58 @@ export const restructureExternalSubmission = functions.database
       },
     };
 
-    db.ref(`/sqr/submissions/${original.serial}`).update(submission);
+    admin
+      .database()
+      .ref(`/sqr/submissions/${original.serial}`)
+      .update(submission);
 
     return 1;
   });
+
+const acceptedStatuses: string[] = ['Given', 'WIP'];
+
+const addSubmissionWarnings = async (
+  currentSet,
+  { soundQualityReporting: { status, assignee } },
+  {
+    cancellation: { notPreferredLanguage, audioProblem },
+    fileName,
+    changed,
+    completed,
+    author,
+    comments,
+  },
+  isFirstSubmission
+) => {
+  const listId = fileName.split('-')[0];
+  const warnings = [];
+  if (isFirstSubmission)
+    warnings.push('This is the first submission by this devotee!');
+  if (notPreferredLanguage)
+    warnings.push("The lecture is not in devotee's preferred language!");
+  if (audioProblem)
+    warnings.push(`Unable to play or download the audio ${comments}`);
+  if (changed !== completed) warnings.push('This is an updated submission!');
+  if (assignee.emailAddress !== author.emailAddress) {
+    warnings.push(
+      `File is alloted to another email id - ${assignee.emailAddress}`
+    );
+  }
+  if (!acceptedStatuses.includes(status)) {
+    warnings.push(`Status of file is ${status || 'Spare'}`);
+  }
+  const response = (await admin
+    .database()
+    .ref(`/files/${listId}/${fileName}`)
+    .once('value')).val();
+  if (!response)
+    warnings.push(`Audio file name ${fileName} is not found in the backend!`);
+
+  if (currentSet.filter(allotment => allotment.status === 'Given').length === 1)
+    warnings.push("It's time to allot!");
+
+  return warnings;
+};
 
 /**
  * SQR Process Submission
@@ -230,7 +200,8 @@ export const processSubmission = functions.database
 
     // 2. Update the allotment ( first get the previous NOTES )
     // 3.1 Get the submitted audio file data
-    const fileSnapshot = await db
+    const fileSnapshot = await admin
+      .database()
       .ref(`/files/${list}/${submission.fileName}`)
       .once('value');
 
@@ -243,7 +214,7 @@ export const processSubmission = functions.database
     if (audioFileStatus !== 'WIP') {
       fileUpdate['notes'] = `${fileSnapshot.val().notes}\n${
         submission.comments
-        }`;
+      }`;
     }
 
     // if the audio has any cancellation then REMOVE the assignee from the file allotment
@@ -253,7 +224,10 @@ export const processSubmission = functions.database
     )
       fileUpdate['assignee'] = {};
 
-    db.ref(`/files/${list}/${submission.fileName}`).update(fileUpdate);
+    admin
+      .database()
+      .ref(`/files/${list}/${submission.fileName}`)
+      .update(fileUpdate);
 
     const coordinator = functions.config().coordinator;
     const fileData = fileSnapshot.val();
@@ -263,7 +237,8 @@ export const processSubmission = functions.database
      * TO BE ADDED LATER
      * Currently passing an empty array
      */
-    const allSubmissionsSnapshot = await db
+    const allSubmissionsSnapshot = await admin
+      .database()
       .ref(`/sqr/submissions`)
       .orderByChild('author/emailAddress')
       .equalTo(submission.author.emailAddress)
@@ -273,32 +248,77 @@ export const processSubmission = functions.database
     if (allSubmissionsSnapshot.exists()) {
       const allSubmissions = allSubmissionsSnapshot.val();
 
+      const allotments = (await admin
+        .database()
+        .ref(`/files/${list}`)
+        .orderByChild('soundQualityReporting/assignee/emailAddress')
+        .equalTo(submission.author.emailAddress)
+        .once('value')).val();
+
+      const currentSet = Object.entries(allotments);
+      currentSet.forEach((allotment: any, index, arr) => {
+        const [
+          {
+            soundQualityReporting: { timestampGiven },
+          },
+        ] = allotment;
+        allotment.timestampGiven = timestampGiven
+          ? moment(timestampGiven).format('M/D/YYYY')
+          : '';
+        allotment.daysPassed = timestampGiven
+          ? moment().diff(timestampGiven, 'days')
+          : '';
+      });
+
+      const isFirstSubmission = Object.keys(allSubmissions).length <= 1;
+      const warnings = await addSubmissionWarnings(
+        currentSet,
+        fileData,
+        submission,
+        isFirstSubmission
+      );
+
+      const allotmentUrl = new URL(
+        '/sqr/allot',
+        functions.config().website.base_url
+      );
+      allotmentUrl.search = `emailaddress=${submission.author.emailAddress}`;
+
+      const updateUrl = new URL(
+        '/form/sound-quality-report',
+        functions.config().website.old.base_url
+      );
+      updateUrl.search = `token=${submission.token}`;
+
       // 3.4 Notify the coordinator
       // Sending the notification Email Finally
-      db.ref(`/email/notifications`).push({
-        template: 'sqr-submission',
-        to: coordinator.email_address,
-        params: {
-          submission,
-          fileData,
-          currentSet: [],
-          isFirstSubmission: Object.keys(allSubmissions).length <= 1,
-        },
-      });
+      admin
+        .database()
+        .ref(`/email/notifications`)
+        .push({
+          template: 'sqr-submission',
+          to: coordinator.email_address,
+          params: {
+            currentSet,
+            fileData,
+            submission,
+            isFirstSubmission,
+            warnings,
+            allotmentUrl,
+            updateUrl,
+          },
+        });
     }
 
     return 1;
   });
 
-
-
-
 /**
  * Parse "Sound Issue" or "Unwanted parts" string to extract its different parts
- * 
+ *
  * @param string "Sound Issue" or "Unwanted parts" string to parse
  */
-const parseAudioChunkRemark = (string) => {
+const parseAudioChunkRemark = string => {
   /**
    * Regex to parse the value "Sound Issues" & "Unwanted Parts"
    * 'g' flag is used to match one or more occurences of the pattern
@@ -312,13 +332,13 @@ const parseAudioChunkRemark = (string) => {
       beginning: matches[2] ? null : matches[3],
       ending: matches[2] ? null : matches[4],
       type: matches[5].trim(),
-      description: matches[6].trim()
+      description: matches[6].trim(),
     });
     matches = regex.exec(string);
   }
 
   return tokens;
-}
+};
 /////////////////////////////////////////////////
 //          Import Submission and Allotments from a Spreadsheet(Http Triggered)
 //
@@ -326,16 +346,28 @@ const parseAudioChunkRemark = (string) => {
 //      2. Looks for two sheets --> Allotments & Submissions
 //      3. Loads their data into the equivalent Firebase database paths
 /////////////////////////////////////////////////
-export const importSpreadSheetData = functions.https.onRequest(
-  async (req, res) => {
-    const spreadsheetId = functions.config().sqr.spreadsheet_id;
+export const importSpreadSheetData = functions.https.onCall(
+  async (data, context) => {
+    if (
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
+    ) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
+    }
 
+    const spreadsheetId = functions.config().sqr.spreadsheet_id;
 
     ////////////////////////
     //     Submissions
     ////////////////////////
     const submissionsSpreadsheet = new GoogleSheets(spreadsheetId);
-    const submissionsSheet = await submissionsSpreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
+    const submissionsSheet = await submissionsSpreadsheet.useSheet(
+      ISoundQualityReportSheet.Submissions
+    );
     const submissionsRows = await submissionsSheet.getRows();
     for (const row of submissionsRows) {
       const audioFileName = row['Audio File Name'];
@@ -356,9 +388,14 @@ export const importSpreadSheetData = functions.https.onRequest(
         duration: {
           beginning: row['Beginning'],
           ending: row['Ending'],
-        }
+        },
       };
-      db.ref(`/submissions/soundQualityReporting/${list}/${audioFileName}/${token}`).set(submission);
+      admin
+        .database()
+        .ref(
+          `/submissions/soundQualityReporting/${list}/${audioFileName}/${token}`
+        )
+        .set(submission);
     }
 
     ////////////////////////
@@ -366,7 +403,9 @@ export const importSpreadSheetData = functions.https.onRequest(
     ////////////////////////
 
     const allotmentsSpreadsheet = new GoogleSheets(spreadsheetId);
-    const allotmentsSheet = await allotmentsSpreadsheet.useSheet(ISoundQualityReportSheet.Allotments);
+    const allotmentsSheet = await allotmentsSpreadsheet.useSheet(
+      ISoundQualityReportSheet.Allotments
+    );
     const allotmentsRows = await allotmentsSheet.getRows();
 
     for (const row of allotmentsRows) {
@@ -376,24 +415,34 @@ export const importSpreadSheetData = functions.https.onRequest(
 
       const fileNameHasForbiddenChars = fileName.match(/[\.\[\]$#]/g);
       if (fileNameHasForbiddenChars) {
-        console.warn(`File "${fileName}" has forbidden characters that can't be used as a node name.`);
+        console.warn(
+          `File "${fileName}" has forbidden characters that can't be used as a node name.`
+        );
         continue;
       }
 
       const list = helpers.extractListFromFilename(fileName);
       const allotment = {
         status: row['Status'] || null,
-        timestampGiven: row['Date Given'] ? (new Date(row['Date Given'])).getTime() / 1000 : null,
-        timestampDone: row['Date Done'] ? (new Date(row['Date Done'])).getTime() / 1000 : null,
+        timestampGiven: row['Date Given']
+          ? new Date(row['Date Given']).getTime() / 1000
+          : null,
+        timestampDone: row['Date Done']
+          ? new Date(row['Date Done']).getTime() / 1000
+          : null,
         assignee: {
           emailAddress: row['Email'] || null,
-          name: row['Devotee'] || null
+          name: row['Devotee'] || null,
         },
-        followUp: row['Follow-up'] || null
-      }
-      db.ref(`/files/${list}/${fileName}/soundQualityReporting`).update(allotment);
+        followUp: row['Follow-up'] || null,
+      };
+      admin
+        .database()
+        .ref(`/files/${list}/${fileName}/soundQualityReporting`)
+        .update(allotment);
     }
-  });
+  }
+);
 
 /**
  * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
@@ -479,9 +528,10 @@ export const exportSubmissionsToSpreadsheet = functions.database
       snapshot: functions.database.DataSnapshot,
       context: functions.EventContext
     ): Promise<any> => {
-
-      const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id)
-      const submissionSheet = await gsheets.useSheet(ISoundQualityReportSheet.Submissions);
+      const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
+      const submissionSheet = await gsheets.useSheet(
+        ISoundQualityReportSheet.Submissions
+      );
       const {
         author,
         changed,
@@ -512,3 +562,72 @@ export const exportSubmissionsToSpreadsheet = functions.database
       });
     }
   );
+
+/**
+ * Gets lists with spare files
+ */
+export const getLists = functions.https.onCall(async (data, context) => {
+  if (!context.auth || !context.auth.token || !context.auth.token.coordinator) {
+    throw new functions.https.HttpsError(
+      'permission-denied',
+      'The function must be called by an authenticated coordinator.'
+    );
+  }
+
+  const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
+  const allotmentsSheet = await gsheets.useSheet(
+    ISoundQualityReportSheet.Allotments
+  );
+
+  const rows = await allotmentsSheet.getRows();
+
+  return rows
+    .filter(item => !item['Status'] && item['List'])
+    .map(item => item['List'])
+    .filter((value, index, self) => self.indexOf(value) === index);
+});
+
+/**
+ * Gets spare files for specified list and languages
+ */
+export const getSpareFiles = functions.https.onCall(
+  async ({ list, language, languages, count }, context) => {
+    if (
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
+    ) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
+    }
+
+    const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
+    const allotmentsSheet = await gsheets.useSheet(
+      ISoundQualityReportSheet.Allotments
+    );
+
+    const allotmentsRows = await allotmentsSheet.getRows();
+
+    return allotmentsRows
+      .filter(
+        item =>
+          !item['Status'] &&
+          item['List'] === list &&
+          (languages || [language]).includes(item['Language'] || 'None')
+      )
+      .map(item => ({
+        filename: item['File Name'],
+        list: item['List'],
+        serial: item['Serial'],
+        notes:
+          item['Notes'] + item['Devotee']
+            ? ` Devotee column is not empty: ${item['Devotee']}`
+            : '',
+        language: item['Language'],
+        date: item['Serial'],
+      }))
+      .slice(0, count || 20);
+  }
+);

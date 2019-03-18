@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import GoogleSheet from '../services/GoogleSheets';
+import GoogleSheets from '../services/GoogleSheets';
 import { withDefault } from '../utils/parsers';
 import moment = require('moment');
 
@@ -42,13 +42,25 @@ enum Decision {
  * 2. Do not import if user email already exists
  *
  */
-export const importUserRegistrationData = functions.https.onRequest(
-  async (req: functions.Request, res: functions.Response) => {
-    const gsheets: GoogleSheet = new GoogleSheet(functions.config().registrations.spreadsheet_id);
+export const importUserRegistrationData = functions.https.onCall(
+  async (data, context) => {
+    if (
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
+    ) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
+    }
+
+    const gsheets: GoogleSheets = new GoogleSheets(
+      functions.config().registrations.spreadsheet_id
+    );
     const sheet = await gsheets.useSheet('Registrations');
 
     const registrationRows = await sheet.getRows();
-
 
     const readyForDatabaseUpdate = registrationRows.map((row: any) => {
       return {
@@ -92,8 +104,6 @@ export const importUserRegistrationData = functions.https.onRequest(
         await usersRef.push(spreadsheetRecord);
       }
     });
-
-    res.status(200).send('Ok');
   }
 );
 
@@ -208,3 +218,36 @@ export const onCreateUserCustomClaimRoles = functions.auth
     }
     return null;
   });
+
+export const getAssignees = functions.https.onCall(
+  async ({ phase }, context) => {
+    if (
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
+    ) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
+    }
+
+    const gsheets = new GoogleSheets(
+      functions.config().registrations.spreadsheet_id
+    );
+    const registrationsSheet = await gsheets.useSheet('Registrations');
+
+    const rows = await registrationsSheet.getRows();
+
+    return rows
+      .filter(item => item[phase || Roles.CR] === Decision.Yes)
+      .map(item => ({
+        emailAddress: item['Email Address'],
+        name: item['Name'],
+        location: item['Country'],
+        languages: item['Languages'] ? item['Languages'].split(/,\s?/) : [],
+        phone: item['Phone Number'],
+        id: item['Email Address'],
+      }));
+  }
+);

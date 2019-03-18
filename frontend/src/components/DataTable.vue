@@ -8,7 +8,11 @@
   >
     <template slot="items" slot-scope="{ item }">
       <tr :style="getTableRowStyle(item)">
-        <td v-for="( value , key, index) in headers" :class="getStyles(value)" :key="index">
+        <td
+          v-for="( value , key, index) in headers"
+          :class="getStyles(value, item)"
+          :key="getKey(item, value.value, index)"
+        >
           <template v-if="computedComponent[value.value]">
             <table-data
               :item="item"
@@ -53,7 +57,7 @@ export default class DataTable extends Vue {
   separator!: string;
 
   @Prop({ default: () => ({}) })
-  styles!: { [key: string]: boolean };
+  styles!: { [key: string]: any };
 
   @Prop({ default: () => ({}), type: Function })
   tableRowStyle!: (item: any) => { [key: string]: string };
@@ -83,7 +87,10 @@ export default class DataTable extends Vue {
   // Headers for v-data-table component
   @Prop() headers!: IAnyObject[];
 
-  getStyles({ value }: { value: string }) {
+  getStyles({ value }: { value: string }, item: any) {
+    if (typeof this.styles[value] === "function") {
+      return this.styles[value](value, item);
+    }
     return this.styles[value] || {};
   }
 
@@ -93,6 +100,16 @@ export default class DataTable extends Vue {
 
   getComponentData(value: string) {
     return _.get(this.componentData, value, {});
+  }
+
+  getKey(item: any, value: string, index: number) {
+    if (this.keyExtractor) {
+      return this.keyExtractor(item, value, index);
+    } else if (typeof item === "string") {
+      return `${item}-${value}`;
+    } else {
+      return `${index}-${value}`;
+    }
   }
 
   getItem(item: any, { value }: { value: string }) {

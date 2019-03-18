@@ -37,6 +37,16 @@ export const router = new Router({
       ]
     },
     {
+      path: "/form/donation/cash/:token",
+      component: () => import("@/views/Layout/AnonymousLayout.vue"),
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/DonationReceiptForm.vue")
+        }
+      ]
+    },
+    {
       path: "/sound-editing/:taskId/quality-check/feedback",
       component: () => import("@/views/Layout/AnonymousLayout.vue"),
       children: [
@@ -63,6 +73,16 @@ export const router = new Router({
         {
           path: "",
           component: () => import("@/views/Listen.vue")
+        }
+      ]
+    },
+    {
+      path: "/form/sound-quality-report/:fileName/:token",
+      component: () => import("@/views/Layout/AnonymousLayout.vue"),
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/SQR/Form.vue")
         }
       ]
     },
@@ -117,6 +137,11 @@ export const router = new Router({
             },
             {
               path: "allot",
+              component: () => import("@/views/SQRAllotment.vue"),
+              meta: { menuItem: true }
+            },
+            {
+              path: "allot-new",
               component: () => import("@/views/SQR/Allotment.vue"),
               meta: { menuItem: true }
             },
