@@ -70,7 +70,6 @@
           <v-flex xs7 sm8 md9 lg8 class="py-1 pr-1">
             <v-text-field
               class="amount"
-              :rules="rules"
               outline
               label="Phone number"
               v-model="phoneData.phoneNumber"
