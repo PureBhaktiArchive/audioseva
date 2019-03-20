@@ -5,7 +5,7 @@
 import firebase from "firebase/app";
 
 import Vue from "vue";
-import Router from "vue-router";
+import Router, { NavigationGuard } from "vue-router";
 
 Vue.use(Router);
 
@@ -15,7 +15,7 @@ export const router = new Router({
     { path: "*", redirect: "/" },
     {
       path: "/login",
-      meta: { guestOnly: true },
+      meta: { auth: { guestOnly: true } },
       component: () => import("@/views/Layout/MainLayout.vue"),
       children: [
         {
@@ -27,12 +27,10 @@ export const router = new Router({
     {
       path: "/restricted",
       component: () => import("@/views/Layout/AnonymousLayout.vue"),
-      meta: { accessDenied: true },
       children: [
         {
           path: "",
-          component: () => import("@/views/RestrictedView.vue"),
-          meta: { accessDenied: true }
+          component: () => import("@/views/RestrictedView.vue")
         }
       ]
     },
@@ -88,7 +86,7 @@ export const router = new Router({
     },
     {
       path: "/",
-      meta: { requireAuth: true },
+      meta: { auth: { requireAuth: true } },
       component: () => import("@/views/Dashboard.vue"),
       children: [
         {
@@ -162,8 +160,7 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Sound Engineering",
-            menuIcon: "fas fa-music",
-            role: "SE"
+            menuIcon: "fas fa-music"
           },
           children: [
             {
@@ -183,12 +180,20 @@ export const router = new Router({
   ]
 });
 
-router.beforeEach(async (to, from, next) => {
-  let currentUser = firebase.auth().currentUser;
-  let requireAuth = to.matched.some(record => record.meta.requireAuth);
-  let guestOnly = to.matched.some(record => record.meta.guestOnly);
-  const userRoles = currentUser ? (await currentUser.getIdTokenResult()).claims : null;
-  if (to.meta.accessDenied) return next();
+export const routerBeforeEach: NavigationGuard = async (to, from, next) => {
+  // reverse routes so nested routes can take control
+  const requireAuthRoute = [...to.matched]
+    .reverse()
+    .find(({ meta }) => meta.auth);
+
+  if (!requireAuthRoute) return next();
+
+  const currentUser = firebase.auth().currentUser;
+  const {
+    meta: {
+      auth: { requireAuth, guestOnly, requireClaims }
+    }
+  } = requireAuthRoute;
 
   if (requireAuth && !currentUser)
     next({
@@ -196,17 +201,25 @@ router.beforeEach(async (to, from, next) => {
       query: { redirect: to.fullPath }
     });
   else if (guestOnly && currentUser) next("/");
-  // restrict route access based on user role
-  else if (userRoles) {
-    if (userRoles.Coordinator) {
-      next();
-    }
+  else if (requireClaims) {
+    const userClaims = currentUser
+      ? (await currentUser.getIdTokenResult()).claims
+      : null;
+
+    if (!userClaims) next("/restricted");
     else {
-      // reverse routes so nested routes can restrict access
-      const role = [...to.matched].reverse().find(({ meta }) => userRoles[meta.role]);
-      if (role) next();
-      else next({ path: "/restricted" })
+      const hasRequiredClaim = Object.entries(requireClaims).some(
+        ([claimName, claimValue]) => {
+          return userClaims[claimName] === claimValue;
+        }
+      );
+
+      if (hasRequiredClaim) next();
+      else {
+        next("/restricted");
+      }
     }
-  }
-  else next();
-});
+  } else next();
+};
+
+router.beforeEach(routerBeforeEach);
