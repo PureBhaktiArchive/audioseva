@@ -164,7 +164,7 @@ export default class List extends Vue {
       if (this.selectedRole === "All") {
         hasRole = true;
       } else {
-        hasRole = !!user.roles[this.selectedRole];
+        hasRole = user.roles && user.roles[this.selectedRole];
       }
       if (!this.searchValue) {
         matchesSearch = true;
