@@ -65,7 +65,7 @@ import PhoneNumber from "@/components/Users/PhoneNumber.vue";
 export default class List extends Vue {
   isLoadingUsers: boolean = true;
   users: any[] = [];
-  roles = ["CR", "TE", "SE", "QC", "FC", "SQR", "Coordinator"];
+  roles = ["CR", "TE", "SE", "QC", "FC", "SQR", "coordinator"];
   statusItems = ["OK", "Opted out", "Lost", "Duplicate", "Incorrect"];
   filterActiveUsers = true;
   keyPath: string = "users";
@@ -103,7 +103,7 @@ export default class List extends Vue {
   };
   computedValue = {
     languages: (val: any, item: any) => {
-      return Object.keys(item[val]).join(", ");
+      return Object.keys(item[val] || {}).join(", ");
     },
     timestamp: (val: any, item: any) => {
       const timestamp = item[val];

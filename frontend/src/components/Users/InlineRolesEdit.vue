@@ -2,7 +2,7 @@
   <v-menu
     :style="{
       maxWidth: '170px',
-      width: `${Object.keys(item.roles).length * 50}px`,
+      width: `${Object.keys(itemRoles).length * 50}px`,
       height: '100%'
     }"
     :close-on-content-click="false"
@@ -10,17 +10,17 @@
     <div slot="activator">
       <v-chip
         small
-        v-for="(role, index) in Object.keys(item.roles)"
+        v-for="(role, index) in Object.keys(itemRoles)"
         :key="`${index}-${role}-chip`"
-      >{{ role }}</v-chip>
+      >{{ getRoleDisplayValue(role) }}</v-chip>
     </div>
     <v-list v-for="(role, index) in roles" :key="index">
       <v-list-tile>
         <v-list-tile-action>
           <v-switch
             @change="handleChange($event, role)"
-            :label="role"
-            :input-value="item.roles[role]"
+            :label="getRoleDisplayValue(role)"
+            :input-value="itemRoles[role]"
           ></v-switch>
         </v-list-tile-action>
       </v-list-tile>
@@ -30,6 +30,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import _ from "lodash";
 
 @Component({
   name: "InlineRolesEdit"
@@ -57,6 +58,14 @@ export default class InlineRolesEdit extends Vue {
       itemPath: "roles",
       newValue: updatedRoles
     });
+  }
+
+  get itemRoles() {
+    return this.item.roles || {};
+  }
+
+  getRoleDisplayValue(role: string) {
+    return _.upperFirst(role);
   }
 }
 </script>
