@@ -6,6 +6,7 @@ import moment = require('moment');
 
 const db = admin.database();
 const userRoles = functions.database.ref('/users/{userId}/roles');
+const userRole = functions.database.ref('/users/{userId}/roles/{role}');
 
 enum RegistrationColumns {
   Details = 'Details',
@@ -181,22 +182,30 @@ const setClaims = async (roles, { params: { userId } }: any, email: string) => {
   return null;
 };
 
-export const onCreateCustomClaimRoles = userRoles.onCreate(
-  async (snapshot, context) => {
-    const roles = snapshot.val();
-    const email = await snapshot.ref.parent.child('emailAddress').once('value');
-    return setClaims(roles, context, email.val());
+export const onCreateUserRole = userRole.onCreate(async (snapshot, context) => {
+  const role = snapshot.key;
+  const roles = (await snapshot.ref.parent.once("value")).val();
+  const userEmail = await snapshot.ref.parent.parent.child("emailAddress").once("value");
+  roles[role] = true;
+  return setClaims(roles, context, userEmail.val())
+});
+
+export const onDeleteUserRole = userRole.onDelete(async (snapshot, context) => {
+  const role = snapshot.key;
+  const roles = (await snapshot.ref.parent.once("value")).val();
+  const userEmail = await snapshot.ref.parent.parent.child("emailAddress").once("value");
+  if (roles) {
+    delete roles[role];
+    return setClaims(roles, context, userEmail.val())
+  } else {
+    return true;
   }
-);
+});
 
 export const onDeleteCustomClaimRoles = userRoles.onDelete(
   async (snapshot, context) => {
-    const removedRoles = {};
-    for (const role in snapshot.val()) {
-      removedRoles[role] = false;
-    }
     const email = await snapshot.ref.parent.child('emailAddress').once('value');
-    return setClaims(removedRoles, context, email.val());
+    return setClaims({}, context, email.val());
   }
 );
 
