@@ -182,18 +182,18 @@ export const router = new Router({
 
 export const routerBeforeEach: NavigationGuard = async (to, from, next) => {
   // reverse routes so nested routes can take control
-  const requireAuthRoute = [...to.matched]
+  const restrictedRoute = [...to.matched]
     .reverse()
     .find(({ meta }) => meta.auth);
 
-  if (!requireAuthRoute) return next();
+  if (!restrictedRoute) return next();
 
   const currentUser = firebase.auth().currentUser;
   const {
     meta: {
       auth: { requireAuth, guestOnly, requireClaims }
     }
-  } = requireAuthRoute;
+  } = restrictedRoute;
 
   if (requireAuth && !currentUser)
     next({
