@@ -180,6 +180,15 @@ export const router = new Router({
   ]
 });
 
+export const hasClaim = (
+  requiredClaims: { [key: string]: any },
+  userClaims: { [key: string]: any }
+) => {
+  return Object.entries(requiredClaims).some(
+    ([claimName, claimValue]) => userClaims[claimName] === claimValue
+  );
+};
+
 export const routerBeforeEach: NavigationGuard = async (to, from, next) => {
   // reverse routes so nested routes can take control
   const restrictedRoute = [...to.matched]
@@ -196,30 +205,24 @@ export const routerBeforeEach: NavigationGuard = async (to, from, next) => {
   } = restrictedRoute;
 
   if (requireAuth && !currentUser)
-    next({
+    return next({
       path: "/login",
       query: { redirect: to.fullPath }
     });
-  else if (guestOnly && currentUser) next("/");
-  else if (requireClaims) {
+
+  if (guestOnly && currentUser) return next("/");
+
+  if (requireClaims) {
     const userClaims = currentUser
       ? (await currentUser.getIdTokenResult()).claims
       : null;
 
-    if (!userClaims) next("/restricted");
-    else {
-      const hasRequiredClaim = Object.entries(requireClaims).some(
-        ([claimName, claimValue]) => {
-          return userClaims[claimName] === claimValue;
-        }
-      );
+    return !userClaims || !hasClaim(requireClaims, userClaims)
+      ? next("/")
+      : next();
+  }
 
-      if (hasRequiredClaim) next();
-      else {
-        next("/restricted");
-      }
-    }
-  } else next();
+  next();
 };
 
 router.beforeEach(routerBeforeEach);

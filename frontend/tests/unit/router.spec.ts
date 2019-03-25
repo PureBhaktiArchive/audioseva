@@ -65,7 +65,7 @@ describe("routerBeforeEach", () => {
     expect(next).toHaveBeenCalledWith();
   });
 
-  it("should redirect to /restricted on bad custom claims", async () => {
+  it("should redirect to / on bad custom claims", async () => {
     to = {
       matched: [{ meta: { auth: { requireClaims: { SQR: true } } } }]
     };
@@ -73,6 +73,6 @@ describe("routerBeforeEach", () => {
     const next: any = jest.fn();
     await routerBeforeEach(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
-    expect(next).toHaveBeenCalledWith("/restricted");
+    expect(next).toHaveBeenCalledWith("/");
   });
 });
