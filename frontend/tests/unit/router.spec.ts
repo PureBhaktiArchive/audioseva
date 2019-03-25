@@ -1,5 +1,5 @@
 import firebase from "firebase/app";
-import { routerBeforeEach } from "@/router";
+import { routerBeforeEach, filterRoutesByClaims } from "@/router";
 
 jest.mock("firebase/app", () => ({
   auth: jest.fn(() => ({
@@ -12,6 +12,43 @@ jest.mock("firebase/app", () => ({
     }
   }))
 }));
+
+describe("filterRoutesByClaims", () => {
+  const routes = [
+    {
+      meta: {
+        auth: { requireClaims: { SE: true } }
+      }
+    },
+    {
+      meta: {
+        activator: true,
+        auth: { requireClaims: { CR: true } }
+      },
+      children: [
+        {
+          meta: {
+            activator: true,
+            auth: { requireClaims: { SQR: true } }
+          },
+          children: [
+            {
+              meta: {
+                auth: { requireClaims: { SE: true } }
+              }
+            },
+            { meta: { filteredOut: true } }
+          ]
+        }
+      ]
+    }
+  ];
+
+  test("filterRoutesByClaims", () => {
+    const filteredRoutes = filterRoutesByClaims(routes as any, { SE: true });
+    expect(filteredRoutes).toMatchSnapshot();
+  });
+});
 
 describe("routerBeforeEach", () => {
   let to: any;
