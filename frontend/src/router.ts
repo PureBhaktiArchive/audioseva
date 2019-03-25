@@ -5,7 +5,8 @@
 import firebase from "firebase/app";
 
 import Vue from "vue";
-import Router, { NavigationGuard } from "vue-router";
+import Router, { NavigationGuard, RouteConfig } from "vue-router";
+import _ from "lodash";
 
 Vue.use(Router);
 
@@ -186,6 +187,41 @@ export const hasClaim = (
 ) => {
   return Object.entries(requiredClaims).some(
     ([claimName, claimValue]) => userClaims[claimName] === claimValue
+  );
+};
+
+export const filterRoutesByClaims = (
+  routes: RouteConfig[] = [],
+  userClaims: { [key: string]: any },
+  requireParentClaims: boolean | { [key: string]: any } = false
+) => {
+  return routes.reduce(
+    (filteredRoutes, route) => {
+      const requireClaims = _.get(route, "meta.auth.requireClaims", false);
+
+      if (route.meta.activator) {
+        const childRoutes = filterRoutesByClaims(
+          route.children,
+          userClaims,
+          requireClaims || requireParentClaims
+        );
+        childRoutes.length &&
+          filteredRoutes.push({ ...route, children: childRoutes });
+      } else {
+        if (requireClaims) {
+          hasClaim(requireClaims, userClaims) && filteredRoutes.push(route);
+        } else {
+          if (typeof requireParentClaims === "object") {
+            hasClaim(requireParentClaims, userClaims) &&
+              filteredRoutes.push(route);
+          } else {
+            filteredRoutes.push(route);
+          }
+        }
+      }
+      return filteredRoutes;
+    },
+    [] as RouteConfig[]
   );
 };
 
