@@ -89,7 +89,7 @@ export const router = new Router({
           meta: { menuItem: true, menuName: "People", menuIcon: "fas fa-users" }
         },
         {
-          path: "reporting/content/",
+          path: "cr/",
           component: () => import("@/views/CR/CR.vue"),
           meta: {
             activator: true,
@@ -104,6 +104,11 @@ export const router = new Router({
             },
             {
               path: "allot",
+              component: () => import("@/views/CRAllotment.vue"),
+              meta: { menuItem: true }
+            },
+            {
+              path: "allot-new",
               component: () => import("@/views/CR/Allotment.vue"),
               meta: { menuItem: true }
             }
