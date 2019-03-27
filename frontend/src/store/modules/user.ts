@@ -28,6 +28,11 @@ export default {
   actions: {
     signOut() {
       firebase.auth().signOut();
+    },
+    async getUserClaims({ state }: any) {
+      return state.currentUser
+        ? (await state.currentUser.getIdTokenResult()).claims
+        : null;
     }
   }
 };

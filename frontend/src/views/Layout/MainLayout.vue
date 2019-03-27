@@ -95,7 +95,7 @@ import MenuLinks from "@/components/MenuLinks";
     ...mapState("user", ["currentUser"])
   },
   methods: {
-    ...mapActions("user", ["signOut"])
+    ...mapActions("user", ["signOut", "getUserClaims"])
   }
 })
 export default class MainLayout extends Vue {
@@ -109,7 +109,7 @@ export default class MainLayout extends Vue {
     this.navLinks = this.$router.options.routes.find(
       (route: any) => route.path === "/"
     ).children;
-    this.userClaims = (await this.currentUser.getIdTokenResult()).claims;
+    this.userClaims = await this.getUserClaims();
   }
 
   get routes(): any {
