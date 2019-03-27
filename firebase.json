@@ -20,31 +20,6 @@
         }
       ],
       "predeploy": ["npm --prefix \"$RESOURCE_DIR/..\" run build"]
-    },
-    {
-      "target": "CR",
-      "public": "allotment",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "headers": [
-        {
-          "source": "**/*.js",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "max-age=0,no-cache"
-            }
-          ]
-        },
-        {
-          "source": "404.html",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "max-age=300"
-            }
-          ]
-        }
-      ]
     }
   ],
   "functions": {
