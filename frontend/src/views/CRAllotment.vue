@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Sound Quality Reporting</h1>
+    <h1>Content Reporting</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
       <v-autocomplete
         v-model="allotment.assignee"
