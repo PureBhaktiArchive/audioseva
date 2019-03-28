@@ -16,6 +16,7 @@ import MainLayout from "@/views/Layout/MainLayout.vue";
 import _ from "lodash";
 
 const pathMap = {
+  cr: "CR",
   sqr: "SQR",
   allot: "Allotment"
 };
