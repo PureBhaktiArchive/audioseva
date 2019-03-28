@@ -133,9 +133,9 @@ export default class CRAllotment extends Vue {
   }
 
   async getLists() {
+    this.filter.languages = this.languages;
     const lists = await firebase.functions().httpsCallable("CR-getLists")();
 
-    this.filter.languages = this.languages;
     this.lists = lists.data;
   }
 
