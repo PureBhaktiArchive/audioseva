@@ -197,7 +197,11 @@ export const filterRoutesByClaims = (
 ) => {
   return routes.reduce(
     (filteredRoutes, route) => {
-      const requireClaims = _.get(route, "meta.auth.requireClaims", false);
+      const requireClaims = _.get(
+        route,
+        "meta.auth.requireClaims",
+        requireParentClaims
+      );
 
       if (route.meta.activator) {
         const childRoutes = filterRoutesByClaims(
@@ -207,17 +211,10 @@ export const filterRoutesByClaims = (
         );
         childRoutes.length &&
           filteredRoutes.push({ ...route, children: childRoutes });
+      } else if (requireClaims) {
+        hasClaim(requireClaims, userClaims) && filteredRoutes.push(route);
       } else {
-        if (requireClaims) {
-          hasClaim(requireClaims, userClaims) && filteredRoutes.push(route);
-        } else {
-          if (typeof requireParentClaims === "object") {
-            hasClaim(requireParentClaims, userClaims) &&
-              filteredRoutes.push(route);
-          } else {
-            filteredRoutes.push(route);
-          }
-        }
+        filteredRoutes.push(route);
       }
       return filteredRoutes;
     },
