@@ -26,16 +26,6 @@ export const router = new Router({
       ]
     },
     {
-      path: "/restricted",
-      component: () => import("@/views/Layout/AnonymousLayout.vue"),
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/RestrictedView.vue")
-        }
-      ]
-    },
-    {
       path: "/form/donation/cash/:token",
       component: () => import("@/views/Layout/AnonymousLayout.vue"),
       children: [
