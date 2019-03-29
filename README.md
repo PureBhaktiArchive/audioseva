@@ -63,6 +63,7 @@ $ firebase functions:config:set registrations.spreadsheet_id="Google Spreadsheet
 # "Copy submissions into the processing sheet" sheet IDs
 $ firebase functions:config:set cr.submissions.spreadsheet.id="Google Spreadsheet ID"
 $ firebase functions:config:set cr.processing.spreadsheet.id="Google Spreadsheet ID"
+$ firebase functions:config:set cr.allotments.spreadsheet.id="Google Spreadsheet ID"
 # "Donations"
 $ firebase functions:config:set donations.cash.spreadsheet.id="Google Spreadsheet ID"
 $ firebase functions:config:set donations.cash.spreadsheet.name="Sheet Name"
