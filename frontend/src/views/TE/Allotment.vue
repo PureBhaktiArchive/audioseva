@@ -129,6 +129,7 @@ export default class Allotment extends Vue {
   mounted() {
     this.getTrackEditors();
     this.filter.languages = this.languages;
+    this.getLists();
   }
 
   async getTrackEditors() {
@@ -143,6 +144,11 @@ export default class Allotment extends Vue {
         (editor: any) => editor.emailAddress === this.$route.query.emailAddress
       );
     }
+  }
+
+  async getLists() {
+    const results = await firebase.functions().httpsCallable("TE-getLists")();
+    this.lists = results.data;
   }
 
   async allot() {
