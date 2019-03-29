@@ -7,7 +7,7 @@
         :items="trackEditors || []"
         :loading="trackEditors === null"
         item-text="name"
-        label="Select a track editor"
+        label="Select an assignee"
         persistent-hint
         return-object
         clearable
