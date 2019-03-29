@@ -66,6 +66,7 @@
         </template>
         <p v-else>Loading tasks…</p>
       </template>
+      <p v-else>Choose list to select tasks.</p>
 
       <!-- Comment -->
       <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
