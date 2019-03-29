@@ -145,7 +145,18 @@ export default class Allotment extends Vue {
     }
   }
 
-  allot() {}
+  async allot() {
+    this.submissionStatus = "inProgress";
+    try {
+      await firebase.functions().httpsCallable("TE-processAllotment")(
+        this.allotment
+      );
+      this.submissionStatus = "complete";
+    } catch (error) {
+      alert(error.message);
+      this.submissionStatus = "error";
+    }
+  }
 
   reset() {
     this.allotment = Allotment.initialAllotment();
