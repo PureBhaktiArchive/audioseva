@@ -5,5 +5,9 @@ service firebase.storage {
         request.resource.name.matches('[\\w/]+/[\\w]+-\\d+-\\d+\\.flac');
       allow read;
     }
+
+    match /{uid}/{timestamp}/{file=**} {
+        allow write: if request.auth.uid == uid;
+    }
   }
 }
