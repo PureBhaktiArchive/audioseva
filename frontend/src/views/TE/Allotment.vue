@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>TE Allotment Form</h1>
+    <h1>Track Editing Allotment</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus !== 'complete'">
       <v-autocomplete
         v-model="allotment.trackEditor"
