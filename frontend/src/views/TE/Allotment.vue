@@ -26,6 +26,13 @@
         </template>
       </v-autocomplete>
 
+      <!-- Language -->
+      <v-layout row class="py-2">
+        <v-btn-toggle v-model="filter.languages" multiple>
+          <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
+        </v-btn-toggle>
+      </v-layout>
+
       <!-- List -->
       <v-layout row class="py-2">
         <v-btn-toggle v-model="filter.list" v-if="lists">
@@ -66,7 +73,7 @@
         </template>
         <p v-else>Loading tasks…</p>
       </template>
-      <p v-else>Choose list to select tasks.</p>
+      <p v-else>Choose list and language to select tasks.</p>
 
       <!-- Comment -->
       <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
@@ -101,14 +108,18 @@ export default class Allotment extends Vue {
     tasks: [],
     comment: null
   };
+  languages = ["English", "Hindi", "Bengali", "None"];
   trackEditors: any = null;
   tasks = null;
   lists = null;
-  filter = {};
+  filter = {
+    languages: [] as string[]
+  };
   submissionStatus = null;
 
   mounted() {
     this.getTrackEditors();
+    this.filter.languages = this.languages;
   }
 
   async getTrackEditors() {
