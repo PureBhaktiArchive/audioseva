@@ -40,7 +40,7 @@ export default class RequireClaimsButtons extends Vue {
   }
 
   async getUserClaims() {
-    this.userClaims = (await firebase
+    this.userClaims = (await (firebase as any)
       .auth()
       .currentUser.getIdTokenResult()).claims;
   }

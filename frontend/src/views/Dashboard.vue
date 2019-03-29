@@ -18,6 +18,7 @@ import _ from "lodash";
 const pathMap = {
   cr: "CR",
   sqr: "SQR",
+  te: "TE",
   allot: "Allotment"
 };
 
