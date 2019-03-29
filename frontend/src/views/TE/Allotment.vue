@@ -100,7 +100,7 @@ export default class Allotment extends Vue {
     tasks: [],
     comment: null
   };
-  trackEditors = null;
+  trackEditors: any = null;
   tasks = null;
   lists = null;
   filter = {};
