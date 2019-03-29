@@ -82,7 +82,9 @@ export const getLists = functions.https.onCall(async (data, context) => {
     );
   }
 
-  const gsheets = new GoogleSheets(functions.config().cr.spreadsheet_id);
+  const gsheets = new GoogleSheets(
+    functions.config().cr.allotments.spreadsheet.id
+  );
   const allotmentsSheet = await gsheets.useSheet(
     ISoundQualityReportSheet.Allotments
   );
@@ -111,7 +113,9 @@ export const getSpareFiles = functions.https.onCall(
       );
     }
 
-    const gsheets = new GoogleSheets(functions.config().cr.spreadsheet_id);
+    const gsheets = new GoogleSheets(
+      functions.config().cr.allotments.spreadsheet.id
+    );
     const allotmentsSheet = await gsheets.useSheet(
       ISoundQualityReportSheet.Allotments
     );
@@ -162,7 +166,9 @@ export const processAllotment = functions.https.onCall(
         'Devotee and Files are required.'
       );
 
-    const gsheets = new GoogleSheets(functions.config().cr.spreadsheet_id);
+    const gsheets = new GoogleSheets(
+      functions.config().cr.allotments.spreadsheet.id
+    );
     const sheet = await gsheets.useSheet(ISoundQualityReportSheet.Allotments);
     const fileNameColumn = await sheet.getColumn('File Name');
     const emailColumn = await sheet.getColumn('Email');
