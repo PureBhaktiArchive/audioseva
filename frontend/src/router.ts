@@ -142,7 +142,7 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Track Editing",
-            menuIcon: "fas fa-headphones"
+            menuIcon: "fas fa-cut"
           },
           children: [
             {
