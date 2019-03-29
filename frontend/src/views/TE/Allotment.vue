@@ -103,19 +103,28 @@ import "firebase/functions";
   name: "Allotment"
 })
 export default class Allotment extends Vue {
-  allotment = {
-    trackEditor: null,
-    tasks: [],
-    comment: null
-  };
+  allotment = Allotment.initialAllotment();
   languages = ["English", "Hindi", "Bengali", "None"];
   trackEditors: any = null;
   tasks = null;
   lists = null;
-  filter = {
-    languages: [] as string[]
-  };
+  filter = Allotment.initialFilter();
   submissionStatus = null;
+
+  static initialAllotment() {
+    return {
+      trackEditor: null,
+      tasks: [],
+      comment: null
+    };
+  }
+
+  static initialFilter(): { languages: string[]; list: any } {
+    return {
+      languages: [],
+      list: null
+    };
+  }
 
   mounted() {
     this.getTrackEditors();
@@ -138,7 +147,11 @@ export default class Allotment extends Vue {
 
   allot() {}
 
-  reset() {}
+  reset() {
+    this.allotment = Allotment.initialAllotment();
+    this.filter = Allotment.initialFilter();
+    this.submissionStatus = null;
+  }
 }
 </script>
 
