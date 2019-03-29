@@ -26,6 +26,13 @@
         </template>
       </v-autocomplete>
 
+      <!-- Language -->
+      <v-layout row class="py-2">
+        <v-btn-toggle v-model="filter.languages" multiple>
+          <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
+        </v-btn-toggle>
+      </v-layout>
+
       <!-- List -->
       <v-layout row class="py-2">
         <v-btn-toggle v-model="filter.list" v-if="lists">
@@ -66,6 +73,7 @@
         </template>
         <p v-else>Loading tasks…</p>
       </template>
+      <p v-else>Choose list and language to select tasks.</p>
 
       <!-- Comment -->
       <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
@@ -95,19 +103,32 @@ import "firebase/functions";
   name: "Allotment"
 })
 export default class Allotment extends Vue {
-  allotment = {
-    trackEditor: null,
-    tasks: [],
-    comment: null
-  };
+  allotment = Allotment.initialAllotment();
+  languages = ["English", "Hindi", "Bengali", "None"];
   trackEditors: any = null;
   tasks = null;
   lists = null;
-  filter = {};
+  filter = Allotment.initialFilter();
   submissionStatus = null;
+
+  static initialAllotment() {
+    return {
+      trackEditor: null,
+      tasks: [],
+      comment: null
+    };
+  }
+
+  static initialFilter(): { languages: string[]; list: any } {
+    return {
+      languages: [],
+      list: null
+    };
+  }
 
   mounted() {
     this.getTrackEditors();
+    this.filter.languages = this.languages;
   }
 
   async getTrackEditors() {
@@ -126,7 +147,11 @@ export default class Allotment extends Vue {
 
   allot() {}
 
-  reset() {}
+  reset() {
+    this.allotment = Allotment.initialAllotment();
+    this.filter = Allotment.initialFilter();
+    this.submissionStatus = null;
+  }
 }
 </script>
 
