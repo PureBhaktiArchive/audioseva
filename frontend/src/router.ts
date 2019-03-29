@@ -162,7 +162,7 @@ export const router = new Router({
           },
           children: [
             {
-              path: "allotment",
+              path: "allot",
               component: () => import("@/views/TE/Allotment.vue"),
               meta: { menuItem: true }
             },
