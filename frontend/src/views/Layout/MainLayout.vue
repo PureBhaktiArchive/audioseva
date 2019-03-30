@@ -27,7 +27,7 @@
         </v-toolbar>
         <v-list dense expand>
           <v-divider></v-divider>
-          <template v-for="(item, index) in routes">
+          <template v-for="(item, index) in getMenuItems()">
             <v-list-group
               :key="index"
               v-if="item.meta && item.meta.activator"
@@ -81,6 +81,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { mapState, mapActions } from "vuex";
+import { filterRoutesByClaims } from "@/router";
 import BaseLayout from "./BaseLayout.vue";
 import MenuLinks from "@/components/MenuLinks";
 
@@ -94,19 +95,21 @@ import MenuLinks from "@/components/MenuLinks";
     ...mapState("user", ["currentUser"])
   },
   methods: {
-    ...mapActions("user", ["signOut"])
+    ...mapActions("user", ["signOut", "getUserClaims"])
   }
 })
 export default class MainLayout extends Vue {
   appTitle = "Audio Seva";
   navLinks = [];
   sidebar = false;
+  userClaims: any;
 
-  mounted() {
+  async mounted() {
     // @ts-ignore
     this.navLinks = this.$router.options.routes.find(
       (route: any) => route.path === "/"
     ).children;
+    this.userClaims = await this.getUserClaims();
   }
 
   get routes(): any {
@@ -114,6 +117,13 @@ export default class MainLayout extends Vue {
     return this.navLinks.filter((route: any) => {
       return route.meta && (route.meta.activator || route.meta.menuItem);
     });
+  }
+
+  getMenuItems() {
+    if (this.userClaims) {
+      return filterRoutesByClaims(this.routes, this.userClaims);
+    }
+    return [];
   }
 }
 </script>
