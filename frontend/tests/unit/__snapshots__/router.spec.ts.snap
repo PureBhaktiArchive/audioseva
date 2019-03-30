@@ -1,0 +1,95 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`filterRoutes filterRoutes 1`] = `
+Array [
+  Object {
+    "meta": Object {
+      "auth": Object {
+        "requireClaims": Object {
+          "SE": true,
+        },
+      },
+    },
+  },
+  Object {
+    "children": Array [
+      Object {
+        "children": Array [
+          Object {
+            "meta": Object {
+              "auth": Object {
+                "requireClaims": Object {
+                  "SE": true,
+                },
+              },
+            },
+          },
+        ],
+        "meta": Object {
+          "activator": true,
+          "auth": Object {
+            "requireClaims": Object {
+              "SQR": true,
+            },
+          },
+        },
+      },
+    ],
+    "meta": Object {
+      "activator": true,
+      "auth": Object {
+        "requireClaims": Object {
+          "CR": true,
+        },
+      },
+    },
+  },
+]
+`;
+
+exports[`filterRoutesByClaims filterRoutesByClaims 1`] = `
+Array [
+  Object {
+    "meta": Object {
+      "auth": Object {
+        "requireClaims": Object {
+          "SE": true,
+        },
+      },
+    },
+  },
+  Object {
+    "children": Array [
+      Object {
+        "children": Array [
+          Object {
+            "meta": Object {
+              "auth": Object {
+                "requireClaims": Object {
+                  "SE": true,
+                },
+              },
+            },
+          },
+        ],
+        "meta": Object {
+          "activator": true,
+          "auth": Object {
+            "requireClaims": Object {
+              "SQR": true,
+            },
+          },
+        },
+      },
+    ],
+    "meta": Object {
+      "activator": true,
+      "auth": Object {
+        "requireClaims": Object {
+          "CR": true,
+        },
+      },
+    },
+  },
+]
+`;
