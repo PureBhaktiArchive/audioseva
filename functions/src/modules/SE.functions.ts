@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
 import uniqid from 'uniqid';
+import * as moment from 'moment';
 
 import { taskIdRegex } from '../helpers';
 
@@ -15,14 +16,20 @@ const db = admin.database();
 //      2. Send an email to the assignee to notify them of the new allotment
 //
 /////////////////////////////////////////////////
-export const processNewAllotment = functions.database
-  .ref('/sound-editing/restoration/allotments/{pushId}')
-  .onCreate(async (snapshot, context) => {
+export const processAllotment = functions.https.onCall(
+  async (allotment, context) => {
+    if (
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.coordinator
+    ) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
+    }
+
     const coordinator = functions.config().coordinator;
-
-    const allotment = snapshot.val();
-
-    const timestamp = new Date(allotment.timestamp);
 
     //  1. Ensure sound editor's `uploadCode`
     const userRef = await db
@@ -42,9 +49,8 @@ export const processNewAllotment = functions.database
     }
 
     // 2. Update the task
-    const { taskIds } = allotment;
     const tasks = [];
-    taskIds.forEach(async taskId => {
+    allotment.taskIds.forEach(async taskId => {
       const regex = /(\w+)-(\d+)-(\d+)/g;
       const taskIdMatch = regex.exec(taskId);
       const list = taskIdMatch[1];
@@ -65,12 +71,7 @@ export const processNewAllotment = functions.database
     });
 
     // Getting the list of allotments to check if the assignee was allotted before
-    const allotmentsRef = await db
-      .ref('/sound-editing/restoration/allotments')
-      .orderByChild('assignee/emailAddress')
-      .equalTo(allotment.assignee.emailAddress)
-      .once('value');
-    const assigneeAllotments = allotmentsRef.val();
+    // TODO
 
     // 3. Notify the assignee
     await db.ref(`/email/notifications`).push({
@@ -81,15 +82,18 @@ export const processNewAllotment = functions.database
         tasks,
         assignee: allotment.assignee,
         comment: allotment.comment,
-        date: `${timestamp.getDate()}.${timestamp.getMonth() + 1}`,
+        date: moment()
+          .utcOffset(coordinator.utc_offset)
+          .format('DD.MM'),
         uploadURL: `${
           functions.config().website.base_url
         }/sound-editing/upload/${uploadCode}`,
-        repeated: Object.keys(assigneeAllotments).length > 1,
+        repeated: true,
       },
     });
     return 1;
-  });
+  }
+);
 
 const basePath = '/sound-editing/';
 

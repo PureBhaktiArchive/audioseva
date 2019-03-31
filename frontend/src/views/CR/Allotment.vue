@@ -163,11 +163,8 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       user: (firebase as any).auth().currentUser.email
     };
-    await firebase
-      .database()
-      .ref("cr/allotments")
-      .push()
-      .set(allotmentData);
+
+    // TODO: save allotment via callable function
 
     this.submissionStatus = "complete";
   }
