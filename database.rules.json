@@ -44,12 +44,6 @@
     "sound-editing": {
       ".read": "auth.token.coordinator === true",
       "restoration": {
-        "allotments": {
-          ".indexOn": ["assignee/emailAddress"],
-          "$push_id": {
-            ".write": "auth.token.coordinator === true && !data.exists()"
-          }
-        },
         "quality-check": {
           "feedback": {
             "$push_id": {
@@ -72,12 +66,6 @@
     },
     "sqr": {
       ".read": "auth.token.coordinator === true",
-      "allotments": {
-        ".indexOn": ["assignee/emailAddress"],
-        "$push_id": {
-          ".write": "auth.token.coordinator === true && !data.exists()"
-        }
-      },
       "submissions": {
         ".indexOn": ["assignee/emailAddress", "completed"],
         ".write": "!data.exists()"

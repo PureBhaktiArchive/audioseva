@@ -151,11 +151,7 @@ export default class QCAllotmentForm extends Mixins<UsersByRole>(UsersByRole) {
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       ...other
     };
-    await firebase
-      .database()
-      .ref(`sound-editing/restoration/quality-check/allotments`)
-      .push()
-      .set(data);
+    // TODO: save allotment via callable function
     this.submissionStatus = "complete";
   }
 }
