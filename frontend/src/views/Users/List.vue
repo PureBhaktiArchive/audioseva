@@ -65,7 +65,7 @@ import PhoneNumber from "@/components/Users/PhoneNumber.vue";
 export default class List extends Vue {
   isLoadingUsers: boolean = true;
   users: any[] = [];
-  roles = ["CR", "TE", "SE", "QC", "FC", "SQR", "coordinator"];
+  roles = ["CR", "TE", "SE", "FC", "SQR", "coordinator"];
   statusItems = ["OK", "Opted out", "Lost", "Duplicate", "Incorrect"];
   filterActiveUsers = true;
   keyPath: string = "users";

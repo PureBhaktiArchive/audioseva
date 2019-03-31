@@ -141,7 +141,7 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
     if (language == null || list == null) return;
     this.$bindAsArray(
       "crFiles",
-      firebase.database().ref(`files/${list}`),
+      firebase.database().ref(`original/${list}`),
       null,
       this.filterSelectedFiles
     );
@@ -163,11 +163,8 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       user: (firebase as any).auth().currentUser.email
     };
-    await firebase
-      .database()
-      .ref("cr/allotments")
-      .push()
-      .set(allotmentData);
+
+    // TODO: save allotment via callable function
 
     this.submissionStatus = "complete";
   }
