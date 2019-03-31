@@ -55,7 +55,7 @@ export default class FileStatistics extends Vue {
     const date = new Date();
     this.$bindAsObject(
       "lists",
-      firebase.database().ref("files"),
+      firebase.database().ref("original"),
       null,
       this.extractFiles
     );

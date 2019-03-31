@@ -143,7 +143,7 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
       "sqrFiles",
       firebase
         .database()
-        .ref(`files/${this.filter.list}`)
+        .ref(`original/${this.filter.list}`)
         .orderByChild("soundQualityReporting/status")
         .equalTo("Spare"),
       null, // cancel callback not used

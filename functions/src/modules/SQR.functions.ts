@@ -166,7 +166,7 @@ const addSubmissionWarnings = async (
   }
   const response = (await admin
     .database()
-    .ref(`/files/${listId}/${fileName}`)
+    .ref(`/original/${listId}/${fileName}`)
     .once('value')).val();
   if (!response)
     warnings.push(`Audio file name ${fileName} is not found in the backend!`);
@@ -202,7 +202,7 @@ export const processSubmission = functions.database
     // 3.1 Get the submitted audio file data
     const fileSnapshot = await admin
       .database()
-      .ref(`/files/${list}/${submission.fileName}`)
+      .ref(`/original/${list}/${submission.fileName}`)
       .once('value');
 
     // If fileSnapshot doesn't exist stop the execution
@@ -226,7 +226,7 @@ export const processSubmission = functions.database
 
     admin
       .database()
-      .ref(`/files/${list}/${submission.fileName}`)
+      .ref(`/original/${list}/${submission.fileName}`)
       .update(fileUpdate);
 
     const coordinator = functions.config().coordinator;
@@ -250,7 +250,7 @@ export const processSubmission = functions.database
 
       const allotments = (await admin
         .database()
-        .ref(`/files/${list}`)
+        .ref(`/original/${list}`)
         .orderByChild('soundQualityReporting/assignee/emailAddress')
         .equalTo(submission.author.emailAddress)
         .once('value')).val();
@@ -438,7 +438,7 @@ export const importSpreadSheetData = functions.https.onCall(
       };
       admin
         .database()
-        .ref(`/files/${list}/${fileName}/soundQualityReporting`)
+        .ref(`/original/${list}/${fileName}/soundQualityReporting`)
         .update(allotment);
     }
   }
@@ -449,7 +449,7 @@ export const importSpreadSheetData = functions.https.onCall(
  *
  */
 export const exportAllotmentsToSpreadsheet = functions.database
-  .ref('/files/{listName}/{fileName}')
+  .ref('/original/{listName}/{fileName}')
   .onUpdate(
     async (
       change: functions.Change<functions.database.DataSnapshot>,

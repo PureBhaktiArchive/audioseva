@@ -5,7 +5,7 @@ import firebase from "firebase/app";
 @Component
 export default class FirebaseShallowQuery extends Vue {
   lists: string[] | null = null;
-  listsBasePath: string = "files";
+  listsBasePath: string = "original";
 
   async getLists() {
     const response: any = await this.$http.get(

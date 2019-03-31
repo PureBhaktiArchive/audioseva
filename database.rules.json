@@ -8,7 +8,7 @@
         }
       }
     },
-    "files": {
+    "original": {
       ".read": "auth.token.Coordinator === true",
       "$list": {
         ".indexOn": ["soundQualityReporting/status"],
@@ -127,7 +127,7 @@
           "$fileName": {
             "$token": {
               ".read": true,
-              ".write": "newData.exists() && root.child('files').child($list).child($fileName).child('soundQualityReporting').child('token').val() == $token && root.child('files').child($list).child($fileName).child('soundQualityReporting').child('status').val() != 'Done'",
+              ".write": "newData.exists() && root.child('original').child($list).child($fileName).child('soundQualityReporting').child('token').val() == $token && root.child('original').child($list).child($fileName).child('soundQualityReporting').child('status').val() != 'Done'",
               "complete": {
                 ".validate": "!data.exists()"
               },

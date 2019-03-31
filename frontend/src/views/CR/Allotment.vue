@@ -141,7 +141,7 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
     if (language == null || list == null) return;
     this.$bindAsArray(
       "crFiles",
-      firebase.database().ref(`files/${list}`),
+      firebase.database().ref(`original/${list}`),
       null,
       this.filterSelectedFiles
     );
