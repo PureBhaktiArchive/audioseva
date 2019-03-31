@@ -161,11 +161,7 @@ export default class Allotment extends Mixins<
       user: firebase.auth().currentUser.email
     };
 
-    await firebase
-      .database()
-      .ref("/sound-editing/restoration/allotments")
-      .push()
-      .set(data);
+    // TODO: save allotment via callable function
     this.submissionStatus = "complete";
   }
 

@@ -36,16 +36,6 @@ export const router = new Router({
       ]
     },
     {
-      path: "/sound-editing/:taskId/quality-check/feedback",
-      component: () => import("@/views/Layout/AnonymousLayout.vue"),
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/QCSubmissionForm.vue")
-        }
-      ]
-    },
-    {
       path: "/sound-editing/upload/:uploadCode",
       component: () => import("@/views/Layout/AnonymousLayout.vue"),
       children: [
@@ -145,10 +135,6 @@ export const router = new Router({
               meta: { menuItem: true }
             }
           ]
-        },
-        {
-          path: "sound-editing/:taskId/quality-check/allot",
-          component: () => import("@/views/QCAllotmentForm.vue")
         },
         {
           path: "se/",
