@@ -176,7 +176,7 @@ export default class Files extends Mixins<ShallowQuery, InlineSave>(
     if (this.lists) {
       this.$bindAsArray(
         "files",
-        firebase.database().ref(`/files/${this.list}`),
+        firebase.database().ref(`/original/${this.list}`),
         null,
         () => (this.isLoadingFiles = false)
       );
@@ -219,7 +219,7 @@ export default class Files extends Mixins<ShallowQuery, InlineSave>(
   }
 
   getUpdatePath(item: any, path: any): string {
-    return `/files/${this.list}/${item[".key"]}/${path["itemPath"]}`;
+    return `/original/${this.list}/${item[".key"]}/${path["itemPath"]}`;
   }
 }
 </script>

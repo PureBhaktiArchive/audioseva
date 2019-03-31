@@ -33,7 +33,7 @@ export const handleOriginalFileUploading = functions.storage
     const fileName = isValidFile[2] || isValidFile[4];
     const list = helpers.extractListFromFilename(fileName);
 
-    const fileRef = db.ref(`/files/${list}/${fileName}`);
+    const fileRef = db.ref(`/original/${list}/${fileName}`);
 
     await fileRef.update({
       [isValidFile[3] ? 'mp3Uploaded' : 'flacUploaded']: true,
@@ -55,7 +55,7 @@ export const handleOriginalFileDeletion = functions.storage
 
     const fileName = nameParts[2] || nameParts[4];
     const list = helpers.extractListFromFilename(fileName);
-    const fileRef = db.ref(`/files/${list}/${fileName}`);
+    const fileRef = db.ref(`/original/${list}/${fileName}`);
 
     return fileRef.update({
       [nameParts[3] ? 'mp3Uploaded' : 'flacUploaded']: false,
@@ -83,7 +83,7 @@ export const syncStorageToDB = functions.https.onRequest(async (req, res) => {
     const fileName = parts[2] || parts[4];
     const list = helpers.extractListFromFilename(fileName);
 
-    const fileRef = db.ref(`/files/${list}/${fileName}`);
+    const fileRef = db.ref(`/original/${list}/${fileName}`);
 
     await fileRef.update({
       [parts[3] ? 'mp3Uploaded' : 'flacUploaded']: true,
@@ -91,7 +91,7 @@ export const syncStorageToDB = functions.https.onRequest(async (req, res) => {
   });
 
   //  2.Remove DB entries for files that no longer exist
-  const filesSnapshot = await db.ref(`/files`).once('value');
+  const filesSnapshot = await db.ref(`/original`).once('value');
   const files = filesSnapshot.val();
 
   const bucketFileNames = bucketFilePaths.map(filePath => {
@@ -109,7 +109,7 @@ export const syncStorageToDB = functions.https.onRequest(async (req, res) => {
             files[list][fileName]['soundQualityReporting'].status === 'Spare' &&
             files[list][fileName]['contentReporting'].status === 'Spare'
           )
-            db.ref(`/files/${list}/${fileName}`).remove();
+            db.ref(`/original/${list}/${fileName}`).remove();
         } catch (err) {
           console.warn(err);
         }
