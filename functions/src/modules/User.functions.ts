@@ -27,7 +27,6 @@ enum RegistrationColumns {
 enum Roles {
   CR = 'CR',
   FC = 'FC',
-  QC = 'QC',
   TE = 'TE',
   SE = 'SE',
   SQR = 'SQR',
@@ -83,7 +82,6 @@ export const importUserRegistrationData = functions.https.onCall(
         roles: {
           CR: row[Roles.CR] === Decision.Yes,
           FC: row[Roles.FC] === Decision.Yes,
-          QC: row[Roles.QC] === Decision.Yes,
           TE: row[Roles.TE] === Decision.Yes,
           SE: row[Roles.SE] === Decision.Yes,
           SQR: row[Roles.SQR] === Decision.Yes,
@@ -138,7 +136,6 @@ export const restructureRegistrationData = functions.database
       'Content Reporting': 'CR',
       'Track Editing': 'TE',
       'Sound Engineering': 'SE',
-      'Quality Checking': 'QE',
       'Fidelity Checking': 'FC',
     };
 
@@ -184,19 +181,23 @@ const setClaims = async (roles, { params: { userId } }: any, email: string) => {
 
 export const onCreateUserRole = userRole.onCreate(async (snapshot, context) => {
   const role = snapshot.key;
-  const roles = (await snapshot.ref.parent.once("value")).val();
-  const userEmail = await snapshot.ref.parent.parent.child("emailAddress").once("value");
+  const roles = (await snapshot.ref.parent.once('value')).val();
+  const userEmail = await snapshot.ref.parent.parent
+    .child('emailAddress')
+    .once('value');
   roles[role] = true;
-  return setClaims(roles, context, userEmail.val())
+  return setClaims(roles, context, userEmail.val());
 });
 
 export const onDeleteUserRole = userRole.onDelete(async (snapshot, context) => {
   const role = snapshot.key;
-  const roles = (await snapshot.ref.parent.once("value")).val();
-  const userEmail = await snapshot.ref.parent.parent.child("emailAddress").once("value");
+  const roles = (await snapshot.ref.parent.once('value')).val();
+  const userEmail = await snapshot.ref.parent.parent
+    .child('emailAddress')
+    .once('value');
   if (roles) {
     delete roles[role];
-    return setClaims(roles, context, userEmail.val())
+    return setClaims(roles, context, userEmail.val());
   } else {
     return true;
   }

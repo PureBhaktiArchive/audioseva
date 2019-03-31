@@ -4,7 +4,6 @@ const services = {
 	CR: 'Content Reporting',
 	TE: 'Track Editing',
 	SE: 'Sound Engineering',
-	QC: 'Quality Checking',
 	FC: 'Fidelity Checking'
 };
 

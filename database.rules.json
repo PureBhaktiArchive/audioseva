@@ -43,15 +43,6 @@
     },
     "sound-editing": {
       ".read": "auth.token.coordinator === true",
-      "restoration": {
-        "quality-check": {
-          "feedback": {
-            "$push_id": {
-              ".write": "!data.exists()"
-            }
-          }
-        }
-      },
       "tasks": {
         "$list": {
           "$task_id": {
