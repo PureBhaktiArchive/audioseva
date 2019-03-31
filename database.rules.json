@@ -9,12 +9,12 @@
       }
     },
     "original": {
-      ".read": "auth.token.Coordinator === true",
+      ".read": "auth.token.coordinator === true",
       "$list": {
         ".indexOn": ["soundQualityReporting/status"],
         "$fileName": {
           "notes": {
-            ".write": "auth.token.Coordinator === true"
+            ".write": "auth.token.coordinator === true"
           },
           "contentReporting": {
             "timestampGiven": {
@@ -24,7 +24,7 @@
               ".validate": "newData.isNumber() && newData.val() == now"
             },
             "followUp": {
-              ".write": "auth.token.Coordinator === true"
+              ".write": "auth.token.coordinator === true"
             }
           },
           "soundQualityReporting": {
@@ -35,19 +35,19 @@
               ".validate": "newData.isNumber() && newData.val() == now"
             },
             "followUp": {
-              ".write": "auth.token.Coordinator === true"
+              ".write": "auth.token.coordinator === true"
             }
           }
         }
       }
     },
     "sound-editing": {
-      ".read": "auth.token.Coordinator === true",
+      ".read": "auth.token.coordinator === true",
       "restoration": {
         "allotments": {
           ".indexOn": ["assignee/emailAddress"],
           "$push_id": {
-            ".write": "auth.token.Coordinator === true && !data.exists()"
+            ".write": "auth.token.coordinator === true && !data.exists()"
           }
         },
         "quality-check": {
@@ -63,7 +63,7 @@
           "$task_id": {
             "restoration": {
               "followUp": {
-                ".write": "auth.token.Coordinator === true"
+                ".write": "auth.token.coordinator === true"
               }
             }
           }
@@ -71,11 +71,11 @@
       }
     },
     "sqr": {
-      ".read": "auth.token.Coordinator === true",
+      ".read": "auth.token.coordinator === true",
       "allotments": {
         ".indexOn": ["assignee/emailAddress"],
         "$push_id": {
-          ".write": "auth.token.Coordinator === true && !data.exists()"
+          ".write": "auth.token.coordinator === true && !data.exists()"
         }
       },
       "submissions": {
@@ -84,7 +84,7 @@
       }
     },
     "users": {
-      ".read": "auth.token.Coordinator === true",
+      ".read": "auth.token.coordinator === true",
       ".indexOn": [
         "emailAddress",
         "roles/CR",
@@ -100,7 +100,7 @@
           ".validate": "newData.isBoolean()"
         },
         "notes": {
-          ".write": "auth.token.Coordinator === true"
+          ".write": "auth.token.coordinator === true"
         },
         "emailAddress": {
           ".write": "!data.exists()"
@@ -111,10 +111,10 @@
           }
         },
         "status": {
-          ".write": "auth.token.Coordinator === true"
+          ".write": "auth.token.coordinator === true"
         },
         "roles": {
-          ".write": "auth.token.Coordinator === true",
+          ".write": "auth.token.coordinator === true",
           "$roleId": {
             ".validate": "newData.isBoolean()"
           }
