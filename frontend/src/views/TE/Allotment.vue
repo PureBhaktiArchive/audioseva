@@ -109,7 +109,7 @@ export default class Allotment extends Vue {
   tasks = null;
   lists = null;
   filter = Allotment.initialFilter();
-  submissionStatus = null;
+  submissionStatus: string | null = null;
 
   static initialAllotment() {
     return {
