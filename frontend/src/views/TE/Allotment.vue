@@ -95,7 +95,8 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Watch, Vue } from "vue-property-decorator";
+import _ from "lodash";
 import firebase from "firebase/app";
 import "firebase/functions";
 
@@ -131,6 +132,30 @@ export default class Allotment extends Vue {
     this.filter.languages = this.languages;
     this.getLists();
   }
+
+  @Watch("allotment.assignee")
+  handleAllotmentAssignee(newValue: any) {
+    if (newValue === null) return;
+
+    this.filter.languages = this.languages;
+  }
+
+  @Watch("filter", { deep: true })
+  handleFilter() {
+    this.debouncedFilter();
+  }
+
+  debouncedFilter = _.debounce(async () => {
+    this.tasks = null;
+    this.allotment.tasks = [];
+    if (this.filter.list === null) return;
+
+    const spareTasks = await firebase
+      .functions()
+      .httpsCallable("TE-getSpareTasks")(this.filter);
+
+    this.tasks = spareTasks.data;
+  }, 1000);
 
   async getTrackEditors() {
     const editors = await firebase
