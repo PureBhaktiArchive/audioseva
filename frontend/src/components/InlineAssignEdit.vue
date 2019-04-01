@@ -31,7 +31,6 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
-import moment from "moment";
 import _ from "lodash";
 
 @Component({
@@ -41,25 +40,31 @@ export default class InlineAssignEdit extends Vue {
   @Prop() item!: any;
   @Prop() value!: string;
   @Prop() keyPath!: string;
-
-  handleChange() {
-    const { item } = this;
-
-    //Object that is effectively empties only following fields: date given, assignee, email address, status in database.
-    const changedData = {
+  @Prop({
+    default: () => () => ({
       status: "",
       timestampGiven: "",
       assignee: {
         emailAddress: "",
         name: ""
       }
-    };
-    const update = _.merge({}, item[this.keyPath], changedData);
+    })
+  })
+  cancelData!: any;
+
+  handleChange() {
+    const { item } = this;
+
+    //Object that is effectively empties only following fields: date given, assignee, email address, status in database.
+    const update = _.merge({}, item[this.keyPath], this.cancelData());
 
     //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
     path["itemPath"] = this.keyPath;
-    this.$emit("save", item, path, update);
+    this.$emit("save", item, path, update, {
+      itemPath: this.keyPath,
+      newValue: update
+    });
   }
 }
 </script>

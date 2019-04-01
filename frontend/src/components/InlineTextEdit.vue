@@ -8,7 +8,9 @@
       @cancel="$listeners.cancel"
       @open="open"
     >
-      <span :style="{padding: '4px'}">{{ textArea }}</span>
+      <slot>
+        <span :style="{padding: '4px'}">{{ textArea }}</span>
+      </slot>
       <v-textarea
         v-if="isShowTextArea == true"
         slot="input"
@@ -55,7 +57,7 @@ export default class InlineTextEdit extends Vue {
       (this.$refs.editTextArea as any).focus();
     }, 100);
 
-    this.textAreaValue = _.get(this.item, this.value);
+    this.textAreaValue = _.get(this.item, this.value, "");
     this.isShowTextArea = true;
   }
 }

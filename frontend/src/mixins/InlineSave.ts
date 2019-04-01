@@ -29,6 +29,20 @@ export default class InlineSave extends Vue {
     return this[this.itemsKey];
   }
 
+  multiFieldSave(item: any, itemPath: string, paths: any, fieldUpdates: any) {
+    this.$set(
+      this.items,
+      this.items.findIndex(
+        (i: any) => i[this.itemComparePath] === item[this.itemComparePath]
+      ),
+      _.merge({}, item, fieldUpdates)
+    );
+    firebase
+      .database()
+      .ref(this.getUpdatePath(item, { itemPath }))
+      .update(paths);
+  }
+
   save(
     item: any,
     path: any,
