@@ -5,6 +5,7 @@
     :computedValue="computedCb"
     :computedComponent="computedComponent"
     :componentData="componentData"
+    :tableRowStyle="tableRowStyle"
   >
 
   </data-table>
@@ -112,6 +113,30 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
 
   mounted() {
     this.getLists();
+  }
+
+  tableRowStyle(item: any) {
+    let backgroundColor = "none";
+    switch (item.trackEditing.status) {
+      case "Spare":
+        backgroundColor = "none";
+        break;
+      case "Given":
+        backgroundColor = "#D9E9FF";
+        break;
+      case "Submitted":
+        backgroundColor = "#f5f5dc";
+        break;
+      case "Revise":
+        backgroundColor = "#FFFFD5";
+        break;
+      case "Done":
+        backgroundColor = "#C0D890";
+        break;
+    }
+    return {
+      backgroundColor
+    };
   }
 
   assigneeCancel() {
