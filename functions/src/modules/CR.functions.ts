@@ -5,7 +5,7 @@ import GoogleSheets from '../services/GoogleSheets';
 import * as _ from 'lodash';
 import * as moment from 'moment';
 
-export enum ISoundQualityReportSheet {
+export enum SheetNames {
   Allotments = 'Allotments',
   Submissions = 'Submissions',
 }
@@ -85,9 +85,7 @@ export const getLists = functions.https.onCall(async (data, context) => {
   const gsheets = new GoogleSheets(
     functions.config().cr.allotments.spreadsheet.id
   );
-  const allotmentsSheet = await gsheets.useSheet(
-    ISoundQualityReportSheet.Allotments
-  );
+  const allotmentsSheet = await gsheets.useSheet(SheetNames.Allotments);
 
   const rows = await allotmentsSheet.getRows();
 
@@ -101,7 +99,7 @@ export const getLists = functions.https.onCall(async (data, context) => {
  * Gets spare files for specified list and languages
  */
 export const getSpareFiles = functions.https.onCall(
-  async ({ list, language, languages, count }, context) => {
+  async ({ list, languages, count }, context) => {
     if (
       !context.auth ||
       !context.auth.token ||
@@ -116,9 +114,7 @@ export const getSpareFiles = functions.https.onCall(
     const gsheets = new GoogleSheets(
       functions.config().cr.allotments.spreadsheet.id
     );
-    const allotmentsSheet = await gsheets.useSheet(
-      ISoundQualityReportSheet.Allotments
-    );
+    const allotmentsSheet = await gsheets.useSheet(SheetNames.Allotments);
 
     const allotmentsRows = await allotmentsSheet.getRows();
 
@@ -127,7 +123,7 @@ export const getSpareFiles = functions.https.onCall(
         item =>
           !item['Status'] &&
           item['List'] === list &&
-          (languages || [language]).includes(item['Language'] || 'None')
+          languages.includes(item['Language'] || 'None')
       )
       .map(item => ({
         filename: item['File Name'],
@@ -169,7 +165,7 @@ export const processAllotment = functions.https.onCall(
     const gsheets = new GoogleSheets(
       functions.config().cr.allotments.spreadsheet.id
     );
-    const sheet = await gsheets.useSheet(ISoundQualityReportSheet.Allotments);
+    const sheet = await gsheets.useSheet(SheetNames.Allotments);
     const fileNameColumn = await sheet.getColumn('File Name');
     const emailColumn = await sheet.getColumn('Email');
 
@@ -179,7 +175,7 @@ export const processAllotment = functions.https.onCall(
         const index = fileNameColumn.indexOf(file.filename);
         if (index < 0) {
           console.warn(
-            `File ${file.filename} is not found in the SQR allotments.`
+            `File ${file.filename} is not found in the CR allotments.`
           );
           return;
         }
