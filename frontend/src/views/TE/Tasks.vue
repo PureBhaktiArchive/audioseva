@@ -1,14 +1,32 @@
 <template>
-  <data-table
-    :headers="headers"
-    :items="items"
-    :computedValue="computedCb"
-    :computedComponent="computedComponent"
-    :componentData="componentData"
-    :tableRowStyle="tableRowStyle"
-  >
+  <div>
+    <v-layout wrap>
+      <v-flex xs12 md3>
+        <v-text-field
+          v-model="search"
+          append-icon="fa-search"
+          label="Filter tasks"
+          single-line
+          hide-details
+        ></v-text-field>
+      </v-flex>
+      <v-flex class="ml-3" xs12 md4 align-self-end>
+        <v-btn-toggle v-model="selectedButton" mandatory>
+          <v-btn v-for="(value, key, index) in statuses" :key="index">{{ value }}</v-btn>
+        </v-btn-toggle>
+      </v-flex>
+    </v-layout>
+    <data-table
+      :headers="headers"
+      :items="items"
+      :computedValue="computedCb"
+      :computedComponent="computedComponent"
+      :componentData="componentData"
+      :tableRowStyle="tableRowStyle"
+    >
 
-  </data-table>
+    </data-table>
+  </div>
 </template>
 
 <script lang="ts">
@@ -53,9 +71,9 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
     { text: "Follow Up", value: "trackEditing.followUp" }
   ];
 
-  timestamps = {
-    "trackEditing/feedback": true
-  };
+  selectedButton = 0;
+  search = "";
+  statuses = ["All", "Spare", "Given", "Submitted", "Revise", "Done"];
 
   lists: any[] = [];
 
@@ -174,6 +192,55 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
     return `/edited/${getListId(item[".key"])}/${item[".key"]}/${
       path.itemPath
     }`;
+  }
+
+  get searchValue() {
+    return this.search.toLowerCase();
+  }
+
+  searchChunks(chunks) {
+    return chunks.some(chunk => this.fieldHasSearchValue(chunk, "fileName"));
+  }
+
+  fieldHasSearchValue(item, path) {
+    const searchValue = _.get(item, path, "") as string;
+    return searchValue.toLowerCase().includes(this.searchValue);
+  }
+
+  searchFields(item: any) {
+    let matchedItem = false;
+    if (
+      item[".key"].toLowerCase().includes(this.searchValue) ||
+      this.fieldHasSearchValue(item, "trackEditing.followUp") ||
+      this.fieldHasSearchValue(item, "trackEditing.assignee.name") ||
+      this.fieldHasSearchValue(item, "trackEditing.feedback") ||
+      this.searchChunks(_.get(item, "trackEditing.chunks", []))
+    ) {
+      matchedItem = true;
+    }
+    return matchedItem;
+  }
+
+  get items() {
+    return this.lists.filter((task: any) => {
+      let hasStatus = false;
+      let matchesSearch = false;
+      if (this.selectedStatus === "All") {
+        hasStatus = true;
+      } else {
+        hasStatus = this.selectedStatus === task.trackEditing.status;
+      }
+      if (!this.searchValue) {
+        matchesSearch = true;
+      } else {
+        matchesSearch = this.searchFields(task);
+      }
+      return matchesSearch && hasStatus;
+    });
+  }
+
+  get selectedStatus() {
+    return this.statuses[this.selectedButton];
   }
 }
 </script>
