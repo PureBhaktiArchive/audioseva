@@ -1,7 +1,9 @@
-import * as functions from 'firebase-functions';
+/*
+ * sri sri guru gauranga jayatah
+ */
 import * as admin from 'firebase-admin';
-
-import GoogleSheets from '../services/GoogleSheets';
+import * as functions from 'firebase-functions';
+import { Spreadsheet } from '../classes/GoogleSheets';
 
 export const processDonations = functions.database
   .ref('/donations/cash/{donation_id}')
@@ -12,10 +14,10 @@ export const processDonations = functions.database
     ): Promise<any> => {
       const donation = snapshot.val();
 
-      const gsheets = new GoogleSheets(
+      const spreadsheet = await Spreadsheet.open(
         functions.config().donations.cash.spreadsheet.id
       );
-      const sheet = await gsheets.useSheet(
+      const sheet = await spreadsheet.useSheet(
         functions.config().donations.cash.spreadsheet.name
       );
 

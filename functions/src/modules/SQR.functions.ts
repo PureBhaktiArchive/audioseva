@@ -1,14 +1,17 @@
-import * as functions from 'firebase-functions';
+/*
+ * sri sri guru gauranga jayatah
+ */
 import * as admin from 'firebase-admin';
-import * as helpers from './../helpers';
+import * as functions from 'firebase-functions';
 import * as moment from 'moment';
-import GoogleSheets from '../services/GoogleSheets';
+import { URL } from 'url';
+import { Spreadsheet } from '../classes/GoogleSheets';
 import {
+  commaSeparated,
   spreadsheetDateFormat,
   withDefault,
-  commaSeparated,
 } from '../utils/parsers';
-import { URL } from 'url';
+import * as helpers from './../helpers';
 
 export enum ISoundQualityReportSheet {
   Allotments = 'Allotments',
@@ -37,8 +40,12 @@ export const processAllotment = functions.https.onCall(
         'Devotee and Files are required.'
       );
 
-    const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
-    const sheet = await gsheets.useSheet(ISoundQualityReportSheet.Allotments);
+    const spreadsheet = await Spreadsheet.open(
+      functions.config().sqr.spreadsheet_id
+    );
+    const sheet = await spreadsheet.useSheet(
+      ISoundQualityReportSheet.Allotments
+    );
     const fileNameColumn = await sheet.getColumn('File Name');
     const emailColumn = await sheet.getColumn('Email');
 
@@ -364,7 +371,7 @@ export const importSpreadSheetData = functions.https.onCall(
     ////////////////////////
     //     Submissions
     ////////////////////////
-    const submissionsSpreadsheet = new GoogleSheets(spreadsheetId);
+    const submissionsSpreadsheet = await Spreadsheet.open(spreadsheetId);
     const submissionsSheet = await submissionsSpreadsheet.useSheet(
       ISoundQualityReportSheet.Submissions
     );
@@ -402,7 +409,7 @@ export const importSpreadSheetData = functions.https.onCall(
     //     Allotments
     ////////////////////////
 
-    const allotmentsSpreadsheet = new GoogleSheets(spreadsheetId);
+    const allotmentsSpreadsheet = await Spreadsheet.open(spreadsheetId);
     const allotmentsSheet = await allotmentsSpreadsheet.useSheet(
       ISoundQualityReportSheet.Allotments
     );
@@ -458,8 +465,12 @@ export const exportAllotmentsToSpreadsheet = functions.database
       const { fileName } = context.params;
       const changedValues = change.after.val();
 
-      const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
-      const sheet = await gsheets.useSheet(ISoundQualityReportSheet.Allotments);
+      const spreadsheet = await Spreadsheet.open(
+        functions.config().sqr.spreadsheet_id
+      );
+      const sheet = await spreadsheet.useSheet(
+        ISoundQualityReportSheet.Allotments
+      );
       const allotmentFileNames = await sheet.getColumn('File Name');
       const rowNumber = allotmentFileNames.indexOf(fileName) + 1;
       const { languages, notes, soundQualityReporting } = changedValues;
@@ -528,8 +539,10 @@ export const exportSubmissionsToSpreadsheet = functions.database
       snapshot: functions.database.DataSnapshot,
       context: functions.EventContext
     ): Promise<any> => {
-      const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
-      const submissionSheet = await gsheets.useSheet(
+      const spreadsheet = await Spreadsheet.open(
+        functions.config().sqr.spreadsheet_id
+      );
+      const submissionSheet = await spreadsheet.useSheet(
         ISoundQualityReportSheet.Submissions
       );
       const {
@@ -574,8 +587,10 @@ export const getLists = functions.https.onCall(async (data, context) => {
     );
   }
 
-  const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
-  const allotmentsSheet = await gsheets.useSheet(
+  const spreadsheet = await Spreadsheet.open(
+    functions.config().sqr.spreadsheet_id
+  );
+  const allotmentsSheet = await spreadsheet.useSheet(
     ISoundQualityReportSheet.Allotments
   );
 
@@ -603,8 +618,10 @@ export const getSpareFiles = functions.https.onCall(
       );
     }
 
-    const gsheets = new GoogleSheets(functions.config().sqr.spreadsheet_id);
-    const allotmentsSheet = await gsheets.useSheet(
+    const spreadsheet = await Spreadsheet.open(
+      functions.config().sqr.spreadsheet_id
+    );
+    const allotmentsSheet = await spreadsheet.useSheet(
       ISoundQualityReportSheet.Allotments
     );
 
