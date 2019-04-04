@@ -1,9 +1,12 @@
-import * as functions from 'firebase-functions';
+/*
+ * sri sri guru gauranga jayatah
+ */
 import * as admin from 'firebase-admin';
-import * as helpers from '../helpers';
-import GoogleSheets from '../services/GoogleSheets';
+import * as functions from 'firebase-functions';
 import * as _ from 'lodash';
 import * as moment from 'moment';
+import { Spreadsheet } from '../classes/GoogleSheets';
+import * as helpers from '../helpers';
 
 export enum SheetNames {
   Allotments = 'Allotments',
@@ -13,11 +16,12 @@ export enum SheetNames {
 export const copySubmissionsToProcessing = functions.pubsub
   .topic('daily-tick')
   .onPublish(async () => {
-    const onlineSheet = await new GoogleSheets(
+    const sourceSpreadsheet = await Spreadsheet.open(
       functions.config().cr.submissions.spreadsheet.id
-    ).useSheet('Online');
+    );
+    const onlineSheet = await sourceSpreadsheet.useSheet('Online');
 
-    const destSpreadsheet = new GoogleSheets(
+    const destSpreadsheet = await Spreadsheet.open(
       functions.config().cr.processing.spreadsheet.id
     );
     const destinations = new Map();
@@ -82,10 +86,10 @@ export const getLists = functions.https.onCall(async (data, context) => {
     );
   }
 
-  const gsheets = new GoogleSheets(
+  const spreadsheet = await Spreadsheet.open(
     functions.config().cr.allotments.spreadsheet.id
   );
-  const allotmentsSheet = await gsheets.useSheet(SheetNames.Allotments);
+  const allotmentsSheet = await spreadsheet.useSheet(SheetNames.Allotments);
 
   const rows = await allotmentsSheet.getRows();
 
@@ -111,10 +115,10 @@ export const getSpareFiles = functions.https.onCall(
       );
     }
 
-    const gsheets = new GoogleSheets(
+    const spreadsheet = await Spreadsheet.open(
       functions.config().cr.allotments.spreadsheet.id
     );
-    const allotmentsSheet = await gsheets.useSheet(SheetNames.Allotments);
+    const allotmentsSheet = await spreadsheet.useSheet(SheetNames.Allotments);
 
     const allotmentsRows = await allotmentsSheet.getRows();
 
@@ -162,10 +166,10 @@ export const processAllotment = functions.https.onCall(
         'Devotee and Files are required.'
       );
 
-    const gsheets = new GoogleSheets(
+    const spreadsheet = await Spreadsheet.open(
       functions.config().cr.allotments.spreadsheet.id
     );
-    const sheet = await gsheets.useSheet(SheetNames.Allotments);
+    const sheet = await spreadsheet.useSheet(SheetNames.Allotments);
     const fileNameColumn = await sheet.getColumn('File Name');
     const emailColumn = await sheet.getColumn('Email');
 
