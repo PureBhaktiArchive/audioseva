@@ -135,7 +135,8 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
       on: { ...this.editEvents },
       props: {
         keyPath: "trackEditing",
-        cancelData: this.assigneeCancel
+        cancelData: this.assigneeCancel,
+        shouldCancelChange: (task: any) => task.trackEditing.status === "Done"
       }
     }
   };

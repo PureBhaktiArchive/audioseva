@@ -40,6 +40,8 @@ export default class InlineAssignEdit extends Vue {
   @Prop() item!: any;
   @Prop() value!: string;
   @Prop() keyPath!: string;
+  @Prop({ default: () => () => false })
+  shouldCancelChange!: (item: any) => boolean;
   @Prop({
     default: () => () => ({
       status: "",
@@ -53,7 +55,9 @@ export default class InlineAssignEdit extends Vue {
   cancelData!: any;
 
   handleChange() {
-    const { item } = this;
+    const { item, shouldCancelChange } = this;
+
+    if (shouldCancelChange(item)) return;
 
     //Object that is effectively empties only following fields: date given, assignee, email address, status in database.
     const update = _.merge({}, item[this.keyPath], this.cancelData());
