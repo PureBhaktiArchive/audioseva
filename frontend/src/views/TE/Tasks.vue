@@ -1,5 +1,8 @@
 <template>
   <div>
+    <header>
+      <h1>Track Editing</h1>
+    </header>
     <v-layout wrap>
       <v-flex xs12 md3>
         <v-text-field
