@@ -248,6 +248,12 @@ export default class Upload extends Vue {
             complete: false,
             uploading: false
           });
+        } else if (error.code === "storage/object-not-found") {
+          this.updateFileFields(file, {
+            error: "File not found",
+            complete: false,
+            uploading: false
+          });
         } else {
           this.emitFileError(file, error.message);
         }
