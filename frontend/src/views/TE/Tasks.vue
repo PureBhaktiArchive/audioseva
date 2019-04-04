@@ -23,6 +23,7 @@
       :computedComponent="computedComponent"
       :componentData="componentData"
       :tableRowStyle="tableRowStyle"
+      :styles="styles"
     >
 
     </data-table>
@@ -82,6 +83,13 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
   editEvents = {
     cancel: this.cancel,
     save: this.save
+  };
+
+  styles = {
+    ".key": {
+      "font-weight-bold": true,
+      "text-no-wrap": true
+    }
   };
 
   computedComponent = {
