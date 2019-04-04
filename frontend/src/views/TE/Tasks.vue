@@ -210,11 +210,11 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
     return this.search.toLowerCase();
   }
 
-  searchChunks(chunks) {
+  searchChunks(chunks: any[]) {
     return chunks.some(chunk => this.fieldHasSearchValue(chunk, "fileName"));
   }
 
-  fieldHasSearchValue(item, path) {
+  fieldHasSearchValue(item: any, path: string) {
     const searchValue = _.get(item, path, "") as string;
     return searchValue.toLowerCase().includes(this.searchValue);
   }
