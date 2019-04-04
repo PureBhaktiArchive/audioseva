@@ -129,4 +129,7 @@ export default class DataTable extends Vue {
 </script>
 
 <style scoped>
+>>> tbody td {
+  vertical-align: top;
+}
 </style>
