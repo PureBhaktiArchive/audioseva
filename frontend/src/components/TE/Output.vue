@@ -1,9 +1,11 @@
 <template>
-  <div class="d-flex" :style="{ alignItems: 'center' }">
-    <a download :href="item.trackEditing.outputFileLink">
-      Download
-    </a>
-    <span>{{ timestamp }}</span>
+  <div class="d-flex" :style="{ alignItems: 'flex-start' }">
+    <div>
+      <a download :href="item.trackEditing.outputFileLink">
+        Download
+      </a>
+      <p class="caption">{{ timestamp }}</p>
+    </div>
     <template v-if="item.trackEditing.status === 'Submitted'">
       <inline-text-edit
         @cancel="cancel"
