@@ -1,3 +1,8 @@
+/*
+ * sri sri guru gauranga jayatah
+ */
+import { sheets_v4 } from 'googleapis';
+
 enum IMajorDimensions {
   Rows = 'ROWS',
   Columns = 'COLUMNS',
@@ -8,16 +13,44 @@ enum IValueInputOption {
   RAW = 'RAW',
 }
 
-export default class Sheet {
-  public spreadsheetId: string;
-  public metadata: any;
-  public headers: any[];
-  protected connection: any;
+export class Sheet {
+  protected spreadsheetId: string;
+  protected schema: sheets_v4.Schema$Sheet;
+  protected api: sheets_v4.Sheets;
+  public headers: string[];
 
-  constructor(spreadsheetId: string, connection, metadata: any) {
+  public static async create(
+    spreadsheetId: string,
+    api: sheets_v4.Sheets,
+    schema: sheets_v4.Schema$Sheet
+  ): Promise<Sheet> {
+    const sheet = new Sheet(spreadsheetId, api, schema);
+    await sheet.getHeaders();
+    return sheet;
+  }
+
+  protected constructor(spreadsheetId: string, api, schema) {
     this.spreadsheetId = spreadsheetId;
-    this.connection = connection;
-    this.metadata = metadata;
+    this.api = api;
+    this.schema = schema;
+  }
+
+  public get title(): string {
+    return this.schema.properties.title;
+  }
+
+  /**
+   * frozenRowCount
+   */
+  public get frozenRowCount(): number {
+    return this.schema.properties.gridProperties.frozenRowCount;
+  }
+
+  /**
+   * rowCount
+   */
+  public get rowCount(): number {
+    return this.schema.properties.gridProperties.rowCount;
   }
 
   /**
@@ -33,9 +66,8 @@ export default class Sheet {
     lastColumnLetter: string,
     lastRowNumber: number
   ): string {
-    return `${this.metadata.properties.title}!${firstColumnLetter ||
-      ''}${firstRowNumber || ''}:${lastColumnLetter || ''}${lastRowNumber ||
-      ''}`;
+    return `${this.title}!${firstColumnLetter || ''}${firstRowNumber ||
+      ''}:${lastColumnLetter || ''}${lastRowNumber || ''}`;
   }
 
   /**
@@ -60,30 +92,23 @@ export default class Sheet {
    * @param dataRowNumber Number of the row in the data section, 1-based
    */
   protected fromDataRowNumber(dataRowNumber: number): number {
-    return (
-      dataRowNumber +
-      Math.min(this.metadata.properties.gridProperties.frozenRowCount, 1)
-    );
+    return dataRowNumber + Math.min(this.frozenRowCount, 1);
   }
 
   /**
    * Gets all the rows on the sheet.
    */
   public async getRows(): Promise<any> {
-    await this.getHeaders();
     let rows = [];
 
     let firstRowNumber = this.fromDataRowNumber(1);
-    while (firstRowNumber < this.metadata.properties.gridProperties.rowCount) {
+    while (firstRowNumber < this.rowCount) {
       // Getting the rows of the sheet in increments of 1000s
       // as this is the MAX num of rowss allowed in one call
 
-      const lastRowNumber = Math.min(
-        firstRowNumber + 1000,
-        this.metadata.properties.gridProperties.rowCount
-      );
+      const lastRowNumber = Math.min(firstRowNumber + 1000, this.rowCount);
 
-      const response = await this.connection.spreadsheets.values.get({
+      const response = await this.api.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
         range: this.rowsToA1Notation(firstRowNumber, lastRowNumber),
       });
@@ -112,16 +137,14 @@ export default class Sheet {
   public async addRows(rows: String[]): Promise<any> {
     if (rows.length === 0) return;
 
-    await this.getHeaders();
-
     /// Inserting empty rows
-    await this.connection.spreadsheets.batchUpdate({
+    await this.api.spreadsheets.batchUpdate({
       spreadsheetId: this.spreadsheetId,
-      resource: {
+      requestBody: {
         requests: rows.map((row, rowIndex) => ({
           insertDimension: {
             range: {
-              sheetId: this.metadata.properties.sheetId,
+              sheetId: this.schema.properties.sheetId,
               dimension: 'ROWS',
               startIndex: rowIndex + 1,
               endIndex: rowIndex + 2,
@@ -133,9 +156,9 @@ export default class Sheet {
     });
 
     /// Updating the rows
-    const updateResult = await this.connection.spreadsheets.values.batchUpdate({
+    const updateResult = await this.api.spreadsheets.values.batchUpdate({
       spreadsheetId: this.spreadsheetId,
-      resource: {
+      requestBody: {
         valueInputOption: IValueInputOption.USER_ENTERED,
         data: rows
           .filter(row => row)
@@ -150,14 +173,11 @@ export default class Sheet {
     return updateResult;
   }
 
-  /**
-   * Gets the header row. Should be called inside all other methods to ensure the column names to exist.
-   */
   protected async getHeaders() {
     if (this.headers && this.headers.length) {
       return;
     }
-    const response: any = await this.connection.spreadsheets.values.get({
+    const response = await this.api.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
       range: this.rowToA1Notation(1),
@@ -176,10 +196,9 @@ export default class Sheet {
    * @param columnName Name of the column to get
    */
   public async getColumn(columnName: string) {
-    await this.getHeaders();
     const columnLetter = this.getColumnLetter(columnName);
 
-    const response = await this.connection.spreadsheets.values.get({
+    const response = await this.api.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
       majorDimension: IMajorDimensions.Columns,
       range: this.toA1Notation(
@@ -200,7 +219,7 @@ export default class Sheet {
   public async getRow(dataRowNumber: number): Promise<any> {
     await this.getHeaders();
 
-    const response: any = await this.connection.spreadsheets.values.get({
+    const response: any = await this.api.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
       range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
@@ -215,11 +234,11 @@ export default class Sheet {
    */
   public async updateRow(dataRowNumber: number, row: any): Promise<any> {
     await this.getHeaders();
-    await this.connection.spreadsheets.values.update({
+    await this.api.spreadsheets.values.update({
       spreadsheetId: this.spreadsheetId,
       range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
       valueInputOption: IValueInputOption.USER_ENTERED,
-      resource: {
+      requestBody: {
         values: [this.encodeRow(row)],
       },
     });
@@ -235,11 +254,11 @@ export default class Sheet {
   public async appendRow<T>(object: T): Promise<any> {
     await this.getHeaders();
 
-    await this.connection.spreadsheets.values.append({
+    await this.api.spreadsheets.values.append({
       spreadsheetId: this.spreadsheetId,
-      range: this.metadata.properties.title,
+      range: this.title,
       valueInputOption: IValueInputOption.USER_ENTERED,
-      resource: {
+      requestBody: {
         values: [this.encodeRow(object)],
       },
     });
