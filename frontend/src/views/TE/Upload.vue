@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>Track Editing Upload</h2>
+    <h1>Track Editing Upload</h1>
     <div>
       <vue-dropzone
         ref="myDropzone"
@@ -30,7 +30,7 @@
         </div>
       </div>
       <v-divider v-if="getFiles().length"></v-divider>
-      <v-list two-line>
+      <v-list v-if="getFiles().length" two-line class="pa-0">
         <template v-for="[file, status] in getFiles()">
           <div :key="file.upload.uuid">
             <v-list-tile>
