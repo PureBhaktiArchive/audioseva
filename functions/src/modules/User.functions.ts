@@ -1,8 +1,11 @@
-import * as functions from 'firebase-functions';
+/*
+ * sri sri guru gauranga jayatah
+ */
 import * as admin from 'firebase-admin';
-import GoogleSheets from '../services/GoogleSheets';
+import * as functions from 'firebase-functions';
+import * as moment from 'moment';
+import { Spreadsheet } from '../classes/GoogleSheets';
 import { withDefault } from '../utils/parsers';
-import moment = require('moment');
 
 const db = admin.database();
 const userRoles = functions.database.ref('/users/{userId}/roles');
@@ -55,10 +58,10 @@ export const importUserRegistrationData = functions.https.onCall(
       );
     }
 
-    const gsheets: GoogleSheets = new GoogleSheets(
+    const spreadsheet = await Spreadsheet.open(
       functions.config().registrations.spreadsheet_id
     );
-    const sheet = await gsheets.useSheet('Registrations');
+    const sheet = await spreadsheet.useSheet('Registrations');
 
     const registrationRows = await sheet.getRows();
 
@@ -242,10 +245,10 @@ export const getAssignees = functions.https.onCall(
       );
     }
 
-    const gsheets = new GoogleSheets(
+    const spreadsheet = await Spreadsheet.open(
       functions.config().registrations.spreadsheet_id
     );
-    const registrationsSheet = await gsheets.useSheet('Registrations');
+    const registrationsSheet = await spreadsheet.useSheet('Registrations');
 
     const rows = await registrationsSheet.getRows();
 
