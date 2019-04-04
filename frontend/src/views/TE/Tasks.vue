@@ -38,6 +38,7 @@ import { Component, Mixins } from "vue-property-decorator";
 import _ from "lodash";
 import DataTable from "@/components/DataTable.vue";
 import { getListId, formatTimestamp, getDaysPassed } from "@/utility";
+import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import Output from "@/components/TE/Output.vue";
 import Feedback from "@/components/TE/Feedback.vue";
 import UnwantedParts from "@/components/TE/UnwantedParts.vue";
@@ -51,6 +52,7 @@ import "firebase/database";
 @Component({
   name: "Tasks",
   components: {
+    TaskDefinition,
     DataTable,
     Feedback,
     InlineAssignEdit,
@@ -96,6 +98,7 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
   };
 
   computedComponent = {
+    taskDefinition: TaskDefinition,
     "trackEditing.followUp": InlineTextEdit,
     "trackEditing.unwantedParts": UnwantedParts,
     feedback: Feedback,
