@@ -4,7 +4,7 @@
       :return-value.sync="textAreaValue"
       lazy
       large
-      @save="$listeners.save(item, editPath, textAreaValue)"
+      @save="$listeners.save(item, editPath, textAreaValue, { itemPath: value, newValue: textAreaValue })"
       @cancel="$listeners.cancel"
       @open="open"
     >
