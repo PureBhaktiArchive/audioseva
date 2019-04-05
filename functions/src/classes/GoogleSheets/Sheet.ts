@@ -187,8 +187,7 @@ export class Sheet {
     if (statusText !== 'OK' || status !== 200) {
       throw new Error('Cannot get the first row of the sheet.');
     }
-
-    if (data.values) this.headers = data.values[0];
+    this.headers = data.values ? data.values[0] : [];
   }
 
   /**

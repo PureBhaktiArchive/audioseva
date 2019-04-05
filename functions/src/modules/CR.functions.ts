@@ -5,6 +5,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as _ from 'lodash';
 import * as moment from 'moment';
+import { ChunksImport } from '../classes/ChunksImport';
 import { Spreadsheet } from '../classes/GoogleSheets';
 import * as helpers from '../helpers';
 
@@ -216,3 +217,47 @@ export const processAllotment = functions.https.onCall(
       });
   }
 );
+
+/**
+ * Imports procesessed submissions from the spreadsheet
+ */
+export const ImportProcessedSubmissions = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: '512MB',
+  })
+  .pubsub.topic('daily-tick')
+  .onPublish(async () => {
+    const spreadsheet = await Spreadsheet.open(
+      functions.config().cr.processing.spreadsheet.id
+    );
+
+    const summary = new Map<string, any>();
+
+    for (const list of spreadsheet.sheetNames) {
+      const sheet = await spreadsheet.useSheet(list);
+
+      // Skip sheets not having Beginning and Ending columns
+      if (
+        !sheet.headers.includes('Beginning') ||
+        !sheet.headers.includes('Ending')
+      )
+        continue;
+
+      const importer = new ChunksImport(list);
+      await importer.import(await sheet.getRows());
+      summary.set(sheet.title, {
+        imported: importer.importedChunks,
+        validationErrors: importer.validationErrors,
+      });
+    }
+
+    await admin
+      .database()
+      .ref(`/email/notifications`)
+      .push({
+        template: 'cr-processed-submissions-import-summary',
+        to: functions.config().coordinator.email_address,
+        params: { summary },
+      });
+  });
