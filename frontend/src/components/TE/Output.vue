@@ -12,6 +12,7 @@
         @save="decline"
         :item="item"
         :value="'trackEditing.feedback'"
+        :textAreaProps="{ label: 'Edit feedback' }"
       >
         <slot>
           <v-btn :style="{ marginLeft: 0 }" icon flat color="error" small>
