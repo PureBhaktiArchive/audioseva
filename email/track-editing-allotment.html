@@ -26,22 +26,22 @@
     <tbody valign="top">
       {% for task in params.tasks %}
       <tr>
-        <td>{{ task.outputFileLink }}</td>
+        <td>{{ task.fileName }}</td>
         <td>
-          {% for chunk in task.chunks %}
-          {{ chunk.fileName }};&nbsp;{{ chunk.beginning }}-{{ chunk.ending
+          {% for chunk in task.task.chunks %}
+          <a href="{{ params.fileLinkBaseUrl }}/{{ task.listName }}/{{ chunk.fileName }}">{{ chunk.fileName }}</a>&nbsp;{{ chunk.beginning }}&dash;{{ chunk.ending
           }}<br />
           {% endfor %}
         </td>
         <td>
-          {% for chunk in task.chunks %}
+          {% for chunk in task.task.chunks %}
           <b>{{ chunk.fileName }}</b>
           <ul>
             {% for part in chunk.unwantedParts %}
             <li>
-              {{ part.beginning }}-{{ part.ending }}:&nbsp;{{
+              {{ part.beginning }}&dash;{{ part.ending }}:&nbsp;{{
                 part.type
-              }}&nbsp;-&nbsp;{{ part.description }}
+              }}&nbsp;&dash;&nbsp;{{ part.description }}
             </li>
             {% endfor %}
           </ul>
@@ -51,6 +51,8 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <p>{{ params.comment }}</p>
 
   <p style="color:red; font-weight:bold;">
     Please upload the edited files

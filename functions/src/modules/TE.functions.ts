@@ -1,11 +1,12 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as moment from 'moment';
+import * as helpers from './../helpers';
 
 const db = admin.database();
 
 /**
- * Saves allotment to the spreadsheet and sends an email notification
+ * Saves allotment to the db and sends an email notification
  */
 export const processAllotment = functions.https.onCall(
   async ({ assignee, tasks, comment }, context): Promise<void> => {
@@ -26,9 +27,6 @@ export const processAllotment = functions.https.onCall(
         'Devotee and Tasks are required.'
       );
 
-    /// Send the allotment email
-    const coordinator = functions.config().coordinator;
-
     //  Check if Assignee is found
     const userRef = await db
       .ref('/users')
@@ -37,45 +35,48 @@ export const processAllotment = functions.https.onCall(
       .once('value');
     if (!userRef.exists()) {
       throw new functions.https.HttpsError(
-        'not-found',
-        "Assignee wasn't found!."
+        'invalid-argument',
+        "Assignee wasn't found!"
       );
     }
 
     // Update the task
-    const allTasks = [];
-    tasks.forEach(async taskId => {
-      const regex = /(\w+)-(\d+)-(\d+)/g;
-      const taskIdMatch = regex.exec(taskId);
-      const list = taskIdMatch[1];
+    const allTasks = await Promise.all(
+      tasks.map(async (taskId: string) => {
+        const list = helpers.extractListFromFilename(taskId);
 
-      await db.ref(`/edited/${list}/${taskId}/trackEditing`).update({
-        status: 'Given',
-        assignee: assignee,
-        givenTimestamp: moment().format('MM/DD/YYYY'),
-      });
+        const teDbRef = db.ref(`/edited/${list}/${taskId}/trackEditing`);
 
-      // Getting the tasks list to be used when notifying the assignee (Step 3)
-      const taskRef = await db
-        .ref(`/edited/${list}/${taskId}/trackEditing`)
-        .once('value');
-      allTasks.push(taskRef.val());
-    });
+        await teDbRef.update({
+          status: 'Given',
+          assignee: assignee,
+          givenTimestamp: moment().format(),
+        });
 
-    // 3. Notify the assignee
+        // Getting the tasks list to be used when notifying the assignee
+        const taskRef = await teDbRef.once('value');
+        return { listName: list, fileName: taskId, task: taskRef.val() };
+      })
+    );
+
+    const coordinator = functions.config().coordinator;
+
+    // Notify the assignee
     await db.ref(`/email/notifications`).push({
       template: 'track-editing-allotment',
       to: assignee.emailAddress,
       bcc: coordinator.email_address,
       params: {
-        tasks,
+        tasks: allTasks,
         assignee: assignee,
         comment: comment,
         date: moment()
           .utcOffset(coordinator.utc_offset)
           .format('DD.MM'),
+        fileLinkBaseUrl: `https://edited.${
+          functions.config().storage['root-domain']
+        }`,
         uploadURL: `${functions.config().website.base_url}/te/upload/`,
-        repeated: true,
       },
     });
   }
