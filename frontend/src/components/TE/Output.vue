@@ -1,22 +1,26 @@
 <template>
-  <div class="d-flex" :style="{ alignItems: 'flex-start' }">
+  <div class="d-flex" :style="{ alignItems: 'flex-start', flexDirection: 'column' }">
     <div>
       <a download :href="item.trackEditing.outputFileLink">
         Download
       </a>
       <p class="caption">{{ timestamp }}</p>
     </div>
-    <template v-if="item.trackEditing.status === 'Submitted'">
+    <div class="d-flex" v-if="item.trackEditing.status === 'Submitted'">
       <inline-text-edit
         @cancel="cancel"
         @save="decline"
       >
         <slot>
-          <v-btn color="error" small>Cancel</v-btn>
+          <v-btn :style="{ marginLeft: 0 }" icon flat color="error" small>
+            <v-icon>{{ $vuetify.icons.undo }}</v-icon>
+          </v-btn>
         </slot>
       </inline-text-edit>
-      <v-btn color="success" small @click="accept">accept</v-btn>
-    </template>
+      <v-btn icon flat color="success" small @click="accept">
+        <v-icon>{{ $vuetify.icons.check }}</v-icon>
+      </v-btn>
+    </div>
   </div>
 </template>
 
