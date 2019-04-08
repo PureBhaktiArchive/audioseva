@@ -20,9 +20,26 @@
           </v-btn>
         </slot>
       </inline-text-edit>
-      <v-btn icon flat color="success" small @click="accept">
-        <v-icon>{{ $vuetify.icons.check }}</v-icon>
-      </v-btn>
+      <v-dialog v-model="dialog" width="500">
+        <template slot="activator">
+          <v-btn icon flat color="success" small>
+            <v-icon>{{ $vuetify.icons.check }}</v-icon>
+          </v-btn>
+        </template>
+        <v-card>
+          <v-card-title>
+            Accept output?
+          </v-card-title>
+          <v-card-actions>
+            <v-btn color="success" small @click="accept">
+              Accept
+            </v-btn>
+            <v-btn color="error" small @click="dialog = false">
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </div>
   </div>
 </template>
@@ -40,6 +57,8 @@ import InlineTextEdit from "@/components/InlineTextEdit.vue";
 export default class Output extends Vue {
   @Prop() item!: any;
   @Prop() value!: string;
+
+  dialog: boolean = false;
 
   textArea = "";
 
@@ -68,6 +87,7 @@ export default class Output extends Vue {
   }
 
   accept() {
+    this.dialog = false;
     this.$emit("save", this.item, { itemPath: "trackEditing/status" }, "Done", {
       itemPath: "trackEditing.status",
       newValue: "Done"
