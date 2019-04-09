@@ -46,7 +46,7 @@
           <template v-if="tasks.length">
             <template v-for="task in tasks">
               <div :key="task['.key']">
-                <v-layout align-center>
+                <v-layout align-center wrap>
                   <v-flex md3>
                     <v-checkbox
                       :style="{ flex: 'none' }"
@@ -57,6 +57,15 @@
                     >
                       <code slot="label">{{ task[".key"] }}</code>
                     </v-checkbox>
+                  </v-flex>
+                  <v-flex md2>
+                    {{ getTaskLanguages(task).join(", ")}}
+                  </v-flex>
+                  <v-flex md4>
+                    <task-definition :item="task" />
+                  </v-flex>
+                  <v-flex md3>
+                    <unwanted-parts :item="task" />
                   </v-flex>
                 </v-layout>
               </div>
@@ -95,9 +104,12 @@ import "firebase/database";
 import "firebase/functions";
 
 import FirebaseShallowQuery from "@/mixins/FirebaseShallowQuery";
+import TaskDefinition from "@/components/TE/TaskDefinition.vue";
+import UnwantedParts from "@/components/TE/UnwantedParts.vue";
 
 @Component({
-  name: "Allotment"
+  name: "Allotment",
+  components: { TaskDefinition, UnwantedParts }
 })
 export default class Allotment extends Mixins<FirebaseShallowQuery>(
   FirebaseShallowQuery
@@ -148,12 +160,14 @@ export default class Allotment extends Mixins<FirebaseShallowQuery>(
   }
 
   getTaskLanguages(item: any) {
-    return _.get(item, "trackEditing.chunks", []).reduce(
-      (languageList: any, chunk: any) => [
-        ...languageList,
-        ..._.get(chunk, "contentReport.languages", [])
-      ],
-      []
+    return _.union(
+      _.get(item, "trackEditing.chunks", []).reduce(
+        (languageList: any, chunk: any) => [
+          ...languageList,
+          ..._.get(chunk, "contentReport.languages", [])
+        ],
+        []
+      )
     );
   }
 
