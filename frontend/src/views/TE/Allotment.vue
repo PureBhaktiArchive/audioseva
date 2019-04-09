@@ -47,24 +47,21 @@
             <template v-for="task in tasks">
               <div :key="task['.key']">
                 <v-layout align-center wrap>
-                  <v-flex md3>
+                  <v-flex :style="{ alignItems: 'center', flexWrap: 'wrap' }" shrink class="d-flex">
                     <v-checkbox
                       :style="{ flex: 'none' }"
                       v-model="allotment.tasks"
                       :value="task"
                       :loading="!tasks"
-                      class="mr-2"
+                      class="mr-2 pr-3"
                     >
                       <code slot="label">{{ task[".key"] }}</code>
                     </v-checkbox>
-                  </v-flex>
-                  <v-flex md2>
-                    {{ getTaskLanguages(task).join(", ")}}
-                  </v-flex>
-                  <v-flex md4>
-                    <task-definition :item="task" />
-                  </v-flex>
-                  <v-flex md3>
+
+                    <span class="pr-3">{{ getTaskLanguages(task).join(", ")}}</span>
+
+                    <task-definition class="pr-3" :item="task" />
+
                     <unwanted-parts :item="task" />
                   </v-flex>
                 </v-layout>
