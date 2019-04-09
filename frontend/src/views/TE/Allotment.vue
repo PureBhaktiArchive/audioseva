@@ -41,7 +41,7 @@
         <p v-else>Loading lists…</p>
       </v-layout>
 
-      <template v-if="tasks !== null || filter.list">
+      <template v-if="showTasks && (tasks !== null || filter.list)">
         <template v-if="tasks">
           <template v-if="tasks.length">
             <template v-for="task in tasks">
@@ -72,6 +72,7 @@
         </template>
         <p v-else>Loading tasks…</p>
       </template>
+      <p v-else-if="!showTasks">Loading tasks</p>
       <p v-else>Choose list and language to select tasks.</p>
 
       <!-- Comment -->
@@ -119,6 +120,7 @@ export default class Allotment extends Mixins<FirebaseShallowQuery>(
   lists: any = null;
   filter = Allotment.initialFilter();
   submissionStatus: string | null = null;
+  showTasks = true;
 
   static initialAllotment() {
     return {
@@ -153,6 +155,7 @@ export default class Allotment extends Mixins<FirebaseShallowQuery>(
 
   @Watch("filter", { deep: true })
   handleFilter() {
+    this.showTasks = false;
     this.debouncedFilter();
   }
 
@@ -195,6 +198,7 @@ export default class Allotment extends Mixins<FirebaseShallowQuery>(
       }
       return filteredItems;
     }, []);
+    this.showTasks = true;
   }
 
   async getTrackEditors() {
