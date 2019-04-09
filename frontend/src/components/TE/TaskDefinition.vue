@@ -5,9 +5,9 @@
         download
         :href="getLink(chunk.fileName)"
       >
-        {{ chunk.fileName }};
+        {{ chunk.fileName }}
       </a>
-      {{ formatSeconds(chunk.beginning) }}-{{ formatSeconds(chunk.ending) }}
+      ; {{ formatSeconds(chunk.beginning) }}-{{ formatSeconds(chunk.ending) }}
     </li>
   </ul>
 </template>
