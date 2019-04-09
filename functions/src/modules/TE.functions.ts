@@ -45,17 +45,26 @@ export const processAllotment = functions.https.onCall(
       tasks.map(async (taskId: string) => {
         const list = helpers.extractListFromFilename(taskId);
 
-        const teDbRef = db.ref(`/edited/${list}/${taskId}/trackEditing`);
+        const taskRef = db.ref(`/edited/${list}/${taskId}/trackEditing`);
 
-        await teDbRef.update({
+        await taskRef.update({
           status: 'Given',
           assignee: assignee,
           givenTimestamp: moment().format(),
         });
 
         // Getting the tasks list to be used when notifying the assignee
-        const taskRef = await teDbRef.once('value');
-        return { listName: list, fileName: taskId, task: taskRef.val() };
+        const snapshot = await taskRef.once('value');
+        const task = snapshot.val();
+
+        //inject filename and sourceFileLink into the task object returned by db call
+        task['fileName'] = taskId;
+        task.chunks.map(chunk => {
+          chunk['sourceFileLink'] = `https://edited.${
+            functions.config().storage['root-domain']
+          }/${list}/${chunk.fileName}`;
+        });
+        return task;
       })
     );
 
@@ -73,9 +82,6 @@ export const processAllotment = functions.https.onCall(
         date: moment()
           .utcOffset(coordinator.utc_offset)
           .format('DD.MM'),
-        fileLinkBaseUrl: `https://edited.${
-          functions.config().storage['root-domain']
-        }`,
         uploadURL: `${functions.config().website.base_url}/te/upload/`,
       },
     });
