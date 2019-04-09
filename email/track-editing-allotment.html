@@ -28,20 +28,20 @@
       <tr>
         <td>{{ task.fileName }}</td>
         <td>
-          {% for chunk in task.task.chunks %}
-          <a href="{{ params.fileLinkBaseUrl }}/{{ task.listName }}/{{ chunk.fileName }}">{{ chunk.fileName }}</a>&nbsp;{{ chunk.beginning }}&dash;{{ chunk.ending
-          }}<br />
+          {% for chunk in task.chunks %}
+          <a href="{{ chunk.sourceFileLink }}">{{ chunk.fileName }}</a
+          >&nbsp;{{ chunk.beginning }}&ndash;{{ chunk.ending }}<br />
           {% endfor %}
         </td>
         <td>
-          {% for chunk in task.task.chunks %}
+          {% for chunk in task.chunks %}
           <b>{{ chunk.fileName }}</b>
           <ul>
             {% for part in chunk.unwantedParts %}
             <li>
-              {{ part.beginning }}&dash;{{ part.ending }}:&nbsp;{{
+              {{ part.beginning }}&ndash;{{ part.ending }}:&nbsp;{{
                 part.type
-              }}&nbsp;&dash;&nbsp;{{ part.description }}
+              }}&nbsp;&ndash;&nbsp;{{ part.description }}
             </li>
             {% endfor %}
           </ul>
