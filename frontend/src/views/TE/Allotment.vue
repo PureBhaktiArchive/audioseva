@@ -45,8 +45,8 @@
         <template v-if="tasks">
           <template v-if="tasks.length">
             <template v-for="task in tasks">
-              <div :key="task.id">
-                <v-layout align-center>
+              <div :key="task['.key']">
+                <v-layout align-center wrap>
                   <v-flex md3>
                     <v-checkbox
                       :style="{ flex: 'none' }"
@@ -55,15 +55,17 @@
                       :loading="!tasks"
                       class="mr-2"
                     >
-                      <code slot="label">{{ tasks.id }}</code>
+                      <code slot="label">{{ task[".key"] }}</code>
                     </v-checkbox>
-                    <span class="badge badge-danger" v-if="task.sourceFiles.length === 0">No source files</span>
+                  </v-flex>
+                  <v-flex md2>
+                    {{ getTaskLanguages(task).join(", ")}}
+                  </v-flex>
+                  <v-flex md4>
+                    <task-definition :item="task" />
                   </v-flex>
                   <v-flex md3>
-                    <span>{{ task.action }} {{ task.language }}</span>
-                  </v-flex>
-                  <v-flex>
-                    <pre class="pa-1">{{ task.definition }}</pre>
+                    <unwanted-parts :item="task" />
                   </v-flex>
                 </v-layout>
               </div>
@@ -95,19 +97,29 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Mixins, Watch } from "vue-property-decorator";
+import _ from "lodash";
 import firebase from "firebase/app";
+import "firebase/database";
 import "firebase/functions";
 
+import FirebaseShallowQuery from "@/mixins/FirebaseShallowQuery";
+import TaskDefinition from "@/components/TE/TaskDefinition.vue";
+import UnwantedParts from "@/components/TE/UnwantedParts.vue";
+
 @Component({
-  name: "Allotment"
+  name: "Allotment",
+  components: { TaskDefinition, UnwantedParts }
 })
-export default class Allotment extends Vue {
+export default class Allotment extends Mixins<FirebaseShallowQuery>(
+  FirebaseShallowQuery
+) {
   allotment = Allotment.initialAllotment();
   languages = ["English", "Hindi", "Bengali", "None"];
+  listsBasePath = "edited";
   trackEditors: any = null;
-  tasks = null;
-  lists = null;
+  tasks: any[] | null = null;
+  lists: any = null;
   filter = Allotment.initialFilter();
   submissionStatus: string | null = null;
 
@@ -126,9 +138,66 @@ export default class Allotment extends Vue {
     };
   }
 
-  mounted() {
+  async mounted() {
     this.getTrackEditors();
     this.filter.languages = this.languages;
+    await this.getLists();
+    if (Array.isArray(this.lists) && this.lists.length) {
+      this.filter.list = this.lists[0];
+    }
+  }
+
+  @Watch("allotment.assignee")
+  handleAllotmentAssignee(newValue: any) {
+    if (newValue === null) return;
+
+    this.filter.languages = this.languages;
+  }
+
+  @Watch("filter", { deep: true })
+  handleFilter() {
+    this.debouncedFilter();
+  }
+
+  getTaskLanguages(item: any) {
+    return _.union(
+      _.get(item, "trackEditing.chunks", []).reduce(
+        (languageList: any, chunk: any) => [
+          ...languageList,
+          ..._.get(chunk, "contentReport.languages", [])
+        ],
+        []
+      )
+    );
+  }
+
+  debouncedFilter = _.debounce(async () => {
+    this.tasks = null;
+    this.allotment.tasks = [];
+    if (this.filter.list === null) return;
+
+    this.$bindAsArray(
+      "tasks",
+      firebase
+        .database()
+        .ref(`edited/${this.filter.list}`)
+        .orderByChild("trackEditing/status")
+        .equalTo("Spare"),
+      null, // cancel callback not used
+      () => this.filterSelectedTasks(this.tasks as any[])
+    );
+  }, 1000);
+
+  filterSelectedTasks(tasks: any[]) {
+    this.tasks = tasks.reduce((filteredItems: any[], task) => {
+      const taskLanguages = this.getTaskLanguages(task);
+      if (
+        this.filter.languages.some(language => taskLanguages.includes(language))
+      ) {
+        filteredItems.push(task);
+      }
+      return filteredItems;
+    }, []);
   }
 
   async getTrackEditors() {
