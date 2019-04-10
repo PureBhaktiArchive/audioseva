@@ -1,9 +1,7 @@
-import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
 import * as moment from 'moment';
 import * as helpers from './../helpers';
-
-const db = admin.database();
 
 /**
  * Saves allotment to the db and sends an email notification
@@ -28,24 +26,23 @@ export const processAllotment = functions.https.onCall(
       );
 
     //  Check if Assignee is found
-    const userRef = await db
+    if (!(await admin
+      .database()
       .ref('/users')
       .orderByChild('emailAddress')
       .equalTo(assignee.emailAddress)
-      .once('value');
-    if (!userRef.exists()) {
+      .once('value')).exists()) {
       throw new functions.https.HttpsError(
         'invalid-argument',
         "Assignee wasn't found!"
       );
     }
 
-    // Update the task
-    const allTasks = await Promise.all(
+    const tasksForEmail = await Promise.all(
       tasks.map(async (taskId: string) => {
         const list = helpers.extractListFromFilename(taskId);
 
-        const taskRef = db.ref(`/edited/${list}/${taskId}/trackEditing`);
+        const taskRef = admin.database().ref(`/edited/${list}/${taskId}/trackEditing`);
 
         await taskRef.update({
           status: 'Given',
@@ -54,15 +51,14 @@ export const processAllotment = functions.https.onCall(
         });
 
         // Getting the tasks list to be used when notifying the assignee
-        const snapshot = await taskRef.once('value');
-        const task = snapshot.val();
+        const task = (await taskRef.once('value')).val();
 
         //inject filename and sourceFileLink into the task object returned by db call
-        task['fileName'] = taskId;
-        task.chunks.map(chunk => {
-          chunk['sourceFileLink'] = `https://edited.${
+        task.fileName = taskId;
+        task.chunks.forEach(chunk => {
+          chunk.sourceFileLink = `https://edited.${
             functions.config().storage['root-domain']
-          }/${list}/${chunk.fileName}`;
+            }/${helpers.extractListFromFilename(chunk.fileName)}/${chunk.fileName}`;
         });
         return task;
       })
@@ -71,12 +67,12 @@ export const processAllotment = functions.https.onCall(
     const coordinator = functions.config().coordinator;
 
     // Notify the assignee
-    await db.ref(`/email/notifications`).push({
+    await admin.database().ref(`/email/notifications`).push({
       template: 'track-editing-allotment',
       to: assignee.emailAddress,
       bcc: coordinator.email_address,
       params: {
-        tasks: allTasks,
+        tasks: tasksForEmail,
         assignee: assignee,
         comment: comment,
         date: moment()
