@@ -149,11 +149,8 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
   }
 
   tableRowStyle(item: any) {
-    let backgroundColor = "none";
+    let backgroundColor = "inherit";
     switch (item.trackEditing.status) {
-      case "Spare":
-        backgroundColor = "none";
-        break;
       case "Given":
         backgroundColor = "#D9E9FF";
         break;
