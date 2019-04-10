@@ -141,6 +141,11 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
         cancelData: this.assigneeCancel,
         shouldCancelChange: (task: any) => task.trackEditing.status === "Done"
       }
+    },
+    taskDefinition: {
+      class: {
+        "task-definition": true
+      }
     }
   };
 
@@ -258,4 +263,15 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
 </script>
 
 <style scoped>
+>>> .task-definition {
+  min-width: 200px;
+}
+
+>>> th:nth-child(n + 4):nth-child(-n + 6) {
+  padding: 0 6px;
+}
+
+>>> td:nth-child(n + 4):nth-child(-n + 6) {
+  padding: 0 6px;
+}
 </style>
