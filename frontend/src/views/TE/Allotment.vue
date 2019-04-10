@@ -57,11 +57,14 @@
                     >
                       <code slot="label">{{ task[".key"] }}</code>
                     </v-checkbox>
-
+                  </v-flex>
+                  <v-flex sm3 md2>
                     <span class="pr-3">{{ getTaskLanguages(task).join(", ")}}</span>
-
+                  </v-flex>
+                  <v-flex md4>
                     <task-definition class="pr-3" :item="task" />
-
+                  </v-flex>
+                  <v-flex>
                     <unwanted-parts :item="task" />
                   </v-flex>
                 </v-layout>
