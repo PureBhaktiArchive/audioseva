@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex" :style="{ alignItems: 'flex-start', flexDirection: 'column' }">
     <div>
-      <a download :href="item.trackEditing.outputFileLink">
+      <a download :href="getLink(item)">
         Download
       </a>
       <p class="caption">{{ timestamp }}</p>
@@ -64,6 +64,12 @@ export default class Output extends Vue {
 
   get timestamp() {
     return formatTimestamp("trackEditing.feedbackTimestamp", this.item);
+  }
+
+  getLink(item: any) {
+    return `https://${process.env.VUE_APP_TE_UPLOADS_SUB_DOMAIN}.${
+      process.env.VUE_APP_STORAGE_ROOT_DOMAIN
+    }/${item.trackEditing.uploadPath}`;
   }
 
   cancel() {}
