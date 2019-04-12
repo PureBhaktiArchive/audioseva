@@ -4,7 +4,7 @@
       <h1>Track Editing</h1>
     </header>
     <v-layout wrap>
-      <v-flex xs12 md3>
+      <v-flex xs12 sm3>
         <v-text-field
           v-model="search"
           append-icon="fa-search"
@@ -13,8 +13,8 @@
           hide-details
         ></v-text-field>
       </v-flex>
-      <v-flex class="ml-3" xs12 md4 align-self-end>
-        <v-btn-toggle v-model="selectedButton" mandatory>
+      <v-flex class="button-group" xs12 sm8 align-self-end>
+        <v-btn-toggle :style="{ flexWrap: 'wrap' }" v-model="selectedButton" mandatory>
           <v-btn v-for="(value, key, index) in statuses" :key="index">{{ value }}</v-btn>
         </v-btn-toggle>
       </v-flex>
@@ -273,5 +273,17 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
 
 >>> td:nth-child(n + 4):nth-child(-n + 6) {
   padding: 0 6px;
+}
+
+.button-group {
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+@media screen and (min-width: 600px) {
+  .button-group {
+    margin-left: 16px;
+    margin-top: 0;
+  }
 }
 </style>
