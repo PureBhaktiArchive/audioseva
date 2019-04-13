@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p class="font-weight-bold mb-0">{{ item[".key"] }}</p>
+    <p class="font-weight-bold mb-0 list-header">{{ item[".key"] }}</p>
     <ul>
       <li
         :style="{ whiteSpace: 'nowrap' }"
@@ -33,4 +33,9 @@ export default class UnwantedParts extends Vue {
 </script>
 
 <style scoped>
+.list-header {
+  display: list-item;
+  list-style-type: disc;
+  list-style-position: inside;
+}
 </style>
