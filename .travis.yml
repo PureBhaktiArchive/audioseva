@@ -8,4 +8,5 @@ install:
 script:
   - npm run lint --prefix ./functions
   - npm run build --prefix ./functions
+  - npm run test --prefix ./functions -- --passWithNoTests
   - npm run build --prefix ./frontend

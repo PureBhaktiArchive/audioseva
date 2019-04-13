@@ -6,13 +6,10 @@
     "serve": "npm run build && firebase serve --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint"
-    }
   },
   "main": "lib/index.js",
   "engines": {
@@ -31,8 +28,11 @@
   },
   "devDependencies": {
     "@types/glob": "^7.1.1",
-    "husky": "^1.3.1",
+    "@types/jest": "^24.0.11",
+    "firebase-functions-test": "^0.1.6",
+    "jest": "^24.7.1",
     "prettier": "1.15.3",
+    "ts-jest": "^24.0.2",
     "tslint": "~5.8.0",
     "typescript": "^3.3.3333"
   },
