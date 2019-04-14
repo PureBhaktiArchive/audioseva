@@ -29,6 +29,7 @@
       </v-flex>
     </v-layout>
     <data-table
+      v-if="mode"
       :headers="headers"
       :items="items"
       :computedValue="computedCb"
@@ -37,8 +38,10 @@
       :tableRowStyle="tableRowStyle"
       :styles="styles"
     >
-
     </data-table>
+    <div v-else>
+      Loading data
+    </div>
   </div>
 </template>
 
@@ -75,21 +78,6 @@ import "firebase/database";
   }
 })
 export default class Tasks extends Mixins<InlineSave>(InlineSave) {
-  headers = [
-    { text: "Task ID", value: ".key" },
-    { text: "Status", value: "trackEditing.status" },
-    { text: "Assignee", value: "assignee" },
-    { text: "Date Given", value: "trackEditing.givenTimestamp" },
-    { text: "Days Passed", value: "daysPassed" },
-    { text: "Date Done", value: "trackEditing.doneTimestamp" },
-    { text: "Languages", value: "languages" },
-    { text: "Task Definition", value: "taskDefinition" },
-    { text: "Unwanted Parts", value: "trackEditing.unwantedParts" },
-    { text: "Output", value: "output" },
-    { text: "Feedback", value: "feedback" },
-    { text: "Follow Up", value: "trackEditing.followUp" }
-  ];
-
   mode: "coordinator" | "assignee" | null = null;
 
   selectedButton = 0;
@@ -234,6 +222,36 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
     return `/edited/${getListId(item[".key"])}/${item[".key"]}/${
       path.itemPath
     }`;
+  }
+
+  get headers() {
+    return this.mode === "coordinator"
+      ? [
+          { text: "Task ID", value: ".key" },
+          { text: "Status", value: "trackEditing.status" },
+          { text: "Assignee", value: "assignee" },
+          { text: "Date Given", value: "trackEditing.givenTimestamp" },
+          { text: "Days Passed", value: "daysPassed" },
+          { text: "Date Done", value: "trackEditing.doneTimestamp" },
+          { text: "Languages", value: "languages" },
+          { text: "Task Definition", value: "taskDefinition" },
+          { text: "Unwanted Parts", value: "trackEditing.unwantedParts" },
+          { text: "Output", value: "output" },
+          { text: "Feedback", value: "feedback" },
+          { text: "Follow Up", value: "trackEditing.followUp" }
+        ]
+      : [
+          { text: "Task ID", value: ".key" },
+          { text: "Status", value: "trackEditing.status" },
+          { text: "Date Given", value: "trackEditing.givenTimestamp" },
+          { text: "Days Passed", value: "daysPassed" },
+          { text: "Date Done", value: "trackEditing.doneTimestamp" },
+          { text: "Languages", value: "languages" },
+          { text: "Task Definition", value: "taskDefinition" },
+          { text: "Unwanted Parts", value: "trackEditing.unwantedParts" },
+          { text: "Output", value: "output" },
+          { text: "Feedback", value: "feedback" }
+        ];
   }
 
   get searchValue() {
