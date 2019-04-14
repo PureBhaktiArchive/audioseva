@@ -13,10 +13,19 @@
           hide-details
         ></v-text-field>
       </v-flex>
-      <v-flex class="button-group" xs12 sm8 align-self-end>
+      <v-flex class="button-group" xs12 sm8 md5 lg4 align-self-end>
         <v-btn-toggle :style="{ flexWrap: 'wrap' }" v-model="selectedButton" mandatory>
           <v-btn v-for="(value, key, index) in statuses" :key="index">{{ value }}</v-btn>
         </v-btn-toggle>
+      </v-flex>
+      <v-flex :style="{ display: 'flex' }" md3 align-self-end>
+        <template v-if="mode === 'coordinator'">
+          <v-btn to="te/allot" class="mb-0">Allot</v-btn>
+          <v-btn to="te/statistics" class="mb-0">Statistics</v-btn>
+        </template>
+        <template v-if="mode === 'assignee'">
+          <v-btn to="te/upload">Upload</v-btn>
+        </template>
       </v-flex>
     </v-layout>
     <data-table
@@ -36,6 +45,7 @@
 <script lang="ts">
 import { Component, Mixins } from "vue-property-decorator";
 import _ from "lodash";
+import { mapActions } from "vuex";
 import DataTable from "@/components/DataTable.vue";
 import { getListId, formatTimestamp, getDaysPassed } from "@/utility";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
@@ -59,6 +69,9 @@ import "firebase/database";
     InlineStatusEdit,
     InlineTextEdit,
     UnwantedParts
+  },
+  methods: {
+    ...mapActions("user", ["getUserClaims"])
   }
 })
 export default class Tasks extends Mixins<InlineSave>(InlineSave) {
@@ -76,6 +89,8 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
     { text: "Feedback", value: "feedback" },
     { text: "Follow Up", value: "trackEditing.followUp" }
   ];
+
+  mode: "coordinator" | "assignee" | null = null;
 
   selectedButton = 0;
   search = "";
@@ -149,8 +164,18 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
     }
   };
 
-  mounted() {
+  async mounted() {
+    await this.getPageMode();
     this.getLists();
+  }
+
+  async getPageMode() {
+    const claims = await this.getUserClaims();
+    if (claims.coordinator) {
+      this.mode = "coordinator";
+    } else if (claims.TE) {
+      this.mode = "assignee";
+    }
   }
 
   tableRowStyle(item: any) {
