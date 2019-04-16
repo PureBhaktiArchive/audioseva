@@ -50,6 +50,65 @@ export const mergeLanguageStatistics = (languageStatistics: ICount) => {
   return { ...baseLanguageStats, ...languageStatistics };
 };
 
+const timestampFields = {
+  given: "Given",
+  submission: "Submitted",
+  done: "Done",
+  feedback: "Revise"
+};
+
+export const teBaseStatistics = () => {
+  const baseStatistics: any = {};
+  getLastDays(3).forEach((date: MomentDateOrString) => {
+    if (typeof date === "string") {
+      baseStatistics[date] = {
+        Submitted: 0,
+        Done: 0,
+        Revise: 0,
+        Given: 0
+      };
+    } else {
+      baseStatistics[date.format("MMM DD")] = {
+        Submitted: 0,
+        Done: 0,
+        Revise: 0,
+        Given: 0
+      };
+    }
+  });
+  return baseStatistics;
+};
+
+export const teStatistics = (
+  lists: any,
+  baseStatistics: any = teBaseStatistics()
+) => {
+  const newStatistics = { ...baseStatistics };
+  const today = moment().format("MMM DD");
+  return lists.reduce((stats: any, list: any) => {
+    return Object.entries(list).reduce(
+      (items: any, [listItemKey, { trackEditing }]: any) => {
+        if (listItemKey !== ".key") {
+          Object.entries(timestampFields).forEach(
+            ([timestampPrefix, timestampName]) => {
+              const timestamp = trackEditing[`${timestampPrefix}Timestamp`];
+              if (timestamp) {
+                const timestampDate = moment(timestamp).format("MMM DD");
+                const timestampKey =
+                  timestampDate === today ? "today" : timestampDate;
+                if (items[timestampKey])
+                  items[timestampKey][timestampName] += 1;
+              }
+            }
+          );
+        }
+        return items;
+      },
+      stats
+    );
+  }, newStatistics);
+};
+
 export const formatTimestamp = (value: string, item: any) => {
   const timestamp = _.get(item, value, false);
   return timestamp ? moment(timestamp).format("D.MM.YYYY") : "";

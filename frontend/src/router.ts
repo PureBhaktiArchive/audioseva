@@ -156,6 +156,11 @@ export const router = new Router({
               meta: { menuItem: true }
             },
             {
+              path: "statistics",
+              component: () => import("@/views/TE/Statistics.vue"),
+              meta: { menuItem: true }
+            },
+            {
               path: "upload",
               component: () => import("@/views/TE/Upload.vue"),
               meta: { menuItem: true, auth: { requireClaims: { TE: true } } }

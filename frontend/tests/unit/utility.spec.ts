@@ -3,10 +3,20 @@ import {
   getDayDifference,
   getLastDays,
   mergeDoneStatistics,
+  teStatistics,
   formatTimestamp,
   validateFlacFile,
   removeObjectKey
 } from "@/utility";
+
+const expectStatistics = (
+  stats: any,
+  statCounts: { Submitted: number; Done: number; Revise: number; Given: number }
+) => {
+  Object.entries(statCounts).forEach(([statName, count]) => {
+    expect(stats[statName]).toEqual(count);
+  });
+};
 
 describe("utility", function() {
   beforeEach(() => {
@@ -67,5 +77,65 @@ describe("utility", function() {
     };
     const newData = removeObjectKey(data, "nested.0");
     expect(newData.nested).toEqual([{}]);
+  });
+
+  test("teStatistics", () => {
+    moment.now = () => +new Date(1541497995699);
+    const getTimestamps = getLastDays(3);
+    const dayOne = (getTimestamps[2] as moment.Moment).format("MMM DD");
+    const dayTwo = (getTimestamps[1] as moment.Moment).format("MMM DD");
+    const dayThree = (getTimestamps[0] as moment.Moment).format("MMM DD");
+    const lists = [
+      {
+        ".key": "list1",
+        "list1-6": {
+          trackEditing: {
+            givenTimestamp: getTimestamps[2].valueOf(),
+            doneTimestamp: getTimestamps[2].valueOf(),
+            submissionTimestamp: getTimestamps[0].valueOf(),
+            feedbackTimestamp: getTimestamps[0].valueOf()
+          }
+        },
+        "list1-7": {
+          trackEditing: {
+            givenTimestamp: getTimestamps[1].valueOf(),
+            doneTimestamp: moment().valueOf(),
+            submissionTimestamp: getTimestamps[0].valueOf(),
+            feedbackTimestamp: getTimestamps[0].valueOf()
+          }
+        },
+        "list1-8": {
+          trackEditing: {
+            givenTimestamp: 1234
+          }
+        }
+      }
+    ];
+    const stats = teStatistics(lists);
+
+    expectStatistics(stats[dayThree], {
+      Submitted: 2,
+      Revise: 2,
+      Done: 0,
+      Given: 0
+    });
+    expectStatistics(stats[dayTwo], {
+      Submitted: 0,
+      Done: 0,
+      Revise: 0,
+      Given: 1
+    });
+    expectStatistics(stats[dayOne], {
+      Submitted: 0,
+      Done: 1,
+      Revise: 0,
+      Given: 1
+    });
+    expectStatistics(stats["today"], {
+      Submitted: 0,
+      Done: 1,
+      Revise: 0,
+      Given: 0
+    });
   });
 });
