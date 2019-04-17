@@ -1,0 +1,124 @@
+hasRole(role) { auth.token[role] === true }
+
+type CurrentTimestamp extends Number {
+  validate() { this == now }
+}
+
+type InitialTimestamp extends CurrentTimestamp {
+  validate() { prior(this) == null }
+}
+
+type ReadOnlyCoordinator {
+  read() { hasRole("coordinator") }
+}
+
+type WriteOnlyCoordinator {
+  write() { hasRole("coordinator") }
+}
+
+type OnlyNew {
+  validate() { prior(this) == null }
+}
+
+type EditStatus extends WriteOnlyCoordinator {
+  validate() {
+    this.test(
+      /"Spare" | "Given" | "Submitted" | "Revise" | "Done"/
+    )
+  }
+}
+
+/donations {
+  /cash is ReadOnlyCoordinator {
+    path /{push_id} {
+      create() {
+        return root.donations.tokens[this.token].valid == true
+      }
+    }
+  }
+}
+
+/original is ReadOnlyCoordinator {
+  /{list} {
+    index() { ["soundQualityReporting/status"] }
+    /{fileName} {
+      /contentReporting {
+        /followUp is WriteOnlyCoordinator {}
+        /timestampGiven is InitialTimestamp {}
+        /timestampDone is CurrentTimestamp {}
+      }
+      /soundQualityReporting {
+        /followUp is WriteOnlyCoordinator {}
+        /timestampGiven is InitialTimestamp {}
+        /timestampDone is CurrentTimestamp {}
+      }
+    }
+  }
+}
+
+/users is ReadOnlyCoordinator {
+  index() {[
+    "emailAddress",
+    "roles/CR",
+    "roles/SQR",
+    "roles/SE",
+    "uploadCode"
+  ]}
+  /{userId} {
+    /timestamp is CurrentTimestamp {}
+    /isAvailableOnWhatsApp is Boolean {}
+    /notes is WriteOnlyCoordinator {}
+    /emailAddress {
+      create() { true }
+    }
+    /languages {
+      /{langName} is Boolean {}
+    }
+    /status is WriteOnlyCoordinator {}
+    /roles is WriteOnlyCoordinator {
+      /{roleId} is Boolean {}
+    }
+  }
+}
+
+/submissions {
+  /soundQualityReporting {
+    /{list}/{fileName}/{token} {
+      read() { true }
+      write() {
+        return (
+          this
+          &&
+          root
+            .original[list][fileName]
+            .soundQualityReporting
+            .token == token
+          &&
+          root.
+            original[list][fileName]
+            .soundQualityReporting
+            .status != "Done"
+        )
+      }
+      /complete is OnlyNew {}
+      /created is OnlyNew {}
+    }
+  }
+}
+
+/edited/{list}/{fileName} is ReadOnlyCoordinator {
+  /trackEditing {
+    /status is EditStatus {}
+    /assignee is WriteOnlyCoordinator {}
+    /followUp is WriteOnlyCoordinator {}
+    /feedback is WriteOnlyCoordinator {}
+ }
+
+ /soundEngineering {
+   /status is EditStatus {}
+   /assignee is WriteOnlyCoordinator {}
+   /followUp is WriteOnlyCoordinator {}
+   /feedback is WriteOnlyCoordinator {}
+ }
+}
+
