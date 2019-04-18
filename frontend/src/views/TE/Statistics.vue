@@ -9,6 +9,7 @@
         :headers="headers"
         :items="statistics"
         :computedValue="computedValue"
+        :styles="styles"
       >
       </data-table>
     </div>
@@ -30,12 +31,18 @@ export default class Statistics extends Vue {
   lists: any = null;
 
   headers = [
-    { text: "", value: "date", width: "10%", sortable: false },
+    { text: "Date", value: "date", sortable: false },
     { text: "Submitted", value: "Submitted", sortable: false },
     { text: "Done", value: "Done", sortable: false },
     { text: "To Revise", value: "Revise", sortable: false },
     { text: "Given", value: "Given", sortable: false }
   ];
+
+  styles = {
+    date: {
+      "text-no-wrap": true
+    }
+  };
 
   computedValue = {
     date: (value, item) => (item[value] === "today" ? "Today" : item[value])
@@ -61,4 +68,7 @@ export default class Statistics extends Vue {
 </script>
 
 <style scoped>
+>>> .v-datatable {
+  width: auto;
+}
 </style>
