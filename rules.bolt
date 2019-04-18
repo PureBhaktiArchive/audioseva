@@ -16,11 +16,26 @@ type WriteOnlyCoordinator {
   write() { hasRole("coordinator") }
 }
 
+type WriteOnlyCoordinatorField<T> extends T {
+  write() { hasRole("coordinator") }
+}
+
 type OnlyNew {
   validate() { prior(this) == null }
 }
 
-type EditStatus extends WriteOnlyCoordinator {
+type OriginalFileReporting {
+  followUp: WriteOnlyCoordinatorField<String> | Null,
+  timestampGiven: InitialTimestamp,
+  timestampDone: CurrentTimestamp | Null
+}
+
+type OriginalFile {
+  contentReporting: OriginalFileReporting | Null,
+  soundQualityReporting: OriginalFileReporting | Null
+}
+
+type EditedFileFieldsStatus {
   validate() {
     this.test(
       /"Spare" | "Given" | "Submitted" | "Revise" | "Done"/
@@ -28,9 +43,23 @@ type EditStatus extends WriteOnlyCoordinator {
   }
 }
 
+type EditedFileFields {
+  status: WriteOnlyCoordinatorField<EditedFileFieldsStatus> | Null,
+  assignee: WriteOnlyCoordinator | Null,
+  followUp: WriteOnlyCoordinatorField<String> | Null
+  feedback: WriteOnlyCoordinatorField<String> | Null
+}
+
+type EditedFile {
+  trackEditing: EditedFileFields | Null,
+  soundEngineering: EditedFileFields | Null
+
+  read() { hasRole("coordinator") }
+}
+
 /donations {
   /cash is ReadOnlyCoordinator {
-    path /{push_id} {
+    /{push_id} {
       create() {
         return root.donations.tokens[this.token].valid == true
       }
@@ -41,18 +70,7 @@ type EditStatus extends WriteOnlyCoordinator {
 /original is ReadOnlyCoordinator {
   /{list} {
     index() { ["soundQualityReporting/status"] }
-    /{fileName} {
-      /contentReporting {
-        /followUp is WriteOnlyCoordinator {}
-        /timestampGiven is InitialTimestamp {}
-        /timestampDone is CurrentTimestamp {}
-      }
-      /soundQualityReporting {
-        /followUp is WriteOnlyCoordinator {}
-        /timestampGiven is InitialTimestamp {}
-        /timestampDone is CurrentTimestamp {}
-      }
-    }
+    /{fileName} is OriginalFile;
   }
 }
 
@@ -65,18 +83,18 @@ type EditStatus extends WriteOnlyCoordinator {
     "uploadCode"
   ]}
   /{userId} {
-    /timestamp is CurrentTimestamp {}
-    /isAvailableOnWhatsApp is Boolean {}
-    /notes is WriteOnlyCoordinator {}
+    /timestamp is CurrentTimestamp;
+    /isAvailableOnWhatsApp is Boolean;
+    /notes is WriteOnlyCoordinatorField<String>;
     /emailAddress {
       create() { true }
     }
     /languages {
-      /{langName} is Boolean {}
+      /{langName} is Boolean;
     }
-    /status is WriteOnlyCoordinator {}
+    /status is WriteOnlyCoordinatorField<String>;
     /roles is WriteOnlyCoordinator {
-      /{roleId} is Boolean {}
+      /{roleId} is Boolean;
     }
   }
 }
@@ -100,25 +118,10 @@ type EditStatus extends WriteOnlyCoordinator {
             .status != "Done"
         )
       }
-      /complete is OnlyNew {}
-      /created is OnlyNew {}
+      /complete is OnlyNew;
+      /created is OnlyNew;
     }
   }
 }
 
-/edited/{list}/{fileName} is ReadOnlyCoordinator {
-  /trackEditing {
-    /status is EditStatus {}
-    /assignee is WriteOnlyCoordinator {}
-    /followUp is WriteOnlyCoordinator {}
-    /feedback is WriteOnlyCoordinator {}
- }
-
- /soundEngineering {
-   /status is EditStatus {}
-   /assignee is WriteOnlyCoordinator {}
-   /followUp is WriteOnlyCoordinator {}
-   /feedback is WriteOnlyCoordinator {}
- }
-}
-
+/edited/{list}/{fileName} is EditedFile;
