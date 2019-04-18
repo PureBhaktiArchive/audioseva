@@ -1,0 +1,127 @@
+hasRole(role) { auth.token[role] === true }
+
+type CurrentTimestamp extends Number {
+  validate() { this == now }
+}
+
+type InitialTimestamp extends CurrentTimestamp {
+  validate() { prior(this) == null }
+}
+
+type ReadOnlyCoordinator {
+  read() { hasRole("coordinator") }
+}
+
+type WriteOnlyCoordinator {
+  write() { hasRole("coordinator") }
+}
+
+type WriteOnlyCoordinatorField<T> extends T {
+  write() { hasRole("coordinator") }
+}
+
+type OnlyNew {
+  validate() { prior(this) == null }
+}
+
+type OriginalFileReporting {
+  followUp: WriteOnlyCoordinatorField<String> | Null,
+  timestampGiven: InitialTimestamp,
+  timestampDone: CurrentTimestamp | Null
+}
+
+type OriginalFile {
+  contentReporting: OriginalFileReporting | Null,
+  soundQualityReporting: OriginalFileReporting | Null
+}
+
+type EditedFileFieldsStatus {
+  validate() {
+    this.test(
+      /"Spare" | "Given" | "Submitted" | "Revise" | "Done"/
+    )
+  }
+}
+
+type EditedFileFields {
+  status: WriteOnlyCoordinatorField<EditedFileFieldsStatus> | Null,
+  assignee: WriteOnlyCoordinator | Null,
+  followUp: WriteOnlyCoordinatorField<String> | Null
+  feedback: WriteOnlyCoordinatorField<String> | Null
+}
+
+type EditedFile {
+  trackEditing: EditedFileFields | Null,
+  soundEngineering: EditedFileFields | Null
+
+  read() { hasRole("coordinator") }
+}
+
+/donations {
+  /cash is ReadOnlyCoordinator {
+    /{push_id} {
+      create() {
+        return root.donations.tokens[this.token].valid == true
+      }
+    }
+  }
+}
+
+/original is ReadOnlyCoordinator {
+  /{list} {
+    index() { ["soundQualityReporting/status"] }
+    /{fileName} is OriginalFile;
+  }
+}
+
+/users is ReadOnlyCoordinator {
+  index() {[
+    "emailAddress",
+    "roles/CR",
+    "roles/SQR",
+    "roles/SE",
+    "uploadCode"
+  ]}
+  /{userId} {
+    /timestamp is CurrentTimestamp;
+    /isAvailableOnWhatsApp is Boolean;
+    /notes is WriteOnlyCoordinatorField<String>;
+    /emailAddress {
+      create() { true }
+    }
+    /languages {
+      /{langName} is Boolean;
+    }
+    /status is WriteOnlyCoordinatorField<String>;
+    /roles is WriteOnlyCoordinator {
+      /{roleId} is Boolean;
+    }
+  }
+}
+
+/submissions {
+  /soundQualityReporting {
+    /{list}/{fileName}/{token} {
+      read() { true }
+      write() {
+        return (
+          this
+          &&
+          root
+            .original[list][fileName]
+            .soundQualityReporting
+            .token == token
+          &&
+          root.
+            original[list][fileName]
+            .soundQualityReporting
+            .status != "Done"
+        )
+      }
+      /complete is OnlyNew;
+      /created is OnlyNew;
+    }
+  }
+}
+
+/edited/{list}/{fileName} is EditedFile;
