@@ -34,7 +34,7 @@
       :items="items"
       :computedValue="computedCb"
       :computedComponent="computedComponent"
-      :componentData="componentData"
+      :componentData="componentData()"
       :tableRowStyle="tableRowStyle"
       :styles="styles"
     >
@@ -50,7 +50,7 @@ import { Component, Mixins } from "vue-property-decorator";
 import _ from "lodash";
 import { mapActions } from "vuex";
 import DataTable from "@/components/DataTable.vue";
-import { getListId, formatTimestamp, getDaysPassed } from "@/utility";
+import { formatTimestamp, getDaysPassed } from "@/utility";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import Output from "@/components/TE/Output.vue";
 import Feedback from "@/components/TE/Feedback.vue";
@@ -79,6 +79,7 @@ import "firebase/database";
 })
 export default class Tasks extends Mixins<InlineSave>(InlineSave) {
   mode: "coordinator" | "assignee" | null = null;
+  claims: any;
 
   selectedButton = 0;
   search = "";
@@ -125,32 +126,37 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
     }
   } as { [key: string]: (value: any, item: any) => any };
 
-  componentData = {
-    "trackEditing.followUp": {
-      on: { ...this.editEvents }
-    },
-    "trackEditing.unwantedParts": {
-      props: {
-        soundIssuesKey: "unwantedParts"
+  componentData() {
+    return {
+      "trackEditing.followUp": {
+        on: { ...this.editEvents }
+      },
+      "trackEditing.unwantedParts": {
+        props: {
+          soundIssuesKey: "unwantedParts"
+        }
+      },
+      output: {
+        on: { ...this.editEvents, multiSave: this.multiFieldSave },
+        props: {
+          mode: this.mode
+        }
+      },
+      assignee: {
+        on: { ...this.editEvents },
+        props: {
+          keyPath: "trackEditing",
+          cancelData: this.assigneeCancel,
+          shouldCancelChange: (task: any) => task.trackEditing.status === "Done"
+        }
+      },
+      taskDefinition: {
+        class: {
+          "task-definition": true
+        }
       }
-    },
-    output: {
-      on: { ...this.editEvents, multiSave: this.multiFieldSave }
-    },
-    assignee: {
-      on: { ...this.editEvents },
-      props: {
-        keyPath: "trackEditing",
-        cancelData: this.assigneeCancel,
-        shouldCancelChange: (task: any) => task.trackEditing.status === "Done"
-      }
-    },
-    taskDefinition: {
-      class: {
-        "task-definition": true
-      }
-    }
-  };
+    };
+  }
 
   async mounted() {
     await this.getPageMode();
@@ -158,10 +164,10 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
   }
 
   async getPageMode() {
-    const claims = await this.getUserClaims();
-    if (claims.coordinator) {
+    this.claims = await this.getUserClaims();
+    if (this.claims.coordinator) {
       this.mode = "coordinator";
-    } else if (claims.TE) {
+    } else if (this.claims.TE) {
       this.mode = "assignee";
     }
   }
@@ -199,29 +205,19 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
   }
 
   getLists() {
-    this.$bindAsArray("lists", firebase.database().ref("/edited"), null, () => {
-      this.lists = this.lists.reduce((lists, list) => {
-        return [...lists, ...this.mapTasks(list)];
-      }, []);
-    });
-  }
-
-  mapTasks(list: any) {
-    return Object.entries(list).reduce(
-      (items: any, [listItemKey, listItemValue]) => {
-        if (listItemKey !== ".key") {
-          items.push({ [".key"]: listItemKey, ...listItemValue });
-        }
-        return items;
-      },
-      []
+    const baseQuery = firebase.database().ref("/edited");
+    this.$bindAsArray(
+      "lists",
+      this.mode === "coordinator"
+        ? baseQuery
+        : baseQuery
+            .orderByChild("trackEditing/assignee/emailAddress")
+            .equalTo(this.claims.email)
     );
   }
 
   getUpdatePath(item: any, path: any): string {
-    return `/edited/${getListId(item[".key"])}/${item[".key"]}/${
-      path.itemPath
-    }`;
+    return `/edited/${item[".key"]}/${path.itemPath}`;
   }
 
   get headers() {

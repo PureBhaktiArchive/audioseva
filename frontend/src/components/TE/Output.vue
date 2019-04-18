@@ -6,7 +6,7 @@
       </a>
       <p class="caption">{{ timestamp }}</p>
     </div>
-    <div class="d-flex" v-if="item.trackEditing.status === 'Submitted'">
+    <div class="d-flex" v-if="item.trackEditing.status === 'Submitted' && mode === 'coordinator'">
       <inline-text-edit
         @cancel="cancel"
         @save="decline"
@@ -57,6 +57,7 @@ import InlineTextEdit from "@/components/InlineTextEdit.vue";
 export default class Output extends Vue {
   @Prop() item!: any;
   @Prop() value!: string;
+  @Prop() mode!: any;
 
   dialog: boolean = false;
 
