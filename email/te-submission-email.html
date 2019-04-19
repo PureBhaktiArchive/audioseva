@@ -1,0 +1,56 @@
+<!-- <body>
+  <p>TE form submitted.</p>
+
+  <div style="color:red; font-weight:bold;">
+    <p>
+      {{if(1.uploaded = "No"; "Not uploaded. Reason: " + 1.reason_for_not_uploading)}}
+    </p>
+    <p>{{if(1.changed != 1.completed; "This is an updated submission.")}}</p>
+    <p>{{if(23.rowId; ; "Task “" + 1.task_id + "” is not allotted.")}}</p>
+    <p>
+      {{if(23.rowId & 23.columntename != 1.name; " File is allotted to another TE - " + 23.columntename + ".")}}
+    </p>
+    <p>
+      {{if(23.columnstatus = "Done"; " Status of the task is Done. Submitted data is not saved into Task!")}}
+    </p>
+    <p>
+      {{if(23.columnaction = "Confirm & Drop" & 1.can_be_dropped != "Yes"; "This part cannot be dropped."}}
+    </p>
+  </div>
+
+  <p>
+    <a
+      href="https://audio-seva.firebaseapp.com/te/fc/allot?task_id={{encodeURL(23.columntaskid)}}"
+      >Allot TFC for this task</a
+    >
+  </p>
+  <p>
+    <a
+      href="http://purebhakti.info/audioseva/form/track-editor-submission?token={{encodeURL(1.token)}}"
+      >Update TE submission</a
+    >
+  </p>
+
+  <p><b>Track Edited File Link:</b> {{23.columneditedfilelink}}</p>
+  <p>
+    <b>Source File Links:</b><br />{{23.columnsourcefile1link
+    }}<br />{{23.columnsourcefile2link}}<br />{{23.columnsourcefile3link}}
+  </p>
+
+  <p style="color: red;font-weight: bold">DETAILS OF THE TASK:</p>
+
+  <p><b>Task ID:</b> {{23.columntaskid}}</p>
+  <p><b>Action:</b> {{23.columnaction}}</p>
+  <p>
+    <b>Task Definition:</b><br />{{replace(23.columntaskdefinition; newline;
+    "<br />")}}
+  </p>
+
+  <p style="color: red;font-weight: bold">TE INPUTS:</p>
+
+  <p><b>Sound Quality Rating:</b> {{1.sound_quality_rating}}</p>
+  <p><b>Sound Issues:</b><br />{{replace(30.text; newline; "<br />"}}</p>
+  <p><b>TE Comments:</b> {{1.comments}}</p>
+  <p><b>Total Duration of Edited File:</b> {{1.duration}}</p>
+  <p><b>TE Name:</b> {{1.name}}</p>
+</body> -->
