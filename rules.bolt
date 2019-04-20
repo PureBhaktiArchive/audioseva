@@ -124,4 +124,11 @@ type EditedFile {
   }
 }
 
-/edited/{list}/{fileName} is EditedFile;
+/edited {
+  read() {
+    hasRole("coordinator")
+    ||
+    query.orderByChild == "trackEditing/assignee/emailAddress" && query.equalTo == auth.token.email
+  }
+  /{fileName} is EditedFile;
+}
