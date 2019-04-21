@@ -62,6 +62,9 @@
             </v-list-tile-action>
             <v-list-tile-content>SignOut</v-list-tile-content>
           </v-list-tile>
+          <v-list-tile class="hidden-md-and-up" @click="toggleConsole">
+            <v-list-tile-content>Console</v-list-tile-content>
+          </v-list-tile>
         </v-list>
       </v-navigation-drawer>
 
@@ -101,8 +104,16 @@ export default class MainLayout extends Vue {
   appTitle = "Audio Seva";
   navLinks = [];
   sidebar = false;
+  mobileConsoleSelector = document.querySelector(".mobileConsole_base");
+  shouldShowConsole = "unset";
+  previousBodyPadding = document.body.style.paddingBottom;
 
   mounted() {
+    // shrink console at start
+    // @ts-ignore
+    mobileConsole.toggle();
+    // hide console at start
+    this.toggleConsole();
     // @ts-ignore
     this.navLinks = this.$router.options.routes.find(
       (route: any) => route.path === "/"
@@ -114,6 +125,18 @@ export default class MainLayout extends Vue {
     return this.navLinks.filter((route: any) => {
       return route.meta && (route.meta.activator || route.meta.menuItem);
     });
+  }
+
+  toggleConsole() {
+    this.shouldShowConsole =
+      this.shouldShowConsole === "unset" ? "none" : "unset";
+    (this.mobileConsoleSelector as any).style.display = this.shouldShowConsole;
+    if (this.shouldShowConsole === "unset") {
+      document.body.style.paddingBottom = this.previousBodyPadding;
+    } else {
+      this.previousBodyPadding = document.body.style.paddingBottom;
+      document.body.style.paddingBottom = "0px";
+    }
   }
 }
 </script>
