@@ -57,7 +57,7 @@ import InlineTextEdit from "@/components/InlineTextEdit.vue";
 export default class Output extends Vue {
   @Prop() item!: any;
   @Prop() value!: string;
-  @Prop() mode!: any;
+  @Prop() mode!: "coordinator" | "assignee";
 
   dialog: boolean = false;
 

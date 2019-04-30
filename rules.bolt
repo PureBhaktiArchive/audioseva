@@ -80,6 +80,7 @@ type EditedFile {
     "roles/CR",
     "roles/SQR",
     "roles/SE",
+    "role/TE",
     "uploadCode"
   ]}
   /{userId} {
