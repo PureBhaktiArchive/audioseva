@@ -6,7 +6,7 @@
     <div v-if="isLoadingForm" class="d-flex justify-center">
       <v-progress-circular indeterminate />
     </div>
-    <v-form v-else ref="form" @submit.prevent="handleSubmit">
+    <v-form v-else-if="canSubmit" ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
           <template v-for="(item, index) in cancelFields" >
@@ -79,12 +79,17 @@
         </v-layout>
       </v-container>
     </v-form>
+    <p class="d-flex justify-center red--text font-weight-bold" v-else>
+      Submission error
+    </p>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/database";
+import "firebase/functions";
 import SQRField from "@/components/SQRForm/SQRField.vue";
 import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
 import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
@@ -225,11 +230,12 @@ export default class Form extends Vue {
     }
   ];
   cancel: number | null = null;
-  cancelComments = {};
+  cancelComments: { [key: number]: string } = {};
   cancelCheck = {};
   form: any = {};
   guidelines: any = {};
   isLoadingForm = true;
+  canSubmit = false;
 
   rules = [(v: any) => !!v || "Required field"];
 
@@ -239,6 +245,24 @@ export default class Form extends Vue {
 
   updateForm(field: string, value: any) {
     this.form = updateObject(this.form, field, value);
+  }
+
+  async canSubmitForm() {
+    const {
+      params: { fileName, token }
+    } = this.$route;
+    const listId = getListId(fileName);
+    const response = (await firebase
+      .database()
+      .ref(`original/${listId}/${fileName}`)
+      .orderByChild("token")
+      .equalTo(token)
+      .once("value")).val();
+    if (response.soundQualityReporting.status.toLowerCase() === "done") {
+      this.isLoadingForm = false;
+    } else {
+      this.canSubmit = true;
+    }
   }
 
   async removeField(field: string) {
@@ -251,10 +275,15 @@ export default class Form extends Vue {
   }
 
   async handleSubmit() {
-    await this.submitForm(true);
+    if (this.cancel) {
+      await this.cancelForm();
+    } else {
+      await this.submitForm(true);
+    }
   }
 
-  mounted() {
+  async mounted() {
+    await this.canSubmitForm();
     this.getSavedData();
   }
 
@@ -278,6 +307,25 @@ export default class Form extends Vue {
         soundIssues: [{}]
       };
     }
+  }
+
+  async cancelForm() {
+    const {
+      params: { fileName, token }
+    } = this.$route;
+    const status = this.cancel === 1 ? "Audio Problem" : "";
+    const comments = this.cancelComments[this.cancel || 1] || "";
+    await firebase
+      .functions()
+      .httpsCallable("SQR-cancelAllotment")({
+        comments,
+        fileName,
+        token,
+        status
+      })
+      .catch(() => {
+        this.canSubmit = false;
+      });
   }
 
   async submitDraft() {
