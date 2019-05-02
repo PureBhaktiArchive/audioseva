@@ -6,6 +6,9 @@
     <div v-if="isLoadingForm" class="d-flex justify-center">
       <v-progress-circular indeterminate />
     </div>
+    <v-container v-else-if="cancelComplete">
+      <p>Cancel complete!</p>
+    </v-container>
     <v-form v-else-if="canSubmit" ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
@@ -236,6 +239,7 @@ export default class Form extends Vue {
   guidelines: any = {};
   isLoadingForm = true;
   canSubmit = false;
+  cancelComplete = false;
 
   rules = [(v: any) => !!v || "Required field"];
 
@@ -313,7 +317,6 @@ export default class Form extends Vue {
     const {
       params: { fileName, token }
     } = this.$route;
-    const status = this.cancel === 1 ? "Audio Problem" : "";
     const comments = this.cancelComments[this.cancel || 1] || "";
     await firebase
       .functions()
@@ -321,11 +324,12 @@ export default class Form extends Vue {
         comments,
         fileName,
         token,
-        status
+        status: this.cancel
       })
       .catch(() => {
         this.canSubmit = false;
       });
+    this.cancelComplete = true;
   }
 
   async submitDraft() {
