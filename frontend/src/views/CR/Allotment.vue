@@ -172,7 +172,10 @@ export default class Allotment extends Mixins<UsersByRole, ShallowQuery>(
   filterSelectedFiles() {
     if (this.crFiles.length) {
       this.files = this.crFiles.reduce(
-        (filteredItems: any[], { languages, notes, ...other }) => {
+        (
+          filteredItems: any[],
+          { languages, contentReporting: { notes } = { notes: "" }, ...other }
+        ) => {
           if (languages && languages.includes(this.filter.language)) {
             filteredItems.push({
               languages,
