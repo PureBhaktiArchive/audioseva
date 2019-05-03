@@ -102,48 +102,54 @@ const editedBucket = `https://edited.${
   functions.config().storage['root-domain']
 }`;
 
-export const handleTeSubmission = functions.storage
+const addTeSubmissionWarnings = (
+  isAssignedToUser: boolean,
+  isStatusDone: boolean
+): string[] => {
+  const warnings = [];
+  if (!isAssignedToUser) warnings.push('User is not assigned to the task!');
+  if (isStatusDone) warnings.push('Task is already in the Done status!');
+
+  return warnings;
+};
+
+export const processSubmission = functions.storage
   .bucket(teUploadsBucket)
   .object()
-  .onFinalize(async object => {
+  .onFinalize(async (object, context) => {
     const filePath = object.name;
 
-    const directories = path.dirname(filePath).split('/');
-    if (directories.length !== 2) {
-      throw new Error(
-        `File "${filePath}" is not uploaded to the appropriate folder`
-      );
+    const teUser = admin.auth().getUser(context.auth.uid);
+
+    const isDisabled = await teUser.then(x => x.disabled);
+    if (isDisabled) {
+      throw new Error(`Invalid User`);
     }
 
-    const teUser = admin.auth().getUser(directories[0]);
-
-    teUser
-      .then(x => x.disabled)
-      .then(isActiveUser => {
-        if (!isActiveUser) {
-          throw new Error(`Invalid User`);
-        }
-      });
-
     const emailAddress = await teUser.then(x => x.email);
-
     const fileName = path.basename(filePath);
-
     const list = helpers.extractListFromFilename(fileName);
 
     const taskRef = admin
       .database()
       .ref(`/edited/${list}/${fileName}/trackEditing`);
 
-    //update task
-    await taskRef.update({
-      uploadPath: filePath,
-      status: 'Submitted',
-      submissionTimestamp: moment().format(),
-    });
-
     // Getting the tasks list to be used when notifying the user
     const task = (await taskRef.once('value')).val();
+
+    const warnings = addTeSubmissionWarnings(
+      task.assignee.emailAddress === emailAddress,
+      task.status
+    );
+
+    //update task if task status is not done
+    if (task.status.toLowerCase() !== 'done') {
+      await taskRef.update({
+        uploadPath: filePath,
+        status: 'Submitted',
+        submissionTimestamp: moment().format(),
+      });
+    }
 
     // Notify the user
     await admin
@@ -154,22 +160,19 @@ export const handleTeSubmission = functions.storage
         to: emailAddress,
         params: {
           task,
+          taskId: fileName,
+          warnings,
         },
       });
   });
 
-export const handleFeedbackUpdate = functions.database
-  .ref('/edited/{list}/{taskId}/trackEditing')
+export const processFeedback = functions.database
+  .ref('/edited/{list}/{taskId}/trackEditing/feedback')
   .onUpdate(
     async (
       change: functions.Change<functions.database.DataSnapshot>,
       context: functions.EventContext
     ): Promise<any> => {
-      const originalValues = change.before.val();
-      const changedValues = change.after.val();
-
-      if (originalValues.feedback === changedValues.feedback) return null;
-
       const { list } = context.params;
       const { taskId } = context.params;
 
@@ -193,27 +196,23 @@ export const handleFeedbackUpdate = functions.database
           template: 'te-feedback-email',
           params: {
             task,
+            taskId,
           },
         });
     }
   );
 
-export const handleDoneStatus = functions.database
-  .ref('/edited/{list}/{taskId}/trackEditing')
+export const processApproval = functions.database
+  .ref('/edited/{list}/{taskId}/trackEditing/status')
   .onUpdate(
     async (
       change: functions.Change<functions.database.DataSnapshot>,
       context: functions.EventContext
     ): Promise<any> => {
-      const valuesBeforeChange = change.before.val();
-      const valuesAfterChange = change.after.val();
+      const statusBefore = change.before.val();
+      const statusAfter = change.after.val();
 
-      if (
-        !(
-          valuesBeforeChange.status === 'Submitted' &&
-          valuesAfterChange.status === 'Done'
-        )
-      )
+      if (!(statusBefore === 'Submitted' && statusAfter === 'Done'))
         return null;
 
       const { list } = context.params;
@@ -224,8 +223,8 @@ export const handleDoneStatus = functions.database
         .ref(`/edited/${list}/${taskId}/trackEditing`);
 
       await taskRef.update({
-        status: 'Revise',
-        feedbackTimestamp: moment().format(),
+        status: 'Done',
+        doneTimestamp: moment().format(),
       });
 
       const storage = admin.storage();
