@@ -102,7 +102,7 @@ export default class Files extends Mixins<ShallowQuery, InlineSave>(
   headers = [
     { text: "Days Passed", value: "daysPassed" },
     { text: "Date Given", value: "soundQualityReporting.timestampGiven" },
-    { text: "Notes", value: "notes" },
+    { text: "Notes", value: "soundQualityReporting.notes" },
     { text: "Languages", value: "languages" },
     { text: "Status", value: "soundQualityReporting.status" },
     { text: "File Name", value: ".key" },

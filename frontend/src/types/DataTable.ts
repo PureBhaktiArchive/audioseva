@@ -38,6 +38,7 @@ export interface ISpareByLanguage {
 
 interface ISQR {
   status: Status;
+  notes: string;
   assignee: {
     emailAddress: string;
     name: string;
