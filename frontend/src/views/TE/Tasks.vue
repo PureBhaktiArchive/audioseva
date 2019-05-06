@@ -38,20 +38,26 @@
         <v-btn to="te/statistics" class="mb-0">Statistics</v-btn>
       </v-flex>
     </v-layout>
-    <data-table
-      v-if="mode"
-      :headers="headers"
-      :items="items"
-      :computedValue="computedCb"
-      :computedComponent="computedComponent"
-      :componentData="componentData"
-      :tableRowStyle="tableRowStyle"
-      :styles="styles"
-      :datatableProps="datatableProps"
-    >
-    </data-table>
-    <div v-else>
-      Loading data
+    <div>
+      <data-table
+        :headers="headers"
+        :items="items"
+        :computedValue="computedCb"
+        :computedComponent="computedComponent"
+        :componentData="componentData"
+        :tableRowStyle="tableRowStyle"
+        :styles="styles"
+        :datatableProps="datatableProps"
+      >
+      </data-table>
+      <pagination-buttons
+        :previous="previousPage"
+        :lastPage="page === lastPage"
+        :page="page"
+        :isLoading="isLoading"
+        :firstPage="firstPage"
+        :next="nextPage"
+      />
     </div>
   </div>
 </template>
@@ -59,32 +65,25 @@
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
 import DataTable from "@/components/DataTable.vue";
-import InlineSave from "@/mixins/InlineSave";
 import TETasks from "@/mixins/TETasks";
 import StatusSelector from "@/components/StatusSelector.vue";
 import UsersByRole from "@/mixins/UsersByRole";
-import firebase from "firebase/app";
-import "firebase/database";
+import PaginationButtons from "@/components/PaginationButtons.vue";
 
 @Component({
   name: "Tasks",
   components: {
     DataTable,
-    StatusSelector
+    StatusSelector,
+    PaginationButtons
   }
 })
-export default class Tasks extends Mixins<InlineSave, TETasks, UsersByRole>(
-  InlineSave,
+export default class Tasks extends Mixins<TETasks, UsersByRole>(
   TETasks,
   UsersByRole
 ) {
   mode = "coordinator";
   usersRole = "TE";
-
-  assignee: any = null;
-
-  baseQuery = firebase.database().ref("/edited");
-  isLoading = true;
 
   headers = [
     { text: "Task ID", value: ".key" },
@@ -101,33 +100,10 @@ export default class Tasks extends Mixins<InlineSave, TETasks, UsersByRole>(
     { text: "Follow Up", value: "trackEditing.followUp" }
   ];
 
-  tasks: any[] = [];
-
-  itemsKey: string = "tasks";
-
-  editEvents = {
-    cancel: this.cancel,
-    save: this.save
-  };
-
   async mounted() {
     this.getUsers();
-    this.getLists();
-  }
-
-  queryTasks() {
-    let query: firebase.database.Reference | firebase.database.Query = this
-      .baseQuery;
-    if (this.assignee) {
-      query = query
-        .orderByChild("trackEditing/assignee/emailAddress")
-        .equalTo(this.assignee.emailAddress);
-    } else if (this.selectedButton) {
-      query = query
-        .orderByChild("trackEditing/status")
-        .equalTo(this.selectedStatus);
-    }
-    return query;
+    await this.firstPage();
+    this.isLoading = false;
   }
 
   assigneeCancel() {
@@ -141,66 +117,13 @@ export default class Tasks extends Mixins<InlineSave, TETasks, UsersByRole>(
     };
   }
 
-  getLists() {
-    this.isLoading = true;
-    this.$bindAsArray(
-      "tasks",
-      this.queryTasks(),
-      null,
-      () => (this.isLoading = false)
-    );
-  }
-
   @Watch("assignee", { deep: true, immediate: true })
-  handleAssignee() {
-    this.getLists();
-  }
-
-  @Watch("selectedButton", { immediate: true })
-  handleSelectedButton() {
-    this.getLists();
-  }
-
-  get items() {
-    let tasks = this.tasks;
-    if (this.assignee) {
-      tasks = this.tasks.filter(
-        (task: any) =>
-          this.selectedStatus === "All" ||
-          this.selectedStatus === task.trackEditing.status
-      );
-    }
-    return tasks;
-  }
-
-  get datatableProps() {
-    return { loading: this.isLoading };
+  async handleAssignee() {
+    this.setQuery();
+    await this.firstPage();
   }
 }
 </script>
 
-<style scoped>
->>> .task-definition {
-  min-width: 200px;
-}
-
->>> th:nth-child(n + 4):nth-child(-n + 6) {
-  padding: 0 6px;
-}
-
->>> td:nth-child(n + 4):nth-child(-n + 6) {
-  padding: 0 6px;
-}
-
-.button-group {
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-@media screen and (min-width: 600px) {
-  .button-group {
-    margin-left: 16px;
-    margin-top: 0;
-  }
-}
+<style scoped src="./tasks.css">
 </style>

@@ -1,0 +1,23 @@
+>>> .task-definition {
+  min-width: 200px;
+}
+
+>>> th:nth-child(n + 4):nth-child(-n + 6) {
+  padding: 0 6px;
+}
+
+>>> td:nth-child(n + 4):nth-child(-n + 6) {
+  padding: 0 6px;
+}
+
+>>> .button-group {
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+@media screen and (min-width: 600px) {
+  >>> .button-group {
+    margin-left: 16px;
+    margin-top: 0;
+  }
+}

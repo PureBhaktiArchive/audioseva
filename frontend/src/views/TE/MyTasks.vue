@@ -3,83 +3,80 @@
     <header>
       <h1>My Tasks</h1>
     </header>
-    <div v-if="isLoadingTasks">
-      Loading tasks
+    <v-layout wrap>
+      <v-flex class="button-group" xs12 sm8 md5 lg4 align-self-end>
+        <status-selector v-model="selectedButton" />
+      </v-flex>
+      <v-flex :style="{ display: 'flex' }" md3 align-self-end>
+        <v-btn to="upload">Upload</v-btn>
+      </v-flex>
+    </v-layout>
+    <div>
+      <data-table
+        :headers="headers"
+        :items="items"
+        :computedValue="computedCb"
+        :computedComponent="computedComponent"
+        :componentData="componentData"
+        :tableRowStyle="tableRowStyle"
+        :styles="styles"
+        :datatableProps="datatableProps"
+      >
+      </data-table>
+      <pagination-buttons
+        :previous="previousPage"
+        :lastPage="page === lastPage"
+        :page="page"
+        :isLoading="isLoading"
+        :firstPage="firstPage"
+        :next="nextPage"
+      />
     </div>
-    <div v-else-if="tasks && !tasks.length">
-      No tasks
-    </div>
-    <template v-else>
-      <template v-for="task in tasks">
-        <v-layout wrap :key="task['.key']">
-          <v-flex class="d-flex" :style="{ alignItems: 'center' }" xs4 sm3 md2>
-            {{ task.trackEditing.status }}
-          </v-flex>
-          <v-flex md3>
-            <unwanted-parts :item="task"></unwanted-parts>
-          </v-flex>
-          <v-flex md3>
-            <task-definition :item="task"></task-definition>
-          </v-flex>
-        </v-layout>
-      </template>
-    </template>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import firebase from "firebase/app";
-import "firebase/database";
+import { Component, Mixins } from "vue-property-decorator";
 import { mapState } from "vuex";
 
-import UnwantedParts from "@/components/TE/UnwantedParts.vue";
-import TaskDefinition from "@/components/TE/TaskDefinition.vue";
+import DataTable from "@/components/DataTable.vue";
+import PaginationButtons from "@/components/PaginationButtons.vue";
+import StatusSelector from "@/components/StatusSelector.vue";
+import TETasks from "@/mixins/TETasks";
 
 @Component({
   name: "MyTasks",
   computed: {
     ...mapState("user", ["currentUser"])
   },
-  components: { TaskDefinition, UnwantedParts }
+  components: { PaginationButtons, DataTable, StatusSelector }
 })
-export default class MyTasks extends Vue {
-  tasks: any[] | null = null;
-  isLoadingTasks = false;
+export default class MyTasks extends Mixins<TETasks>(TETasks) {
+  mode = "assignee";
 
-  mounted() {
-    this.isLoadingTasks = true;
-    this.getTasks();
-  }
+  headers = [
+    { text: "Task ID", value: ".key" },
+    { text: "Status", value: "trackEditing.status" },
+    { text: "Date Given", value: "trackEditing.givenTimestamp" },
+    { text: "Days Passed", value: "daysPassed" },
+    { text: "Date Done", value: "trackEditing.doneTimestamp" },
+    { text: "Languages", value: "languages" },
+    { text: "Task Definition", value: "taskDefinition" },
+    { text: "Unwanted Parts", value: "trackEditing.unwantedParts" },
+    { text: "Output", value: "output" },
+    { text: "Feedback", value: "feedback" }
+  ];
 
-  getTasks() {
-    this.$bindAsArray("tasks", firebase.database().ref("/edited"), null, () => {
-      if (this.tasks) {
-        this.tasks = this.tasks.reduce((lists, list) => {
-          return [...lists, ...this.filterTasks(list)];
-        }, []);
-        this.isLoadingTasks = false;
-      }
-    });
-  }
+  async mounted() {
+    this.assignee = {
+      emailAddress: this.currentUser.email
+    };
 
-  filterTasks(list: any) {
-    return Object.entries(list).reduce(
-      (items: any, [listItemKey, listItemValue]: any) => {
-        if (
-          listItemKey !== ".key" &&
-          listItemValue.trackEditing.assignee.emailAddress ===
-            this.currentUser.email
-        ) {
-          items.push({ [".key"]: listItemKey, ...listItemValue });
-        }
-        return items;
-      },
-      []
-    );
+    this.setQuery();
+    await this.firstPage();
   }
 }
 </script>
 
-<style scoped>
+<style scoped src="./tasks.css">
 </style>
