@@ -83,3 +83,51 @@ export const processAllotment = functions.https.onCall(
     });
   }
 );
+
+const makeSortField = (key: string, ...args: string[]) => {
+  return `${args.join("")}-${key}`
+};
+
+export const createAssigneeStatusIndex = functions.database.ref(
+    "/edited/{fileName}/trackEditing"
+).onCreate((snapshot, { params: { fileName } }) => {
+  const updateData = {};
+  const { assignee, status } = snapshot.val();
+  if (assignee) updateData["_sort_assignee"] = makeSortField(fileName, assignee.emailAddress);
+  if (status) updateData["_sort_status"] = makeSortField(fileName, status);
+  if (assignee && status) updateData["_sort_assignee_status"] = makeSortField(fileName, assignee.emailAddress, status);
+  return Object.keys(updateData).length ? snapshot.ref.update(updateData) : 1;
+});
+
+export const updateAssigneeStatusIndex = functions.database.ref(
+    "/edited/{fileName}/trackEditing"
+).onUpdate(({ before, after }, { params: { fileName } }) => {
+  const oldAssignee = before.child("assignee/emailAddress").val();
+  const assignee = after.child("assignee/emailAddress").val();
+  const oldStatus = before.child("status").val();
+  const status = after.child("status").val();
+  const update = {};
+  if (oldStatus !== status) {
+    if (status) {
+      update["_sort_status"] = makeSortField(fileName, status);
+    } else {
+      update["_sort_status"] = null;
+    }
+  }
+
+  if (oldAssignee !== assignee) {
+    if (assignee) {
+      update["_sort_assignee"] = makeSortField(fileName, assignee);
+    } else {
+      update["_sort_assignee"] = null;
+    }
+  }
+
+  if (assignee && status) {
+    update["_sort_assignee_status"] = makeSortField(fileName, assignee, status);
+  } else {
+    update["_sort_assignee_status"] = null;
+  }
+
+  return Object.keys(update).length ? after.ref.update(update) : 1;
+});
