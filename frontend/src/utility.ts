@@ -80,32 +80,25 @@ export const teBaseStatistics = () => {
 };
 
 export const teStatistics = (
-  lists: any,
+  tasks: any,
   baseStatistics: any = teBaseStatistics()
 ) => {
   const newStatistics = { ...baseStatistics };
   const today = moment().format("MMM DD");
-  return lists.reduce((stats: any, list: any) => {
-    return Object.entries(list).reduce(
-      (items: any, [listItemKey, { trackEditing }]: any) => {
-        if (listItemKey !== ".key") {
-          Object.entries(timestampFields).forEach(
-            ([timestampPrefix, timestampName]) => {
-              const timestamp = trackEditing[`${timestampPrefix}Timestamp`];
-              if (timestamp) {
-                const timestampDate = moment(timestamp).format("MMM DD");
-                const timestampKey =
-                  timestampDate === today ? "today" : timestampDate;
-                if (items[timestampKey])
-                  items[timestampKey][timestampName] += 1;
-              }
-            }
-          );
+  return tasks.reduce((stats: any, { trackEditing }: any) => {
+    Object.entries(timestampFields).forEach(
+        ([timestampPrefix, timestampName]) => {
+          const timestamp = trackEditing[`${timestampPrefix}Timestamp`];
+          if (timestamp) {
+            const timestampDate = moment(timestamp).format("MMM DD");
+            const timestampKey =
+                timestampDate === today ? "today" : timestampDate;
+            if (stats[timestampKey])
+              stats[timestampKey][timestampName] += 1;
+          }
         }
-        return items;
-      },
-      stats
     );
+    return stats;
   }, newStatistics);
 };
 

@@ -87,27 +87,27 @@ describe("utility", function() {
     const dayThree = (getTimestamps[0] as moment.Moment).format("MMM DD");
     const lists = [
       {
-        ".key": "list1",
-        "list1-6": {
-          trackEditing: {
-            givenTimestamp: getTimestamps[2].valueOf(),
-            doneTimestamp: getTimestamps[2].valueOf(),
-            submissionTimestamp: getTimestamps[0].valueOf(),
-            feedbackTimestamp: getTimestamps[0].valueOf()
-          }
-        },
-        "list1-7": {
-          trackEditing: {
-            givenTimestamp: getTimestamps[1].valueOf(),
-            doneTimestamp: moment().valueOf(),
-            submissionTimestamp: getTimestamps[0].valueOf(),
-            feedbackTimestamp: getTimestamps[0].valueOf()
-          }
-        },
-        "list1-8": {
-          trackEditing: {
-            givenTimestamp: 1234
-          }
+        ".key": "list1-6",
+        trackEditing: {
+          givenTimestamp: getTimestamps[2].valueOf(),
+          doneTimestamp: getTimestamps[2].valueOf(),
+          submissionTimestamp: getTimestamps[0].valueOf(),
+          feedbackTimestamp: getTimestamps[0].valueOf()
+        }
+      },
+      {
+        ".key": "list1-7",
+        trackEditing: {
+          givenTimestamp: getTimestamps[1].valueOf(),
+          doneTimestamp: moment().valueOf(),
+          submissionTimestamp: getTimestamps[0].valueOf(),
+          feedbackTimestamp: getTimestamps[0].valueOf()
+        }
+      },
+      {
+        ".key": "list1-8",
+        trackEditing: {
+          givenTimestamp: 1234
         }
       }
     ];
