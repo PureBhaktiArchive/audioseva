@@ -3,6 +3,7 @@ import * as functions from 'firebase-functions';
 import * as moment from 'moment';
 import * as helpers from './../helpers';
 import { objectWithDefaults } from "../utils/objectUtils";
+import { onCreateFileCountByStatus, onUpdateFileCountByStatus, runHandlers, statuses } from "../utils/sharedHandlers";
 
 /**
  * Saves allotment to the db and sends an email notification
@@ -133,8 +134,6 @@ export const updateAssigneeStatusIndex = functions.database.ref(
   return Object.keys(update).length ? after.ref.update(update) : 1;
 });
 
-const statuses = ["Given", "Submitted", "Done", "Revise"];
-
 const getStatistics = async (): Promise<{ now: moment.Moment, date: string, statistics: any }> => {
   const now = moment();
   const date = now.format("MM-DD-YYYY");
@@ -146,9 +145,7 @@ const getStatistics = async (): Promise<{ now: moment.Moment, date: string, stat
   }
 };
 
-export const createStatusStatistics = functions.database.ref(
-    "/edited/{fileName}/trackEditing/status"
-).onCreate(async (snapshot) => {
+const onCreateStatusStatistics = async (snapshot) => {
   const status = snapshot.val();
   const { now, date, statistics } = await getStatistics();
   let updatedStatistics = statistics;
@@ -156,19 +153,31 @@ export const createStatusStatistics = functions.database.ref(
   if (updatedStatistics) {
     updatedStatistics[status] += 1;
   } else {
-    updatedStatistics = objectWithDefaults({ [status]: 1, "_sort_timestamp": now.valueOf() }, statuses, 0);
+    updatedStatistics = objectWithDefaults({ [status]: 1, "_sort_timestamp": now.valueOf() }, statuses);
   }
   return admin.database().ref(`/statistics/trackEditing/${date}`).update(updatedStatistics);
-});
+};
 
-export const updateStatusStatistics = functions.database.ref(
-    "/edited/{fileName}/trackEditing/status"
-).onUpdate(async ({ before, after }) => {
+const onUpdateStatusStatistics = async ({ before, after }) => {
   const status = after.val();
   if (!status) return 1;
   const { date, statistics } = await getStatistics();
 
   return admin.database().ref(
-      `/statistics/trackEditing/${date}/${status}`).set(statistics[status] + 1
-  );
-});
+      `/statistics/trackEditing/${date}/${status}`
+  ).set(statistics[status] + 1);
+};
+
+export const onCreateStatus = functions.database.ref(
+    "/edited/{fileName}/trackEditing/status"
+).onCreate(runHandlers(
+    onCreateStatusStatistics,
+    onCreateFileCountByStatus("trackEditing")
+));
+
+export const onUpdateStatus = functions.database.ref(
+    "/edited/{fileName}/trackEditing/status"
+).onUpdate(runHandlers(
+    onUpdateStatusStatistics,
+    onUpdateFileCountByStatus("trackEditing")
+));
