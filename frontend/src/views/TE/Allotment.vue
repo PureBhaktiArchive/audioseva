@@ -36,7 +36,7 @@
       <!-- List -->
       <v-layout row class="py-2">
         <v-btn-toggle v-model="filter.list" v-if="lists">
-          <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
+          <v-btn flat v-for="list in lists" :key="list['.key']" :value="list['.key']">{{list['.key']}}</v-btn>
         </v-btn-toggle>
         <p v-else>Loading lists…</p>
       </v-layout>
@@ -98,13 +98,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Watch } from "vue-property-decorator";
+import { Component, Watch, Vue } from "vue-property-decorator";
 import _ from "lodash";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
 
-import FirebaseShallowQuery from "@/mixins/FirebaseShallowQuery";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import UnwantedParts from "@/components/TE/UnwantedParts.vue";
 
@@ -112,9 +111,7 @@ import UnwantedParts from "@/components/TE/UnwantedParts.vue";
   name: "Allotment",
   components: { TaskDefinition, UnwantedParts }
 })
-export default class Allotment extends Mixins<FirebaseShallowQuery>(
-  FirebaseShallowQuery
-) {
+export default class Allotment extends Vue {
   allotment = Allotment.initialAllotment();
   languages = ["English", "Hindi", "Bengali", "None"];
   listsBasePath = "edited";
@@ -174,6 +171,18 @@ export default class Allotment extends Mixins<FirebaseShallowQuery>(
     );
   }
 
+  async getLists() {
+    this.$bindAsArray(
+      "lists",
+      firebase
+        .database()
+        .ref("/lists")
+        .orderByChild("trackEditing/Spare")
+        .startAt(1),
+      null
+    );
+  }
+
   debouncedFilter = _.debounce(async () => {
     this.tasks = null;
     this.allotment.tasks = [];
@@ -183,9 +192,10 @@ export default class Allotment extends Mixins<FirebaseShallowQuery>(
       "tasks",
       firebase
         .database()
-        .ref(`edited/${this.filter.list}`)
-        .orderByChild("trackEditing/status")
-        .equalTo("Spare"),
+        .ref(`edited`)
+        .orderByKey()
+        .startAt(this.filter.list)
+        .endAt(`${this.filter.list}\uf8ff`),
       null, // cancel callback not used
       () => this.filterSelectedTasks(this.tasks as any[])
     );

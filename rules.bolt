@@ -125,7 +125,20 @@ type EditedFile {
   }
 }
 
+/list {
+  index() {[
+    "trackEditing/Spare",
+    "contentReporting/Spare"
+  ]}
+}
+
 /edited {
+  index() {[
+    "trackEditing/status",
+    "trackEditing/_sort_status",
+    "trackEditing/_sort_email",
+    "trackEditing/_sort_assignee_status"
+  ]}
   read() {
     hasRole("coordinator")
     ||
