@@ -15,13 +15,18 @@ export const onCreateFileCountByStatus = (phase: string) => async (
     snapshot: admin.database.DataSnapshot,
     { params }: functions.EventContext
 ) => {
-  const fileCountPath = `/lists/${params.fileName.split("-")[0]}/${phase}`;
-  const fileCount = objectWithDefaults(
-      (await admin.database().ref(fileCountPath).once("value")).val() || {},
-      [...statuses, "Spare"]
-  );
-  fileCount[snapshot.val()] += 1;
-  return admin.database().ref(fileCountPath).update(fileCount);
+  const status = snapshot.val();
+  return admin.database().ref(`/lists/${params.fileName.split("-")[0]}/${phase}`).transaction((count) => {
+    if (count) {
+      count[status]++;
+      return count;
+    } else {
+      return objectWithDefaults(
+          { [status]: 1 },
+          [...statuses, "Spare"]
+      );
+    }
+  })
 };
 
 export const onUpdateFileCountByStatus = (phase: string) => async (
@@ -30,9 +35,9 @@ export const onUpdateFileCountByStatus = (phase: string) => async (
 ) => {
   const oldStatus = before.val();
   const status = after.val();
-  const fileCountPath = `/lists/${params.fileName.split("-")[0]}/${phase}`;
-  const fileCount = (await admin.database().ref(fileCountPath).once("value")).val();
-  if (fileCount[oldStatus] - 1 > -1) fileCount[oldStatus] -= 1;
-  if (status) fileCount[status] += 1;
-  return admin.database().ref(fileCountPath).update(fileCount);
+  return admin.database().ref(`/lists/${params.fileName.split("-")[0]}/${phase}`).transaction((count) => {
+    if (status) count[status]++;
+    if (count[oldStatus]) count[oldStatus]--;
+    return count;
+  })
 };

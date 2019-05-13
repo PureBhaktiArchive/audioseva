@@ -1,6 +1,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as moment from 'moment';
+import * as _ from "lodash";
 import * as helpers from './../helpers';
 import { objectWithDefaults } from "../utils/objectUtils";
 import { onCreateFileCountByStatus, onUpdateFileCountByStatus, runHandlers, statuses } from "../utils/sharedHandlers";
@@ -147,25 +148,47 @@ const getStatistics = async (): Promise<{ now: moment.Moment, date: string, stat
 
 const onCreateStatusStatistics = async (snapshot) => {
   const status = snapshot.val();
-  const { now, date, statistics } = await getStatistics();
-  let updatedStatistics = statistics;
+  const { now, date } = await getStatistics();
 
-  if (updatedStatistics) {
-    updatedStatistics[status] += 1;
-  } else {
-    updatedStatistics = objectWithDefaults({ [status]: 1, "_sort_timestamp": now.valueOf() }, statuses);
-  }
-  return admin.database().ref(`/statistics/trackEditing/${date}`).update(updatedStatistics);
+  return admin.database().ref(`/statistics/trackEditing/${date}`).transaction((dateStatistics) => {
+    if (dateStatistics) {
+     dateStatistics[status]++;
+     return dateStatistics;
+    } else {
+      return objectWithDefaults({ [status]: 1, "_sort_timestamp": now.valueOf() }, statuses);
+    }
+  });
 };
 
-const onUpdateStatusStatistics = async ({ before, after }) => {
-  const status = after.val();
-  if (!status) return 1;
-  const { date, statistics } = await getStatistics();
+const statusToTimestampField = {
+  "Revise": "feedbackTimestamp",
+  "Submitted": "submissionTimestamp"
+};
 
+const onUpdateStatusStatistics = async ({ before, after }: functions.Change<functions.database.DataSnapshot>) => {
+  const status = after.val();
+  if (!status) {
+    for (const timestampStatus of statuses) {
+      const timestampField = (await before.ref.parent.child(_.get(
+          statusToTimestampField, timestampStatus, `${timestampStatus.toLowerCase()}Timestamp`
+      )).once("value")).val();
+
+      if (!timestampField) return 1;
+
+      const timestampDate = moment(timestampField).format("MM-DD-YYYY");
+      await admin
+          .database()
+          .ref(`/statistics/trackEditing/${timestampDate}/${timestampStatus}`)
+          .transaction((statusCount) => {
+            return (statusCount || 1) - 1;
+          });
+    }
+    return 1;
+  }
+  const { date } = await getStatistics();
   return admin.database().ref(
       `/statistics/trackEditing/${date}/${status}`
-  ).set(statistics[status] + 1);
+  ).transaction((statusCount) => (statusCount || 0) + 1);
 };
 
 export const onCreateStatus = functions.database.ref(
