@@ -140,7 +140,7 @@ export const processSubmission = functions.storage
       .database()
       .ref(`/email/notifications`)
       .push({
-        template: 'te-submission-email',
+        template: 'track-editing-submission',
         to: user.email,
         params: {
           task,
@@ -173,7 +173,7 @@ export const processFeedback = functions.database
         .ref(`/email/notifications`)
         .push({
           to: task.assignee.emailAddress,
-          template: 'te-feedback-email',
+          template: 'track-editing-feedback',
           params: {
             task
           },
