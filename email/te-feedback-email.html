@@ -10,7 +10,7 @@
   <p><b>Please re-edit the file and upload it again.</b></p>
 
   <p style="color: red;font-weight: bold">DETAILS OF THE TASK:</p>
-  <p><b>Task ID:</b> {{ taskId }}</p>
+  <p><b>Task ID:</b> {{ task.id }}</p>
   <p>
     <b>Task Definition:</b><br />
     {% for chunk in task.chunks %}
@@ -18,8 +18,4 @@
     >&nbsp;{{ chunk.beginning }}&ndash;{{ chunk.ending }}<br />
     {% endfor %}
   </p>
-
-  <p style="color: red;font-weight: bold">TE INPUTS:</p>
-
-  <p><b>TE Name:</b> {{ task.assignee.name }}</p>
 </body>
