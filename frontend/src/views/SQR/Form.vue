@@ -7,7 +7,7 @@
       <v-progress-circular indeterminate />
     </div>
     <v-container v-else-if="cancelComplete">
-      <p>Cancel complete!</p>
+      <p>Allotment is canceled!</p>
     </v-container>
     <v-form v-else-if="canSubmit" ref="form" @submit.prevent="handleSubmit">
       <v-container>
@@ -38,7 +38,7 @@
                         outline
                         class="pa-2"
                         :rules="rules"
-                        v-model="cancelComments[index + 1]"
+                        v-model="cancelComment"
                         box
                       >
                       </v-textarea>
@@ -209,6 +209,7 @@ export default class Form extends Vue {
       label: "I'm unable to play or download the audio",
       placeholder:
         "Please describe the problem here, we will allot you new lectures shortly",
+      reason: "unable to play",
       styles: {
         backgroundColor: "#fcf8e3",
         color: "#8a6d3b",
@@ -223,6 +224,7 @@ export default class Form extends Vue {
       label: "The alloted lecture is not in my preferred language",
       placeholder:
         "Please let us know which language it is in here, we will allot you new lectures shortly.",
+      reason: "not in my preferred language",
       styles: {
         backgroundColor: "#d9edf7",
         color: "#31708f",
@@ -233,7 +235,7 @@ export default class Form extends Vue {
     }
   ];
   cancel: number | null = null;
-  cancelComments: { [key: number]: string } = {};
+  cancelComment = "";
   cancelCheck = {};
   form: any = {};
   guidelines: any = {};
@@ -244,6 +246,8 @@ export default class Form extends Vue {
   rules = [(v: any) => !!v || "Required field"];
 
   handleListClick(cancelField: number) {
+    this.cancelCheck = {};
+    this.cancelComment = "";
     this.cancel = this.cancel === cancelField ? null : cancelField;
   }
 
@@ -317,14 +321,14 @@ export default class Form extends Vue {
     const {
       params: { fileName, token }
     } = this.$route;
-    const comments = this.cancelComments[this.cancel || 1] || "";
     await firebase
       .functions()
       .httpsCallable("SQR-cancelAllotment")({
-        comments,
         fileName,
         token,
-        status: this.cancel
+        comments: this.cancelComment,
+        // cancel is a number greater than 0 or null
+        reason: this.cancelFields[(this.cancel || 1) - 1].reason
       })
       .catch(() => {
         this.canSubmit = false;
