@@ -651,7 +651,7 @@ export const getSpareFiles = functions.https.onCall(
 
 export const cancelAllotment = functions.https.onCall(
     async (
-        { fileName, comments, token, status },
+        { fileName, comments, token, reason },
         {
           auth: {
             token: authToken
@@ -672,7 +672,7 @@ export const cancelAllotment = functions.https.onCall(
           :
           `${originalFile.soundQualityReporting.notes}\n ${comments}`;
       return file.ref.update({
-        "soundQualityReporting/status": status === 1 ? "Audio Problem" : "",
+        "soundQualityReporting/status": reason === "unable to play" ? "Audio Problem" : "",
         "soundQualityReporting/timestampGiven": null,
         "soundQualityReporting/notes": newComments
       })
