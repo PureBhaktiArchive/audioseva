@@ -650,16 +650,8 @@ export const getSpareFiles = functions.https.onCall(
 );
 
 export const cancelAllotment = functions.https.onCall(
-    async (
-        { fileName, comments, token, reason },
-        {
-          auth: {
-            token: authToken
-          } = { token: { coordinator: false } }
-        } = {} as any
-    ) => {
-      const isCoordinator = authToken && authToken.coordinator;
-      const listId = fileName.split("-")[0];
+    async ({ fileName, comments, token, reason }) => {
+      const listId = helpers.extractListFromFilename(fileName);
       const file = await admin.database().ref(
           `original/${listId}/${fileName}`
       ).orderByChild("token").equalTo(token).once("value");
@@ -667,14 +659,10 @@ export const cancelAllotment = functions.https.onCall(
       if (!originalFile) {
         throw new functions.https.HttpsError("invalid-argument", "Invalid token")
       }
-      const newComments = isCoordinator ?
-          comments
-          :
-          `${originalFile.soundQualityReporting.notes}\n ${comments}`;
       return file.ref.update({
         "soundQualityReporting/status": reason === "unable to play" ? "Audio Problem" : "",
         "soundQualityReporting/timestampGiven": null,
-        "soundQualityReporting/notes": newComments
+        "soundQualityReporting/notes": `${originalFile.soundQualityReporting.notes}\n ${comments}`
       })
     }
 );
