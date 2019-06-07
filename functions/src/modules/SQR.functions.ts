@@ -648,3 +648,21 @@ export const getSpareFiles = functions.https.onCall(
       .slice(0, count || 20);
   }
 );
+
+export const cancelAllotment = functions.https.onCall(
+    async ({ fileName, comments, token, reason }) => {
+      const listId = helpers.extractListFromFilename(fileName);
+      const file = await admin.database().ref(
+          `original/${listId}/${fileName}`
+      ).orderByChild("token").equalTo(token).once("value");
+      const originalFile = file.val();
+      if (!originalFile) {
+        throw new functions.https.HttpsError("invalid-argument", "Invalid token")
+      }
+      return file.ref.update({
+        "soundQualityReporting/status": reason === "unable to play" ? "Audio Problem" : "",
+        "soundQualityReporting/timestampGiven": null,
+        "soundQualityReporting/notes": `${originalFile.soundQualityReporting.notes}\n ${comments}`
+      })
+    }
+);

@@ -6,7 +6,10 @@
     <div v-if="isLoadingForm" class="d-flex justify-center">
       <v-progress-circular indeterminate />
     </div>
-    <v-form v-else ref="form" @submit.prevent="handleSubmit">
+    <v-container v-else-if="cancelComplete">
+      <p>Allotment is canceled!</p>
+    </v-container>
+    <v-form v-else-if="canSubmit" ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
           <template v-for="(item, index) in cancelFields" >
@@ -35,7 +38,7 @@
                         outline
                         class="pa-2"
                         :rules="rules"
-                        v-model="cancelComments[index + 1]"
+                        v-model="cancelComment"
                         box
                       >
                       </v-textarea>
@@ -79,12 +82,17 @@
         </v-layout>
       </v-container>
     </v-form>
+    <p class="d-flex justify-center red--text font-weight-bold" v-else>
+      Submission error
+    </p>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/database";
+import "firebase/functions";
 import SQRField from "@/components/SQRForm/SQRField.vue";
 import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
 import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
@@ -201,6 +209,7 @@ export default class Form extends Vue {
       label: "I'm unable to play or download the audio",
       placeholder:
         "Please describe the problem here, we will allot you new lectures shortly",
+      reason: "unable to play",
       styles: {
         backgroundColor: "#fcf8e3",
         color: "#8a6d3b",
@@ -215,6 +224,7 @@ export default class Form extends Vue {
       label: "The alloted lecture is not in my preferred language",
       placeholder:
         "Please let us know which language it is in here, we will allot you new lectures shortly.",
+      reason: "not in my preferred language",
       styles: {
         backgroundColor: "#d9edf7",
         color: "#31708f",
@@ -225,20 +235,42 @@ export default class Form extends Vue {
     }
   ];
   cancel: number | null = null;
-  cancelComments = {};
+  cancelComment = "";
   cancelCheck = {};
   form: any = {};
   guidelines: any = {};
   isLoadingForm = true;
+  canSubmit = false;
+  cancelComplete = false;
 
   rules = [(v: any) => !!v || "Required field"];
 
   handleListClick(cancelField: number) {
+    this.cancelCheck = {};
+    this.cancelComment = "";
     this.cancel = this.cancel === cancelField ? null : cancelField;
   }
 
   updateForm(field: string, value: any) {
     this.form = updateObject(this.form, field, value);
+  }
+
+  async canSubmitForm() {
+    const {
+      params: { fileName, token }
+    } = this.$route;
+    const listId = getListId(fileName);
+    const response = (await firebase
+      .database()
+      .ref(`original/${listId}/${fileName}`)
+      .orderByChild("token")
+      .equalTo(token)
+      .once("value")).val();
+    if (response.soundQualityReporting.status.toLowerCase() === "done") {
+      this.isLoadingForm = false;
+    } else {
+      this.canSubmit = true;
+    }
   }
 
   async removeField(field: string) {
@@ -251,10 +283,15 @@ export default class Form extends Vue {
   }
 
   async handleSubmit() {
-    await this.submitForm(true);
+    if (this.cancel) {
+      await this.cancelForm();
+    } else {
+      await this.submitForm(true);
+    }
   }
 
-  mounted() {
+  async mounted() {
+    await this.canSubmitForm();
     this.getSavedData();
   }
 
@@ -278,6 +315,25 @@ export default class Form extends Vue {
         soundIssues: [{}]
       };
     }
+  }
+
+  async cancelForm() {
+    const {
+      params: { fileName, token }
+    } = this.$route;
+    await firebase
+      .functions()
+      .httpsCallable("SQR-cancelAllotment")({
+        fileName,
+        token,
+        comments: this.cancelComment,
+        // cancel is a number greater than 0 or null
+        reason: this.cancelFields[(this.cancel || 1) - 1].reason
+      })
+      .catch(() => {
+        this.canSubmit = false;
+      });
+    this.cancelComplete = true;
   }
 
   async submitDraft() {
