@@ -6,11 +6,7 @@ import * as functions from 'firebase-functions';
 import * as moment from 'moment';
 import { URL } from 'url';
 import { Spreadsheet } from '../classes/GoogleSheets';
-import {
-  commaSeparated,
-  spreadsheetDateFormat,
-  withDefault,
-} from '../utils/parsers';
+import { commaSeparated, spreadsheetDateFormat, withDefault } from '../utils/parsers';
 import * as helpers from './../helpers';
 
 export enum ISoundQualityReportSheet {
@@ -93,231 +89,96 @@ export const processAllotment = functions.https.onCall(
   }
 );
 
-/**
- * Restructure External Submission
- * 1. Restructuring the submission and inserting it into /sqr/submissions path
- *
- * @function restructureExternalSubmission()
- */
-export const restructureExternalSubmission = functions.database
-  .ref('/webforms/sqr/{submission_id}')
-  .onCreate(async (snapshot, context) => {
-    const original = snapshot.val();
-
-    // 1. Add the webform data to a SQR submissions DB path
-    const submission = {
-      fileName: original.audio_file_name,
-      cancellation: {
-        notPreferredLanguage: original.not_preferred_language,
-        audioProblem: original.unable_to_play_or_download,
-      },
-      soundQualityRating: original.sound_quality_rating,
-      unwantedParts: original.unwanted_parts,
-      soundIssues: original.sound_issues,
-      duration: {
-        beginning: original.beginning,
-        ending: original.ending,
-      },
-      comments: original.comments,
-      token: original.token,
-      created: original.created,
-      //  timestamp of the submission creation,
-      // can differ from COMPLETED in case of saving a DRAFT and completing later.
-      completed: original.completed, // timestamp of the submission completion.
-      changed: original.changed, //timestamp of the submission update.
-      author: {
-        name: original.name,
-        emailAddress: original.email_address,
-      },
-    };
-
-    admin
-      .database()
-      .ref(`/sqr/submissions/${original.serial}`)
-      .update(submission);
-
-    return 1;
-  });
-
 const acceptedStatuses: string[] = ['Given', 'WIP'];
 
-const addSubmissionWarnings = async (
-  currentSet,
-  { soundQualityReporting: { status, assignee } },
-  {
-    cancellation: { notPreferredLanguage, audioProblem },
-    fileName,
-    changed,
-    completed,
-    author,
-    comments,
-  },
-  isFirstSubmission
-) => {
-  const listId = fileName.split('-')[0];
-  const warnings = [];
-  if (isFirstSubmission)
-    warnings.push('This is the first submission by this devotee!');
-  if (notPreferredLanguage)
-    warnings.push("The lecture is not in devotee's preferred language!");
-  if (audioProblem)
-    warnings.push(`Unable to play or download the audio ${comments}`);
-  if (changed !== completed) warnings.push('This is an updated submission!');
-  if (assignee.emailAddress !== author.emailAddress) {
-    warnings.push(
-      `File is alloted to another email id - ${assignee.emailAddress}`
-    );
-  }
-  if (!acceptedStatuses.includes(status)) {
-    warnings.push(`Status of file is ${status || 'Spare'}`);
-  }
-  const response = (await admin
-    .database()
-    .ref(`/original/${listId}/${fileName}`)
-    .once('value')).val();
-  if (!response)
-    warnings.push(`Audio file name ${fileName} is not found in the backend!`);
-
-  if (currentSet.filter(allotment => allotment.status === 'Given').length === 1)
-    warnings.push("It's time to allot!");
-
-  return warnings;
-};
-
 /**
- * SQR Process Submission
- * 1. Notifying the coordinator using a mail that holds the following information
- * 2. Update the allotment to reflect the current state of the audio file
- * 3. Setting the audio file status
- *
- * Function -> processSubmission()
+ * SQR Submission processing
+ * Updating the allotment and sending notification email.
  */
 export const processSubmission = functions.database
-  .ref('/sqr/submissions/{submission_id}')
-  .onCreate(async (snapshot, context) => {
+  .ref('/submissions/soundQualityReporting/{list}/{fileName}/{token}')
+  .onCreate(async (snapshot, { params: { list, fileName, token } }) => {
     const submission = snapshot.val();
 
-    let audioFileStatus = 'WIP';
-    if (submission.cancellation.notPreferredLanguage) audioFileStatus = 'spare';
-    else if (submission.cancellation.audioProblem)
-      audioFileStatus = 'audioProblem';
-
-    //  EXTRACTING the list name first from the file_name
-    const list = helpers.extractListFromFilename(submission.fileName);
-
-    // 2. Update the allotment ( first get the previous NOTES )
-    // 3.1 Get the submitted audio file data
     const fileSnapshot = await admin
       .database()
-      .ref(`/original/${list}/${submission.fileName}`)
+      .ref(`/original/${list}/${fileName}`)
       .once('value');
 
     // If fileSnapshot doesn't exist stop the execution
-    if (!fileSnapshot.exists()) return false;
-
-    const fileUpdate = { status: audioFileStatus };
-
-    // in case 1 & 2 add the comments to the notes
-    if (audioFileStatus !== 'WIP') {
-      fileUpdate['notes'] = `${fileSnapshot.val().notes}\n${
-        submission.comments
-      }`;
+    if (fileSnapshot.exists()) {
+      admin
+        .database()
+        .ref(`/original/${list}/${fileName}`)
+        .update({ status: 'WIP' });
     }
-
-    // if the audio has any cancellation then REMOVE the assignee from the file allotment
-    if (
-      submission.cancellation.audioProblem ||
-      submission.cancellation.notPreferredLanguage
-    )
-      fileUpdate['assignee'] = {};
-
-    admin
-      .database()
-      .ref(`/original/${list}/${submission.fileName}`)
-      .update(fileUpdate);
 
     const coordinator = functions.config().coordinator;
     const fileData = fileSnapshot.val();
 
-    /**
-     * 3.2 Get the author's Allotments in ('given' || 'WIP') state
-     * TO BE ADDED LATER
-     * Currently passing an empty array
-     */
-    const allSubmissionsSnapshot = await admin
+    const currentSet = Object.entries((await admin
       .database()
-      .ref(`/sqr/submissions`)
-      .orderByChild('author/emailAddress')
+      .ref(`/original/${list}`)
+      .orderByChild('soundQualityReporting/assignee/emailAddress')
       .equalTo(submission.author.emailAddress)
-      .once('value');
+      .once('value')).val());
 
-    // 3.3 checking if the First Submission or not
-    if (allSubmissionsSnapshot.exists()) {
-      const allSubmissions = allSubmissionsSnapshot.val();
+    // Injecting values for the email template
+    currentSet.forEach((entry: any) => {
+      entry.timestampGiven = entry.soundQualityReporting.timestampGiven
+        ? moment(entry.soundQualityReporting.timestampGiven).format('M/D/YYYY')
+        : '';
+      entry.daysPassed = entry.soundQualityReporting.timestampGiven
+        ? moment().diff(entry.soundQualityReporting.timestampGiven, 'days')
+        : '';
+    });
 
-      const allotments = (await admin
-        .database()
-        .ref(`/original/${list}`)
-        .orderByChild('soundQualityReporting/assignee/emailAddress')
-        .equalTo(submission.author.emailAddress)
-        .once('value')).val();
-
-      const currentSet = Object.entries(allotments);
-      currentSet.forEach((allotment: any, index, arr) => {
-        const [
-          {
-            soundQualityReporting: { timestampGiven },
-          },
-        ] = allotment;
-        allotment.timestampGiven = timestampGiven
-          ? moment(timestampGiven).format('M/D/YYYY')
-          : '';
-        allotment.daysPassed = timestampGiven
-          ? moment().diff(timestampGiven, 'days')
-          : '';
-      });
-
-      const isFirstSubmission = Object.keys(allSubmissions).length <= 1;
-      const warnings = await addSubmissionWarnings(
-        currentSet,
-        fileData,
-        submission,
-        isFirstSubmission
+    const currentAllotment = fileData.soundQualityReporting;
+    const warnings = [];
+    // if (isFirstSubmission)
+    //   warnings.push('This is the first submission by this devotee!');
+    if (submission.changed !== submission.completed) warnings.push('This is an updated submission!');
+    if (currentAllotment.assignee.emailAddress !== submission.author.emailAddress) {
+      warnings.push(
+        `File is alloted to another email id - ${currentAllotment.assignee.emailAddress}`
       );
-
-      const allotmentUrl = new URL(
-        '/sqr/allot',
-        functions.config().website.base_url
-      );
-      allotmentUrl.search = `emailaddress=${submission.author.emailAddress}`;
-
-      const updateUrl = new URL(
-        '/form/sound-quality-report',
-        functions.config().website.old.base_url
-      );
-      updateUrl.search = `token=${submission.token}`;
-
-      // 3.4 Notify the coordinator
-      // Sending the notification Email Finally
-      admin
-        .database()
-        .ref(`/email/notifications`)
-        .push({
-          template: 'sqr-submission',
-          to: coordinator.email_address,
-          params: {
-            currentSet,
-            fileData,
-            submission,
-            isFirstSubmission,
-            warnings,
-            allotmentUrl,
-            updateUrl,
-          },
-        });
     }
+    if (!acceptedStatuses.includes(currentAllotment.status)) {
+      warnings.push(`Status of file is ${currentAllotment.status || 'Spare'}`);
+    }
+    if (!fileSnapshot.exists())
+      warnings.push(`Audio file name ${fileName} is not found in the backend!`);
 
-    return 1;
+    if (currentSet.filter((allotment: any) => allotment.status === 'Given').length === 1)
+      warnings.push("It's time to allot!");
+
+    const allotmentUrl = new URL(
+      '/sqr/allot',
+      functions.config().website.base_url
+    );
+    allotmentUrl.search = `emailaddress=${submission.author.emailAddress}`;
+
+    const updateUrl = new URL(
+      `/form/sound-quality-report/${fileName}/${token}/`,
+      functions.config().website.base_url
+    );
+
+    // Sending the notification email for the coordinator
+    admin
+      .database()
+      .ref(`/email/notifications`)
+      .push({
+        template: 'sqr-submission',
+        to: coordinator.email_address,
+        params: {
+          currentSet,
+          fileData,
+          submission,
+          warnings,
+          allotmentUrl,
+          updateUrl,
+        },
+      });
   });
 
 /**
@@ -650,19 +511,19 @@ export const getSpareFiles = functions.https.onCall(
 );
 
 export const cancelAllotment = functions.https.onCall(
-    async ({ fileName, comments, token, reason }) => {
-      const listId = helpers.extractListFromFilename(fileName);
-      const file = await admin.database().ref(
-          `original/${listId}/${fileName}`
-      ).orderByChild("token").equalTo(token).once("value");
-      const originalFile = file.val();
-      if (!originalFile) {
-        throw new functions.https.HttpsError("invalid-argument", "Invalid token")
-      }
-      return file.ref.update({
-        "soundQualityReporting/status": reason === "unable to play" ? "Audio Problem" : "",
-        "soundQualityReporting/timestampGiven": null,
-        "soundQualityReporting/notes": `${originalFile.soundQualityReporting.notes}\n ${comments}`
-      })
+  async ({ fileName, comments, token, reason }) => {
+    const listId = helpers.extractListFromFilename(fileName);
+    const file = await admin.database().ref(
+      `original/${listId}/${fileName}`
+    ).orderByChild("token").equalTo(token).once("value");
+    const originalFile = file.val();
+    if (!originalFile) {
+      throw new functions.https.HttpsError("invalid-argument", "Invalid token")
     }
+    return file.ref.update({
+      "soundQualityReporting/status": reason === "unable to play" ? "Audio Problem" : "",
+      "soundQualityReporting/timestampGiven": null,
+      "soundQualityReporting/notes": `${originalFile.soundQualityReporting.notes}\n ${comments}`
+    })
+  }
 );
