@@ -30,29 +30,32 @@ export class Sheet {
     schema: sheets_v4.Schema$Sheet
   ): Promise<Sheet> {
     const sheet = new Sheet(spreadsheetId, api, schema);
-    await sheet.getHeaders();
+    await sheet.fetchHeaders();
     return sheet;
   }
 
-  protected constructor(spreadsheetId: string, api, schema) {
+  protected constructor(spreadsheetId: string, api: sheets_v4.Sheets, schema: sheets_v4.Schema$Sheet) {
     this.spreadsheetId = spreadsheetId;
     this.api = api;
     this.schema = schema;
   }
 
+  /**
+   * Returns the title of the sheet
+   */
   public get title(): string {
     return this.schema.properties.title;
   }
 
   /**
-   * frozenRowCount
+   * Returns count of the frozen rows in the sheet
    */
   public get frozenRowCount(): number {
     return this.schema.properties.gridProperties.frozenRowCount;
   }
 
   /**
-   * rowCount
+   * Returns count of the total rows in the sheet
    */
   public get rowCount(): number {
     return this.schema.properties.gridProperties.rowCount;
@@ -80,7 +83,7 @@ export class Sheet {
    * @param firstRowNumber First row number
    * @param lastRowNumber Last row number
    */
-  protected rowsToA1Notation(firstRowNumber: number, lastRowNumber: number) {
+  protected rowsToA1Notation(firstRowNumber: number, lastRowNumber: number): string {
     return this.toA1Notation(null, firstRowNumber, null, lastRowNumber);
   }
 
@@ -103,13 +106,13 @@ export class Sheet {
   /**
    * Gets all the rows on the sheet.
    */
-  public async getRows(): Promise<any> {
+  public async getRows<T extends object>(): Promise<T[]> {
     let rows = [];
 
     let firstRowNumber = this.fromDataRowNumber(1);
     while (firstRowNumber < this.rowCount) {
       // Getting the rows of the sheet in increments of 1000s
-      // as this is the MAX num of rowss allowed in one call
+      // as this is the MAX num of rows allowed in one call
 
       const lastRowNumber = Math.min(firstRowNumber + 1000, this.rowCount);
 
@@ -139,8 +142,9 @@ export class Sheet {
    * @param rows Spare array of objects, each holds the data
    *  to be written into a specific row
    */
-  public async addRows(rows: String[]): Promise<any> {
-    if (rows.length === 0) return;
+  public async insertRows<T extends object>(rows: T[]): Promise<void> {
+    if (rows.length === 0)
+      return;
 
     /// Inserting empty rows
     await this.api.spreadsheets.batchUpdate({
@@ -161,7 +165,7 @@ export class Sheet {
     });
 
     /// Updating the rows
-    const updateResult = await this.api.spreadsheets.values.batchUpdate({
+    await this.api.spreadsheets.values.batchUpdate({
       spreadsheetId: this.spreadsheetId,
       requestBody: {
         valueInputOption: IValueInputOption.USER_ENTERED,
@@ -174,14 +178,12 @@ export class Sheet {
           })),
       },
     });
-
-    return updateResult;
   }
 
-  protected async getHeaders() {
-    if (this.headers && this.headers.length) {
+  protected async fetchHeaders(): Promise<void> {
+    if (this.headers && this.headers.length)
       return;
-    }
+
     const response = await this.api.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
       majorDimension: IMajorDimensions.Rows,
@@ -229,11 +231,11 @@ export class Sheet {
   }
 
   /**
-   *
+   * Gets row at specified row number
    * @param dataRowNumber Number of the row in the data section, 1-based
    */
-  public async getRow(dataRowNumber: number): Promise<any> {
-    await this.getHeaders();
+  public async getRow<T extends object>(dataRowNumber: number): Promise<T> {
+    await this.fetchHeaders();
 
     const response: any = await this.api.spreadsheets.values.get({
       spreadsheetId: this.spreadsheetId,
@@ -244,12 +246,13 @@ export class Sheet {
   }
 
   /**
-   *
+   * Updates row at specified row number
    * @param dataRowNumber Number of the row in the data section, 1-based
    * @param row Object to be saved into the row
+   * @param mode Whether to overwrite all columns or only specified
    */
-  public async updateRow<T>(dataRowNumber: number, row: T, mode: RowUpdateMode = RowUpdateMode.Complete): Promise<boolean> {
-    await this.getHeaders();
+  public async updateRow<T extends object>(dataRowNumber: number, row: T, mode: RowUpdateMode = RowUpdateMode.Complete): Promise<void> {
+    await this.fetchHeaders();
 
     await this.api.spreadsheets.values.update({
       spreadsheetId: this.spreadsheetId,
@@ -263,32 +266,30 @@ export class Sheet {
         )],
       },
     });
-    return true;
   }
 
   /**
-   * 
+   * Updates existing row or appends a new one if not found
    * @param columnName Name of the column to search in
    * @param key Value of the cell to search for
    * @param row Object to be saved into the row
    * @param mode Whehter to merge with existing values or not
    */
-  public async updateOrAppendRow<T>(columnName: string, key: any, row: T, mode: RowUpdateMode = RowUpdateMode.Partial): Promise<boolean> {
+  public async updateOrAppendRow<T extends object>(columnName: string, key: any, row: T, mode: RowUpdateMode = RowUpdateMode.Partial): Promise<void> {
     const rowNumber = await this.findRowNumber(columnName, key);
     if (rowNumber)
-      return await this.updateRow(rowNumber, row, mode);
+      await this.updateRow(rowNumber, row, mode);
     else
-      return await this.appendRow(row);
+      await this.appendRow(row);
   }
 
   /**
    * Appends a new row to specified spread sheet
-   *
    * @param sheetId The sheet to query from google sheets api
    * @param object Data values to add to Google Sheets
    */
-  public async appendRow<T>(object: T): Promise<boolean> {
-    await this.getHeaders();
+  public async appendRow<T extends object>(object: T): Promise<void> {
+    await this.fetchHeaders();
 
     await this.api.spreadsheets.values.append({
       spreadsheetId: this.spreadsheetId,
@@ -298,8 +299,6 @@ export class Sheet {
         values: [this.encodeRow(object)],
       },
     });
-
-    return true;
   }
 
   protected getColumnLetter(columnName: string): string {
@@ -318,7 +317,7 @@ export class Sheet {
     return encoded;
   }
 
-  protected decodeRow(row: any[]): any {
+  protected decodeRow<T extends object>(row: any[]): T {
     return this.headers.reduce(
       (result: any, fieldName: string, index: number) => {
         result[fieldName] =
@@ -329,7 +328,7 @@ export class Sheet {
     );
   }
 
-  protected encodeRow(object: any): any[] {
+  protected encodeRow<T extends object>(object: T): any[] {
     return this.headers.map((fieldName: string) => object[fieldName] || '');
   }
 }
