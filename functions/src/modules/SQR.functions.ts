@@ -89,8 +89,6 @@ export const processAllotment = functions.https.onCall(
   }
 );
 
-const acceptedStatuses: string[] = ['Given', 'WIP'];
-
 /**
  * SQR Submission processing
  * Updating the allotment and sending notification email.
@@ -104,19 +102,21 @@ export const processSubmission = functions.database
     if (!submission.completed)
       return;
 
-    const fileRef = admin
+    const fileSnapshot = await admin
       .database()
-      .ref(`/original/${list}/${fileName}`);
-
-    const fileSnapshot = await fileRef.once('value');
+      .ref(`/original/${list}/${fileName}`).once('value');
 
     if (fileSnapshot.exists()) {
-      await fileRef.child('soundQualityReporting').update({ status: 'WIP' });
+      await fileSnapshot.ref.update({
+        soundQualityReporting: {
+          status: 'WIP'
+    }
+      });
     }
 
+    /// Send email notification for the coordinator
     const coordinator = functions.config().coordinator;
-    const fileData = fileSnapshot.val();
-    const currentAllotment = fileData.soundQualityReporting;
+    const currentAllotment = fileSnapshot.val().soundQualityReporting;
 
     const currentSet = [];
     (await admin
@@ -125,13 +125,13 @@ export const processSubmission = functions.database
       .orderByChild('soundQualityReporting/assignee/emailAddress')
       .equalTo(submission.author.emailAddress)
       .once('value')).forEach(child => {
-        const file = child.val();
+        const value = child.val();
         currentSet.push({
           fileName: child.key,
-          dateGiven: moment(file.soundQualityReporting.timestampGiven).format('M/D/YYYY'),
-          status: file.soundQualityReporting.status,
-          daysPassed: moment().diff(file.soundQualityReporting.timestampGiven, 'days'),
-          languages: file.languages,
+          dateGiven: moment(value.soundQualityReporting.timestampGiven).format('M/D/YYYY'),
+          status: value.soundQualityReporting.status,
+          daysPassed: moment().diff(value.soundQualityReporting.timestampGiven, 'days'),
+          languages: value.languages,
         });
       });
 
@@ -144,7 +144,7 @@ export const processSubmission = functions.database
         `File is alloted to another email id - ${currentAllotment.assignee.emailAddress}`
       );
 
-    if (!acceptedStatuses.includes(currentAllotment.status))
+    if (!['Given', 'WIP'].includes(currentAllotment.status))
       warnings.push(`Status of file is ${currentAllotment.status || 'Spare'}`);
 
     if (!fileSnapshot.exists())
@@ -153,10 +153,6 @@ export const processSubmission = functions.database
     if (currentSet.filter((allotment: any) => allotment.status === 'Given').length === 1)
       warnings.push("It's time to allot!");
 
-    // Injecting values for the email template
-    submission.fileName = fileName;
-
-    // Sending the notification email for the coordinator
     admin
       .database()
       .ref(`/email/notifications`)
@@ -165,7 +161,7 @@ export const processSubmission = functions.database
         to: coordinator.email_address,
         params: {
           currentSet,
-          submission,
+          submission: { fileName, ...submission },
           warnings,
           allotmentUrl: getAllotmentLink(submission.author.emailAddress),
           updateUrl: getSubmissionUpdateLink(fileName, token),
