@@ -116,11 +116,11 @@ export const processSubmission = functions.database
     if (!fileSnapshot.exists())
       throw new Error(`File ${fileName} is not found in the database.`);
 
-      await fileSnapshot.ref.update({
-        soundQualityReporting: {
-          status: 'WIP'
-    }
-      });
+    await fileSnapshot.ref.update({
+      soundQualityReporting: {
+        status: 'WIP'
+      }
+    });
 
     const currentAllotment = fileSnapshot.val().soundQualityReporting;
 
@@ -250,90 +250,78 @@ export const importSpreadSheetData = functions.https.onCall(
       );
     }
 
-    const spreadsheetId = functions.config().sqr.spreadsheet_id;
+    const spreadsheet = await Spreadsheet.open(functions.config().sqr.spreadsheet_id);
+    importSubmissions();
+    importAllotments();
 
     ////////////////////////
     //     Submissions
     ////////////////////////
-    const submissionsSpreadsheet = await Spreadsheet.open(spreadsheetId);
-    const submissionsSheet = await submissionsSpreadsheet.useSheet(
-      ISoundQualityReportSheet.Submissions
-    );
-    const submissionsRows = await submissionsSheet.getRows();
-    for (const row of submissionsRows) {
-      const audioFileName = row['Audio File Name'];
-      const list = helpers.extractListFromFilename(audioFileName);
+    async function importSubmissions() {
+      const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
+      await admin.database().ref('/submissions/soundQualityReporting').update(
+        (await sheet.getRows()).reduce((result, row) => {
+          const fileName = row['Audio File Name'];
+          const list = helpers.extractListFromFilename(fileName);
+          const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
-      const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
-
-      const soundIssues = parseAudioChunkRemark(row['Sound Issues']);
-      const unwantedParts = parseAudioChunkRemark(row['Unwanted Parts']);
-
-      const submission = {
-        completed: row['Completed'] || null,
-        created: row['Completed'] || null,
-        comments: row['Comments'],
-        soundIssues,
-        soundQualityRating: row['Sound Quality Rating'],
-        unwantedParts,
-        duration: {
-          beginning: row['Beginning'],
-          ending: row['Ending'],
-        },
-      };
-      admin
-        .database()
-        .ref(
-          `/submissions/soundQualityReporting/${list}/${audioFileName}/${token}`
-        )
-        .set(submission);
+          result[`${list}/${fileName}/${token}`] = {
+            completed: row['Completed'] || null,
+            created: row['Completed'] || null,
+            changed: row['Updated'] || null,
+            comments: row['Comments'],
+            soundIssues: parseAudioChunkRemark(row['Sound Issues']),
+            soundQualityRating: row['Sound Quality Rating'],
+            unwantedParts: parseAudioChunkRemark(row['Unwanted Parts']),
+            duration: {
+              beginning: row['Beginning'],
+              ending: row['Ending'],
+            },
+            imported: true,
+          };
+          return result;
+        }, {})
+      );
     }
 
     ////////////////////////
     //     Allotments
     ////////////////////////
+    async function importAllotments() {
+      const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Allotments);
+      await admin.database().ref('/original').update(
+        (await sheet.getRows()).reduce((result, row) => {
+          const fileName = row['File Name'];
 
-    const allotmentsSpreadsheet = await Spreadsheet.open(spreadsheetId);
-    const allotmentsSheet = await allotmentsSpreadsheet.useSheet(
-      ISoundQualityReportSheet.Allotments
-    );
-    const allotmentsRows = await allotmentsSheet.getRows();
+          const fileNameHasForbiddenChars = fileName.match(/[\.\[\]$#]/g);
+          if (fileNameHasForbiddenChars) {
+            console.warn(
+              `File "${fileName}" has forbidden characters that can't be used as a node name.`
+            );
+            return result;
+          }
 
-    for (const row of allotmentsRows) {
-      if (!row) continue;
+          const list = helpers.extractListFromFilename(fileName);
+          result[`${list}/${fileName}/soundQualityReporting`] = {
+            status: row['Status'] || null,
+            timestampGiven: row['Date Given']
+              ? new Date(row['Date Given']).getTime() / 1000
+              : null,
+            timestampDone: row['Date Done']
+              ? new Date(row['Date Done']).getTime() / 1000
+              : null,
+            assignee: {
+              emailAddress: row['Email'] || null,
+              name: row['Devotee'] || null,
+            },
+            notes: row['Notes'] || null
+          };
 
-      const fileName = row['File Name'];
-
-      const fileNameHasForbiddenChars = fileName.match(/[\.\[\]$#]/g);
-      if (fileNameHasForbiddenChars) {
-        console.warn(
-          `File "${fileName}" has forbidden characters that can't be used as a node name.`
-        );
-        continue;
-      }
-
-      const list = helpers.extractListFromFilename(fileName);
-      const allotment = {
-        status: row['Status'] || null,
-        timestampGiven: row['Date Given']
-          ? new Date(row['Date Given']).getTime() / 1000
-          : null,
-        timestampDone: row['Date Done']
-          ? new Date(row['Date Done']).getTime() / 1000
-          : null,
-        assignee: {
-          emailAddress: row['Email'] || null,
-          name: row['Devotee'] || null,
-        },
-        followUp: row['Follow-up'] || null,
-      };
-      admin
-        .database()
-        .ref(`/original/${list}/${fileName}/soundQualityReporting`)
-        .update(allotment);
+          return result;
+        }, {})
+      );
     }
-  }
-);
+  });
 
 interface IAudioChunkDescription {
   beginning: string; // h:mm:ss
