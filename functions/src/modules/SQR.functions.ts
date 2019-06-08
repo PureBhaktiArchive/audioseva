@@ -6,7 +6,6 @@ import * as functions from 'firebase-functions';
 import * as moment from 'moment';
 import { URL } from 'url';
 import { Spreadsheet } from '../classes/GoogleSheets';
-import { commaSeparated, spreadsheetDateFormat, withDefault } from '../utils/parsers';
 import * as helpers from './../helpers';
 
 export enum ISoundQualityReportSheet {
@@ -335,50 +334,6 @@ export const importSpreadSheetData = functions.https.onCall(
     }
   }
 );
-
-/**
- * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
- *
- */
-export const exportAllotmentsToSpreadsheet = functions.database
-  .ref('/original/{listName}/{fileName}')
-  .onUpdate(
-    async (
-      change: functions.Change<functions.database.DataSnapshot>,
-      context: functions.EventContext
-    ): Promise<any> => {
-      const { fileName } = context.params;
-      const changedValues = change.after.val();
-
-      const spreadsheet = await Spreadsheet.open(
-        functions.config().sqr.spreadsheet_id
-      );
-      const sheet = await spreadsheet.useSheet(
-        ISoundQualityReportSheet.Allotments
-      );
-      const allotmentFileNames = await sheet.getColumn('File Name');
-      const rowNumber = allotmentFileNames.indexOf(fileName) + 1;
-      const { languages, notes, soundQualityReporting } = changedValues;
-
-      const {
-        timestampGiven,
-        assignee,
-        timestampDone,
-        followUp,
-      } = soundQualityReporting;
-
-      const row: any = await sheet.getRow(rowNumber);
-      row['Date Given'] = spreadsheetDateFormat(timestampGiven);
-      row['Notes'] = withDefault(notes);
-      row['Language'] = commaSeparated(languages);
-      row['Status'] = soundQualityReporting.status;
-      row['Devotee'] = withDefault(assignee.name);
-      row['Email'] = withDefault(assignee.emailAddress);
-      row['Date Done'] = spreadsheetDateFormat(timestampDone);
-      row['Follow Up'] = withDefault(followUp);
-      await sheet.updateRow(rowNumber, row);
-    }
-  );
 
 interface IAudioChunkDescription {
   beginning: string; // h:mm:ss
