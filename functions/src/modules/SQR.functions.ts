@@ -96,27 +96,63 @@ export const processAllotment = functions.https.onCall(
 export const processSubmission = functions.database
   .ref('/submissions/soundQualityReporting/{list}/{fileName}/{token}')
   .onUpdate(async (change, { params: { list, fileName, token } }) => {
+    // Ignore deletions
+    if (!change.after.exists())
+      return;
+
     const submission = change.after.val();
 
-    /// Ignore drafts
+    // Ignore draft submissions
     if (!submission.completed)
+      return;
+
+    // Ignore imported submissions
+    if (!change.before.exists() && submission.imported)
       return;
 
     const fileSnapshot = await admin
       .database()
       .ref(`/original/${list}/${fileName}`).once('value');
 
-    if (fileSnapshot.exists()) {
+    if (!fileSnapshot.exists())
+      throw new Error(`File ${fileName} is not found in the database.`);
+
       await fileSnapshot.ref.update({
         soundQualityReporting: {
           status: 'WIP'
     }
       });
-    }
 
-    /// Send email notification for the coordinator
-    const coordinator = functions.config().coordinator;
     const currentAllotment = fileSnapshot.val().soundQualityReporting;
+
+    // * Update the spreadsheet
+
+    const spreadsheet = await Spreadsheet.open(functions.config().sqr.spreadsheet_id);
+    const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
+
+    const row = {
+      'Completed': moment(submission.completed * 1000).format('MM/DD/YYYY'),
+      'Updated': moment(submission.changed * 1000).format('MM/DD/YYYY'),
+      'Update Link': getSubmissionUpdateLink(fileName, token),
+      'Audio File Name': fileName,
+      'Unwanted Parts': formatMultilineComment(submission.unwantedParts),
+      'Sound Issues': formatMultilineComment(submission.soundIssues),
+      'Sound Quality Rating': submission.soundQualityRating,
+      'Beginning': submission.duration.beginning,
+      'Ending': submission.duration.ending,
+      'Comments': submission.comments,
+      'Name': currentAllotment.assignee.name,
+      'Email Address': currentAllotment.assignee.emailAddress,
+    };
+
+    if (change.before.exists())
+      await sheet.updateOrAppendRow('Audio File Name', fileName, row);
+    else
+      await sheet.appendRow(row);
+
+    // * Send email notification for the coordinator
+
+    const coordinator = functions.config().coordinator;
 
     const currentSet = [];
     (await admin
@@ -388,47 +424,6 @@ function getAllotmentLink(emailAddress: string): URL {
   url.searchParams.set('emailaddress', emailAddress);
   return url;
 }
-
-/**
- * Saves new or updated submission into Google Spreadsheet
- */
-export const exportSubmissionsToSpreadsheet = functions.database
-  .ref('/submissions/soundQualityReporting/{list}/{fileName}/{token}')
-  .onUpdate(async (change, { params: { fileName, token } }) => {
-
-    const submission = change.after.val();
-
-    // Ignoring draft submissions
-    if (!submission.completed)
-      return;
-
-    const spreadsheet = await Spreadsheet.open(
-      functions.config().sqr.spreadsheet_id
-    );
-    const sheet = await spreadsheet.useSheet(
-      ISoundQualityReportSheet.Submissions
-    );
-
-    const row = {
-      'Completed': moment(submission.completed * 1000).format('MM/DD/YYYY'),
-      'Updated': moment(submission.changed * 1000).format('MM/DD/YYYY'),
-      'Update Link': getSubmissionUpdateLink(fileName, token),
-      'Audio File Name': fileName,
-      'Unwanted Parts': formatMultilineComment(submission.unwantedParts),
-      'Sound Issues': formatMultilineComment(submission.soundIssues),
-      'Sound Quality Rating': submission.soundQualityRating,
-      'Beginning': submission.duration.beginning,
-      'Ending': submission.duration.ending,
-      'Comments': submission.comments,
-      'Name': submission.author.name,
-      'Email Address': submission.author.emailAddress,
-    };
-
-    if (change.before.exists())
-      await sheet.updateOrAppendRow('Audio File Name', fileName, row);
-    else
-      await sheet.appendRow(row);
-  });
 
 /**
  * Gets lists with spare files
