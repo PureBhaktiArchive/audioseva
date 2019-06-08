@@ -13,6 +13,11 @@ enum IValueInputOption {
   RAW = 'RAW',
 }
 
+export enum RowUpdateMode {
+  Complete,
+  Partial,
+}
+
 export class Sheet {
   protected spreadsheetId: string;
   protected schema: sheets_v4.Schema$Sheet;
@@ -195,7 +200,7 @@ export class Sheet {
    * Gets the entire column values
    * @param columnName Name of the column to get
    */
-  public async getColumn(columnName: string) {
+  public async getColumn(columnName: string): Promise<any[]> {
     const columnLetter = this.getColumnLetter(columnName);
 
     const response = await this.api.spreadsheets.values.get({
@@ -210,6 +215,17 @@ export class Sheet {
     });
 
     return response.data.values[0];
+  }
+
+  /**
+   * Finds a row with particular value in specified column
+   * @param columnName Name of the column to search in
+   * @param value Value of the cell to search for
+   * @returns Number of the row in the data section, 1-based. 0 if not found
+   */
+  public async findRowNumber(columnName: string, value: any): Promise<number> {
+    const column = await this.getColumn(columnName);
+    return column.indexOf(value) + 1;
   }
 
   /**
@@ -232,17 +248,37 @@ export class Sheet {
    * @param dataRowNumber Number of the row in the data section, 1-based
    * @param row Object to be saved into the row
    */
-  public async updateRow(dataRowNumber: number, row: any): Promise<any> {
+  public async updateRow<T>(dataRowNumber: number, row: T, mode: RowUpdateMode = RowUpdateMode.Complete): Promise<boolean> {
     await this.getHeaders();
+
     await this.api.spreadsheets.values.update({
       spreadsheetId: this.spreadsheetId,
       range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
       valueInputOption: IValueInputOption.USER_ENTERED,
       requestBody: {
-        values: [this.encodeRow(row)],
+        values: [this.encodeRow(
+          mode === RowUpdateMode.Complete
+            ? row
+            : Object.assign(await this.getRow(dataRowNumber), row)
+        )],
       },
     });
     return true;
+  }
+
+  /**
+   * 
+   * @param columnName Name of the column to search in
+   * @param key Value of the cell to search for
+   * @param row Object to be saved into the row
+   * @param mode Whehter to merge with existing values or not
+   */
+  public async updateOrAppendRow<T>(columnName: string, key: any, row: T, mode: RowUpdateMode = RowUpdateMode.Partial): Promise<boolean> {
+    const rowNumber = await this.findRowNumber(columnName, key);
+    if (rowNumber)
+      return await this.updateRow(rowNumber, row, mode);
+    else
+      return await this.appendRow(row);
   }
 
   /**
@@ -251,7 +287,7 @@ export class Sheet {
    * @param sheetId The sheet to query from google sheets api
    * @param object Data values to add to Google Sheets
    */
-  public async appendRow<T>(object: T): Promise<any> {
+  public async appendRow<T>(object: T): Promise<boolean> {
     await this.getHeaders();
 
     await this.api.spreadsheets.values.append({
