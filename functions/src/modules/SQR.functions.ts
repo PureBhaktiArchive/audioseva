@@ -100,52 +100,53 @@ export const processSubmission = functions.database
   .onCreate(async (snapshot, { params: { list, fileName, token } }) => {
     const submission = snapshot.val();
 
-    const fileSnapshot = await admin
-      .database()
-      .ref(`/original/${list}/${fileName}`)
-      .once('value');
+    /// Ignore drafts
+    if (!submission.completed)
+      return;
 
-    // If fileSnapshot doesn't exist stop the execution
+    const fileRef = admin
+      .database()
+      .ref(`/original/${list}/${fileName}`);
+
+    const fileSnapshot = await fileRef.once('value');
+
     if (fileSnapshot.exists()) {
-      admin
-        .database()
-        .ref(`/original/${list}/${fileName}`)
-        .update({ status: 'WIP' });
+      await fileRef.child('soundQualityReporting').update({ status: 'WIP' });
     }
 
     const coordinator = functions.config().coordinator;
     const fileData = fileSnapshot.val();
+    const currentAllotment = fileData.soundQualityReporting;
 
-    const currentSet = Object.entries((await admin
+    const currentSet = [];
+    (await admin
       .database()
       .ref(`/original/${list}`)
       .orderByChild('soundQualityReporting/assignee/emailAddress')
       .equalTo(submission.author.emailAddress)
-      .once('value')).val());
+      .once('value')).forEach(child => {
+        const file = child.val();
+        currentSet.push({
+          fileName: child.key,
+          dateGiven: moment(file.soundQualityReporting.timestampGiven).format('M/D/YYYY'),
+          status: file.soundQualityReporting.status,
+          daysPassed: moment().diff(file.soundQualityReporting.timestampGiven, 'days'),
+          languages: file.languages,
+        });
+      });
 
-    // Injecting values for the email template
-    currentSet.forEach((entry: any) => {
-      entry.timestampGiven = entry.soundQualityReporting.timestampGiven
-        ? moment(entry.soundQualityReporting.timestampGiven).format('M/D/YYYY')
-        : '';
-      entry.daysPassed = entry.soundQualityReporting.timestampGiven
-        ? moment().diff(entry.soundQualityReporting.timestampGiven, 'days')
-        : '';
-    });
-
-    const currentAllotment = fileData.soundQualityReporting;
     const warnings = [];
-    // if (isFirstSubmission)
-    //   warnings.push('This is the first submission by this devotee!');
-    if (submission.changed !== submission.completed) warnings.push('This is an updated submission!');
-    if (currentAllotment.assignee.emailAddress !== submission.author.emailAddress) {
+    if (submission.changed !== submission.completed)
+      warnings.push('This is an updated submission!');
+
+    if (currentAllotment.assignee.emailAddress !== submission.author.emailAddress)
       warnings.push(
         `File is alloted to another email id - ${currentAllotment.assignee.emailAddress}`
       );
-    }
-    if (!acceptedStatuses.includes(currentAllotment.status)) {
+
+    if (!acceptedStatuses.includes(currentAllotment.status))
       warnings.push(`Status of file is ${currentAllotment.status || 'Spare'}`);
-    }
+
     if (!fileSnapshot.exists())
       warnings.push(`Audio file name ${fileName} is not found in the backend!`);
 
@@ -163,6 +164,9 @@ export const processSubmission = functions.database
       functions.config().website.base_url
     );
 
+    // Injecting values for the email template
+    submission.fileName = fileName;
+
     // Sending the notification email for the coordinator
     admin
       .database()
@@ -172,7 +176,6 @@ export const processSubmission = functions.database
         to: coordinator.email_address,
         params: {
           currentSet,
-          fileData,
           submission,
           warnings,
           allotmentUrl,

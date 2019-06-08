@@ -9,7 +9,7 @@
     {% for allotment in params.currentSet %}
     <li>
       {{ allotment.fileName }}
-      {{ allotment.timestampGiven }}
+      {{ allotment.dateGiven }}
       {{ allotment.status }}
       {{ allotment.daysPassed }},
       {{ allotment.languages | join: ", " }}
