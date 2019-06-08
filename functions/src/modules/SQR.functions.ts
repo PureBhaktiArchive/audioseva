@@ -97,8 +97,8 @@ const acceptedStatuses: string[] = ['Given', 'WIP'];
  */
 export const processSubmission = functions.database
   .ref('/submissions/soundQualityReporting/{list}/{fileName}/{token}')
-  .onCreate(async (snapshot, { params: { list, fileName, token } }) => {
-    const submission = snapshot.val();
+  .onUpdate(async (change, { params: { list, fileName, token } }) => {
+    const submission = change.after.val();
 
     /// Ignore drafts
     if (!submission.completed)
@@ -153,17 +153,6 @@ export const processSubmission = functions.database
     if (currentSet.filter((allotment: any) => allotment.status === 'Given').length === 1)
       warnings.push("It's time to allot!");
 
-    const allotmentUrl = new URL(
-      '/sqr/allot',
-      functions.config().website.base_url
-    );
-    allotmentUrl.search = `emailaddress=${submission.author.emailAddress}`;
-
-    const updateUrl = new URL(
-      `/form/sound-quality-report/${fileName}/${token}/`,
-      functions.config().website.base_url
-    );
-
     // Injecting values for the email template
     submission.fileName = fileName;
 
@@ -178,8 +167,8 @@ export const processSubmission = functions.database
           currentSet,
           submission,
           warnings,
-          allotmentUrl,
-          updateUrl,
+          allotmentUrl: getAllotmentLink(submission.author.emailAddress),
+          updateUrl: getSubmissionUpdateLink(fileName, token),
         },
       });
   });
@@ -388,57 +377,62 @@ export function formatMultilineComment(
   return multiline;
 }
 
-export function createUpdateLink(token: string): string {
-  return `http://purebhakti.info/audioseva/form/sound-quality-report?token=${token}`;
+function getSubmissionUpdateLink(fileName: string, token: string): URL {
+  return new URL(
+    `/form/sound-quality-report/${fileName}/${token}/`,
+    functions.config().website.base_url
+  );
+}
+
+function getAllotmentLink(emailAddress: string): URL {
+  const url = new URL(
+    '/sqr/allot',
+    functions.config().website.base_url
+  );
+  url.searchParams.set('emailaddress', emailAddress);
+  return url;
 }
 
 /**
- * On creation of a new submission record id, update and sync data values to Google Spreadsheets
- *
+ * Saves new or updated submission into Google Spreadsheet
  */
 export const exportSubmissionsToSpreadsheet = functions.database
-  .ref('/sqr/submissions/{submission_id}')
-  .onCreate(
-    async (
-      snapshot: functions.database.DataSnapshot,
-      context: functions.EventContext
-    ): Promise<any> => {
-      const spreadsheet = await Spreadsheet.open(
-        functions.config().sqr.spreadsheet_id
-      );
-      const submissionSheet = await spreadsheet.useSheet(
-        ISoundQualityReportSheet.Submissions
-      );
-      const {
-        author,
-        changed,
-        comments,
-        completed,
-        duration,
-        fileName,
-        soundIssues,
-        soundQualityRating,
-        token,
-        unwantedParts,
-      } = snapshot.val();
+  .ref('/submissions/soundQualityReporting/{list}/{fileName}/{token}')
+  .onUpdate(async (change, { params: { fileName, token } }) => {
 
-      await submissionSheet.appendRow({
-        Completed: spreadsheetDateFormat(completed),
-        Updated: spreadsheetDateFormat(changed),
-        'Submission Serial': context.params.submission_id,
-        'Update Link': createUpdateLink(token),
-        'Audio File Name': withDefault(fileName),
-        'Unwanted Parts': formatMultilineComment(unwantedParts),
-        'Sound Issues': formatMultilineComment(soundIssues),
-        'Sound Quality Rating': withDefault(soundQualityRating),
-        Beginning: withDefault(duration.beginning),
-        Ending: withDefault(duration.ending),
-        Comments: withDefault(comments),
-        Name: withDefault(author.name),
-        'Email Address': withDefault(author.emailAddress),
-      });
-    }
-  );
+    const submission = change.after.val();
+
+    // Ignoring draft submissions
+    if (!submission.completed)
+      return;
+
+    const spreadsheet = await Spreadsheet.open(
+      functions.config().sqr.spreadsheet_id
+    );
+    const sheet = await spreadsheet.useSheet(
+      ISoundQualityReportSheet.Submissions
+    );
+
+    const row = {
+      'Completed': moment(submission.completed * 1000).format('MM/DD/YYYY'),
+      'Updated': moment(submission.changed * 1000).format('MM/DD/YYYY'),
+      'Update Link': getSubmissionUpdateLink(fileName, token),
+      'Audio File Name': fileName,
+      'Unwanted Parts': formatMultilineComment(submission.unwantedParts),
+      'Sound Issues': formatMultilineComment(submission.soundIssues),
+      'Sound Quality Rating': submission.soundQualityRating,
+      'Beginning': submission.duration.beginning,
+      'Ending': submission.duration.ending,
+      'Comments': submission.comments,
+      'Name': submission.author.name,
+      'Email Address': submission.author.emailAddress,
+    };
+
+    if (change.before.exists())
+      await sheet.updateOrAppendRow('Audio File Name', fileName, row);
+    else
+      await sheet.appendRow(row);
+  });
 
 /**
  * Gets lists with spare files
