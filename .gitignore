@@ -1,7 +1,6 @@
 .DS_Store
 node_modules
 dist
-lib
 *.local
 *.cache
 .firebaserc
@@ -26,9 +25,6 @@ yarn-error.log*
 
 .directory
 
-/functions/lib
-
 // config for local functions
-.runtimeconfig.json
 automationscripts/
 .vscode/tags

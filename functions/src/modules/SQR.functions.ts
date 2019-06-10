@@ -293,8 +293,7 @@ export const importSpreadSheetData = functions.https.onCall(
         (await sheet.getRows()).reduce((result, row) => {
           const fileName = row['File Name'];
 
-          const fileNameHasForbiddenChars = fileName.match(/[\.\[\]$#]/g);
-          if (fileNameHasForbiddenChars) {
+          if (fileName.match(/[\.\[\]$#]/g)) {
             console.warn(
               `File "${fileName}" has forbidden characters that can't be used as a node name.`
             );
@@ -302,6 +301,13 @@ export const importSpreadSheetData = functions.https.onCall(
           }
 
           const list = helpers.extractListFromFilename(fileName);
+          if (!list) {
+            console.warn(
+              `Cannot get list name from tht file name "${fileName}".`
+            );
+            return result;
+          }
+
           result[`${list}/${fileName}/soundQualityReporting`] = {
             status: row['Status'] || null,
             timestampGiven: row['Date Given']
