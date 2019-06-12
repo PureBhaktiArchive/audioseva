@@ -92,7 +92,12 @@ export const processAllotment = functions.https.onCall(
  */
 export const processSubmission = functions.database
   .ref('/submissions/soundQualityReporting/{list}/{fileName}/{token}')
-  .onUpdate(async (change, { params: { list, fileName, token } }) => {
+  .onUpdate(async (change, { authType, params: { list, fileName, token } }) => {
+
+    // Ignore admin changes, only user submissions are processed
+    if (authType === 'ADMIN')
+      return;
+
     // Ignore deletions
     if (!change.after.exists())
       return;
@@ -121,6 +126,10 @@ export const processSubmission = functions.database
     });
 
     const currentAllotment = fileSnapshot.val().soundQualityReporting;
+
+    await change.after.ref.update({
+      author: currentAllotment.assignee,
+    });
 
     // * Update the spreadsheet
 
@@ -239,11 +248,11 @@ const parseAudioChunkRemark = string => {
 /////////////////////////////////////////////////
 export const importSpreadSheetData = functions.https.onCall(
   async (data, context) => {
-    if (
+    if (!functions.config().emulator && (
       !context.auth ||
       !context.auth.token ||
       !context.auth.token.coordinator
-    ) {
+    )) {
       throw new functions.https.HttpsError(
         'permission-denied',
         'The function must be called by an authenticated coordinator.'
@@ -251,21 +260,23 @@ export const importSpreadSheetData = functions.https.onCall(
     }
 
     const spreadsheet = await Spreadsheet.open(functions.config().sqr.spreadsheet_id);
-    importSubmissions();
-    importAllotments();
+    await Promise.all([
+      importSubmissions(),
+      importAllotments()
+    ])
 
     ////////////////////////
     //     Submissions
     ////////////////////////
     async function importSubmissions() {
       const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
-      await admin.database().ref('/submissions/soundQualityReporting').update(
-        (await sheet.getRows()).reduce((result, row) => {
+      const updates = {};
+      (await sheet.getRows()).forEach((row) => {
           const fileName = row['Audio File Name'];
           const list = helpers.extractListFromFilename(fileName);
           const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
-          result[`${list}/${fileName}/${token}`] = {
+        updates[`${list}/${fileName}/${token}`] = {
             completed: helpers.convertFromSerialDate(row['Completed'], spreadsheet.timeZone).toMillis(),
             created: helpers.convertFromSerialDate(row['Completed'], spreadsheet.timeZone).toMillis(),
             changed: helpers.convertFromSerialDate(row['Updated'], spreadsheet.timeZone).toMillis(),
@@ -273,15 +284,18 @@ export const importSpreadSheetData = functions.https.onCall(
             soundIssues: parseAudioChunkRemark(row['Sound Issues']),
             soundQualityRating: row['Sound Quality Rating'],
             unwantedParts: parseAudioChunkRemark(row['Unwanted Parts']),
-            duration: {
+          duration: { //TODO: sanitze duration
               beginning: row['Beginning'],
               ending: row['Ending'],
             },
+          author: {
+            emailAddress: row['Email Address'],
+            name: row['Name'],
+          },
             imported: true,
           };
-          return result;
-        }, {})
-      );
+      });
+      await admin.database().ref('/submissions/soundQualityReporting').update(updates);
     }
 
     ////////////////////////
@@ -289,15 +303,15 @@ export const importSpreadSheetData = functions.https.onCall(
     ////////////////////////
     async function importAllotments() {
       const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Allotments);
-      await admin.database().ref('/original').update(
-        (await sheet.getRows()).reduce((result, row) => {
+      const updates = {};
+      (await sheet.getRows()).forEach((row) => {
           const fileName = row['File Name'];
 
           if (fileName.match(/[\.\[\]$#]/g)) {
             console.warn(
               `File "${fileName}" has forbidden characters that can't be used as a node name.`
             );
-            return result;
+          return;
           }
 
           const list = helpers.extractListFromFilename(fileName);
@@ -305,11 +319,11 @@ export const importSpreadSheetData = functions.https.onCall(
             console.warn(
               `Cannot get list name from tht file name "${fileName}".`
             );
-            return result;
+          return;
           }
 
-          result[`${list}/${fileName}/soundQualityReporting`] = {
-            status: row['Status'] || null,
+        updates[`${list}/${fileName}/soundQualityReporting`] = {
+          status: row['Status'] || 'Spare',
             timestampGiven: row['Date Given']
               ? helpers.convertFromSerialDate(row['Date Given'], spreadsheet.timeZone).toMillis()
               : null,
@@ -317,15 +331,16 @@ export const importSpreadSheetData = functions.https.onCall(
               ? helpers.convertFromSerialDate(row['Date Done'], spreadsheet.timeZone).toMillis()
               : null,
             assignee: {
-              emailAddress: row['Email'] || null,
-              name: row['Devotee'] || null,
+            emailAddress: row['Email'],
+            name: row['Devotee'],
             },
-            notes: row['Notes'] || null
+          notes: row['Notes']
           };
+      });
 
-          return result;
-        }, {})
-      );
+      await admin.database().ref('/original').update(updates, error => {
+        console.log("Result of Allotments update: ", error);
+      });
     }
   });
 
