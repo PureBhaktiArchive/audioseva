@@ -55,7 +55,7 @@ $ firebase functions:config:set storage.root-domain="Base URL for storage bucket
 
 # Coordinator information
 $ firebase functions:config:set coordinator.email_address='EMAIL'
-$ firebase functions:config:set coordinator.utc_offset=NUMBER of HOURs
+$ firebase functions:config:set coordinator.timezone='Asia/Calcutta'
 #Importing a spreadsheet to the database variables
 $ firebase functions:config:set sqr.spreadsheetId='Google Spreadsheet ID'
 # Import user registration to database

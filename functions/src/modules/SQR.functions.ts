@@ -3,7 +3,7 @@
  */
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { URL } from 'url';
 import { Spreadsheet } from '../classes/GoogleSheets';
 import * as helpers from './../helpers';
@@ -56,7 +56,7 @@ export const processAllotment = functions.https.onCall(
         }
         const rowNumber = index + 1;
         const row = await sheet.getRow(rowNumber);
-        row['Date Given'] = moment().format('MM/DD/YYYY');
+        row['Date Given'] = helpers.convertToSerialDate(DateTime.local());
         row['Status'] = 'Given';
         row['Devotee'] = assignee.name;
         row['Email'] = assignee.emailAddress;
@@ -79,9 +79,7 @@ export const processAllotment = functions.https.onCall(
           files,
           assignee,
           comment,
-          date: moment()
-            .utcOffset(coordinator.utc_offset)
-            .format('DD.MM'),
+          date: DateTime.local().toFormat('dd.MM'),
           repeated: emailColumn.indexOf(assignee.emailAddress) > 0,
         },
       });
@@ -130,8 +128,8 @@ export const processSubmission = functions.database
     const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
 
     const row = {
-      'Completed': moment(submission.completed * 1000).format('MM/DD/YYYY'),
-      'Updated': moment(submission.changed * 1000).format('MM/DD/YYYY'),
+      'Completed': helpers.convertToSerialDate(DateTime.fromMillis(submission.completed)),
+      'Updated': helpers.convertToSerialDate(DateTime.fromMillis(submission.changed)),
       'Update Link': getSubmissionUpdateLink(fileName, token),
       'Audio File Name': fileName,
       'Unwanted Parts': formatMultilineComment(submission.unwantedParts),
@@ -163,11 +161,13 @@ export const processSubmission = functions.database
         const value = child.val();
         currentSet.push({
           fileName: child.key,
-          dateGiven: moment(value.soundQualityReporting.timestampGiven).format('M/D/YYYY'),
+          dateGiven: DateTime.fromMillis(value.soundQualityReporting.timestampGiven)
+            .toLocaleString(DateTime.DATE_SHORT),
           status: value.soundQualityReporting.status,
-          daysPassed: moment().diff(value.soundQualityReporting.timestampGiven, 'days'),
+          daysPassed: DateTime.fromMillis(value.soundQualityReporting.timestampGiven).diffNow('days').days,
           languages: value.languages,
         });
+        return false;
       });
 
     const warnings = [];
@@ -266,9 +266,9 @@ export const importSpreadSheetData = functions.https.onCall(
           const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
           result[`${list}/${fileName}/${token}`] = {
-            completed: row['Completed'] || null,
-            created: row['Completed'] || null,
-            changed: row['Updated'] || null,
+            completed: helpers.convertFromSerialDate(row['Completed'], spreadsheet.timeZone).toMillis(),
+            created: helpers.convertFromSerialDate(row['Completed'], spreadsheet.timeZone).toMillis(),
+            changed: helpers.convertFromSerialDate(row['Updated'], spreadsheet.timeZone).toMillis(),
             comments: row['Comments'],
             soundIssues: parseAudioChunkRemark(row['Sound Issues']),
             soundQualityRating: row['Sound Quality Rating'],
@@ -311,10 +311,10 @@ export const importSpreadSheetData = functions.https.onCall(
           result[`${list}/${fileName}/soundQualityReporting`] = {
             status: row['Status'] || null,
             timestampGiven: row['Date Given']
-              ? new Date(row['Date Given']).getTime() / 1000
+              ? helpers.convertFromSerialDate(row['Date Given'], spreadsheet.timeZone).toMillis()
               : null,
             timestampDone: row['Date Done']
-              ? new Date(row['Date Done']).getTime() / 1000
+              ? helpers.convertFromSerialDate(row['Date Done'], spreadsheet.timeZone).toMillis()
               : null,
             assignee: {
               emailAddress: row['Email'] || null,

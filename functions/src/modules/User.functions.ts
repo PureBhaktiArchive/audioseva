@@ -3,9 +3,8 @@
  */
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import * as moment from 'moment';
 import { Spreadsheet } from '../classes/GoogleSheets';
-import { withDefault } from '../utils/parsers';
+import { convertFromSerialDate } from '../helpers';
 
 const db = admin.database();
 const userRoles = functions.database.ref('/users/{userId}/roles');
@@ -67,9 +66,9 @@ export const importUserRegistrationData = functions.https.onCall(
 
     const readyForDatabaseUpdate = registrationRows.map((row: any) => {
       return {
-        notes: withDefault(row[RegistrationColumns.Details]),
+        notes: row[RegistrationColumns.Details],
         status: row[RegistrationColumns.Status],
-        timestamp: moment(row[RegistrationColumns.Timestamp]).unix(),
+        timestamp: convertFromSerialDate(row[RegistrationColumns.Timestamp], spreadsheet.timeZone).toMillis(),
         name: row[RegistrationColumns.Name],
         location: row[RegistrationColumns.Country],
         emailAddress: row[RegistrationColumns.EmailAddress],

@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import * as path from 'path';
 import * as helpers from './../helpers';
 
@@ -56,7 +56,7 @@ export const processAllotment = functions.https.onCall(
         await taskRef.update({
           status: 'Given',
           assignee: assignee,
-          givenTimestamp: moment().format(),
+          givenTimestamp: admin.database.ServerValue.TIMESTAMP,
         });
 
         // Getting the tasks list to be used when notifying the assignee
@@ -88,9 +88,7 @@ export const processAllotment = functions.https.onCall(
           tasks: tasksForEmail,
           assignee: assignee,
           comment: comment,
-          date: moment()
-            .utcOffset(coordinator.utc_offset)
-            .format('DD.MM'),
+          date: DateTime.local().toFormat('dd.MM'),
           uploadURL: `${functions.config().website.base_url}/te/upload/`,
         },
       });
@@ -127,7 +125,7 @@ export const processSubmission = functions.storage
       await taskRef.update({
         uploadPath: object.name,
         status: 'Submitted',
-        submissionTimestamp: moment().format(),
+        submissionTimestamp: admin.database.ServerValue.TIMESTAMP,
       });
     }
 
@@ -160,7 +158,7 @@ export const processFeedback = functions.database
 
       await taskRef.update({
         status: 'Revise',
-        feedbackTimestamp: moment().format(),
+        feedbackTimestamp: admin.database.ServerValue.TIMESTAMP,
       });
 
       const task = (await taskRef.once('value')).val();
@@ -198,7 +196,7 @@ export const processApproval = functions.database
 
       await taskRef.update({
         status: 'Done',
-        doneTimestamp: moment().format(),
+        doneTimestamp: admin.database.ServerValue.TIMESTAMP,
       });
 
       const task = (await taskRef.once('value')).val();

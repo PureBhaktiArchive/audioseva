@@ -22,13 +22,15 @@
     "glob": "^7.1.4",
     "googleapis": "^40.0.0",
     "lodash": "^4.17.11",
-    "moment": "^2.24.0",
+    "luxon": "^1.16.0",
     "sib-api-v3-sdk": "^7.1.4",
     "uniqid": "^5.0.3"
   },
   "devDependencies": {
     "@types/glob": "^7.1.1",
     "@types/jest": "^24.0.13",
+    "@types/lodash": "^4.14.134",
+    "@types/luxon": "^1.15.1",
     "firebase-functions-test": "^0.1.6",
     "jest": "^24.8.0",
     "prettier": "^1.18.2",
