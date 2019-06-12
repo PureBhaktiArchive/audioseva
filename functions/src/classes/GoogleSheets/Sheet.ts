@@ -104,6 +104,21 @@ export class Sheet {
   }
 
   /**
+   * Gets values using Google Sheets API
+   * @param range range to get values for
+   * @param majorDimension Columns or Rows
+   */
+  protected getValues(range: string, majorDimension: 'COLUMNS' | 'ROWS' = 'ROWS') {
+    return this.api.spreadsheets.values.get({
+      spreadsheetId: this.spreadsheetId,
+      majorDimension,
+      dateTimeRenderOption: 'SERIAL_NUMBER',
+      valueRenderOption: 'UNFORMATTED_VALUE',
+      range,
+    });
+  }
+
+  /**
    * Gets all the rows on the sheet.
    */
   public async getRows<T extends object>(): Promise<T[]> {
@@ -116,10 +131,7 @@ export class Sheet {
 
       const lastRowNumber = Math.min(firstRowNumber + 1000, this.rowCount);
 
-      const response = await this.api.spreadsheets.values.get({
-        spreadsheetId: this.spreadsheetId,
-        range: this.rowsToA1Notation(firstRowNumber, lastRowNumber),
-      });
+      const response = await this.getValues(this.rowsToA1Notation(firstRowNumber, lastRowNumber));
 
       const { statusText, status, data } = response;
       if (statusText !== 'OK' || status !== 200) {
@@ -184,11 +196,7 @@ export class Sheet {
     if (this.headers && this.headers.length)
       return;
 
-    const response = await this.api.spreadsheets.values.get({
-      spreadsheetId: this.spreadsheetId,
-      majorDimension: IMajorDimensions.Rows,
-      range: this.rowToA1Notation(1),
-    });
+    const response = await this.getValues(this.rowToA1Notation(1));
 
     const { statusText, status, data } = response;
     if (statusText !== 'OK' || status !== 200) {
@@ -205,16 +213,9 @@ export class Sheet {
   public async getColumn(columnName: string): Promise<any[]> {
     const columnLetter = this.getColumnLetter(columnName);
 
-    const response = await this.api.spreadsheets.values.get({
-      spreadsheetId: this.spreadsheetId,
-      majorDimension: IMajorDimensions.Columns,
-      range: this.toA1Notation(
-        columnLetter,
-        this.fromDataRowNumber(1),
-        columnLetter,
-        null
-      ),
-    });
+    const response = await this.getValues(
+      this.toA1Notation(columnLetter, this.fromDataRowNumber(1), columnLetter, null),
+      'COLUMNS');
 
     return response.data.values[0];
   }
@@ -237,11 +238,7 @@ export class Sheet {
   public async getRow<T extends object>(dataRowNumber: number): Promise<T> {
     await this.fetchHeaders();
 
-    const response: any = await this.api.spreadsheets.values.get({
-      spreadsheetId: this.spreadsheetId,
-      majorDimension: IMajorDimensions.Rows,
-      range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
-    });
+    const response = await this.getValues(this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)));
     return this.decodeRow(response.data.values[0]);
   }
 

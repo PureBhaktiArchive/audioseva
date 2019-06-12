@@ -1,10 +1,10 @@
-import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-
+import * as functions from 'firebase-functions';
+import { DateTime } from 'luxon';
 import uniqid from 'uniqid';
-import * as moment from 'moment';
-
 import { taskIdRegex } from '../helpers';
+
+
 
 const db = admin.database();
 
@@ -82,12 +82,10 @@ export const processAllotment = functions.https.onCall(
         tasks,
         assignee: allotment.assignee,
         comment: allotment.comment,
-        date: moment()
-          .utcOffset(coordinator.utc_offset)
-          .format('DD.MM'),
+        date: DateTime.local().toFormat('dd.MM'),
         uploadURL: `${
           functions.config().website.base_url
-        }/sound-editing/upload/${uploadCode}`,
+          }/sound-editing/upload/${uploadCode}`,
         repeated: true,
       },
     });
