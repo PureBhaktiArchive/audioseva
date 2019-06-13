@@ -45,7 +45,7 @@ export const processAllotment = functions.https.onCall(
     let { uploadCode } = user;
     if (!uploadCode) {
       uploadCode = uniqid();
-      userRef.ref.child('uploadCode').set({ uploadCode });
+      await userRef.ref.child('uploadCode').set({ uploadCode });
     }
 
     // 2. Update the task
@@ -256,7 +256,7 @@ export const processUploadedFile = functions.storage
         );
 
       // Move current file (after passing all validity checks) into `Restored` bucket
-      uploadsBucket.file(object.name).move(
+      await uploadsBucket.file(object.name).move(
         admin
           .storage()
           .bucket(`restored${stoargeBaseDomain}`)
