@@ -94,17 +94,19 @@ export const importUserRegistrationData = functions.https.onCall(
       };
     });
 
-    await readyForDatabaseUpdate.forEach(async (spreadsheetRecord: any) => {
-      const usersRef = db.ref('/users');
-      const snapshot = await usersRef
-        .orderByChild('emailAddress')
-        .equalTo(spreadsheetRecord['emailAddress'])
-        .once('value');
-      if (snapshot.exists() === false) {
-        // No such email exist, create new record
-        await usersRef.push(spreadsheetRecord);
-      }
-    });
+    await Promise.all(readyForDatabaseUpdate.map(
+      async (spreadsheetRecord: any) => {
+        const usersRef = db.ref('/users');
+        const snapshot = await usersRef
+          .orderByChild('emailAddress')
+          .equalTo(spreadsheetRecord['emailAddress'])
+          .once('value');
+        if (snapshot.exists() === false) {
+          // No such email exist, create new record
+          await usersRef.push(spreadsheetRecord);
+        }
+      })
+    );
   }
 );
 
