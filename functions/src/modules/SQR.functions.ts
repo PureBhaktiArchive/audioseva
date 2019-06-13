@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { URL } from 'url';
-import { Spreadsheet } from '../classes/GoogleSheets';
+import { RowUpdateMode, Spreadsheet } from '../classes/GoogleSheets';
 import * as helpers from './../helpers';
 
 export enum ISoundQualityReportSheet {
@@ -35,6 +35,18 @@ export const processAllotment = functions.https.onCall(
         'Devotee and Files are required.'
       );
 
+    // Update the allotments in the database
+    const updates = {};
+    files.forEach(async ({ file: { filename: fileName } }) => {
+      const list = helpers.extractListFromFilename(fileName);
+      const pathPrefix = `${list}/${fileName}/soundQualityReporting`;
+      updates[`${pathPrefix}/status`] = 'Given';
+      updates[`${pathPrefix}/timestampGiven`] = admin.database.ServerValue.TIMESTAMP;
+      updates[`${pathPrefix}/assignee`] = assignee;
+    });
+
+    await admin.database().ref(`/original`).update(updates);
+
     const spreadsheet = await Spreadsheet.open(
       functions.config().sqr.spreadsheet_id
     );
@@ -44,23 +56,24 @@ export const processAllotment = functions.https.onCall(
     const fileNameColumn = await sheet.getColumn('File Name');
     const emailColumn = await sheet.getColumn('Email');
 
-    /// Update files in the Allotments sheet, in parallel
+    // Update the allotment in the spreadsheet
     await Promise.all(
-      files.map(async file => {
-        const index = fileNameColumn.indexOf(file.filename);
+      files.map(async ({ file: { filename: fileName } }) => {
+        const index = fileNameColumn.indexOf(fileName);
         if (index < 0) {
           console.warn(
-            `File ${file.filename} is not found in the SQR allotments.`
+            `File ${fileName} is not found in the SQR allotments.`
           );
           return;
         }
         const rowNumber = index + 1;
-        const row = await sheet.getRow(rowNumber);
-        row['Date Given'] = helpers.convertToSerialDate(DateTime.local());
-        row['Status'] = 'Given';
-        row['Devotee'] = assignee.name;
-        row['Email'] = assignee.emailAddress;
-        await sheet.updateRow(rowNumber, row);
+        const row = {
+          'Date Given': helpers.convertToSerialDate(DateTime.local()),
+          'Status': 'Given',
+          'Devotee': assignee.name,
+          'Email': assignee.emailAddress,
+        };
+        await sheet.updateRow(rowNumber, row, RowUpdateMode.Partial);
       })
     );
 
@@ -272,28 +285,28 @@ export const importSpreadSheetData = functions.https.onCall(
       const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
       const updates = {};
       (await sheet.getRows()).forEach((row) => {
-          const fileName = row['Audio File Name'];
-          const list = helpers.extractListFromFilename(fileName);
-          const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
+        const fileName = row['Audio File Name'];
+        const list = helpers.extractListFromFilename(fileName);
+        const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
         updates[`${list}/${fileName}/${token}`] = {
-            completed: helpers.convertFromSerialDate(row['Completed'], spreadsheet.timeZone).toMillis(),
-            created: helpers.convertFromSerialDate(row['Completed'], spreadsheet.timeZone).toMillis(),
-            changed: helpers.convertFromSerialDate(row['Updated'], spreadsheet.timeZone).toMillis(),
-            comments: row['Comments'],
-            soundIssues: parseAudioChunkRemark(row['Sound Issues']),
-            soundQualityRating: row['Sound Quality Rating'],
-            unwantedParts: parseAudioChunkRemark(row['Unwanted Parts']),
+          completed: helpers.convertFromSerialDate(row['Completed'], spreadsheet.timeZone).toMillis(),
+          created: helpers.convertFromSerialDate(row['Completed'], spreadsheet.timeZone).toMillis(),
+          changed: helpers.convertFromSerialDate(row['Updated'], spreadsheet.timeZone).toMillis(),
+          comments: row['Comments'],
+          soundIssues: parseAudioChunkRemark(row['Sound Issues']),
+          soundQualityRating: row['Sound Quality Rating'],
+          unwantedParts: parseAudioChunkRemark(row['Unwanted Parts']),
           duration: { //TODO: sanitze duration
-              beginning: row['Beginning'],
-              ending: row['Ending'],
-            },
+            beginning: row['Beginning'],
+            ending: row['Ending'],
+          },
           author: {
             emailAddress: row['Email Address'],
             name: row['Name'],
           },
-            imported: true,
-          };
+          imported: true,
+        };
       });
       await admin.database().ref('/submissions/soundQualityReporting').update(updates);
     }
@@ -305,37 +318,37 @@ export const importSpreadSheetData = functions.https.onCall(
       const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Allotments);
       const updates = {};
       (await sheet.getRows()).forEach((row) => {
-          const fileName = row['File Name'];
+        const fileName = row['File Name'];
 
-          if (fileName.match(/[\.\[\]$#]/g)) {
-            console.warn(
-              `File "${fileName}" has forbidden characters that can't be used as a node name.`
-            );
+        if (fileName.match(/[\.\[\]$#]/g)) {
+          console.warn(
+            `File "${fileName}" has forbidden characters that can't be used as a node name.`
+          );
           return;
-          }
+        }
 
-          const list = helpers.extractListFromFilename(fileName);
-          if (!list) {
-            console.warn(
-              `Cannot get list name from tht file name "${fileName}".`
-            );
+        const list = helpers.extractListFromFilename(fileName);
+        if (!list) {
+          console.warn(
+            `Cannot get list name from tht file name "${fileName}".`
+          );
           return;
-          }
+        }
 
         updates[`${list}/${fileName}/soundQualityReporting`] = {
           status: row['Status'] || 'Spare',
-            timestampGiven: row['Date Given']
-              ? helpers.convertFromSerialDate(row['Date Given'], spreadsheet.timeZone).toMillis()
-              : null,
-            timestampDone: row['Date Done']
-              ? helpers.convertFromSerialDate(row['Date Done'], spreadsheet.timeZone).toMillis()
-              : null,
-            assignee: {
+          timestampGiven: row['Date Given']
+            ? helpers.convertFromSerialDate(row['Date Given'], spreadsheet.timeZone).toMillis()
+            : null,
+          timestampDone: row['Date Done']
+            ? helpers.convertFromSerialDate(row['Date Done'], spreadsheet.timeZone).toMillis()
+            : null,
+          assignee: {
             emailAddress: row['Email'],
             name: row['Devotee'],
-            },
+          },
           notes: row['Notes']
-          };
+        };
       });
 
       await admin.database().ref('/original').update(updates, error => {
