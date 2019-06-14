@@ -53,29 +53,7 @@ export const processAllotment = functions.https.onCall(
     const sheet = await spreadsheet.useSheet(
       ISoundQualityReportSheet.Allotments
     );
-    const fileNameColumn = await sheet.getColumn('File Name');
     const emailColumn = await sheet.getColumn('Email');
-
-    // Update the allotment in the spreadsheet
-    await Promise.all(
-      files.map(async ({ file: { filename: fileName } }) => {
-        const index = fileNameColumn.indexOf(fileName);
-        if (index < 0) {
-          console.warn(
-            `File ${fileName} is not found in the SQR allotments.`
-          );
-          return;
-        }
-        const rowNumber = index + 1;
-        const row = {
-          'Date Given': helpers.convertToSerialDate(DateTime.local()),
-          'Status': 'Given',
-          'Devotee': assignee.name,
-          'Email': assignee.emailAddress,
-        };
-        await sheet.updateRow(rowNumber, row, RowUpdateMode.Partial);
-      })
-    );
 
     /// Send the allotment email
     const coordinator = functions.config().coordinator;
@@ -356,6 +334,42 @@ export const importSpreadSheetData = functions.https.onCall(
       });
     }
   });
+
+/**
+ * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
+ *
+ */
+export const exportAllotmentToSpreadsheet = functions.database
+  .ref('/original/{listName}/{fileName}/soundQualityReporting')
+  .onUpdate(
+    async (change, { params: { fileName } }) => {
+      const changedValues = change.after.val();
+
+      const spreadsheet = await Spreadsheet.open(
+        functions.config().sqr.spreadsheet_id
+      );
+      const sheet = await spreadsheet.useSheet(
+        ISoundQualityReportSheet.Allotments
+      );
+
+      const rowNumber = await sheet.findRowNumber('File Name', fileName);
+      if (!rowNumber) {
+        console.warn(
+          `File ${fileName} is not found in the SQR allotments sheet.`
+        );
+        return;
+      }
+
+      const row = {
+        'Date Given': helpers.convertToSerialDate(changedValues.timestampGiven),
+        'Status': changedValues.status,
+        'Devotee': changedValues.assignee.name,
+        'Email': changedValues.assignee.emailAddress,
+        'Date Done': helpers.convertToSerialDate(changedValues.timestampDone),
+      }
+      await sheet.updateRow(rowNumber, row, RowUpdateMode.Partial);
+    }
+  );
 
 interface IAudioChunkDescription {
   beginning: string; // h:mm:ss
