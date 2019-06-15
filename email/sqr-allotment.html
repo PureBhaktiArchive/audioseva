@@ -9,32 +9,19 @@
     >.
   </p>
   <p>The following lectures comprise the current set allotted to you:</p>
-
   <ul>
     {% for file in params.files %}
     <li>
-      <strong>{{ file.filename }}</strong> &#8194;
-      <a
-        href="http://purebhakti.info/audioseva/listen/{{
-          file.filename | urlencode
-        }}?seva=sqr"
-        >Listen</a
-      >
+      <strong>{{ file.name }}</strong> &#8194;
+      <a href="{{ file.links.listen }}">Listen</a>
       &#8194;|&#8194;
-      <a
-        href="http://purebhakti.info/audioseva/form/sound-quality-report?audio_file_name={{
-          file.filename | urlencode
-        }}&name={{ params.assignee.name | urlencode }}&email_address={{
-          params.assignee.emailAddress | urlencode
-        }}"
+      <a href="{{ file.links.submission }}"
         >Submit using Online Submission Form</a
       >
     </li>
     {% endfor %}
   </ul>
-
   <p>{{ params.comment }}</p>
-
   <p>
     <strong
       >Please submit the details using the online submission form, which is
@@ -47,12 +34,7 @@
   </p>
   <p style="color:red; font-weight:bold;">
     You can track your submissions by clicking
-    <a
-      href="https://hook.integromat.com/swlpnplbb3dilsmdxyc7vixjvenvh65a?email_address={{
-        params.assignee.emailAddress | urlencode
-      }}"
-      >here</a
-    >
+    <a href="{{ params.links.selfTracking }}">here</a>
   </p>
   <p>Please feel free to clarify any doubts with us.</p>
   <p>Join us on Facebook - https://www.facebook.com/audiosevateam/</p>

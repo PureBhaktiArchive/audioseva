@@ -7,6 +7,34 @@ import { DateTime } from 'luxon';
 import { URL } from 'url';
 import { RowUpdateMode, Spreadsheet } from '../classes/GoogleSheets';
 import * as helpers from './../helpers';
+import uniqid = require('uniqid');
+
+class SQR {
+  static createSubmissionLink(fileName: string, token: string): URL {
+    return new URL(
+      `/form/sound-quality-report/${fileName}/${token}/`,
+      functions.config().website.base_url
+    );
+  }
+
+  static createListenLink(fileName: string): URL {
+    const url = new URL(`/listen/${encodeURIComponent(fileName)}/`, functions.config().website.old.base_url);
+    url.searchParams.set('seva', 'sqr');
+    return url;
+  }
+
+  static createAllotmentLink(emailAddress: string): URL {
+    const url = new URL('/sqr/allot', functions.config().website.base_url);
+    url.searchParams.set('emailaddress', emailAddress);
+    return url;
+  }
+
+  static createSelfTrackingLink(emailAddress: string): URL {
+    const url = new URL('https://hook.integromat.com/swlpnplbb3dilsmdxyc7vixjvenvh65a');
+    url.searchParams.set('email_address', emailAddress);
+    return url;
+  }
+}
 
 export enum ISoundQualityReportSheet {
   Allotments = 'Allotments',
@@ -37,12 +65,18 @@ export const processAllotment = functions.https.onCall(
 
     // Update the allotments in the database
     const updates = {};
-    files.forEach(async ({ file: { filename: fileName } }) => {
+    const tokens = new Map<string, string>();
+
+    files.forEach(async ({ filename: fileName }) => {
+      tokens.set(fileName, uniqid());
+
       const list = helpers.extractListFromFilename(fileName);
       const pathPrefix = `${list}/${fileName}/soundQualityReporting`;
       updates[`${pathPrefix}/status`] = 'Given';
-      updates[`${pathPrefix}/timestampGiven`] = admin.database.ServerValue.TIMESTAMP;
+      updates[`${pathPrefix}/timestampGiven`] =
+        admin.database.ServerValue.TIMESTAMP;
       updates[`${pathPrefix}/assignee`] = assignee;
+      updates[`${pathPrefix}/token`] = tokens.get(fileName);
     });
 
     await admin
@@ -70,11 +104,20 @@ export const processAllotment = functions.https.onCall(
         bcc: coordinator.email_address,
         replyTo: coordinator.email_address,
         params: {
-          files,
+          files: files.map(({ filename: fileName }) => ({
+            name: fileName,
+            links: {
+              listen: SQR.createListenLink(fileName),
+              submission: SQR.createSubmissionLink(fileName, tokens.get(fileName)),
+            }
+          })),
           assignee,
           comment,
           date: DateTime.local().toFormat('dd.MM'),
           repeated: emailColumn.indexOf(assignee.emailAddress) > 0,
+          links: {
+            selfTracking: SQR.createSelfTrackingLink(assignee.emailAddress),
+        },
         },
       });
   }
@@ -209,8 +252,8 @@ export const processSubmission = functions.database
           currentSet,
           submission: { fileName, ...submission },
           warnings,
-          allotmentUrl: getAllotmentLink(submission.author.emailAddress),
-          updateUrl: getSubmissionUpdateLink(fileName, token),
+          allotmentUrl: SQR.createAllotmentLink(submission.author.emailAddress),
+          updateUrl: SQR.createSubmissionLink(fileName, token),
         },
       });
   });
@@ -429,22 +472,6 @@ export function formatMultilineComment(
   return multiline;
 }
 
-function getSubmissionUpdateLink(fileName: string, token: string): URL {
-  return new URL(
-    `/form/sound-quality-report/${fileName}/${token}/`,
-    functions.config().website.base_url
-  );
-}
-
-function getAllotmentLink(emailAddress: string): URL {
-  const url = new URL(
-    '/sqr/allot',
-    functions.config().website.base_url
-  );
-  url.searchParams.set('emailaddress', emailAddress);
-  return url;
-}
-
 /**
  * Gets lists with spare files
  */
@@ -520,18 +547,23 @@ export const getSpareFiles = functions.https.onCall(
 
 export const cancelAllotment = functions.https.onCall(
   async ({ fileName, comments, token, reason }) => {
-    const listId = helpers.extractListFromFilename(fileName);
-    const file = await admin.database().ref(
-      `original/${listId}/${fileName}`
-    ).orderByChild("token").equalTo(token).once("value");
-    const originalFile = file.val();
-    if (!originalFile) {
-      throw new functions.https.HttpsError("invalid-argument", "Invalid token")
+    const list = helpers.extractListFromFilename(fileName);
+    const snapshot = await admin
+      .database()
+      .ref(`original/${list}/${fileName}`)
+      .orderByChild('token')
+      .equalTo(token)
+      .once('value');
+    if (!snapshot.exists()) {
+      throw new functions.https.HttpsError('invalid-argument', 'Invalid token');
     }
-    return file.ref.update({
-      "soundQualityReporting/status": reason === "unable to play" ? "Audio Problem" : "",
-      "soundQualityReporting/timestampGiven": null,
-      "soundQualityReporting/notes": `${originalFile.soundQualityReporting.notes}\n ${comments}`
-    })
+    return snapshot.ref.update({
+      soundQualityReporting: {
+        status: reason === 'unable to play' ? 'Audio Problem' : 'Spare'
+      },
+      timestampGiven: null,
+      token: null,
+      notes: `${snapshot.val().soundQualityReporting.notes}\n${comments}`,
+    });
   }
 );
