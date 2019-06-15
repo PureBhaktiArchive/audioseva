@@ -1,11 +1,11 @@
 {
   "database": {
-    "rules": "rules.bolt"
+    "rules": "database.rules.bolt"
   },
   "storage": [
     {
       "target": "uploads",
-      "rules": "./functions/storage.uploads.rules"
+      "rules": "storage.uploads.rules"
     }
   ],
   "hosting": {
