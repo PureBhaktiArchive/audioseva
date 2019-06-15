@@ -77,7 +77,7 @@
               </v-expansion-panel>
             </v-flex>
             <v-btn type="submit" color="success">Submit</v-btn>
-            <v-btn v-if="!form.complete" @click="submitDraft" color="secondary">Save draft</v-btn>
+            <v-btn v-if="!form.completed" @click="submitDraft" color="secondary">Save draft</v-btn>
           </template>
         </v-layout>
       </v-container>
