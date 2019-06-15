@@ -2,12 +2,15 @@
   "[yaml]": {
     "editor.formatOnSave": true
   },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.associations": {
+    "tslint.json": "jsonc"
+  },
   "editor.detectIndentation": false,
   "editor.insertSpaces": true,
   "editor.formatOnSave": true,
-  "html.format.enable": true,
-  "html.format.indentHandlebars": true,
-  "html.format.maxPreserveNewLines": 0,
   "editor.tabSize": 2,
   "editor.quickSuggestions": {
     "other": true,
@@ -16,6 +19,7 @@
   },
   "editor.codeActionsOnSave": {
     "source.fixAll": true,
+    "source.fixAll.tslint": true,
     "source.organizeImports": true
   },
   "eslint.validate": [
@@ -26,11 +30,24 @@
       "autoFix": true
     }
   ],
+  "html.format.enable": true,
+  "html.format.indentHandlebars": true,
+  "html.format.maxPreserveNewLines": 0,
+  "html.format.wrapAttributes": "aligned-multiple",
+
   "vetur.format.defaultFormatter.html": "prettyhtml",
   "prettier.eslintIntegration": true,
-  "html.format.wrapAttributes": "aligned-multiple",
+  "prettier.tslintIntegration": true,
   "git.ignoreLimitWarning": true,
 
-  "tslint.run": "onSave",
-  "tslint.alwaysShowStatus": true
+  "tslint.alwaysShowRuleFailuresAsWarnings": true,
+  "tslint.suppressWhileTypeErrorsPresent": true,
+
+  "fileHeaderComment.template": {
+    "*": [
+      "${commentbegin}",
+      "${commentprefix} sri sri guru gauranga jayatah",
+      "${commentend}"
+    ]
+  }
 }
