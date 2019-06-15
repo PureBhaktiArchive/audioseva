@@ -48,8 +48,6 @@ The main credentials, **databaseURL** & the **storageBucket** are automatically 
 $ firebase functions:config:set website.base_url="Base url of the website"
 $ firebase functions:config:set website.old.base_url="Base url of the old website"
 $ firebase functions:config:set send_in_blue.key="sendInBlue secret Key"
-# SQR
-$ firebase functions:config:set sqr.allotment.templateid='String | template name'
 # Sound editing storage
 $ firebase functions:config:set storage.root-domain="Base URL for storage buckets"
 
