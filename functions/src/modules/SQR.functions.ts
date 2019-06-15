@@ -45,7 +45,10 @@ export const processAllotment = functions.https.onCall(
       updates[`${pathPrefix}/assignee`] = assignee;
     });
 
-    await admin.database().ref(`/original`).update(updates);
+    await admin
+      .database()
+      .ref(`/original`)
+      .update(updates);
 
     const spreadsheet = await Spreadsheet.open(
       functions.config().sqr.spreadsheet_id
@@ -84,36 +87,32 @@ export const processAllotment = functions.https.onCall(
 export const processSubmission = functions.database
   .ref('/submissions/soundQualityReporting/{list}/{fileName}/{token}')
   .onUpdate(async (change, { authType, params: { list, fileName, token } }) => {
-
     // Ignore admin changes, only user submissions are processed
-    if (authType === 'ADMIN')
-      return;
+    if (authType === 'ADMIN') return;
 
     // Ignore deletions
-    if (!change.after.exists())
-      return;
+    if (!change.after.exists()) return;
 
     const submission = change.after.val();
 
     // Ignore draft submissions
-    if (!submission.completed)
-      return;
+    if (!submission.completed) return;
 
     // Ignore imported submissions
-    if (!change.before.exists() && submission.imported)
-      return;
+    if (!change.before.exists() && submission.imported) return;
 
     const fileSnapshot = await admin
       .database()
-      .ref(`/original/${list}/${fileName}`).once('value');
+      .ref(`/original/${list}/${fileName}`)
+      .once('value');
 
     if (!fileSnapshot.exists())
-      throw new Error(`File ${fileName} is not found in the database.`);
+      console.warn(`File ${fileName} is not found in the database.`);
 
     await fileSnapshot.ref.update({
       soundQualityReporting: {
-        status: 'WIP'
-      }
+        status: 'WIP',
+      },
     });
 
     const currentAllotment = fileSnapshot.val().soundQualityReporting;
@@ -124,28 +123,35 @@ export const processSubmission = functions.database
 
     // * Update the spreadsheet
 
-    const spreadsheet = await Spreadsheet.open(functions.config().sqr.spreadsheet_id);
-    const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
+    const spreadsheet = await Spreadsheet.open(
+      functions.config().sqr.spreadsheet_id
+    );
+    const sheet = await spreadsheet.useSheet(
+      ISoundQualityReportSheet.Submissions
+    );
 
     const row = {
-      'Completed': helpers.convertToSerialDate(DateTime.fromMillis(submission.completed)),
-      'Updated': helpers.convertToSerialDate(DateTime.fromMillis(submission.changed)),
-      'Update Link': getSubmissionUpdateLink(fileName, token),
+      Completed: helpers.convertToSerialDate(
+        DateTime.fromMillis(submission.completed)
+      ),
+      Updated: helpers.convertToSerialDate(
+        DateTime.fromMillis(submission.changed)
+      ),
+      'Update Link': SQR.createSubmissionLink(fileName, token),
       'Audio File Name': fileName,
       'Unwanted Parts': formatMultilineComment(submission.unwantedParts),
       'Sound Issues': formatMultilineComment(submission.soundIssues),
       'Sound Quality Rating': submission.soundQualityRating,
-      'Beginning': submission.duration.beginning,
-      'Ending': submission.duration.ending,
-      'Comments': submission.comments,
-      'Name': currentAllotment.assignee.name,
+      Beginning: submission.duration.beginning,
+      Ending: submission.duration.ending,
+      Comments: submission.comments,
+      Name: currentAllotment.assignee.name,
       'Email Address': currentAllotment.assignee.emailAddress,
     };
 
     if (change.before.exists())
       await sheet.updateOrAppendRow('Audio File Name', fileName, row);
-    else
-      await sheet.appendRow(row);
+    else await sheet.appendRow(row);
 
     // * Send email notification for the coordinator
 
@@ -174,7 +180,9 @@ export const processSubmission = functions.database
     if (submission.changed !== submission.completed)
       warnings.push('This is an updated submission!');
 
-    if (currentAllotment.assignee.emailAddress !== submission.author.emailAddress)
+    if (
+      currentAllotment.assignee.emailAddress !== submission.author.emailAddress
+    )
       warnings.push(
         `File is alloted to another email id - ${currentAllotment.assignee.emailAddress}`
       );
@@ -185,7 +193,10 @@ export const processSubmission = functions.database
     if (!fileSnapshot.exists())
       warnings.push(`Audio file name ${fileName} is not found in the backend!`);
 
-    if (currentSet.filter((allotment: any) => allotment.status === 'Given').length === 1)
+    if (
+      currentSet.filter((allotment: any) => allotment.status === 'Given')
+        .length === 1
+    )
       warnings.push("It's time to allot!");
 
     admin
@@ -239,43 +250,50 @@ const parseAudioChunkRemark = string => {
 /////////////////////////////////////////////////
 export const importSpreadSheetData = functions.https.onCall(
   async (data, context) => {
-    if (!functions.config().emulator && (
-      !context.auth ||
-      !context.auth.token ||
-      !context.auth.token.coordinator
-    )) {
+    if (
+      !functions.config().emulator &&
+      (!context.auth || !context.auth.token || !context.auth.token.coordinator)
+    ) {
       throw new functions.https.HttpsError(
         'permission-denied',
         'The function must be called by an authenticated coordinator.'
       );
     }
 
-    const spreadsheet = await Spreadsheet.open(functions.config().sqr.spreadsheet_id);
-    await Promise.all([
-      importSubmissions(),
-      importAllotments()
-    ])
+    const spreadsheet = await Spreadsheet.open(
+      functions.config().sqr.spreadsheet_id
+    );
+    await Promise.all([importSubmissions(), importAllotments()]);
 
     ////////////////////////
     //     Submissions
     ////////////////////////
     async function importSubmissions() {
-      const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Submissions);
+      const sheet = await spreadsheet.useSheet(
+        ISoundQualityReportSheet.Submissions
+      );
       const updates = {};
-      (await sheet.getRows()).forEach((row) => {
+      (await sheet.getRows()).forEach(row => {
         const fileName = row['Audio File Name'];
         const list = helpers.extractListFromFilename(fileName);
         const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
         updates[`${list}/${fileName}/${token}`] = {
-          completed: helpers.convertFromSerialDate(row['Completed'], spreadsheet.timeZone).toMillis(),
-          created: helpers.convertFromSerialDate(row['Completed'], spreadsheet.timeZone).toMillis(),
-          changed: helpers.convertFromSerialDate(row['Updated'], spreadsheet.timeZone).toMillis(),
+          completed: helpers
+            .convertFromSerialDate(row['Completed'], spreadsheet.timeZone)
+            .toMillis(),
+          created: helpers
+            .convertFromSerialDate(row['Completed'], spreadsheet.timeZone)
+            .toMillis(),
+          changed: helpers
+            .convertFromSerialDate(row['Updated'], spreadsheet.timeZone)
+            .toMillis(),
           comments: row['Comments'],
           soundIssues: parseAudioChunkRemark(row['Sound Issues']),
           soundQualityRating: row['Sound Quality Rating'],
           unwantedParts: parseAudioChunkRemark(row['Unwanted Parts']),
-          duration: { //TODO: sanitze duration
+          duration: {
+            //TODO: sanitze duration
             beginning: row['Beginning'],
             ending: row['Ending'],
           },
@@ -286,16 +304,21 @@ export const importSpreadSheetData = functions.https.onCall(
           imported: true,
         };
       });
-      await admin.database().ref('/submissions/soundQualityReporting').update(updates);
+      await admin
+        .database()
+        .ref('/submissions/soundQualityReporting')
+        .update(updates);
     }
 
     ////////////////////////
     //     Allotments
     ////////////////////////
     async function importAllotments() {
-      const sheet = await spreadsheet.useSheet(ISoundQualityReportSheet.Allotments);
+      const sheet = await spreadsheet.useSheet(
+        ISoundQualityReportSheet.Allotments
+      );
       const updates = {};
-      (await sheet.getRows()).forEach((row) => {
+      (await sheet.getRows()).forEach(row => {
         const fileName = row['File Name'];
 
         if (fileName.match(/[\.\[\]$#]/g)) {
@@ -316,24 +339,32 @@ export const importSpreadSheetData = functions.https.onCall(
         updates[`${list}/${fileName}/soundQualityReporting`] = {
           status: row['Status'] || 'Spare',
           timestampGiven: row['Date Given']
-            ? helpers.convertFromSerialDate(row['Date Given'], spreadsheet.timeZone).toMillis()
+            ? helpers
+              .convertFromSerialDate(row['Date Given'], spreadsheet.timeZone)
+              .toMillis()
             : null,
           timestampDone: row['Date Done']
-            ? helpers.convertFromSerialDate(row['Date Done'], spreadsheet.timeZone).toMillis()
+            ? helpers
+              .convertFromSerialDate(row['Date Done'], spreadsheet.timeZone)
+              .toMillis()
             : null,
           assignee: {
             emailAddress: row['Email'],
             name: row['Devotee'],
           },
-          notes: row['Notes']
+          notes: row['Notes'],
         };
       });
 
-      await admin.database().ref('/original').update(updates, error => {
-        console.log("Result of Allotments update: ", error);
+      await admin
+        .database()
+        .ref('/original')
+        .update(updates, error => {
+          console.log('Result of Allotments update: ', error);
       });
     }
-  });
+  }
+);
 
 /**
  * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
@@ -341,8 +372,7 @@ export const importSpreadSheetData = functions.https.onCall(
  */
 export const exportAllotmentToSpreadsheet = functions.database
   .ref('/original/{listName}/{fileName}/soundQualityReporting')
-  .onUpdate(
-    async (change, { params: { fileName } }) => {
+  .onUpdate(async (change, { params: { fileName } }) => {
       const changedValues = change.after.val();
 
       const spreadsheet = await Spreadsheet.open(
@@ -368,8 +398,7 @@ export const exportAllotmentToSpreadsheet = functions.database
         'Date Done': helpers.convertToSerialDate(changedValues.timestampDone),
       }
       await sheet.updateRow(rowNumber, row, RowUpdateMode.Partial);
-    }
-  );
+  });
 
 interface IAudioChunkDescription {
   beginning: string; // h:mm:ss

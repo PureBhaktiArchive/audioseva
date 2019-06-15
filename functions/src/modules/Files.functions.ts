@@ -1,9 +1,9 @@
-import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
+import * as helpers from '../helpers';
 
 const db = admin.database();
 
-import * as helpers from '../helpers';
 
 const originalBucket = `original.${functions.config().storage['root-domain']}`;
 ///////////////////////////////////
@@ -109,7 +109,7 @@ export const syncStorageToDB = functions.https.onRequest(async (req, res) => {
             files[list][fileName]['soundQualityReporting'].status === 'Spare' &&
             files[list][fileName]['contentReporting'].status === 'Spare'
           )
-            db.ref(`/original/${list}/${fileName}`).remove();
+            await db.ref(`/original/${list}/${fileName}`).remove();
         } catch (err) {
           console.warn(err);
         }
