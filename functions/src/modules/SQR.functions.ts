@@ -208,12 +208,14 @@ export const processSubmission = functions.database
       .equalTo(submission.author.emailAddress)
       .once('value')).forEach(child => {
         const value = child.val();
+        const datetimeGiven = DateTime.fromMillis(
+          value.soundQualityReporting.timestampGiven
+        );
         currentSet.push({
           fileName: child.key,
-          dateGiven: DateTime.fromMillis(value.soundQualityReporting.timestampGiven)
-            .toLocaleString(DateTime.DATE_SHORT),
+          dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
           status: value.soundQualityReporting.status,
-          daysPassed: DateTime.fromMillis(value.soundQualityReporting.timestampGiven).diffNow('days').days,
+          daysPassed: datetimeGiven.diffNow('days').days,
           languages: value.languages,
         });
         return false;
@@ -434,12 +436,20 @@ export const exportAllotmentToSpreadsheet = functions.database
       }
 
       const row = {
-        'Date Given': helpers.convertToSerialDate(changedValues.timestampGiven),
-        'Status': changedValues.status,
-        'Devotee': changedValues.assignee.name,
-        'Email': changedValues.assignee.emailAddress,
-        'Date Done': helpers.convertToSerialDate(changedValues.timestampDone),
-      }
+      'Date Given': changedValues.timestampGiven
+        ? helpers.convertToSerialDate(
+          DateTime.fromMillis(changedValues.timestampGiven)
+        )
+        : null,
+      Status: changedValues.status,
+      Devotee: changedValues.assignee.name,
+      Email: changedValues.assignee.emailAddress,
+      'Date Done': changedValues.timestampDone
+        ? helpers.convertToSerialDate(
+          DateTime.fromMillis(changedValues.timestampDone)
+        )
+        : null,
+    };
       await sheet.updateRow(rowNumber, row, RowUpdateMode.Partial);
   });
 
