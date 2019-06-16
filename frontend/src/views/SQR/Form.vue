@@ -306,14 +306,18 @@ export default class Form extends Vue {
 
   populateForm() {
     this.isLoadingForm = false;
+    const defaultData = {
+      unwantedParts: [{}],
+      soundIssues: [{}]
+    };
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
-      this.form = initialData;
-    } else {
       this.form = {
-        unwantedParts: [{}],
-        soundIssues: [{}]
+        ...defaultData,
+        ...initialData
       };
+    } else {
+      this.form = defaultData;
     }
   }
 
