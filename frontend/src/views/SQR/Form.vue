@@ -340,14 +340,16 @@ export default class Form extends Vue {
     await this.submitForm();
   }
 
-  async submitForm(complete = false) {
+  async submitForm(save = false) {
     if ((this.$refs as any).form.validate()) {
-      const { created, changed, ...form } = this.form;
+      const { created, changed, completed, ...form } = this.form;
       const data: any = {
         ...form,
         changed: firebase.database.ServerValue.TIMESTAMP
       };
-      if (complete) data.complete = firebase.database.ServerValue.TIMESTAMP;
+      if (save && !completed) {
+        data.completed = firebase.database.ServerValue.TIMESTAMP;
+      }
       if (this.initialData[".value"] === null) {
         data.created = firebase.database.ServerValue.TIMESTAMP;
       }
