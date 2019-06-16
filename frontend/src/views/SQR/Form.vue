@@ -345,7 +345,7 @@ export default class Form extends Vue {
   }
 
   async submitForm(save = false) {
-    if ((this.$refs as any).form.validate()) {
+    if (!save || (this.$refs as any).form.validate()) {
       const { created, changed, completed, ...form } = this.form;
       const data: any = {
         ...form,
