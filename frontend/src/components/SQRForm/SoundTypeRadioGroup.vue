@@ -2,20 +2,18 @@
   <v-radio-group :value="selectedField" v-bind="fieldProps" @change="handleRadioSelect">
     <template v-for="(field, index) in fields">
       <div class="other-option" v-if="isOtherOption(field)" :key="index">
-        <v-expansion-panel :disabled="otherField === 0" :value="otherField">
-          <v-expansion-panel-content hide-actions>
-            <div slot="header">
-              <v-radio :value="getFieldValue(field)" label="Other...">
-              </v-radio>
-            </div>
+        <v-radio :disabled="otherField === 0" :value="getFieldValue(field)" label="Other...">
+        </v-radio>
+        <v-expand-transition>
+          <div v-show="otherField === 0">
             <v-text-field
               outline
               @input="handleTextInput"
               :value="otherTextField"
               placeholder="Other"
             />
-          </v-expansion-panel-content>
-        </v-expansion-panel>
+          </div>
+        </v-expand-transition>
       </div>
       <v-radio v-else :key="index" :value="getFieldValue(field)">
         <div v-html="getLabel(field)" slot="label"></div>
