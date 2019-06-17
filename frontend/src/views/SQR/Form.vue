@@ -76,8 +76,17 @@
                 </v-expansion-panel-content>
               </v-expansion-panel>
             </v-flex>
-            <v-btn type="submit" color="success">Submit</v-btn>
-            <v-btn v-if="!form.completed" @click="submitDraft" color="secondary">Save draft</v-btn>
+            <v-layout class="sticky" wrap>
+              <v-flex xs12 sm6>
+                <v-btn type="submit" color="success">Submit</v-btn>
+                <v-btn v-if="!form.completed" @click="submitDraft" color="secondary">Save draft</v-btn>
+              </v-flex>
+              <v-flex align-self-center sm6 md6>
+                <p :style="{ margin: '6px 0 6px 8px' }">
+                  {{ draftMessages[draftStatus] }}
+                </p>
+              </v-flex>
+            </v-layout>
           </template>
         </v-layout>
       </v-container>
@@ -91,6 +100,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
+import moment from "moment";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
@@ -100,6 +110,14 @@ import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
 import Duration from "@/components/SQRForm/Duration.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
 import { updateObject, getListId, removeObjectKey } from "@/utility";
+
+enum FormState {
+  LOADING = 0,
+  UNSAVED_CHANGES = 1,
+  INITIAL_LOAD = 2,
+  PENDING_DRAFT_SAVE = 3,
+  SAVED = 4
+}
 
 @Component({
   name: "Form",
@@ -243,6 +261,14 @@ export default class Form extends Vue {
   isLoadingForm = true;
   canSubmit = false;
   cancelComplete = false;
+  draftMessages = {
+    [FormState.LOADING]: "Saving...",
+    [FormState.UNSAVED_CHANGES]: "Unsaved changes",
+    [FormState.PENDING_DRAFT_SAVE]: "Pending save",
+    [FormState.INITIAL_LOAD]: "",
+    [FormState.SAVED]: "All changes saved"
+  };
+  draftStatus = FormState.INITIAL_LOAD;
 
   rules = [(v: any) => !!v || "Required field"];
 
@@ -252,10 +278,21 @@ export default class Form extends Vue {
     this.cancel = this.cancel === cancelField ? null : cancelField;
   }
 
-  updateForm(field: string, value: any) {
+  updateForm(field: string, value: any, debounceSubmit = true) {
     this.form = updateObject(this.form, field, value);
-    if (this.form.completed) return;
-    this.debounceSubmitDraft();
+    if (debounceSubmit) {
+      if (_.isEqual(this.initialData, this.form)) {
+        this.draftStatus = FormState.SAVED;
+        if (!this.form.completed) {
+          this.debounceSubmitDraft.cancel();
+        }
+      } else if (this.form.completed) {
+        this.draftStatus = FormState.UNSAVED_CHANGES;
+      } else {
+        this.draftStatus = FormState.PENDING_DRAFT_SAVE;
+        this.debounceSubmitDraft();
+      }
+    }
   }
 
   async canSubmitForm() {
@@ -297,6 +334,12 @@ export default class Form extends Vue {
   async mounted() {
     await this.canSubmitForm();
     this.getSavedData();
+    window.onbeforeunload = () => {
+      if (this.draftStatus === FormState.UNSAVED_CHANGES) {
+        return "Changes are not saved!";
+      }
+      return;
+    };
   }
 
   getSavedData() {
@@ -316,6 +359,11 @@ export default class Form extends Vue {
     };
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
+      if ((initialData as any).created) {
+        this.draftMessages[FormState.INITIAL_LOAD] = `Last edit was at ${moment(
+          (initialData as any).created
+        ).format("MM/DD/YYYY, h:mm a")}`;
+      }
       this.form = {
         ...defaultData,
         ...initialData
@@ -323,6 +371,7 @@ export default class Form extends Vue {
     } else {
       this.form = defaultData;
     }
+    this.initialData = { ...this.form };
   }
 
   async cancelForm() {
@@ -359,9 +408,14 @@ export default class Form extends Vue {
   }
 
   async submitForm(save = false) {
+    if (!save) {
+      this.draftStatus = FormState.LOADING;
+    }
     if (!save || (this.$refs as any).form.validate()) {
+      this.initialData = { ...this.form };
       if (save) {
         this.cancelAutoSave();
+        this.draftStatus = FormState.LOADING;
       }
       const { created, changed, completed, ...form } = this.form;
       const data: any = {
@@ -379,6 +433,8 @@ export default class Form extends Vue {
         .ref(this.submissionPath())
         .update(data);
 
+      this.draftStatus = FormState.SAVED;
+
       if (save && !completed) {
         const response = (await firebase
           .database()
@@ -386,6 +442,7 @@ export default class Form extends Vue {
           .once("value")).val();
         if (response) this.$set(this.form, "completed", response);
       }
+      this.initialData = { ...this.form };
     }
   }
 
@@ -431,6 +488,14 @@ export default class Form extends Vue {
 
 .overflow {
   overflow: auto;
+}
+
+.sticky {
+  background-color: #fafafa;
+  bottom: 0;
+  padding: 12px;
+  position: sticky;
+  width: 100%;
 }
 
 @media screen and (min-width: 1904px) {
