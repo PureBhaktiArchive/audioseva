@@ -90,6 +90,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+import _ from "lodash";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
@@ -253,6 +254,8 @@ export default class Form extends Vue {
 
   updateForm(field: string, value: any) {
     this.form = updateObject(this.form, field, value);
+    if (this.form.completed) return;
+    this.debounceSubmitDraft();
   }
 
   async canSubmitForm() {
@@ -283,6 +286,7 @@ export default class Form extends Vue {
   }
 
   async handleSubmit() {
+    this.cancelAutoSave();
     if (this.cancel) {
       await this.cancelForm();
     } else {
@@ -341,11 +345,24 @@ export default class Form extends Vue {
   }
 
   async submitDraft() {
+    this.cancelAutoSave();
     await this.submitForm();
+  }
+
+  debounceSubmitDraft: any = _.debounce(async () => {
+    if (this.form.completed) return;
+    await this.submitForm();
+  }, 10000);
+
+  cancelAutoSave() {
+    this.debounceSubmitDraft.cancel();
   }
 
   async submitForm(save = false) {
     if (!save || (this.$refs as any).form.validate()) {
+      if (save) {
+        this.cancelAutoSave();
+      }
       const { created, changed, completed, ...form } = this.form;
       const data: any = {
         ...form,
@@ -361,6 +378,14 @@ export default class Form extends Vue {
         .database()
         .ref(this.submissionPath())
         .update(data);
+
+      if (save && !completed) {
+        const response = (await firebase
+          .database()
+          .ref(`${this.submissionPath()}/completed`)
+          .once("value")).val();
+        if (response) this.$set(this.form, "completed", response);
+      }
     }
   }
 
