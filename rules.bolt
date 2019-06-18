@@ -70,7 +70,10 @@ type EditedFile {
 /original is ReadOnlyCoordinator {
   /{list} {
     index() { ["soundQualityReporting/status"] }
-    /{fileName} is OriginalFile;
+    /{fileName} is OriginalFile {
+      index() { ["token"] }
+      read() { query.orderByChild === 'token' && query.equalTo == this.child("soundQualityReporting/token").val() }
+    }
   }
 }
 
@@ -105,7 +108,7 @@ type EditedFile {
       read() { true }
       write() {
         return (
-          this
+          this != null
           &&
           root
             .original[list][fileName]
