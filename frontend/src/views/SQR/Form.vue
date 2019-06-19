@@ -82,7 +82,7 @@
               </v-flex>
               <v-flex align-self-center sm6 md6>
                 <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
-                  {{ draftMessages[draftStatus] }}
+                  {{ formStateMessages[draftStatus] }}
                 </p>
               </v-flex>
             </v-layout>
@@ -260,7 +260,7 @@ export default class Form extends Vue {
   isLoadingForm = true;
   canSubmit = false;
   cancelComplete = false;
-  draftMessages = {
+  formStateMessages = {
     [FormState.SAVING]: "Saving...",
     [FormState.UNSAVED_CHANGES]: "Unsaved changes",
     [FormState.PENDING_DRAFT_SAVE]: "Pending save",
@@ -359,9 +359,11 @@ export default class Form extends Vue {
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
       if ((initialData as any).created) {
-        this.draftMessages[FormState.INITIAL_LOAD] = `Last edit was at ${moment(
-          (initialData as any).created
-        ).format("MM/DD/YYYY, h:mm a")}`;
+        this.formStateMessages[
+          FormState.INITIAL_LOAD
+        ] = `Last edit was at ${moment((initialData as any).created).format(
+          "MM/DD/YYYY, h:mm a"
+        )}`;
       }
       this.form = {
         ...defaultData,
