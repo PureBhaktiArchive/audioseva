@@ -1,9 +1,8 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
-import uniqid from 'uniqid';
 import { taskIdRegex } from '../helpers';
-
+import uniqid = require('uniqid');
 
 
 const db = admin.database();
