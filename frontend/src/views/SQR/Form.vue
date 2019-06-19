@@ -111,7 +111,7 @@ import TextArea from "@/components/Inputs/TextArea.vue";
 import { updateObject, getListId, removeObjectKey } from "@/utility";
 
 enum FormState {
-  LOADING = 0,
+  SAVING = 0,
   UNSAVED_CHANGES = 1,
   INITIAL_LOAD = 2,
   PENDING_DRAFT_SAVE = 3,
@@ -261,7 +261,7 @@ export default class Form extends Vue {
   canSubmit = false;
   cancelComplete = false;
   draftMessages = {
-    [FormState.LOADING]: "Saving...",
+    [FormState.SAVING]: "Saving...",
     [FormState.UNSAVED_CHANGES]: "Unsaved changes",
     [FormState.PENDING_DRAFT_SAVE]: "Pending save",
     [FormState.INITIAL_LOAD]: "",
@@ -410,13 +410,13 @@ export default class Form extends Vue {
 
   async submitForm(save = false) {
     if (!save) {
-      this.draftStatus = FormState.LOADING;
+      this.draftStatus = FormState.SAVING;
     }
     if (!save || (this.$refs as any).form.validate()) {
       this.initialData = { ...this.form };
       if (save) {
         this.cancelAutoSave();
-        this.draftStatus = FormState.LOADING;
+        this.draftStatus = FormState.SAVING;
       }
       const { created, changed, completed, ...form } = this.form;
       const data: any = {
