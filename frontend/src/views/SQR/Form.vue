@@ -356,10 +356,10 @@ export default class Form extends Vue {
     };
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
-      if ((initialData as any).created) {
+      if ((initialData as any).changed) {
         this.formStateMessages[
           FormState.INITIAL_LOAD
-        ] = `Last edit was at ${moment((initialData as any).created).format(
+        ] = `Last edit was at ${moment((initialData as any).changed).format(
           "MM/DD/YYYY, h:mm a"
         )}`;
       }
