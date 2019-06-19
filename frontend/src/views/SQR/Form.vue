@@ -81,7 +81,7 @@
                 <v-btn v-if="!form.completed" @click="submitDraft" color="secondary">Save draft</v-btn>
               </v-flex>
               <v-flex align-self-center sm6 md6>
-                <p :style="{ margin: '6px 0 6px 8px' }">
+                <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
                   {{ draftMessages[draftStatus] }}
                 </p>
               </v-flex>
@@ -453,6 +453,10 @@ export default class Form extends Vue {
     } = this.$route;
     const listId = getListId(fileName);
     return `/submissions/soundQualityReporting/${listId}/${fileName}/${token}`;
+  }
+
+  get formStateMessageColor() {
+    return this.draftStatus === FormState.UNSAVED_CHANGES ? "red" : "#000";
   }
 
   get isCancelChecked() {
