@@ -1,10 +1,6 @@
-# Frontend
+# Development
 
 ## Project setup
-
-```
-npm install
-```
 
 All env variables with FIREBASE in them are taken from the Firebase project.
 Add the following variables into your `.env.development.local` file:
@@ -15,88 +11,39 @@ Add the following variables into your `.env.development.local` file:
 - `VUE_APP_FIREBASE_STORAGE_BUCKET`
 - `VUE_APP_SOUND_EDITING_UPLOADS_BUCKET` - a Firebase bucket for storing sound engineers' uploads
 
-### Compiles and hot-reloads for development
+# Deployment
 
-```
-npm run serve
-```
+## Firebase project set up
 
-### Compiles and minifies for production
+1. [Create a Firebase project](https://console.firebase.google.com).
+1. [Add a web app in the Firebase console](https://console.firebase.google.com/project/_/settings/general/). Also set up Firebase Hosting for this app during adding it.
+1. [Connect custom domain `app.[base domain]` to the hosting](https://console.firebase.google.com/project/_/hosting/main).
+1. [Enable Sign-in providers](https://console.firebase.google.com/project/_/authentication/providers).
+1. [Add custom domain into Authorized domains](https://console.firebase.google.com/project/_/authentication/providers).
+1. [Set up consent screen](https://console.developers.google.com/apis/credentials/consent).
+1. [Create a database](https://console.firebase.google.com/project/_/database).
+1. [Create a user with coordinator role in the database](https://console.firebase.google.com/project/_/database/_/data/users). See https://trello.com/c/6Y8W4LsR/51-authorization for details.
+1. [Create storage buckets](https://console.firebase.google.com/project/_/storage/_/files): `original`, `te.uploads`, `edited`, `restored`.
+1. [Set up deploy targets for Cloud Storage](https://firebase.google.com/docs/cli/targets#set-up-deploy-target-storage-database): `uploads`.
+1. [Set functions environment configuration](https://firebase.google.com/docs/functions/config-env), see all the configuration parameters described below.
+1. [Enable Sheets API for the project](https://console.developers.google.com/apis/api/sheets.googleapis.com/overview).
+1. Add [App Engine default service account](https://console.developers.google.com/apis/api/sheets.googleapis.com/credentials) as editor to all the Google spreadsheets and allow it to edit protected ranges.
+1. Deploy: `firebase deploy`.
 
-```
-npm run build
-```
+## Environment configuration parameters
 
-### Lints and fixes files
-
-```
-npm run lint
-```
-
-### Run your unit tests
-
-```
-npm run test:unit
-```
-
-# Configuring the Firebase Cloud Functions environment!
-
-The main credentials, **databaseURL** & the **storageBucket** are automatically set up for you, however, other variables have to be set manually before deploying the functions.
-
-```sh
-# each arg must have at least 2-part key (e.g foo.bar)
-$ firebase functions:config:set website.base_url="Base url of the website"
-$ firebase functions:config:set website.old.base_url="Base url of the old website"
-$ firebase functions:config:set send_in_blue.key="sendInBlue secret Key"
-# Sound editing storage
-$ firebase functions:config:set storage.root-domain="Base URL for storage buckets"
-
-# Coordinator information
-$ firebase functions:config:set coordinator.email_address='EMAIL'
-$ firebase functions:config:set coordinator.timezone='Asia/Calcutta'
-#Importing a spreadsheet to the database variables
-$ firebase functions:config:set sqr.spreadsheetId='Google Spreadsheet ID'
-# Import user registration to database
-$ firebase functions:config:set registrations.spreadsheet_id="Google Spreadsheet ID"
-# "Copy submissions into the processing sheet" sheet IDs
-$ firebase functions:config:set cr.submissions.spreadsheet.id="Google Spreadsheet ID"
-$ firebase functions:config:set cr.processing.spreadsheet.id="Google Spreadsheet ID"
-$ firebase functions:config:set cr.allotments.spreadsheet.id="Google Spreadsheet ID"
-# "Donations"
-$ firebase functions:config:set donations.cash.spreadsheet.id="Google Spreadsheet ID"
-$ firebase functions:config:set donations.cash.spreadsheet.name="Sheet Name"
-$ firebase functions:config:set donations.contact.email_address="Email address used in donations communication"
-```
-
-Firebase Cloud Functions is written in **TypeScript**, if you are uploading the functions for the first time make sure you're selecting the language used in the project as **TypeScript** instead of the default **JavaScript**.
-
-# Deploying Firebase Cloud Functions!
-
-Don't upload the functions manually as it needs first to be converted from **TypeScript** into **JavaScript**.
-
-```sh
-$ cd functions
-```
-
-The following command transpiles all the **Typescript** files:
-
-```sh
-$ npm run build
-```
-
-Deploy the functions:
-
-```sh
-$ npm run deploy
-```
-
-# Deploying Firebase Storage Rules!
-
-So far, one **target name** has been created [ uploads ], so the command needed to deploy the rules is:
-
-```sh
-$ firebase target:apply storage uploads <uploads bucket name>
-$ firebase deploy --only storage:uploads
-```
-
-later, when other **target name**s are added to the `firebase.json` file under the `storage` section, similar commands will be needed to deploy the new rules.
+| Variable                          | Description                                        |
+| --------------------------------- | -------------------------------------------------- |
+| `project.domain`                  | Root domain used for hosting and storage           |
+| `website.old.base_url`            | Base url of the old website                        |
+| `send_in_blue.key`                | SendInBlue secret Key                              |
+| `coordinator.email_address`       | Coordinator email address                          |
+| `coordinator.timezone`            | Coordinator timezone. For example, `Asia/Calcutta` |
+| `sqr.spreadsheetId`               | Sound Quality Reporting spreadsheet id             |
+| `registrations.spreadsheet_id`    | User registrations spreadsheet id                  |
+| `cr.submissions.spreadsheet.id`   | Content Reporting submissions spreadsheet id       |
+| `cr.processing.spreadsheet.id`    | Content Reporting Processing spreadsheet id        |
+| `cr.allotments.spreadsheet.id`    | Content Reporting allotments spreadsheet id        |
+| `donations.cash.spreadsheet.id`   | Donations spreadsheet id                           |
+| `donations.cash.spreadsheet.name` | Donations sheet name                               |
+| `donations.contact.email_address` | Email address used in donations communication      |

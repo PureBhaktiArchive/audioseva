@@ -10,29 +10,31 @@ import * as helpers from './../helpers';
 import uniqid = require('uniqid');
 
 class SQR {
-  static createSubmissionLink(fileName: string, token: string): URL {
+  static createSubmissionLink(fileName: string, token: string): string {
     return new URL(
-      `/form/sound-quality-report/${fileName}/${token}/`,
-      functions.config().website.base_url
-    );
+      `form/sound-quality-report/${encodeURIComponent(fileName)}/${encodeURIComponent(token)}`,
+      `https://app.${functions.config().project.domain}`
+    ).toString();
   }
 
-  static createListenLink(fileName: string): URL {
-    const url = new URL(`/listen/${encodeURIComponent(fileName)}/`, functions.config().website.old.base_url);
+  static createListenLink(fileName: string): string {
+    const url = new URL(
+      `listen/${encodeURIComponent(fileName)}`,
+      functions.config().website.old.base_url);
     url.searchParams.set('seva', 'sqr');
-    return url;
+    return url.toString();
   }
 
-  static createAllotmentLink(emailAddress: string): URL {
-    const url = new URL('/sqr/allot', functions.config().website.base_url);
+  static createAllotmentLink(emailAddress: string): string {
+    const url = new URL(`https://app.${functions.config().project.domain}/sqr/allot`);
     url.searchParams.set('emailaddress', emailAddress);
-    return url;
+    return url.toString();
   }
 
-  static createSelfTrackingLink(emailAddress: string): URL {
+  static createSelfTrackingLink(emailAddress: string): string {
     const url = new URL('https://hook.integromat.com/swlpnplbb3dilsmdxyc7vixjvenvh65a');
     url.searchParams.set('email_address', emailAddress);
-    return url;
+    return url.toString();
   }
 }
 
@@ -117,7 +119,7 @@ export const processAllotment = functions.https.onCall(
           repeated: emailColumn.indexOf(assignee.emailAddress) > 0,
           links: {
             selfTracking: SQR.createSelfTrackingLink(assignee.emailAddress),
-        },
+          },
         },
       });
   }
@@ -142,8 +144,6 @@ export const processSubmission = functions.database
     if (!submission.completed) return;
 
     // Ignore imported submissions
-    if (!change.before.exists() && submission.imported) return;
-
     const fileSnapshot = await admin
       .database()
       .ref(`/original/${list}/${fileName}`)
@@ -406,7 +406,7 @@ export const importSpreadSheetData = functions.https.onCall(
         .ref('/original')
         .update(updates, error => {
           console.log('Result of Allotments update: ', error);
-      });
+        });
     }
   }
 );
@@ -421,21 +421,21 @@ export const exportAllotmentToSpreadsheet = functions.database
       const changedValues = change.after.val();
 
       const spreadsheet = await Spreadsheet.open(
-        functions.config().sqr.spreadsheet_id
-      );
-      const sheet = await spreadsheet.useSheet(
-        ISoundQualityReportSheet.Allotments
-      );
+      functions.config().sqr.spreadsheet_id
+    );
+    const sheet = await spreadsheet.useSheet(
+      ISoundQualityReportSheet.Allotments
+    );
 
-      const rowNumber = await sheet.findRowNumber('File Name', fileName);
-      if (!rowNumber) {
-        console.warn(
-          `File ${fileName} is not found in the SQR allotments sheet.`
-        );
-        return;
-      }
+    const rowNumber = await sheet.findRowNumber('File Name', fileName);
+    if (!rowNumber) {
+      console.warn(
+        `File ${fileName} is not found in the SQR allotments sheet.`
+      );
+      return;
+    }
 
-      const row = {
+    const row = {
       'Date Given': changedValues.timestampGiven
         ? helpers.convertToSerialDate(
           DateTime.fromMillis(changedValues.timestampGiven)
@@ -450,7 +450,7 @@ export const exportAllotmentToSpreadsheet = functions.database
         )
         : null,
     };
-      await sheet.updateRow(rowNumber, row, RowUpdateMode.Partial);
+    await sheet.updateRow(rowNumber, row, RowUpdateMode.Partial);
   });
 
 interface IAudioChunkDescription {
