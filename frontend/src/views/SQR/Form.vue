@@ -28,7 +28,6 @@
                       class="pa-2"
                       v-model="cancelCheck[index + 1]"
                       :label="item.label"
-                      :rules="rules"
                     >
                     </v-checkbox>
                     <div v-if="cancelCheck[index + 1]">
@@ -375,22 +374,24 @@ export default class Form extends Vue {
   }
 
   async cancelForm() {
-    const {
-      params: { fileName, token }
-    } = this.$route;
-    await firebase
-      .functions()
-      .httpsCallable("SQR-cancelAllotment")({
-        fileName,
-        token,
-        comments: this.cancelComment,
-        // cancel is a number greater than 0 or null
-        reason: this.cancelFields[(this.cancel || 1) - 1].reason
-      })
-      .catch(() => {
-        this.canSubmit = false;
-      });
-    this.cancelComplete = true;
+    if ((this.$refs as any).form.validate()) {
+      const {
+        params: { fileName, token }
+      } = this.$route;
+      await firebase
+        .functions()
+        .httpsCallable("SQR-cancelAllotment")({
+          fileName,
+          token,
+          comments: this.cancelComment,
+          // cancel is a number greater than 0 or null
+          reason: this.cancelFields[(this.cancel || 1) - 1].reason
+        })
+        .catch(() => {
+          this.canSubmit = false;
+        });
+      this.cancelComplete = true;
+    }
   }
 
   async submitDraft() {
