@@ -2,9 +2,10 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import * as path from 'path';
+import { URL } from 'url';
 import * as helpers from './../helpers';
 
-const rootBucketDomain = functions.config().storage['root-domain'];
+const rootBucketDomain = functions.config().project.domain;
 const teUploadsBucket = `te.uploads.${rootBucketDomain}`;
 const editedBucket = `edited.${rootBucketDomain}`;
 
@@ -89,7 +90,7 @@ export const processAllotment = functions.https.onCall(
           assignee: assignee,
           comment: comment,
           date: DateTime.local().toFormat('dd.MM'),
-          uploadURL: `${functions.config().website.base_url}/te/upload/`,
+          uploadURL: new URL(`https://app.${functions.config().project.domain}/te/upload`).toString(),
         },
       });
   }

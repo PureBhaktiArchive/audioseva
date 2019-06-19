@@ -5,7 +5,7 @@ import * as helpers from '../helpers';
 const db = admin.database();
 
 
-const originalBucket = `original.${functions.config().storage['root-domain']}`;
+const originalBucket = `original.${functions.config().project.domain}`;
 ///////////////////////////////////
 //   Sync-Related Helper Functions
 ///////////////////////////////////
@@ -71,7 +71,7 @@ export const syncStorageToDB = functions.https.onRequest(async (req, res) => {
   //  1. Add the currently uploaded audio files into the DB
   const bucketFiles = await admin
     .storage()
-    .bucket(`original${functions.config().storage['root-domain']}`)
+    .bucket(`original.${functions.config().project.domain}`)
     .getFiles();
 
   const bucketFilePaths = bucketFiles[0]
