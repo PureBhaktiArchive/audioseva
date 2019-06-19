@@ -402,7 +402,7 @@ export default class Form extends Vue {
   debounceSubmitDraft: any = _.debounce(async () => {
     if (this.form.completed) return;
     await this.submitForm();
-  }, 10000);
+  }, 3000);
 
   cancelAutoSave() {
     this.debounceSubmitDraft.cancel();
