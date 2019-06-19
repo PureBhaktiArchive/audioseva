@@ -114,8 +114,7 @@ enum FormState {
   SAVING = 0,
   UNSAVED_CHANGES = 1,
   INITIAL_LOAD = 2,
-  PENDING_DRAFT_SAVE = 3,
-  SAVED = 4
+  SAVED = 3
 }
 
 @Component({
@@ -263,7 +262,6 @@ export default class Form extends Vue {
   formStateMessages = {
     [FormState.SAVING]: "Saving...",
     [FormState.UNSAVED_CHANGES]: "Unsaved changes",
-    [FormState.PENDING_DRAFT_SAVE]: "Pending save",
     [FormState.INITIAL_LOAD]: "",
     [FormState.SAVED]: "All changes saved"
   };
@@ -288,7 +286,7 @@ export default class Form extends Vue {
       } else if (this.form.completed) {
         this.draftStatus = FormState.UNSAVED_CHANGES;
       } else {
-        this.draftStatus = FormState.PENDING_DRAFT_SAVE;
+        this.draftStatus = FormState.SAVING;
         this.debounceSubmitDraft();
       }
     }
