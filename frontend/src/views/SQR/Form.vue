@@ -254,7 +254,7 @@ export default class Form extends Vue {
   cancel: number | null = null;
   cancelComment = "";
   cancelCheck = {};
-  form: any = {};
+  form: { [key: string]: any } = {};
   guidelines: any = {};
   isLoadingForm = true;
   canSubmit = false;
@@ -266,6 +266,14 @@ export default class Form extends Vue {
     [FormState.SAVED]: "All changes saved"
   };
   draftStatus = FormState.INITIAL_LOAD;
+  initialData!: {
+    [key: string]: any;
+    created?: number;
+    changed?: number;
+    completed?: number;
+    unwantedParts?: any;
+    soundIssues?: any;
+  };
 
   rules = [(v: any) => !!v || "Required field"];
 
@@ -361,15 +369,17 @@ export default class Form extends Vue {
     };
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
-      if ((initialData as any).changed) {
+      if (initialData.changed) {
         this.formStateMessages[
           FormState.INITIAL_LOAD
-        ] = `Last edit was at ${moment((initialData as any).changed).format(
+        ] = `Last edit was at ${moment(initialData.changed).format(
           "MM/DD/YYYY, h:mm a"
         )}`;
       }
       this.form = {
-        ...defaultData,
+        ...(initialData.unwantedParts || initialData.soundIssues
+          ? {}
+          : defaultData),
         ...initialData
       };
     } else {
