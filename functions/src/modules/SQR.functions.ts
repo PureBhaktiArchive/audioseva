@@ -27,7 +27,7 @@ class SQR {
 
   static createAllotmentLink(emailAddress: string): string {
     const url = new URL(`https://app.${functions.config().project.domain}/sqr/allot`);
-    url.searchParams.set('emailaddress', emailAddress);
+    url.searchParams.set('emailAddress', emailAddress);
     return url.toString();
   }
 
@@ -223,7 +223,7 @@ export const processSubmission = functions.database
           fileName: child.key,
           dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
           status: value.soundQualityReporting.status,
-          daysPassed: datetimeGiven.diffNow('days').days,
+          daysPassed: DateTime.local().diff(datetimeGiven, ['days', 'hours']).toObject().days,
         });
         return false;
       });
@@ -256,6 +256,7 @@ export const processSubmission = functions.database
       .ref(`/email/notifications`)
       .push({
         template: 'sqr-submission',
+        replyTo: submission.author.emailAddress,
         to: coordinator.email_address,
         params: {
           currentSet,
