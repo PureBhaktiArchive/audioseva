@@ -61,7 +61,7 @@
                   v-bind="field.props"
                   :form="form"
                   :removeField="removeField"
-                  :updateForm="updateForm"
+                  :updateForm="debounceUpdateForm"
                   :is="field.component"
                 ></component>
               </template>
@@ -291,6 +291,11 @@ export default class Form extends Vue {
       }
     }
   }
+
+  debounceUpdateForm = _.debounce(
+    (...args: any[]) => (this.updateForm as any)(...args),
+    250
+  );
 
   async canSubmitForm() {
     const {
