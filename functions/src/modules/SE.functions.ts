@@ -84,7 +84,8 @@ export const processAllotment = functions.https.onCall(
         date: DateTime.local().toFormat('dd.MM'),
         uploadURL: new URL(
           `sound-editing/upload/${uploadCode}`,
-          `https://app.${functions.config().project.domain}/`).toString(),
+          `https://app.${functions.config().project.domain}/`
+        ).toString(),
         repeated: true,
       },
     });
@@ -146,7 +147,9 @@ export const createTaskFromChunks = functions.database
         if (nextChunk.continuationFrom === fileName) {
           duration =
             ending - beginning + (nextChunk.ending - nextChunk.beginning);
-          await db.ref(`${chunksPath}${fileName} / ${index}`).update({ taskId });
+          await db
+            .ref(`${chunksPath}${fileName} / ${index}`)
+            .update({ taskId });
           await db.ref(`${chunksPath}${continuationTo} / 0`).update({ taskId });
         } else {
           return;
@@ -173,7 +176,9 @@ export const createTaskFromChunks = functions.database
         duration =
           chunkDuration + (previousChunk.ending - previousChunk.beginning);
         await db
-          .ref(`${chunksPath}${continuationFrom} / ${previousChunks.length - 1}`)
+          .ref(
+            `${chunksPath}${continuationFrom} / ${previousChunks.length - 1}`
+          )
           .update({ taskId });
         await db.ref(`${chunksPath}${fileName} / ${index}`).update({ taskId });
       } else {
