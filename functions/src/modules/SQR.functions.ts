@@ -12,7 +12,9 @@ import uuidv4 = require('uuid/v4');
 class SQR {
   static createSubmissionLink(fileName: string, token: string): string {
     return new URL(
-      `form/sound-quality-report/${encodeURIComponent(fileName)}/${encodeURIComponent(token)}`,
+      `form/sound-quality-report/${encodeURIComponent(
+        fileName
+      )}/${encodeURIComponent(token)}`,
       `https://app.${functions.config().project.domain}`
     ).toString();
   }
@@ -20,19 +22,24 @@ class SQR {
   static createListenLink(fileName: string): string {
     const url = new URL(
       `listen/${encodeURIComponent(fileName)}`,
-      functions.config().website.old.base_url);
+      functions.config().website.old.base_url
+    );
     url.searchParams.set('seva', 'sqr');
     return url.toString();
   }
 
   static createAllotmentLink(emailAddress: string): string {
-    const url = new URL(`https://app.${functions.config().project.domain}/sqr/allot`);
+    const url = new URL(
+      `https://app.${functions.config().project.domain}/sqr/allot`
+    );
     url.searchParams.set('emailAddress', emailAddress);
     return url.toString();
   }
 
   static createSelfTrackingLink(emailAddress: string): string {
-    const url = new URL('https://hook.integromat.com/swlpnplbb3dilsmdxyc7vixjvenvh65a');
+    const url = new URL(
+      'https://hook.integromat.com/swlpnplbb3dilsmdxyc7vixjvenvh65a'
+    );
     url.searchParams.set('email_address', emailAddress);
     return url.toString();
   }
@@ -65,7 +72,11 @@ export const processAllotment = functions.https.onCall(
         'Devotee and Files are required.'
       );
 
-    console.log(`Allotting ${files.map(file => file.filename).join(', ')} to ${assignee.emailAddress}`);
+    console.log(
+      `Allotting ${files.map(file => file.filename).join(', ')} to ${
+        assignee.emailAddress
+      }`
+    );
 
     // Update the allotments in the database
     const updates = {};
@@ -112,8 +123,11 @@ export const processAllotment = functions.https.onCall(
             name: fileName,
             links: {
               listen: SQR.createListenLink(fileName),
-              submission: SQR.createSubmissionLink(fileName, tokens.get(fileName)),
-            }
+              submission: SQR.createSubmissionLink(
+                fileName,
+                tokens.get(fileName)
+              ),
+            },
           })),
           assignee,
           comment,
@@ -136,7 +150,9 @@ export const processSubmission = functions.database
   .onWrite(async (change, { authType, params: { list, fileName, token } }) => {
     // Ignore admin changes, only user submissions are processed
     if (authType === 'ADMIN') {
-      console.log(`Ignoring change to ${fileName}/${token} submission by ADMIN.`);
+      console.log(
+        `Ignoring change to ${fileName}/${token} submission by ADMIN.`
+      );
       return;
     }
 
@@ -215,18 +231,20 @@ export const processSubmission = functions.database
       .orderByChild('soundQualityReporting/assignee/emailAddress')
       .equalTo(submission.author.emailAddress)
       .once('value')).forEach(child => {
-        const value = child.val();
-        const datetimeGiven = DateTime.fromMillis(
-          value.soundQualityReporting.timestampGiven
-        );
-        currentSet.push({
-          fileName: child.key,
-          dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
-          status: value.soundQualityReporting.status,
-          daysPassed: DateTime.local().diff(datetimeGiven, ['days', 'hours']).toObject().days,
-        });
-        return false;
+      const value = child.val();
+      const datetimeGiven = DateTime.fromMillis(
+        value.soundQualityReporting.timestampGiven
+      );
+      currentSet.push({
+        fileName: child.key,
+        dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
+        status: value.soundQualityReporting.status,
+        daysPassed: DateTime.local()
+          .diff(datetimeGiven, ['days', 'hours'])
+          .toObject().days,
       });
+      return false;
+    });
 
     const warnings = [];
     if (submission.changed !== submission.completed)
@@ -393,13 +411,13 @@ export const importSpreadSheetData = functions.https.onCall(
           status: row['Status'] || 'Spare',
           timestampGiven: row['Date Given']
             ? helpers
-              .convertFromSerialDate(row['Date Given'], spreadsheet.timeZone)
-              .toMillis()
+                .convertFromSerialDate(row['Date Given'], spreadsheet.timeZone)
+                .toMillis()
             : null,
           timestampDone: row['Date Done']
             ? helpers
-              .convertFromSerialDate(row['Date Done'], spreadsheet.timeZone)
-              .toMillis()
+                .convertFromSerialDate(row['Date Done'], spreadsheet.timeZone)
+                .toMillis()
             : null,
           assignee: {
             emailAddress: row['Email'],
@@ -428,7 +446,7 @@ export const exportAllotmentToSpreadsheet = functions.database
   .onWrite(async (change, { params: { fileName } }) => {
     // Ignore deletions
     if (!change.after.exists()) {
-      console.log(`Deletion of ${fileName}, ignoring.`)
+      console.log(`Deletion of ${fileName}, ignoring.`);
       return;
     }
 
@@ -452,16 +470,16 @@ export const exportAllotmentToSpreadsheet = functions.database
     const row = {
       'Date Given': changedValues.timestampGiven
         ? helpers.convertToSerialDate(
-          DateTime.fromMillis(changedValues.timestampGiven)
-        )
+            DateTime.fromMillis(changedValues.timestampGiven)
+          )
         : null,
       Status: changedValues.status,
       Devotee: changedValues.assignee.name,
       Email: changedValues.assignee.emailAddress,
       'Date Done': changedValues.timestampDone
         ? helpers.convertToSerialDate(
-          DateTime.fromMillis(changedValues.timestampDone)
-        )
+            DateTime.fromMillis(changedValues.timestampDone)
+          )
         : null,
     };
     await sheet.updateRow(rowNumber, row, RowUpdateMode.Partial);
@@ -481,12 +499,14 @@ interface IAudioChunkDescription {
 export function formatMultilineComment(
   audioDescriptionList: IAudioChunkDescription[]
 ): string {
-  if (!audioDescriptionList || !audioDescriptionList.length)
-    return null;
+  if (!audioDescriptionList || !audioDescriptionList.length) return null;
 
-  return audioDescriptionList.map(
-    item => `${item.beginning}–${item.ending}: ${item.type} — ${item.description}`
-  ).join('\n');
+  return audioDescriptionList
+    .map(
+      item =>
+        `${item.beginning}–${item.ending}: ${item.type} — ${item.description}`
+    )
+    .join('\n');
 }
 
 /**
@@ -576,7 +596,7 @@ export const cancelAllotment = functions.https.onCall(
     }
     return snapshot.ref.update({
       soundQualityReporting: {
-        status: reason === 'unable to play' ? 'Audio Problem' : 'Spare'
+        status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
       },
       timestampGiven: null,
       token: null,
