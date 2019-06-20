@@ -69,10 +69,10 @@ path /donations {
 
 path /original is ReadOnlyCoordinator {
   path /{list} {
-    index() { ["soundQualityReporting/status"] }
+    index() { ["soundQualityReporting/status", "soundQualityReporting/assignee/emailAddress"] }
     /{fileName} is OriginalFile;
+    }
   }
-}
 
 path /users is ReadOnlyCoordinator {
   index() {[
