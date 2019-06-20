@@ -7,7 +7,7 @@ import { DateTime } from 'luxon';
 import { URL } from 'url';
 import { RowUpdateMode, Spreadsheet } from '../classes/GoogleSheets';
 import * as helpers from './../helpers';
-import uniqid = require('uniqid');
+import uuidv4 = require('uuid/v4');
 
 class SQR {
   static createSubmissionLink(fileName: string, token: string): string {
@@ -72,7 +72,7 @@ export const processAllotment = functions.https.onCall(
     const tokens = new Map<string, string>();
 
     files.forEach(async ({ filename: fileName }) => {
-      tokens.set(fileName, uniqid());
+      tokens.set(fileName, uuidv4());
 
       const list = helpers.extractListFromFilename(fileName);
       const pathPrefix = `${list}/${fileName}/soundQualityReporting`;

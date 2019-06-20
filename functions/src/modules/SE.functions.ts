@@ -3,8 +3,7 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { URL } from 'url';
 import { taskIdRegex } from '../helpers';
-import uniqid = require('uniqid');
-
+import uuidv4 = require('uuid/v4');
 
 const db = admin.database();
 
@@ -44,7 +43,7 @@ export const processAllotment = functions.https.onCall(
     const user = userRef.val();
     let { uploadCode } = user;
     if (!uploadCode) {
-      uploadCode = uniqid();
+      uploadCode = uuidv4();
       await userRef.ref.child('uploadCode').set({ uploadCode });
     }
 
