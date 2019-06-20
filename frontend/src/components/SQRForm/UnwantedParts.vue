@@ -109,7 +109,7 @@ export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
   }
 
   get items() {
-    return Object.keys(this.form.unwantedParts);
+    return Object.keys(this.form.unwantedParts || {});
   }
 }
 </script>

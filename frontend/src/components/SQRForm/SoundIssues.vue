@@ -137,7 +137,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
   }
 
   get items() {
-    return Object.keys(this.form.soundIssues);
+    return Object.keys(this.form.soundIssues || {});
   }
 
   get mappedHeaders(): any[] {
