@@ -24,6 +24,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
         },
         props: {
           ...this.formProps,
+          updateForm: this.updateForm(),
           form: this.form,
           styles: {
             timeField: true
@@ -40,6 +41,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
       ending: {
         props: {
           ...this.formProps,
+          updateForm: this.updateForm(),
           form: this.form,
           styles: {
             timeField: true
@@ -62,6 +64,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
       description: {
         props: {
           ...this.formProps,
+          updateForm: this.updateForm(),
           form: this.form,
           fieldProps: {
             box: true,
@@ -119,7 +122,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
   }
 
   addField() {
-    this.updateForm(
+    this.updateForm(false)(
       `${this.updatePath}.${_.get(this.form, this.updatePath, []).length}`,
       {}
     );
