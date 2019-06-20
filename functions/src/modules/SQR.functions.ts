@@ -65,6 +65,8 @@ export const processAllotment = functions.https.onCall(
         'Devotee and Files are required.'
       );
 
+    console.log(`Allotting ${files.map(file => file.filename).join(', ')} to ${assignee.emailAddress}`);
+
     // Update the allotments in the database
     const updates = {};
     const tokens = new Map<string, string>();
@@ -131,19 +133,27 @@ export const processAllotment = functions.https.onCall(
  */
 export const processSubmission = functions.database
   .ref('/submissions/soundQualityReporting/{list}/{fileName}/{token}')
-  .onUpdate(async (change, { authType, params: { list, fileName, token } }) => {
+  .onWrite(async (change, { authType, params: { list, fileName, token } }) => {
     // Ignore admin changes, only user submissions are processed
-    if (authType === 'ADMIN') return;
+    if (authType === 'ADMIN') {
+      console.log(`Ignoring change to ${fileName}/${token} submission by ADMIN.`);
+      return;
+    }
 
     // Ignore deletions
-    if (!change.after.exists()) return;
+    if (!change.after.exists()) {
+      console.log(`Ignoring deletion of ${fileName}/${token} submission.`);
+      return;
+    }
 
     const submission = change.after.val();
 
     // Ignore draft submissions
-    if (!submission.completed) return;
+    if (!submission.completed) {
+      console.log(`Ignoring draft of ${fileName}/${token} submission.`);
+      return;
+    }
 
-    // Ignore imported submissions
     const fileSnapshot = await admin
       .database()
       .ref(`/original/${list}/${fileName}`)
@@ -152,13 +162,11 @@ export const processSubmission = functions.database
     if (!fileSnapshot.exists())
       console.warn(`File ${fileName} is not found in the database.`);
 
-    await fileSnapshot.ref.update({
-      soundQualityReporting: {
-        status: 'WIP',
-      },
-    });
+    const allotmentRef = fileSnapshot.ref.child('soundQualityReporting');
 
-    const currentAllotment = fileSnapshot.val().soundQualityReporting;
+    await allotmentRef.update({ status: 'WIP' });
+
+    const currentAllotment = (await allotmentRef.once('value')).val();
 
     await change.after.ref.update({
       author: currentAllotment.assignee,
@@ -185,8 +193,8 @@ export const processSubmission = functions.database
       'Unwanted Parts': formatMultilineComment(submission.unwantedParts),
       'Sound Issues': formatMultilineComment(submission.soundIssues),
       'Sound Quality Rating': submission.soundQualityRating,
-      Beginning: submission.duration.beginning,
-      Ending: submission.duration.ending,
+      Beginning: submission.duration ? submission.duration.beginning : null,
+      Ending: submission.duration ? submission.duration.ending : null,
       Comments: submission.comments,
       Name: currentAllotment.assignee.name,
       'Email Address': currentAllotment.assignee.emailAddress,
@@ -216,7 +224,6 @@ export const processSubmission = functions.database
           dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
           status: value.soundQualityReporting.status,
           daysPassed: datetimeGiven.diffNow('days').days,
-          languages: value.languages,
         });
         return false;
       });
@@ -417,10 +424,16 @@ export const importSpreadSheetData = functions.https.onCall(
  */
 export const exportAllotmentToSpreadsheet = functions.database
   .ref('/original/{listName}/{fileName}/soundQualityReporting')
-  .onUpdate(async (change, { params: { fileName } }) => {
-      const changedValues = change.after.val();
+  .onWrite(async (change, { params: { fileName } }) => {
+    // Ignore deletions
+    if (!change.after.exists()) {
+      console.log(`Deletion of ${fileName}, ignoring.`)
+      return;
+    }
 
-      const spreadsheet = await Spreadsheet.open(
+    const changedValues = change.after.val();
+
+    const spreadsheet = await Spreadsheet.open(
       functions.config().sqr.spreadsheet_id
     );
     const sheet = await spreadsheet.useSheet(
@@ -466,20 +479,13 @@ interface IAudioChunkDescription {
  */
 export function formatMultilineComment(
   audioDescriptionList: IAudioChunkDescription[]
-) {
-  if (!audioDescriptionList || !audioDescriptionList.length) {
-    return '';
-  }
-  let multiline = '';
-  audioDescriptionList.forEach(
-    (elem: IAudioChunkDescription, index: number) => {
-      multiline =
-        multiline +
-        `${elem.beginning}-${elem.ending}:${elem.type} -- ${elem.description}` +
-        (audioDescriptionList.length === index + 1 ? '' : '\n');
-    }
-  );
-  return multiline;
+): string {
+  if (!audioDescriptionList || !audioDescriptionList.length)
+    return null;
+
+  return audioDescriptionList.map(
+    item => `${item.beginning}–${item.ending}: ${item.type} — ${item.description}`
+  ).join('\n');
 }
 
 /**
