@@ -114,7 +114,8 @@ enum FormState {
   SAVING = 0,
   UNSAVED_CHANGES = 1,
   INITIAL_LOAD = 2,
-  SAVED = 3
+  SAVED = 3,
+  ERROR = 4
 }
 
 @Component({
@@ -266,7 +267,12 @@ export default class Form extends Vue {
     [FormState.SAVING]: "Saving...",
     [FormState.UNSAVED_CHANGES]: "Unsaved changes",
     [FormState.INITIAL_LOAD]: "",
-    [FormState.SAVED]: "All changes saved"
+    [FormState.SAVED]: "All changes saved",
+    [FormState.ERROR]: ""
+  };
+  formStateMessagesColor: { [key: string]: string } = {
+    [FormState.UNSAVED_CHANGES]: "red",
+    [FormState.ERROR]: "red"
   };
   draftStatus = FormState.INITIAL_LOAD;
   initialData!: {
@@ -326,7 +332,8 @@ export default class Form extends Vue {
       .orderByChild("token")
       .equalTo(token)
       .once("value")).val();
-    if (response.soundQualityReporting.status.toLowerCase() === "done") {
+    const sqrStatus = _.get(response, "soundQualityReporting.status", "");
+    if (!sqrStatus || (sqrStatus as string).toLowerCase() === "done") {
       this.isLoadingForm = false;
     } else {
       this.canSubmit = true;
@@ -454,10 +461,17 @@ export default class Form extends Vue {
       if (this.initialData[".value"] === null) {
         data.created = firebase.database.ServerValue.TIMESTAMP;
       }
-      await firebase
+      const updated = await firebase
         .database()
         .ref(this.submissionPath())
-        .update(data);
+        .update(data)
+        .catch(() => "error");
+
+      if (updated === "error") {
+        this.draftStatus = FormState.ERROR;
+        this.formStateMessages[FormState.ERROR] = "Permission denied";
+        return;
+      }
 
       this.draftStatus = FormState.SAVED;
 
@@ -481,7 +495,8 @@ export default class Form extends Vue {
   }
 
   get formStateMessageColor() {
-    return this.draftStatus === FormState.UNSAVED_CHANGES ? "red" : "#000";
+    const color = this.formStateMessagesColor[this.draftStatus];
+    return color ? color : "#000";
   }
 
   get isCancelChecked() {
