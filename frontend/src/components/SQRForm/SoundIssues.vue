@@ -52,7 +52,7 @@
     </v-card>
     <v-btn class="ma-0" color="success" @click="addField">
       <v-icon small left v-text="`$vuetify.icons.plus`" />
-      Sound Issues
+      Sound Issue
     </v-btn>
   </div>
 </template>
