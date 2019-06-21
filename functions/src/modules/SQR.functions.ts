@@ -43,6 +43,29 @@ class SQR {
     url.searchParams.set('email_address', emailAddress);
     return url.toString();
   }
+
+  static async getCurrentSet(emailAddress: string, list: string) {
+    return Object.entries<any>(
+      (await admin
+        .database()
+        .ref(`/original/${list}`)
+        .orderByChild('soundQualityReporting/assignee/emailAddress')
+        .equalTo(emailAddress)
+        .once('value')).val()
+    ).map(([fileName, value]) => {
+      const datetimeGiven = DateTime.fromMillis(
+        value.soundQualityReporting.timestampGiven
+      );
+      return {
+        fileName,
+        dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
+        status: value.soundQualityReporting.status,
+        daysPassed: DateTime.local()
+          .diff(datetimeGiven, ['days', 'hours'])
+          .toObject().days,
+      };
+    });
+  }
 }
 
 export enum ISoundQualityReportSheet {
@@ -224,27 +247,10 @@ export const processSubmission = functions.database
 
     const coordinator = functions.config().coordinator;
 
-    const currentSet = [];
-    (await admin
-      .database()
-      .ref(`/original/${list}`)
-      .orderByChild('soundQualityReporting/assignee/emailAddress')
-      .equalTo(submission.author.emailAddress)
-      .once('value')).forEach(child => {
-      const value = child.val();
-      const datetimeGiven = DateTime.fromMillis(
-        value.soundQualityReporting.timestampGiven
-      );
-      currentSet.push({
-        fileName: child.key,
-        dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
-        status: value.soundQualityReporting.status,
-        daysPassed: DateTime.local()
-          .diff(datetimeGiven, ['days', 'hours'])
-          .toObject().days,
-      });
-      return false;
-    });
+    const currentSet = await SQR.getCurrentSet(
+      submission.author.emailAddress,
+      list
+    );
 
     const warnings = [];
     if (submission.changed !== submission.completed)
@@ -606,5 +612,29 @@ export const cancelAllotment = functions.https.onCall(
       timestampGiven: null,
       token: null,
     });
+
+    const coordinator = functions.config().coordinator;
+
+    await admin
+      .database()
+      .ref(`/email/notifications`)
+      .push({
+        template: 'sqr-cancellation',
+        replyTo: allotment.assignee.emailAddress,
+        to: coordinator.email_address,
+        params: {
+          fileName,
+          comments,
+          reason,
+          assignee: allotment.assignee,
+          allotmentLink: SQR.createAllotmentLink(
+            allotment.assignee.emailAddress
+          ),
+          currentSet: await SQR.getCurrentSet(
+            allotment.assignee.emailAddress,
+            list
+          ),
+        },
+      });
   }
 );

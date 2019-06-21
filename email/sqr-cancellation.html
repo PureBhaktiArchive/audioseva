@@ -1,0 +1,24 @@
+<body>
+  <div style="color:red; font-weight:bold;">
+    <p>Reason: {{ params.reason }}</p>
+    <p>{{ params.comments }}</p>
+    {% for warning in params.warnings %}
+    <p>{{ warning }}</p>
+    {% endfor %}
+  </div>
+  <p>Current set:</p>
+  <ul style="font-family: Courier,serif">
+    {% for allotment in params.currentSet %}
+    <li>
+      {{ allotment.fileName }}
+      {{ allotment.dateGiven }}
+      {{ allotment.status }}
+      {{ allotment.daysPassed }}
+      {% if allotment.fileName == params.allotment.fileName %}
+      <strong> -- CURRENT SUBMISSION</strong>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <p><a href="{{ params.allotmentLink }}">Allot the next set</a></p>
+</body>
