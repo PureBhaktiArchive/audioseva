@@ -91,7 +91,7 @@
       </v-container>
     </v-form>
     <p class="d-flex justify-center red--text font-weight-bold" v-else>
-      Submission error
+      This allotment is not valid, please contact coordinator.
     </p>
   </div>
 </template>
