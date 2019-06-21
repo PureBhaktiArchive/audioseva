@@ -132,7 +132,7 @@ export const processAllotment = functions.https.onCall(
           assignee,
           comment,
           date: DateTime.local().toFormat('dd.MM'),
-          repeated: emailColumn.indexOf(assignee.emailAddress) > 0,
+          repeated: emailColumn.indexOf(assignee.emailAddress) >= 0,
           links: {
             selfTracking: SQR.createSelfTrackingLink(assignee.emailAddress),
           },
@@ -269,7 +269,7 @@ export const processSubmission = functions.database
     )
       warnings.push("It's time to allot!");
 
-    admin
+    await admin
       .database()
       .ref(`/email/notifications`)
       .push({
@@ -446,7 +446,7 @@ export const exportAllotmentToSpreadsheet = functions.database
   .onWrite(async (change, { params: { fileName } }) => {
     // Ignore deletions
     if (!change.after.exists()) {
-      console.log(`Deletion of ${fileName}, ignoring.`);
+      console.log(`Ignoring deletion of ${fileName}.`);
       return;
     }
 
@@ -460,12 +460,10 @@ export const exportAllotmentToSpreadsheet = functions.database
     );
 
     const rowNumber = await sheet.findRowNumber('File Name', fileName);
-    if (!rowNumber) {
-      console.warn(
+    if (!rowNumber)
+      throw new Error(
         `File ${fileName} is not found in the SQR allotments sheet.`
       );
-      return;
-    }
 
     const row = {
       'Date Given': changedValues.timestampGiven
@@ -473,9 +471,12 @@ export const exportAllotmentToSpreadsheet = functions.database
             DateTime.fromMillis(changedValues.timestampGiven)
           )
         : null,
-      Status: changedValues.status,
-      Devotee: changedValues.assignee.name,
-      Email: changedValues.assignee.emailAddress,
+      Notes: changedValues.notes,
+      Status: changedValues.status.replace('Spare', ''),
+      Devotee: changedValues.assignee ? changedValues.assignee.name : null,
+      Email: changedValues.assignee
+        ? changedValues.assignee.emailAddress
+        : null,
       'Date Done': changedValues.timestampDone
         ? helpers.convertToSerialDate(
             DateTime.fromMillis(changedValues.timestampDone)
@@ -591,16 +592,19 @@ export const cancelAllotment = functions.https.onCall(
       .orderByChild('token')
       .equalTo(token)
       .once('value');
+
     if (!snapshot.exists()) {
       throw new functions.https.HttpsError('invalid-argument', 'Invalid token');
     }
-    return snapshot.ref.update({
+
+    const allotment = snapshot.val().soundQualityReporting;
+    await snapshot.ref.update({
       soundQualityReporting: {
+        notes: [allotment.notes, comments].filter(Boolean).join('\n'),
         status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
       },
       timestampGiven: null,
       token: null,
-      notes: `${snapshot.val().soundQualityReporting.notes}\n${comments}`,
     });
   }
 );
