@@ -11,8 +11,7 @@
       {{ allotment.fileName }}
       {{ allotment.dateGiven }}
       {{ allotment.status }}
-      {{ allotment.daysPassed }},
-      {{ allotment.languages | join: ", " }}
+      {{ allotment.daysPassed }}
       {% if allotment.fileName == params.submission.fileName %}
       <strong> -- CURRENT SUBMISSION</strong>
       {% endif %}
