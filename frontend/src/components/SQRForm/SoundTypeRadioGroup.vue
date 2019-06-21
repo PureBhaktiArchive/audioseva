@@ -2,20 +2,18 @@
   <v-radio-group :value="selectedField" v-bind="fieldProps" @change="handleRadioSelect">
     <template v-for="(field, index) in fields">
       <div class="other-option" v-if="isOtherOption(field)" :key="index">
-        <v-expansion-panel :disabled="otherField === 0" :value="otherField">
-          <v-expansion-panel-content hide-actions>
-            <div slot="header">
-              <v-radio :value="getFieldValue(field)" label="Other...">
-              </v-radio>
-            </div>
+        <v-radio :disabled="otherField === 0" :value="getFieldValue(field)" label="Other...">
+        </v-radio>
+        <v-expand-transition>
+          <div v-show="otherField === 0">
             <v-text-field
               outline
               @input="handleTextInput"
               :value="otherTextField"
               placeholder="Other"
             />
-          </v-expansion-panel-content>
-        </v-expansion-panel>
+          </div>
+        </v-expand-transition>
       </div>
       <v-radio v-else :key="index" :value="getFieldValue(field)">
         <div v-html="getLabel(field)" slot="label"></div>
@@ -58,24 +56,26 @@ export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
   }
 
   handleRadioSelect(value: any, mount = false) {
+    const updateForm = this.updateForm(false);
     if (statuses.includes(value)) {
       this.otherField = 2;
-      this.updateForm(this.itemPath, value);
+      updateForm(this.itemPath, value, !mount);
       this.selectedField = value;
     } else {
       this.selectedField = "other";
       this.otherField = 0;
       if (mount) {
-        this.handleTextInput(value);
+        this.otherTextField = value;
+        updateForm(this.itemPath, value, !mount);
       } else {
-        this.updateForm(this.itemPath, this.otherTextField || "other");
+        updateForm(this.itemPath, this.otherTextField || "other");
       }
     }
   }
 
   handleTextInput(e: any) {
     this.otherTextField = e;
-    this.updateForm(this.itemPath, e);
+    this.updateForm()(this.itemPath, e);
   }
 
   getLabel(field: Field) {
