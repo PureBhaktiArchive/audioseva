@@ -27,7 +27,7 @@
           >
             <checkbox v-bind="getFieldProps('entireFile', item)"></checkbox>
             <v-flex
-              :class="hideField('beginning', item)"
+              v-if="!hideField('beginning', item)"
               class="d-flex justify-space-between"
               :style="{ flexWrap: 'wrap' }"
               xs12>
@@ -90,14 +90,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
   };
 
   hideField(value: any, item: any) {
-    const field = _.get(
-      this.form,
-      `${this.updatePath}.${item}.entireFile`,
-      false
-    );
-    return {
-      hidden: field
-    };
+    return _.get(this.form, `${this.updatePath}.${item}.entireFile`, false);
   }
 
   getFieldProps(value: string, item: any) {
@@ -114,6 +107,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
       entireFile: {
         props: {
           ...this.formProps,
+          updateForm: this.updateForm(false),
           form: this.form,
           fieldProps: {
             label: "Entire file",
@@ -137,7 +131,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
   }
 
   get items() {
-    return Object.keys(this.form.soundIssues);
+    return Object.keys(this.form.soundIssues || {});
   }
 
   get mappedHeaders(): any[] {
@@ -150,7 +144,4 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
 </script>
 
 <style>
-.hidden {
-  display: none !important;
-}
 </style>

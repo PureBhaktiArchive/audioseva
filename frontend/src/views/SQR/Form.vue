@@ -28,7 +28,6 @@
                       class="pa-2"
                       v-model="cancelCheck[index + 1]"
                       :label="item.label"
-                      :rules="rules"
                     >
                     </v-checkbox>
                     <div v-if="cancelCheck[index + 1]">
@@ -62,7 +61,7 @@
                   v-bind="field.props"
                   :form="form"
                   :removeField="removeField"
-                  :updateForm="updateForm"
+                  :updateForm="field.updateForm || handleFormUpdate"
                   :is="field.component"
                 ></component>
               </template>
@@ -76,8 +75,17 @@
                 </v-expansion-panel-content>
               </v-expansion-panel>
             </v-flex>
-            <v-btn type="submit" color="success">Submit</v-btn>
-            <v-btn v-if="!form.complete" @click="submitDraft" color="secondary">Save draft</v-btn>
+            <v-layout class="sticky" wrap>
+              <v-flex xs12 sm6>
+                <v-btn type="submit" color="success">Submit</v-btn>
+                <v-btn v-if="!form.completed" @click="submitDraft" color="secondary">Save draft</v-btn>
+              </v-flex>
+              <v-flex align-self-center sm6 md6>
+                <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
+                  {{ formStateMessages[draftStatus] }}
+                </p>
+              </v-flex>
+            </v-layout>
           </template>
         </v-layout>
       </v-container>
@@ -90,6 +98,8 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+import _ from "lodash";
+import moment from "moment";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
@@ -99,6 +109,14 @@ import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
 import Duration from "@/components/SQRForm/Duration.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
 import { updateObject, getListId, removeObjectKey } from "@/utility";
+
+enum FormState {
+  SAVING = 0,
+  UNSAVED_CHANGES = 1,
+  INITIAL_LOAD = 2,
+  SAVED = 3,
+  ERROR = 4
+}
 
 @Component({
   name: "Form",
@@ -114,7 +132,8 @@ export default class Form extends Vue {
       if you find it difficult or strenuous to understand what Srila Gurudeva is speaking, due to too much background
       noise or volume being too low and so on, please choose ‘Bad’. On the other hand, if the audio is clear, with no
        background noise and good volume, please choose ‘Good.’ In cases where you can hear Srila Gurudeva well but
-       there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.`
+       there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.`,
+      updateForm: this.handleFormUpdate(false)
     },
     {
       title: "C. Unwanted parts to be cut",
@@ -177,7 +196,8 @@ export default class Form extends Vue {
         "In other words, whether any part of the sound file is blank or inaudible and hence to be discarded. " +
         "Usually such parts are present towards the end of the file. There might be small parts 5-7 min long " +
         "in between two lecture recordings, but these can be ignored. Please write the beginning and ending timings" +
-        " of the overall recording in this field in (h:)mm:ss format."
+        " of the overall recording in this field in (h:)mm:ss format.",
+      updateForm: this.handleFormUpdate()
     },
     {
       title: "F. Comments",
@@ -193,6 +213,7 @@ export default class Form extends Vue {
           </li>
          </ul>
       `,
+      updateForm: this.handleFormUpdate(),
       props: {
         pathOverride: "comments",
         fieldProps: {
@@ -237,11 +258,31 @@ export default class Form extends Vue {
   cancel: number | null = null;
   cancelComment = "";
   cancelCheck = {};
-  form: any = {};
+  form: { [key: string]: any } = {};
   guidelines: any = {};
   isLoadingForm = true;
   canSubmit = false;
   cancelComplete = false;
+  formStateMessages = {
+    [FormState.SAVING]: "Saving...",
+    [FormState.UNSAVED_CHANGES]: "Unsaved changes",
+    [FormState.INITIAL_LOAD]: "",
+    [FormState.SAVED]: "All changes saved",
+    [FormState.ERROR]: ""
+  };
+  formStateMessagesColor: { [key: string]: string } = {
+    [FormState.UNSAVED_CHANGES]: "red",
+    [FormState.ERROR]: "red"
+  };
+  draftStatus = FormState.INITIAL_LOAD;
+  initialData!: {
+    [key: string]: any;
+    created?: number;
+    changed?: number;
+    completed?: number;
+    unwantedParts?: any;
+    soundIssues?: any;
+  };
 
   rules = [(v: any) => !!v || "Required field"];
 
@@ -251,9 +292,34 @@ export default class Form extends Vue {
     this.cancel = this.cancel === cancelField ? null : cancelField;
   }
 
-  updateForm(field: string, value: any) {
+  updateForm(field: string, value: any, debounceSubmit = true) {
     this.form = updateObject(this.form, field, value);
+    if (debounceSubmit) {
+      if (_.isEqual(this.initialData, this.form)) {
+        this.draftStatus = FormState.SAVED;
+        if (!this.form.completed) {
+          this.debounceSubmitDraft.cancel();
+        }
+      } else if (this.form.completed) {
+        this.draftStatus = FormState.UNSAVED_CHANGES;
+      } else {
+        this.draftStatus = FormState.SAVING;
+        this.debounceSubmitDraft();
+      }
+    }
   }
+
+  handleFormUpdate(shouldDebounceUpdate = true) {
+    return (...args: any[]) =>
+      shouldDebounceUpdate
+        ? this.debounceUpdateForm(...args)
+        : (this.updateForm as any)(...args);
+  }
+
+  debounceUpdateForm = _.debounce(
+    (...args: any[]) => (this.updateForm as any)(...args),
+    250
+  );
 
   async canSubmitForm() {
     const {
@@ -266,7 +332,8 @@ export default class Form extends Vue {
       .orderByChild("token")
       .equalTo(token)
       .once("value")).val();
-    if (response.soundQualityReporting.status.toLowerCase() === "done") {
+    const sqrStatus = _.get(response, "soundQualityReporting.status", "");
+    if (!sqrStatus || (sqrStatus as string).toLowerCase() === "done") {
       this.isLoadingForm = false;
     } else {
       this.canSubmit = true;
@@ -283,6 +350,7 @@ export default class Form extends Vue {
   }
 
   async handleSubmit() {
+    this.cancelAutoSave();
     if (this.cancel) {
       await this.cancelForm();
     } else {
@@ -293,6 +361,12 @@ export default class Form extends Vue {
   async mounted() {
     await this.canSubmitForm();
     this.getSavedData();
+    window.onbeforeunload = () => {
+      if (this.draftStatus === FormState.UNSAVED_CHANGES) {
+        return "Changes are not saved!";
+      }
+      return;
+    };
   }
 
   getSavedData() {
@@ -306,55 +380,109 @@ export default class Form extends Vue {
 
   populateForm() {
     this.isLoadingForm = false;
+    const defaultData = {
+      unwantedParts: [{}],
+      soundIssues: [{}]
+    };
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
-      this.form = initialData;
-    } else {
+      if (initialData.changed) {
+        this.formStateMessages[
+          FormState.INITIAL_LOAD
+        ] = `Last edit was at ${moment(initialData.changed).format(
+          "MM/DD/YYYY, h:mm a"
+        )}`;
+      }
       this.form = {
-        unwantedParts: [{}],
-        soundIssues: [{}]
+        ...(initialData.unwantedParts || initialData.soundIssues
+          ? {}
+          : defaultData),
+        ...initialData
       };
+    } else {
+      this.form = defaultData;
     }
+    this.initialData = { ...this.form };
   }
 
   async cancelForm() {
-    const {
-      params: { fileName, token }
-    } = this.$route;
-    await firebase
-      .functions()
-      .httpsCallable("SQR-cancelAllotment")({
-        fileName,
-        token,
-        comments: this.cancelComment,
-        // cancel is a number greater than 0 or null
-        reason: this.cancelFields[(this.cancel || 1) - 1].reason
-      })
-      .catch(() => {
-        this.canSubmit = false;
-      });
-    this.cancelComplete = true;
+    if ((this.$refs as any).form.validate()) {
+      const {
+        params: { fileName, token }
+      } = this.$route;
+      await firebase
+        .functions()
+        .httpsCallable("SQR-cancelAllotment")({
+          fileName,
+          token,
+          comments: this.cancelComment,
+          // cancel is a number greater than 0 or null
+          reason: this.cancelFields[(this.cancel || 1) - 1].reason
+        })
+        .catch(() => {
+          this.canSubmit = false;
+        });
+      this.cancelComplete = true;
+    }
   }
 
   async submitDraft() {
+    this.cancelAutoSave();
     await this.submitForm();
   }
 
-  async submitForm(complete = false) {
-    if ((this.$refs as any).form.validate()) {
-      const { created, changed, ...form } = this.form;
+  debounceSubmitDraft: any = _.debounce(async () => {
+    if (this.form.completed) return;
+    await this.submitForm();
+  }, 3000);
+
+  cancelAutoSave() {
+    this.debounceSubmitDraft.cancel();
+  }
+
+  async submitForm(save = false) {
+    if (!save) {
+      this.draftStatus = FormState.SAVING;
+    }
+    if (!save || (this.$refs as any).form.validate()) {
+      this.initialData = { ...this.form };
+      if (save) {
+        this.cancelAutoSave();
+        this.draftStatus = FormState.SAVING;
+      }
+      const { created, changed, completed, ...form } = this.form;
       const data: any = {
         ...form,
         changed: firebase.database.ServerValue.TIMESTAMP
       };
-      if (complete) data.complete = firebase.database.ServerValue.TIMESTAMP;
+      if (save && !completed) {
+        data.completed = firebase.database.ServerValue.TIMESTAMP;
+      }
       if (this.initialData[".value"] === null) {
         data.created = firebase.database.ServerValue.TIMESTAMP;
       }
-      await firebase
+      const updated = await firebase
         .database()
         .ref(this.submissionPath())
-        .update(data);
+        .update(data)
+        .catch(() => "error");
+
+      if (updated === "error") {
+        this.draftStatus = FormState.ERROR;
+        this.formStateMessages[FormState.ERROR] = "Permission denied";
+        return;
+      }
+
+      this.draftStatus = FormState.SAVED;
+
+      if (save && !completed) {
+        const response = (await firebase
+          .database()
+          .ref(`${this.submissionPath()}/completed`)
+          .once("value")).val();
+        if (response) this.$set(this.form, "completed", response);
+      }
+      this.initialData = { ...this.form };
     }
   }
 
@@ -364,6 +492,11 @@ export default class Form extends Vue {
     } = this.$route;
     const listId = getListId(fileName);
     return `/submissions/soundQualityReporting/${listId}/${fileName}/${token}`;
+  }
+
+  get formStateMessageColor() {
+    const color = this.formStateMessagesColor[this.draftStatus];
+    return color ? color : "#000";
   }
 
   get isCancelChecked() {
@@ -400,6 +533,14 @@ export default class Form extends Vue {
 
 .overflow {
   overflow: auto;
+}
+
+.sticky {
+  background-color: #fafafa;
+  bottom: 0;
+  padding: 12px;
+  position: sticky;
+  width: 100%;
 }
 
 @media screen and (min-width: 1904px) {
