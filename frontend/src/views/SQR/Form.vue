@@ -77,8 +77,8 @@
             </v-flex>
             <v-layout class="sticky" wrap>
               <v-flex xs12 sm6>
-                <v-btn v-if="!form.completed" @click="submitDraft" color="secondary">Save draft</v-btn>
-                <v-btn type="submit" color="success">Submit</v-btn>
+                <v-btn v-if="!form.completed" @click="submitDraft">Save draft</v-btn>
+                <v-btn type="submit" color="primary">Submit</v-btn>
               </v-flex>
               <v-flex align-self-center sm6 md6>
                 <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
