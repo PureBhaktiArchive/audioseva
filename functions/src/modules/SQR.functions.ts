@@ -206,11 +206,7 @@ export const processSubmission = functions.database
 
     await allotmentRef.update({ status: 'WIP' });
 
-    const currentAllotment = (await allotmentRef.once('value')).val();
-
-    await change.after.ref.update({
-      author: currentAllotment.assignee,
-    });
+    const allotment = (await allotmentRef.once('value')).val();
 
     // * Update the spreadsheet
 
@@ -236,8 +232,8 @@ export const processSubmission = functions.database
       Beginning: submission.duration ? submission.duration.beginning : null,
       Ending: submission.duration ? submission.duration.ending : null,
       Comments: submission.comments,
-      Name: currentAllotment.assignee.name,
-      'Email Address': currentAllotment.assignee.emailAddress,
+      Name: allotment.assignee.name,
+      'Email Address': allotment.assignee.emailAddress,
     };
 
     if (change.before.exists())
@@ -249,7 +245,7 @@ export const processSubmission = functions.database
     const coordinator = functions.config().coordinator;
 
     const currentSet = await SQR.getCurrentSet(
-      submission.author.emailAddress,
+      allotment.assignee.emailAddress,
       list
     );
 
@@ -257,23 +253,13 @@ export const processSubmission = functions.database
     if (submission.changed !== submission.completed)
       warnings.push('This is an updated submission!');
 
-    if (
-      currentAllotment.assignee.emailAddress !== submission.author.emailAddress
-    )
-      warnings.push(
-        `File is alloted to another email id - ${currentAllotment.assignee.emailAddress}`
-      );
-
-    if (!['Given', 'WIP'].includes(currentAllotment.status))
-      warnings.push(`Status of file is ${currentAllotment.status || 'Spare'}`);
+    if (!['Given', 'WIP'].includes(allotment.status))
+      warnings.push(`Status of file is ${allotment.status || 'Spare'}`);
 
     if (!fileSnapshot.exists())
       warnings.push(`Audio file name ${fileName} is not found in the backend!`);
 
-    if (
-      currentSet.filter((allotment: any) => allotment.status === 'Given')
-        .length === 1
-    )
+    if (currentSet.filter(item => item.status === 'Given').length === 1)
       warnings.push("It's time to allot!");
 
     await admin
@@ -281,14 +267,16 @@ export const processSubmission = functions.database
       .ref(`/email/notifications`)
       .push({
         template: 'sqr-submission',
-        replyTo: submission.author.emailAddress,
+        replyTo: allotment.assignee.emailAddress,
         to: coordinator.email_address,
         params: {
           currentSet,
-          submission: { fileName, ...submission },
+          submission: { fileName, author: allotment.assignee, ...submission },
           warnings,
-          allotmentUrl: SQR.createAllotmentLink(submission.author.emailAddress),
-          updateUrl: SQR.createSubmissionLink(fileName, token),
+          allotmentLink: SQR.createAllotmentLink(
+            allotment.assignee.emailAddress
+          ),
+          updateLink: SQR.createSubmissionLink(fileName, token),
         },
       });
   });
