@@ -79,7 +79,7 @@ export const initialFilter = () => ({
   list: null
 });
 
-const getObject = (obj: any, path: string) => path ? _.get(obj, path) : obj;
+const getObject = (obj: any, path: string) => (path ? _.get(obj, path) : obj);
 
 export const getPathAndKey = (field: string) => {
   let key: any;
@@ -95,10 +95,16 @@ export const getPathAndKey = (field: string) => {
   return { path, key };
 };
 
-export const updateObject = (obj: any, { path = "", key, value }: { path: string, key: any, value: any }) => {
+export const updateObject = (
+  obj: any,
+  { path = "", key, value }: { path: string; key: any; value: any }
+) => {
   return Vue.set(getObject(obj, path), key, value);
 };
 
-export const removeObjectKey = (obj: any, { path = "", key }: { path: string; key: any; }) => {
+export const removeObjectKey = (
+  obj: any,
+  { path = "", key }: { path: string; key: any }
+) => {
   return Vue.delete(getObject(obj, path), key);
 };
