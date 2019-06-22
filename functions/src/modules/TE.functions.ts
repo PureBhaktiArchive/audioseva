@@ -1,10 +1,11 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import * as path from 'path';
+import { URL } from 'url';
 import * as helpers from './../helpers';
 
-const rootBucketDomain = functions.config().storage['root-domain'];
+const rootBucketDomain = functions.config().project.domain;
 const teUploadsBucket = `te.uploads.${rootBucketDomain}`;
 const editedBucket = `edited.${rootBucketDomain}`;
 
@@ -56,7 +57,7 @@ export const processAllotment = functions.https.onCall(
         await taskRef.update({
           status: 'Given',
           assignee: assignee,
-          givenTimestamp: moment().format(),
+          givenTimestamp: admin.database.ServerValue.TIMESTAMP,
         });
 
         // Getting the tasks list to be used when notifying the assignee
@@ -88,10 +89,8 @@ export const processAllotment = functions.https.onCall(
           tasks: tasksForEmail,
           assignee: assignee,
           comment: comment,
-          date: moment()
-            .utcOffset(coordinator.utc_offset)
-            .format('DD.MM'),
-          uploadURL: `${functions.config().website.base_url}/te/upload/`,
+          date: DateTime.local().toFormat('dd.MM'),
+          uploadURL: new URL(`https://app.${functions.config().project.domain}/te/upload`).toString(),
         },
       });
   }
@@ -127,7 +126,7 @@ export const processSubmission = functions.storage
       await taskRef.update({
         uploadPath: object.name,
         status: 'Submitted',
-        submissionTimestamp: moment().format(),
+        submissionTimestamp: admin.database.ServerValue.TIMESTAMP,
       });
     }
 
@@ -160,7 +159,7 @@ export const processFeedback = functions.database
 
       await taskRef.update({
         status: 'Revise',
-        feedbackTimestamp: moment().format(),
+        feedbackTimestamp: admin.database.ServerValue.TIMESTAMP,
       });
 
       const task = (await taskRef.once('value')).val();
@@ -198,7 +197,7 @@ export const processApproval = functions.database
 
       await taskRef.update({
         status: 'Done',
-        doneTimestamp: moment().format(),
+        doneTimestamp: admin.database.ServerValue.TIMESTAMP,
       });
 
       const task = (await taskRef.once('value')).val();

@@ -1,10 +1,9 @@
-import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-
-import uniqid from 'uniqid';
-import * as moment from 'moment';
-
+import * as functions from 'firebase-functions';
+import { DateTime } from 'luxon';
+import { URL } from 'url';
 import { taskIdRegex } from '../helpers';
+import uuidv4 = require('uuid/v4');
 
 const db = admin.database();
 
@@ -44,8 +43,8 @@ export const processAllotment = functions.https.onCall(
     const user = userRef.val();
     let { uploadCode } = user;
     if (!uploadCode) {
-      uploadCode = uniqid();
-      userRef.ref.child('uploadCode').set({ uploadCode });
+      uploadCode = uuidv4();
+      await userRef.ref.child('uploadCode').set({ uploadCode });
     }
 
     // 2. Update the task
@@ -82,12 +81,11 @@ export const processAllotment = functions.https.onCall(
         tasks,
         assignee: allotment.assignee,
         comment: allotment.comment,
-        date: moment()
-          .utcOffset(coordinator.utc_offset)
-          .format('DD.MM'),
-        uploadURL: `${
-          functions.config().website.base_url
-        }/sound-editing/upload/${uploadCode}`,
+        date: DateTime.local().toFormat('dd.MM'),
+        uploadURL: new URL(
+          `sound-editing/upload/${uploadCode}`,
+          `https://app.${functions.config().project.domain}/`
+        ).toString(),
         repeated: true,
       },
     });
@@ -98,7 +96,7 @@ export const processAllotment = functions.https.onCall(
 const basePath = '/sound-editing/';
 
 const makeTaskId = (fileName: string, index: number) => {
-  return `${fileName.match(taskIdRegex)[0]}-${index}`;
+  return `${fileName.match(taskIdRegex)[0]} - ${index}`;
 };
 
 const validateTask = async (path: string) => {
@@ -119,8 +117,8 @@ export const createTaskFromChunks = functions.database
     } = snapshot.val();
 
     if (processingResolution.toLowerCase() !== 'ok' || currentTaskId) return;
-    const chunksPath = `${basePath}chunks/${listId}/`;
-    const tasksPath = `${basePath}tasks/${listId}/`;
+    const chunksPath = `${basePath}chunks / ${listId} / `;
+    const tasksPath = `${basePath}tasks / ${listId} / `;
     const chunkDuration = ending - beginning;
     const chunkResponse = await db
       .ref(`${chunksPath}${fileName}`)
@@ -149,8 +147,10 @@ export const createTaskFromChunks = functions.database
         if (nextChunk.continuationFrom === fileName) {
           duration =
             ending - beginning + (nextChunk.ending - nextChunk.beginning);
-          await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
-          await db.ref(`${chunksPath}${continuationTo}/0`).update({ taskId });
+          await db
+            .ref(`${chunksPath}${fileName} / ${index}`)
+            .update({ taskId });
+          await db.ref(`${chunksPath}${continuationTo} / 0`).update({ taskId });
         } else {
           return;
         }
@@ -176,9 +176,11 @@ export const createTaskFromChunks = functions.database
         duration =
           chunkDuration + (previousChunk.ending - previousChunk.beginning);
         await db
-          .ref(`${chunksPath}${continuationFrom}/${previousChunks.length - 1}`)
+          .ref(
+            `${chunksPath}${continuationFrom} / ${previousChunks.length - 1}`
+          )
           .update({ taskId });
-        await db.ref(`${chunksPath}${fileName}/${index}`).update({ taskId });
+        await db.ref(`${chunksPath}${fileName} / ${index}`).update({ taskId });
       } else {
         console.error('Invalid continuationTo from previous chunk');
         return;
@@ -202,7 +204,7 @@ export const createTaskFromChunks = functions.database
 /**
  * Sends a notification email to the coordinator & udpates the corresponding Task
  */
-const stoargeBaseDomain = functions.config().storage['root-domain'];
+const stoargeBaseDomain = functions.config().project.domain;
 export const processUploadedFile = functions.storage
   .bucket(`uploads.${stoargeBaseDomain}`)
   .object()
@@ -218,14 +220,14 @@ export const processUploadedFile = functions.storage
       const match = filePathRegex.exec(filePath);
 
       // [Check #1] File name should match `$taskId.flac` pattern.
-      if (!match) throw new Error(`Wrong Path -- ${filePath} will be deleted.`);
+      if (!match) throw new Error(`Wrong Path-- ${filePath} will be deleted.`);
 
       uploadCode = match[1];
       taskId = match[2];
       list = match[3];
 
       const user = await db
-        .ref(`/users`)
+        .ref(`/ users`)
         .orderByChild('uploadCode')
         .equalTo(uploadCode)
         .once('value');
@@ -236,33 +238,33 @@ export const processUploadedFile = functions.storage
         );
 
       taskRef = await db
-        .ref(`/sound-editing/tasks/${list}/${taskId}`)
+        .ref(`/ sound - editing / tasks / ${list} / ${taskId}`)
         .once('value');
       task = taskRef.val();
 
       // [Check #2] The task should be found in the database by Id.
       if (!taskRef.exists())
-        throw new Error(`Task does not exist -- ${filePath} will be deleted.`);
+        throw new Error(`Task does not exist-- ${filePath} will be deleted.`);
 
       // [Check #3] The task should be assigned to a particular sound engineer
       //  which is identified by the `uploadCode`within the file path.
       if (task.restoration.assignee.emailAddress !== user.val().emailAddress)
         throw new Error(
-          `Task is assigned to another SE -- ${filePath} will be deleted.`
+          `Task is assigned to another SE-- ${filePath} will be deleted.`
         );
 
       // [Check #4] The task should be in `Spare` or `Revise` status.
       if (['Revise', 'Spare'].indexOf(task.restoration.status) < 0)
         throw new Error(
-          `Incorrect task status (only [Revise OR Spare] are allowed here) -- ${filePath} will be deleted.`
+          `Incorrect task status(only[Revise OR Spare]are allowed here)-- ${filePath} will be deleted.`
         );
 
       // Move current file (after passing all validity checks) into `Restored` bucket
-      uploadsBucket.file(object.name).move(
+      await uploadsBucket.file(object.name).move(
         admin
           .storage()
-          .bucket(`restored${stoargeBaseDomain}`)
-          .file(`${list}/${taskId}.flac`)
+          .bucket(`restored.${stoargeBaseDomain}`)
+          .file(`${list} / ${taskId}.flac`)
       );
     } catch (err) {
       console.error(err.message);
@@ -282,7 +284,7 @@ export const processUploadedFile = functions.storage
     await taskRef.ref.child('restoration').update(taskRestorationUpdate);
 
     // Send an email notification to the coordinator
-    db.ref(`/email/notifications`).push({
+    db.ref(`/ email / notifications`).push({
       template: 'se-upload',
       to: functions.config().coordinator.email_address,
       replyTo: task.restoration.assignee.emailAddress,
