@@ -335,6 +335,10 @@ export default class Form extends Vue {
   async removeField(field: string) {
     removeObjectKey(this.form, getPathAndKey(field));
 
+    if (_.isEqual(_.get(this.initialData, field), _.get(this.form, field))) {
+      this.draftStatus = FormState.INITIAL_LOAD;
+    }
+
     const [updateFieldPath] = field.split(".");
     await firebase
       .database()
