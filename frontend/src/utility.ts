@@ -79,7 +79,16 @@ export const initialFilter = () => ({
   list: null
 });
 
-const getObject = (obj: any, path: string) => (path ? _.get(obj, path) : obj);
+const getObject = (obj: any, path: string, defaultValue: any = {}) => {
+  if (path) {
+    const item = _.get(obj, path);
+    if (!item) {
+      // recursively make nested object reactive for state updates
+      updateObject(obj, { ...getPathAndKey(path), value: defaultValue });
+    }
+  }
+  return path ? _.get(obj, path) : obj;
+};
 
 export const getPathAndKey = (field: string) => {
   let key: any;
@@ -99,7 +108,11 @@ export const updateObject = (
   obj: any,
   { path = "", key, value }: { path: string; key: any; value: any }
 ) => {
-  return Vue.set(getObject(obj, path), key, value);
+  let defaultValue: any = {};
+  if (!isNaN(key)) {
+    defaultValue = []
+  }
+  return Vue.set(getObject(obj, path, defaultValue), key, value);
 };
 
 export const removeObjectKey = (
