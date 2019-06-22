@@ -180,7 +180,7 @@ export class Sheet {
     await this.api.spreadsheets.values.batchUpdate({
       spreadsheetId: this.spreadsheetId,
       requestBody: {
-        valueInputOption: IValueInputOption.USER_ENTERED,
+        valueInputOption: IValueInputOption.RAW,
         data: rows
           .filter(row => row)
           .map((row, rowIndex) => ({
@@ -254,7 +254,7 @@ export class Sheet {
     await this.api.spreadsheets.values.update({
       spreadsheetId: this.spreadsheetId,
       range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
-      valueInputOption: IValueInputOption.USER_ENTERED,
+      valueInputOption: IValueInputOption.RAW,
       requestBody: {
         values: [this.encodeRow(
           mode === RowUpdateMode.Complete
@@ -291,7 +291,7 @@ export class Sheet {
     await this.api.spreadsheets.values.append({
       spreadsheetId: this.spreadsheetId,
       range: this.title,
-      valueInputOption: IValueInputOption.USER_ENTERED,
+      valueInputOption: IValueInputOption.RAW,
       requestBody: {
         values: [this.encodeRow(object)],
       },
