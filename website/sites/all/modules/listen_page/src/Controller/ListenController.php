@@ -41,17 +41,7 @@ class ListenController extends ControllerBase {
     if ($type === 'mp3')
       $encoded_file_name = str_replace('ML2-', '', $encoded_file_name); // ML2 prefix is artificial, files are without it.
 
-    switch ($list) {
-      case "BR":
-      case "DK":
-      case "ISK":
-      case "JAG":
-      case "PV":
-      case "SER":
-        return "https://vraja.info/All_mp3/newcapture/$list/$encoded_file_name.$type";
-      default:
-        return "https://storage.googleapis.com/audio-seva/$folder/$list/$encoded_file_name.$type";
-    }
+    return "https://storage.googleapis.com/audio-seva/$folder/$list/$encoded_file_name.$type";
   }
 
   public function page($file_name) {
