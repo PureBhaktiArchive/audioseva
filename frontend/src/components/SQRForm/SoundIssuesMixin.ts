@@ -1,6 +1,7 @@
 import { Component, Mixins } from "vue-property-decorator";
 import _ from "lodash";
 import FormField from "@/mixins/FormField";
+import { required, validateDuration } from "@/validation";
 
 @Component
 export default class SoundIssuesMixin extends Mixins(FormField) {
@@ -24,7 +25,6 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
         },
         props: {
           ...this.formProps,
-          updateForm: this.updateForm(),
           form: this.form,
           styles: {
             timeField: true
@@ -33,7 +33,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
             label: "Beginning",
             outline: true,
             placeholder: "(h:)mm:ss",
-            rules: [(value: any) => !!value || "Required"]
+            rules: [required, validateDuration]
           }
         },
         style: this.style
@@ -41,7 +41,6 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
       ending: {
         props: {
           ...this.formProps,
-          updateForm: this.updateForm(),
           form: this.form,
           styles: {
             timeField: true
@@ -50,7 +49,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
             label: "Ending",
             outline: true,
             placeholder: "(h:)mm:ss",
-            rules: [(value: any) => !!value || "Required"]
+            rules: [required, validateDuration]
           }
         },
         style: this.style
@@ -64,13 +63,12 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
       description: {
         props: {
           ...this.formProps,
-          updateForm: this.updateForm(),
           form: this.form,
           fieldProps: {
             box: true,
             label: "Description",
             outline: true,
-            rules: [(value: any) => !!value || "Required"]
+            rules: [required]
           }
         },
         style: this.style
@@ -80,7 +78,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           ...this.formProps,
           form: this.form,
           fieldProps: {
-            rules: [(value: any) => !!value || "Required"]
+            rules: [required]
           }
         }
       }
@@ -122,7 +120,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
   }
 
   addField() {
-    this.updateForm(false)(
+    this.updateForm(
       `${this.updatePath}.${_.get(this.form, this.updatePath, []).length}`,
       {}
     );
