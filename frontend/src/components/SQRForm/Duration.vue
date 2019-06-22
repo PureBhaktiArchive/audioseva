@@ -7,6 +7,7 @@
         :label="field"
         @input="handleInput(field.toLowerCase(), $event)"
         :value="getFormData(field.toLowerCase())"
+        :rules="rules()"
       ></v-text-field>
     </v-flex>
   </v-layout>
@@ -14,8 +15,9 @@
 
 <script lang="ts">
 import { Component, Mixins } from "vue-property-decorator";
-import FormField from "@/mixins/FormField";
 import _ from "lodash";
+import FormField from "@/mixins/FormField";
+import { required, validateDuration } from "@/validation";
 
 @Component({
   name: "Duration"
@@ -23,12 +25,22 @@ import _ from "lodash";
 export default class Duration extends Mixins<FormField>(FormField) {
   fields = ["Beginning", "Ending"];
 
+  mounted() {
+    console.log(this.form, "form");
+  }
+
   handleInput(field: any, value: any) {
     this.updateForm(`duration.${field}`, value);
   }
 
   getFormData(field: any) {
     return _.get(this.form, `duration.${field}`);
+  }
+
+  rules() {
+    return ["Good", "Bad", "Average"].includes(this.form.soundQualityRating)
+      ? [required, validateDuration]
+      : [validateDuration];
   }
 }
 </script>

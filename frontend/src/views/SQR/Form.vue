@@ -119,6 +119,7 @@ import {
   removeObjectKey,
   getPathAndKey
 } from "@/utility";
+import { required } from "@/validation";
 
 enum FormState {
   SAVING = 0,
@@ -299,7 +300,7 @@ export default class Form extends Vue {
   };
   submitSuccess = false;
 
-  rules = [(v: any) => !!v || "Required field"];
+  rules = [required];
 
   handleListClick(cancelField: number) {
     this.cancelCheck = {};

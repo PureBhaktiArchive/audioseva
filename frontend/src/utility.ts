@@ -110,7 +110,7 @@ export const updateObject = (
 ) => {
   let defaultValue: any = {};
   if (!isNaN(key)) {
-    defaultValue = []
+    defaultValue = [];
   }
   return Vue.set(getObject(obj, path, defaultValue), key, value);
 };
