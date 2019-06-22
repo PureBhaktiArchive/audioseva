@@ -1,3 +1,5 @@
+// sri sri guru gaurangau jayatah
+
 import { countriesOptions } from 'public/countries';
 
 const services = {
@@ -9,13 +11,6 @@ const services = {
 
 const languages = ['English', 'Hindi', 'Bengali'];
 
-// const validateServices = (value, reject) => {
-// 	const checked = Object.keys(services).filter(service => $w(`#${service}`).checked);
-// 	console.log(checked);
-// 	if (checked.length === 0)
-// 		reject("Select any service, please.");
-// }
-
 $w.onReady(function() {
 	$w('#SE').onChange(event => {
 		$w('#experience').required = event.target.checked;
@@ -25,7 +20,6 @@ $w.onReady(function() {
 		$w('#contactPhoneNumber').required = event.target.checked;
 	});
 	$w('#influencer').onChange(event => {
-		console.log(event);
 		const personalInfluencers = [
 			'From a preacher',
 			'From another devotee who is doing the service',
@@ -33,10 +27,6 @@ $w.onReady(function() {
 		];
 		$w('#recommendedBy').required = personalInfluencers.indexOf(event.target.value) > -1;
 	});
-
-	// Object.keys(services).forEach(service => {
-	// 	$w(`#${service}`).onCustomValidation(validateServices);
-	// });
 
 	const dataset = $w('#registrationsDataset');
 
