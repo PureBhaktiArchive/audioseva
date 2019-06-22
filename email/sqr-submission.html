@@ -9,10 +9,9 @@
     {% for allotment in params.currentSet %}
     <li>
       {{ allotment.fileName }}
-      {{ allotment.timestampGiven }}
+      {{ allotment.dateGiven }}
       {{ allotment.status }}
-      {{ allotment.daysPassed }},
-      {{ allotment.languages | join: ", " }}
+      {{ allotment.daysPassed }}
       {% if allotment.fileName == params.submission.fileName %}
       <strong> -- CURRENT SUBMISSION</strong>
       {% endif %}
@@ -31,8 +30,8 @@
   <ul>
     {% for unwantedPart in params.submission.unwantedParts %}
     <li>
-      {{ unwantedPart.beginning }} - {{ unwantedPart.ending }}
-      {{ unwantedPart.type }} {{ unwantedPart.description }}
+      {{ unwantedPart.beginning }}–{{ unwantedPart.ending }}:
+      {{ unwantedPart.type }} — {{ unwantedPart.description }}
     </li>
     {% endfor %}
   </ul>
@@ -40,8 +39,9 @@
   <ul>
     {% for soundIssue in params.submission.soundIssues %}
     <li>
-      {{ soundIssue.beginning }} - {{ soundIssue.ending }}
-      {{ soundIssue.type }} {{ soundIssue.description }}
+      {% if soundIssue.entireFile %}Entire file{% else %}
+      {{ soundIssue.beginning }}–{{ soundIssue.ending }}{% endif %}:
+      {{ soundIssue.type }} — {{ soundIssue.description }}
     </li>
     {% endfor %}
   </ul>
@@ -50,9 +50,8 @@
   </p>
   <p>
     <b>E. Total Duration of the Recording:</b>
-    {{
-      params.submission.duration.ending - params.submission.duration.beginning
-    }}
+    {{ params.submission.duration.beginning }}–
+    {{ params.submission.duration.ending }}
   </p>
   <p><b>F. Comments:</b> {{ params.submission.comments }}</p>
   <p>

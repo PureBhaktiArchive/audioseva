@@ -57,9 +57,9 @@ type EditedFile {
   read() { hasRole("coordinator") }
 }
 
-/donations {
-  /cash is ReadOnlyCoordinator {
-    /{push_id} {
+path /donations {
+  path /cash is ReadOnlyCoordinator {
+    path /{push_id} {
       create() {
         return root.donations.tokens[this.token].valid == true
       }
@@ -67,9 +67,9 @@ type EditedFile {
   }
 }
 
-/original is ReadOnlyCoordinator {
-  /{list} {
-    index() { ["soundQualityReporting/status"] }
+path /original is ReadOnlyCoordinator {
+  path /{list} {
+    index() { ["soundQualityReporting/status", "soundQualityReporting/assignee/emailAddress"] }
     /{fileName} is OriginalFile {
       index() { ["token"] }
       read() { query.orderByChild === 'token' && query.equalTo == this.child("soundQualityReporting/token").val() }
@@ -77,7 +77,7 @@ type EditedFile {
   }
 }
 
-/users is ReadOnlyCoordinator {
+path /users is ReadOnlyCoordinator {
   index() {[
     "emailAddress",
     "roles/CR",
@@ -85,26 +85,27 @@ type EditedFile {
     "roles/SE",
     "uploadCode"
   ]}
-  /{userId} {
-    /timestamp is CurrentTimestamp;
-    /isAvailableOnWhatsApp is Boolean;
-    /notes is WriteOnlyCoordinatorField<String>;
-    /emailAddress {
+  
+  path /{userId} {
+    path /timestamp is CurrentTimestamp;
+    path /isAvailableOnWhatsApp is Boolean;
+    path /notes is WriteOnlyCoordinatorField<String>;
+    path /emailAddress {
       create() { true }
     }
-    /languages {
+    path /languages {
       /{langName} is Boolean;
     }
-    /status is WriteOnlyCoordinatorField<String>;
-    /roles is WriteOnlyCoordinator {
+    path /status is WriteOnlyCoordinatorField<String>;
+    path /roles is WriteOnlyCoordinator {
       /{roleId} is Boolean;
     }
   }
 }
 
-/submissions {
-  /soundQualityReporting {
-    /{list}/{fileName}/{token} {
+path /submissions {
+  path /soundQualityReporting {
+    path /{list}/{fileName}/{token} {
       read() { true }
       write() {
         return (
@@ -121,10 +122,10 @@ type EditedFile {
             .status != "Done"
         )
       }
-      /complete is OnlyNew;
-      /created is OnlyNew;
+      path /complete is OnlyNew;
+      path /created is OnlyNew;
     }
   }
 }
 
-/edited/{list}/{fileName} is EditedFile;
+path /edited/{list}/{fileName} is EditedFile;

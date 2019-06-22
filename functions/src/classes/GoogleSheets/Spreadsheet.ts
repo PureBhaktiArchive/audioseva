@@ -33,6 +33,10 @@ export class Spreadsheet {
     return this.schema.sheets.map(schema => schema.properties.title);
   }
 
+  public get timeZone() {
+    return this.schema.properties.timeZone;
+  }
+
   public async useSheet(title: string) {
     const schema = this.schema.sheets.find(s => s.properties.title === title);
     if (schema === undefined)

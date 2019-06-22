@@ -4,7 +4,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as _ from 'lodash';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { Spreadsheet } from '../classes/GoogleSheets';
 import * as helpers from '../helpers';
 
@@ -185,7 +185,7 @@ export const processAllotment = functions.https.onCall(
         }
         const rowNumber = index + 1;
         const row = await sheet.getRow(rowNumber);
-        row['Date Given'] = moment().format('MM/DD/YYYY');
+        row['Date Given'] = helpers.convertToSerialDate(DateTime.local());
         row['Status'] = 'Given';
         row['Devotee'] = assignee.name;
         row['Email'] = assignee.emailAddress;
@@ -208,9 +208,7 @@ export const processAllotment = functions.https.onCall(
           files,
           assignee,
           comment,
-          date: moment()
-            .utcOffset(coordinator.utc_offset)
-            .format('DD.MM'),
+          date: DateTime.local().toFormat('dd.MM'),
           repeated: emailColumn.indexOf(assignee.emailAddress) > 0,
         },
       });
