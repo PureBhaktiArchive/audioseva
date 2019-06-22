@@ -5,7 +5,8 @@ import {
   mergeDoneStatistics,
   formatTimestamp,
   validateFlacFile,
-  removeObjectKey
+  removeObjectKey,
+  getPathAndKey
 } from "@/utility";
 
 describe("utility", function() {
@@ -65,7 +66,7 @@ describe("utility", function() {
     const data = {
       nested: [{}, {}]
     };
-    const newData = removeObjectKey(data, "nested.0");
-    expect(newData.nested).toEqual([{}]);
+    removeObjectKey(data, getPathAndKey("nested.0"));
+    expect(data.nested).toEqual([{}]);
   });
 });
