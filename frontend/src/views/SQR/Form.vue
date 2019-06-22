@@ -148,19 +148,29 @@ export default class Form extends Vue {
       title: "C. Unwanted parts to be cut",
       component: "UnwantedParts",
       guidelines: `
-      For each unwanted part you identify, please fill details in one such block Please note:
-       The timing is to be filled in (h:)mm:ss format. Also, please mention the Beginning and Ending time for
-       each such unwanted part. For e.g. If from 20 minutes and 10 seconds to 21 minutes and 20 seconds there is
-       an abrupt blank space, please write 20:10 in the ‘Beginning field’ and 21:20 in the Ending field. Choose
-       ‘Blank Space’ in Type and provide a relevant details in the Description field. For the next unwanted part,
-       please add another such block.
+      For each unwanted part you identify, please fill details in one such block.
 
        <ul>
+        <li>
+          Please note: The timing is to be filled in (h:)mm:ss format
+        </li>
+        <li>
+          Also, please mention the Beginning and Ending time for
+          each such unwanted part
+        </li>
+        <li>
+          For e.g. If from 20 minutes and 10 seconds to 21 minutes and 20 seconds there is
+          an abrupt blank space, please write 20:10 in the ‘Beginning field’ and 21:20 in the Ending field. Choose
+          ‘Blank Space’ in Type and provide a relevant details in the Description field
+        </li>
+        <li>
+          For the next unwanted part, please add another such block.
+        </li>
         <li>
           Add block by clicking on the green button ‘+ UNWANTED PART’.
         </li>
         <li>
-          Delete one block by clicking on the red button on the right.
+          Delete a block by clicking the red 'Bin' icon on the top right of each block.
          </li>
        </ul>
        `
@@ -173,9 +183,11 @@ export default class Form extends Vue {
 
       <ul>
         <li>
-          Enter the Beginning and Ending timing of the section in (h:)mm:ss format. Choose the specific issue from
-          the options listed or enter a different issue by selecting ‘Other’. Please describe the issue in the
-          ‘Description’ field.
+           Enter the Beginning and Ending timing of the section in (h:)mm:ss format.
+           - Choose the specific issue from the options listed or enter a different issue by selecting ‘Other’.
+        </li>
+        <li>
+          Please describe the issue in the ‘Description’ field.
         </li>
         <li>
           For instance, from 20:20 - 21:34 if there is loud noise of roadside vehicles, making it difficult to hear
@@ -184,10 +196,10 @@ export default class Form extends Vue {
           honking and general traffic noise.’
         </li>
         <li>
-          To add another comment for the SE, add another such block by clicking on the green button ‘+ SOUND ISSUE’.
+          Add block by clicking on the green button ‘+ SOUND ISSUE’.
         </li>
         <li>
-          Delete one block by clicking on the red button on the right.
+          Delete a block by clicking the red 'Bin' icon on the top right of each block.
         </li>
       </ul>
       `
