@@ -133,7 +133,7 @@ export default class Form extends Vue {
       title: "B. Sound Quality Rating",
       component: "SQRField",
       guidelines: `Please rate the overall sound quality of the allotted file by selecting one of the options:
-      Good, Average, Bad. The basis of rating will be the audibility of Srila Gurudeva’s voice. In other words,
+      Good, Average, Bad, Entire file is Inaudible, Entire file is Blank. The basis of rating will be the audibility of Srila Gurudeva’s voice. In other words,
       if you find it difficult or strenuous to understand what Srila Gurudeva is speaking, due to too much background
       noise or volume being too low and so on, please choose ‘Bad’. On the other hand, if the audio is clear, with no
        background noise and good volume, please choose ‘Good.’ In cases where you can hear Srila Gurudeva well but
@@ -153,12 +153,10 @@ export default class Form extends Vue {
 
        <ul>
         <li>
-          Add block by clicking on the green button ‘Add’. You can also choose to add more than one such blocks by
-          entering a number in the field next to the ‘Add’ button.
+          Add block by clicking on the green button ‘+ UNWANTED PART’.
         </li>
         <li>
-          Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right and
-          delete one block by clicking on the red ‘-’ button on the right.
+          Delete one block by clicking on the red button on the right.
          </li>
        </ul>
        `
@@ -182,13 +180,10 @@ export default class Form extends Vue {
           honking and general traffic noise.’
         </li>
         <li>
-          To add another comment for the SE, add another such block by clicking on the green button ‘Add’.
-          You can also choose to add more than one such blocks by entering a number in the field
-          next to the ‘Add’ button.
+          To add another comment for the SE, add another such block by clicking on the green button ‘+ SOUND ISSUE’.
         </li>
         <li>
-          Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right
-          and delete one block by clicking on the red ‘-’ button on the right.
+          Delete one block by clicking on the red button on the right.
         </li>
       </ul>
       `
