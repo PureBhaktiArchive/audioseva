@@ -52,7 +52,7 @@
     </v-card>
     <v-btn class="ma-0" color="success" @click="addField">
       <v-icon small left v-text="`$vuetify.icons.plus`" />
-      Sound Issues
+      Sound Issue
     </v-btn>
   </div>
 </template>
@@ -107,7 +107,6 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
       entireFile: {
         props: {
           ...this.formProps,
-          updateForm: this.updateForm(false),
           form: this.form,
           fieldProps: {
             label: "Entire file",

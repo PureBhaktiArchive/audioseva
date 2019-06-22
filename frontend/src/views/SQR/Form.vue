@@ -9,6 +9,11 @@
     <v-container v-else-if="cancelComplete">
       <p>Allotment is canceled!</p>
     </v-container>
+    <v-container v-else-if="submitSuccess">
+      <div class="submitSuccessBackground">
+        <p class="pa-4 title submitSuccessText">Thank you! We have received your submission.</p>
+      </div>
+    </v-container>
     <v-form v-else-if="canSubmit" ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
@@ -61,7 +66,7 @@
                   v-bind="field.props"
                   :form="form"
                   :removeField="removeField"
-                  :updateForm="field.updateForm || handleFormUpdate"
+                  :updateForm="field.updateForm || updateForm"
                   :is="field.component"
                 ></component>
               </template>
@@ -77,8 +82,8 @@
             </v-flex>
             <v-layout class="sticky" wrap>
               <v-flex xs12 sm6>
-                <v-btn type="submit" color="success">Submit</v-btn>
-                <v-btn v-if="!form.completed" @click="submitDraft" color="secondary">Save draft</v-btn>
+                <v-btn v-if="!form.completed" @click="submitDraft">Save draft</v-btn>
+                <v-btn type="submit" color="primary">Submit</v-btn>
               </v-flex>
               <v-flex align-self-center sm6 md6>
                 <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
@@ -91,7 +96,7 @@
       </v-container>
     </v-form>
     <p class="d-flex justify-center red--text font-weight-bold" v-else>
-      Submission error
+      This allotment is not valid, please contact coordinator.
     </p>
   </div>
 </template>
@@ -108,7 +113,13 @@ import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
 import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
 import Duration from "@/components/SQRForm/Duration.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
-import { updateObject, getListId, removeObjectKey } from "@/utility";
+import {
+  updateObject,
+  getListId,
+  removeObjectKey,
+  getPathAndKey
+} from "@/utility";
+import { required } from "@/validation";
 
 enum FormState {
   SAVING = 0,
@@ -128,32 +139,39 @@ export default class Form extends Vue {
       title: "B. Sound Quality Rating",
       component: "SQRField",
       guidelines: `Please rate the overall sound quality of the allotted file by selecting one of the options:
-      Good, Average, Bad. The basis of rating will be the audibility of Srila Gurudeva’s voice. In other words,
+      Good, Average, Bad, Entire file is Inaudible, Entire file is Blank. The basis of rating will be the audibility of Srila Gurudeva’s voice. In other words,
       if you find it difficult or strenuous to understand what Srila Gurudeva is speaking, due to too much background
       noise or volume being too low and so on, please choose ‘Bad’. On the other hand, if the audio is clear, with no
        background noise and good volume, please choose ‘Good.’ In cases where you can hear Srila Gurudeva well but
-       there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.`,
-      updateForm: this.handleFormUpdate(false)
+       there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.`
     },
     {
       title: "C. Unwanted parts to be cut",
       component: "UnwantedParts",
       guidelines: `
-      For each unwanted part you identify, please fill details in one such block Please note:
-       The timing is to be filled in (h:)mm:ss format. Also, please mention the Beginning and Ending time for
-       each such unwanted part. For e.g. If from 20 minutes and 10 seconds to 21 minutes and 20 seconds there is
-       an abrupt blank space, please write 20:10 in the ‘Beginning field’ and 21:20 in the Ending field. Choose
-       ‘Blank Space’ in Type and provide a relevant details in the Description field. For the next unwanted part,
-       please add another such block.
+      For each unwanted part you identify, please fill details in one such block.
 
        <ul>
         <li>
-          Add block by clicking on the green button ‘Add’. You can also choose to add more than one such blocks by
-          entering a number in the field next to the ‘Add’ button.
+          Please note: The timing is to be filled in (h:)mm:ss format
         </li>
         <li>
-          Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right and
-          delete one block by clicking on the red ‘-’ button on the right.
+          Also, please mention the Beginning and Ending time for
+          each such unwanted part
+        </li>
+        <li>
+          For e.g. If from 20 minutes and 10 seconds to 21 minutes and 20 seconds there is
+          an abrupt blank space, please write 20:10 in the ‘Beginning field’ and 21:20 in the Ending field. Choose
+          ‘Blank Space’ in Type and provide a relevant details in the Description field
+        </li>
+        <li>
+          For the next unwanted part, please add another such block.
+        </li>
+        <li>
+          Add block by clicking on the green button ‘+ UNWANTED PART’.
+        </li>
+        <li>
+          Delete a block by clicking the red 'Bin' icon on the top right of each block.
          </li>
        </ul>
        `
@@ -166,9 +184,11 @@ export default class Form extends Vue {
 
       <ul>
         <li>
-          Enter the Beginning and Ending timing of the section in (h:)mm:ss format. Choose the specific issue from
-          the options listed or enter a different issue by selecting ‘Other’. Please describe the issue in the
-          ‘Description’ field.
+           Enter the Beginning and Ending timing of the section in (h:)mm:ss format.
+           - Choose the specific issue from the options listed or enter a different issue by selecting ‘Other’.
+        </li>
+        <li>
+          Please describe the issue in the ‘Description’ field.
         </li>
         <li>
           For instance, from 20:20 - 21:34 if there is loud noise of roadside vehicles, making it difficult to hear
@@ -177,13 +197,10 @@ export default class Form extends Vue {
           honking and general traffic noise.’
         </li>
         <li>
-          To add another comment for the SE, add another such block by clicking on the green button ‘Add’.
-          You can also choose to add more than one such blocks by entering a number in the field
-          next to the ‘Add’ button.
+          Add block by clicking on the green button ‘+ SOUND ISSUE’.
         </li>
         <li>
-          Alternatively, you can also add another such block by clicking on the green ‘+’ button on the right
-          and delete one block by clicking on the red ‘-’ button on the right.
+          Delete a block by clicking the red 'Bin' icon on the top right of each block.
         </li>
       </ul>
       `
@@ -196,8 +213,7 @@ export default class Form extends Vue {
         "In other words, whether any part of the sound file is blank or inaudible and hence to be discarded. " +
         "Usually such parts are present towards the end of the file. There might be small parts 5-7 min long " +
         "in between two lecture recordings, but these can be ignored. Please write the beginning and ending timings" +
-        " of the overall recording in this field in (h:)mm:ss format.",
-      updateForm: this.handleFormUpdate()
+        " of the overall recording in this field in (h:)mm:ss format."
     },
     {
       title: "F. Comments",
@@ -213,7 +229,6 @@ export default class Form extends Vue {
           </li>
          </ul>
       `,
-      updateForm: this.handleFormUpdate(),
       props: {
         pathOverride: "comments",
         fieldProps: {
@@ -283,8 +298,9 @@ export default class Form extends Vue {
     unwantedParts?: any;
     soundIssues?: any;
   };
+  submitSuccess = false;
 
-  rules = [(v: any) => !!v || "Required field"];
+  rules = [required];
 
   handleListClick(cancelField: number) {
     this.cancelCheck = {};
@@ -293,9 +309,10 @@ export default class Form extends Vue {
   }
 
   updateForm(field: string, value: any, debounceSubmit = true) {
-    this.form = updateObject(this.form, field, value);
+    updateObject(this.form, { ...getPathAndKey(field), value });
+
     if (debounceSubmit) {
-      if (_.isEqual(this.initialData, this.form)) {
+      if (_.isEqual(_.get(this.initialData, field), _.get(this.form, field))) {
         this.draftStatus = FormState.SAVED;
         if (!this.form.completed) {
           this.debounceSubmitDraft.cancel();
@@ -308,18 +325,6 @@ export default class Form extends Vue {
       }
     }
   }
-
-  handleFormUpdate(shouldDebounceUpdate = true) {
-    return (...args: any[]) =>
-      shouldDebounceUpdate
-        ? this.debounceUpdateForm(...args)
-        : (this.updateForm as any)(...args);
-  }
-
-  debounceUpdateForm = _.debounce(
-    (...args: any[]) => (this.updateForm as any)(...args),
-    250
-  );
 
   async canSubmitForm() {
     const {
@@ -341,7 +346,12 @@ export default class Form extends Vue {
   }
 
   async removeField(field: string) {
-    this.form = removeObjectKey(this.form, field);
+    removeObjectKey(this.form, getPathAndKey(field));
+
+    if (_.isEqual(_.get(this.initialData, field), _.get(this.form, field))) {
+      this.draftStatus = FormState.INITIAL_LOAD;
+    }
+
     const [updateFieldPath] = field.split(".");
     await firebase
       .database()
@@ -402,7 +412,7 @@ export default class Form extends Vue {
     } else {
       this.form = defaultData;
     }
-    this.initialData = { ...this.form };
+    this.initialData = _.cloneDeep(this.form);
   }
 
   async cancelForm() {
@@ -445,7 +455,6 @@ export default class Form extends Vue {
       this.draftStatus = FormState.SAVING;
     }
     if (!save || (this.$refs as any).form.validate()) {
-      this.initialData = { ...this.form };
       if (save) {
         this.cancelAutoSave();
         this.draftStatus = FormState.SAVING;
@@ -458,7 +467,7 @@ export default class Form extends Vue {
       if (save && !completed) {
         data.completed = firebase.database.ServerValue.TIMESTAMP;
       }
-      if (this.initialData[".value"] === null) {
+      if (!created) {
         data.created = firebase.database.ServerValue.TIMESTAMP;
       }
       const updated = await firebase
@@ -475,14 +484,27 @@ export default class Form extends Vue {
 
       this.draftStatus = FormState.SAVED;
 
-      if (save && !completed) {
-        const response = (await firebase
-          .database()
-          .ref(`${this.submissionPath()}/completed`)
-          .once("value")).val();
-        if (response) this.$set(this.form, "completed", response);
+      const response = (await firebase
+        .database()
+        .ref(`${this.submissionPath()}`)
+        .once("value")).val();
+
+      const formUpdate: any = {};
+
+      if (response.changed) formUpdate.changed = response.changed;
+
+      if (!created) {
+        if (response.created) formUpdate.created = response.created;
       }
-      this.initialData = { ...this.form };
+
+      if (save) {
+        this.submitSuccess = true;
+        if (!completed) {
+          if (response.completed) formUpdate.completed = response.completed;
+        }
+      }
+      this.form = _.merge(this.form, formUpdate);
+      this.initialData = _.cloneDeep(this.form);
     }
   }
 
@@ -517,6 +539,18 @@ export default class Form extends Vue {
 >>> .v-card .v-input {
   padding-top: 0;
   margin-top: 0;
+}
+
+.submitSuccessBackground {
+  background-color: rgba(79, 240, 86, 0.12);
+  border: solid 2px #86bf8629;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.submitSuccessText {
+  color: #087308;
+  text-align: center;
 }
 
 .cancel-list {

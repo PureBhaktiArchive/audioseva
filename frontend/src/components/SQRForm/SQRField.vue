@@ -1,10 +1,11 @@
 <template>
-  <radio-group :form="form" :fields="ratings" updatePath="soundQualityRating" :updateForm="updateForm"></radio-group>
+  <radio-group :fieldProps="fieldProps" :form="form" :fields="ratings" updatePath="soundQualityRating" :updateForm="updateForm"></radio-group>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import RadioGroup from "@/components/Inputs/RadioGroup.vue";
+import { required } from "@/validation";
 
 @Component({
   name: "SQRField",
@@ -40,6 +41,9 @@ export default class SQRField extends Vue {
   ];
   @Prop() form!: any;
   @Prop() updateForm!: any;
+  fieldProps = {
+    rules: [required]
+  };
 }
 </script>
 
