@@ -518,8 +518,6 @@ export default class Form extends Vue {
   margin-top: 0;
 }
 
-/* { width: '100%', backgroundColor: 'rgba(79, 240, 86, 0.12)', border: 'solid 2px #86bf8629', borderRadius: '6px' } */
-
 .submitSuccessBackground {
   background-color: rgba(79, 240, 86, 0.12);
   border: solid 2px #86bf8629;
