@@ -8,6 +8,7 @@ import { URL } from 'url';
 import { RowUpdateMode, Spreadsheet } from '../classes/GoogleSheets';
 import * as helpers from './../helpers';
 import uuidv4 = require('uuid/v4');
+import _ = require('lodash');
 
 class SQR {
   static createSubmissionLink(fileName: string, token: string): string {
@@ -394,7 +395,7 @@ export const importSpreadSheetData = functions.https.onCall(
       const sheet = await spreadsheet.useSheet(
         ISoundQualityReportSheet.Allotments
       );
-      const updates = {};
+      const updates = [];
       (await sheet.getRows()).forEach(row => {
         const fileName = row['File Name'];
 
@@ -413,7 +414,7 @@ export const importSpreadSheetData = functions.https.onCall(
           return;
         }
 
-        updates[`${list}/${fileName}/soundQualityReporting`] = {
+        updates.push([`${list}/${fileName}/soundQualityReporting`, {
           status: row['Status'] || 'Spare',
           timestampGiven: row['Date Given']
             ? helpers
@@ -430,15 +431,20 @@ export const importSpreadSheetData = functions.https.onCall(
             name: row['Devotee'],
           },
           notes: row['Notes'],
-        };
+        }]);
       });
 
-      await admin
+      const batches = _.chunk(updates, 500);
+      console.log(batches.length);
+
+      await Promise.all(
+        batches.map(batch =>
+          admin
         .database()
         .ref('/original')
-        .update(updates, error => {
-          console.log('Result of Allotments update: ', error);
-        });
+            .update(_.fromPairs(batch))
+        )
+      );
     }
   }
 );
