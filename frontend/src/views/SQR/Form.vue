@@ -9,6 +9,11 @@
     <v-container v-else-if="cancelComplete">
       <p>Allotment is canceled!</p>
     </v-container>
+    <v-container v-else-if="submitSuccess">
+      <div class="submitSuccessBackground">
+        <p class="pa-4 title submitSuccessText">Thank you! We have received your submission.</p>
+      </div>
+    </v-container>
     <v-form v-else-if="canSubmit" ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
@@ -283,6 +288,7 @@ export default class Form extends Vue {
     unwantedParts?: any;
     soundIssues?: any;
   };
+  submitSuccess = false;
 
   rules = [(v: any) => !!v || "Required field"];
 
@@ -475,12 +481,15 @@ export default class Form extends Vue {
 
       this.draftStatus = FormState.SAVED;
 
-      if (save && !completed) {
-        const response = (await firebase
-          .database()
-          .ref(`${this.submissionPath()}/completed`)
-          .once("value")).val();
-        if (response) this.$set(this.form, "completed", response);
+      if (save) {
+        this.submitSuccess = true;
+        if (!completed) {
+          const response = (await firebase
+            .database()
+            .ref(`${this.submissionPath()}/completed`)
+            .once("value")).val();
+          if (response) this.$set(this.form, "completed", response);
+        }
       }
       this.initialData = { ...this.form };
     }
@@ -517,6 +526,20 @@ export default class Form extends Vue {
 >>> .v-card .v-input {
   padding-top: 0;
   margin-top: 0;
+}
+
+/* { width: '100%', backgroundColor: 'rgba(79, 240, 86, 0.12)', border: 'solid 2px #86bf8629', borderRadius: '6px' } */
+
+.submitSuccessBackground {
+  background-color: rgba(79, 240, 86, 0.12);
+  border: solid 2px #86bf8629;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.submitSuccessText {
+  color: #087308;
+  text-align: center;
 }
 
 .cancel-list {
