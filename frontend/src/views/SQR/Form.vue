@@ -66,7 +66,7 @@
                   v-bind="field.props"
                   :form="form"
                   :removeField="removeField"
-                  :updateForm="field.updateForm || handleFormUpdate"
+                  :updateForm="field.updateForm || updateForm"
                   :is="field.component"
                 ></component>
               </template>
@@ -113,7 +113,12 @@ import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
 import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
 import Duration from "@/components/SQRForm/Duration.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
-import { updateObject, getListId, removeObjectKey } from "@/utility";
+import {
+  updateObject,
+  getListId,
+  removeObjectKey,
+  getPathAndKey
+} from "@/utility";
 
 enum FormState {
   SAVING = 0,
@@ -137,8 +142,7 @@ export default class Form extends Vue {
       if you find it difficult or strenuous to understand what Srila Gurudeva is speaking, due to too much background
       noise or volume being too low and so on, please choose ‘Bad’. On the other hand, if the audio is clear, with no
        background noise and good volume, please choose ‘Good.’ In cases where you can hear Srila Gurudeva well but
-       there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.`,
-      updateForm: this.handleFormUpdate(false)
+       there is some sound issue also, choose ‘Average’. This will help us decide which SE to allot the file to.`
     },
     {
       title: "C. Unwanted parts to be cut",
@@ -196,8 +200,7 @@ export default class Form extends Vue {
         "In other words, whether any part of the sound file is blank or inaudible and hence to be discarded. " +
         "Usually such parts are present towards the end of the file. There might be small parts 5-7 min long " +
         "in between two lecture recordings, but these can be ignored. Please write the beginning and ending timings" +
-        " of the overall recording in this field in (h:)mm:ss format.",
-      updateForm: this.handleFormUpdate()
+        " of the overall recording in this field in (h:)mm:ss format."
     },
     {
       title: "F. Comments",
@@ -213,7 +216,6 @@ export default class Form extends Vue {
           </li>
          </ul>
       `,
-      updateForm: this.handleFormUpdate(),
       props: {
         pathOverride: "comments",
         fieldProps: {
@@ -294,9 +296,10 @@ export default class Form extends Vue {
   }
 
   updateForm(field: string, value: any, debounceSubmit = true) {
-    this.form = updateObject(this.form, field, value);
+    updateObject(this.form, { ...getPathAndKey(field), value });
+
     if (debounceSubmit) {
-      if (_.isEqual(this.initialData, this.form)) {
+      if (_.isEqual(_.get(this.initialData, field), _.get(this.form, field))) {
         this.draftStatus = FormState.SAVED;
         if (!this.form.completed) {
           this.debounceSubmitDraft.cancel();
@@ -309,18 +312,6 @@ export default class Form extends Vue {
       }
     }
   }
-
-  handleFormUpdate(shouldDebounceUpdate = true) {
-    return (...args: any[]) =>
-      shouldDebounceUpdate
-        ? this.debounceUpdateForm(...args)
-        : (this.updateForm as any)(...args);
-  }
-
-  debounceUpdateForm = _.debounce(
-    (...args: any[]) => (this.updateForm as any)(...args),
-    250
-  );
 
   async canSubmitForm() {
     const {
@@ -342,7 +333,8 @@ export default class Form extends Vue {
   }
 
   async removeField(field: string) {
-    this.form = removeObjectKey(this.form, field);
+    removeObjectKey(this.form, getPathAndKey(field));
+
     const [updateFieldPath] = field.split(".");
     await firebase
       .database()
@@ -403,7 +395,7 @@ export default class Form extends Vue {
     } else {
       this.form = defaultData;
     }
-    this.initialData = { ...this.form };
+    this.initialData = _.cloneDeep(this.form);
   }
 
   async cancelForm() {
@@ -446,7 +438,6 @@ export default class Form extends Vue {
       this.draftStatus = FormState.SAVING;
     }
     if (!save || (this.$refs as any).form.validate()) {
-      this.initialData = { ...this.form };
       if (save) {
         this.cancelAutoSave();
         this.draftStatus = FormState.SAVING;
@@ -486,7 +477,7 @@ export default class Form extends Vue {
           if (response) this.$set(this.form, "completed", response);
         }
       }
-      this.initialData = { ...this.form };
+      this.initialData = _.cloneDeep(this.form);
     }
   }
 

@@ -56,26 +56,25 @@ export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
   }
 
   handleRadioSelect(value: any, mount = false) {
-    const updateForm = this.updateForm(false);
     if (statuses.includes(value)) {
       this.otherField = 2;
-      updateForm(this.itemPath, value, !mount);
+      this.updateForm(this.itemPath, value, !mount);
       this.selectedField = value;
     } else {
       this.selectedField = "other";
       this.otherField = 0;
       if (mount) {
         this.otherTextField = value;
-        updateForm(this.itemPath, value, !mount);
+        this.updateForm(this.itemPath, value, !mount);
       } else {
-        updateForm(this.itemPath, this.otherTextField || "other");
+        this.updateForm(this.itemPath, this.otherTextField || "other");
       }
     }
   }
 
   handleTextInput(e: any) {
     this.otherTextField = e;
-    this.updateForm()(this.itemPath, e);
+    this.updateForm(this.itemPath, e);
   }
 
   getLabel(field: Field) {

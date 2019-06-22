@@ -107,7 +107,6 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
       entireFile: {
         props: {
           ...this.formProps,
-          updateForm: this.updateForm(false),
           form: this.form,
           fieldProps: {
             label: "Entire file",
