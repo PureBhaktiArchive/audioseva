@@ -2,7 +2,11 @@
   <div>
     <h1>Content Reporting</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
+      <div v-if="errors.getAssignees">
+        {{ errors.getAssignees }}
+      </div>
       <v-autocomplete
+        v-else
         v-model="allotment.assignee"
         :hint="assigneeHint"
         :items="assignees || []"
@@ -35,13 +39,15 @@
       </v-layout>
       <!-- List -->
       <v-layout row class="py-2">
-        <v-btn-toggle v-model="filter.list" v-if="lists">
+        <div v-if="errors.getLists">{{ errors.getLists }}</div>
+        <v-btn-toggle v-model="filter.list" v-else-if="lists">
           <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
         </v-btn-toggle>
         <p v-else>Loading lists…</p>
       </v-layout>
       <!-- Files -->
-      <template v-if="filter.list && filter.languages.length">
+      <div v-if="errors.getSpareFiles">{{ errors.getSpareFiles }}</div>
+      <template v-else-if="filter.list && filter.languages.length">
         <template v-if="files">
           <template v-if="files.length > 0">
             <template v-for="(file, index) in files">
@@ -70,7 +76,10 @@
       <!-- Comment -->
       <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
       <!-- Buttons -->
-      <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
+      <div>
+        <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
+        <p class="mb-0 d-inline">{{ errors.processAllotment }}</p>
+      </div>
     </v-form>
     <v-alert
       v-else
@@ -87,17 +96,18 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Mixins, Watch } from "vue-property-decorator";
 import firebase from "firebase/app";
 import "firebase/functions";
 import _ from "lodash";
 
+import ErrorMessages from "@/mixins/ErrorMessages";
 import { initialAllotment } from "@/utility";
 
 @Component({
   name: "CRAllotment"
 })
-export default class CRAllotment extends Vue {
+export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
   assignees: any = null;
   languages: string[] = ["English", "Hindi", "Bengali", "None"];
   lists = null;
@@ -122,7 +132,10 @@ export default class CRAllotment extends Vue {
   async getAssignees() {
     const assignees = await firebase
       .functions()
-      .httpsCallable("User-getAssignees")({ phase: "CR" });
+      .httpsCallable("User-getAssignees")({ phase: "CR" })
+      .catch(this.addErrorMessage("getAssignees"));
+
+    if (!assignees) return;
 
     this.assignees = assignees.data;
     if (this.$route.query.emailAddress) {
@@ -134,8 +147,12 @@ export default class CRAllotment extends Vue {
   }
 
   async getLists() {
-    const lists = await firebase.functions().httpsCallable("CR-getLists")();
+    const lists = await firebase
+      .functions()
+      .httpsCallable("CR-getLists")()
+      .catch(this.addErrorMessage("getLists"));
 
+    if (!lists) return;
     this.lists = lists.data;
   }
 
@@ -159,8 +176,10 @@ export default class CRAllotment extends Vue {
 
     const spareFiles = await firebase
       .functions()
-      .httpsCallable("CR-getSpareFiles")(this.filter);
+      .httpsCallable("CR-getSpareFiles")(this.filter)
+      .catch(this.addErrorMessage("getSpareFiles"));
 
+    if (!spareFiles) return;
     this.files = spareFiles.data;
   }, 1000);
 
@@ -175,9 +194,10 @@ export default class CRAllotment extends Vue {
       await firebase.functions().httpsCallable("CR-processAllotment")(
         this.allotment
       );
+      this.errors = {};
       this.submissionStatus = "complete";
     } catch (error) {
-      alert(error.message);
+      this.addErrorMessage("processAllotment")(error);
       this.submissionStatus = "error";
     }
   }
