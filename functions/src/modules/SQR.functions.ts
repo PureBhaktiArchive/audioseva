@@ -414,24 +414,30 @@ export const importSpreadSheetData = functions.https.onCall(
           return;
         }
 
-        updates.push([`${list}/${fileName}/soundQualityReporting`, {
-          status: row['Status'] || 'Spare',
-          timestampGiven: row['Date Given']
-            ? helpers
-                .convertFromSerialDate(row['Date Given'], spreadsheet.timeZone)
-                .toMillis()
-            : null,
-          timestampDone: row['Date Done']
-            ? helpers
-                .convertFromSerialDate(row['Date Done'], spreadsheet.timeZone)
-                .toMillis()
-            : null,
-          assignee: {
-            emailAddress: row['Email'],
-            name: row['Devotee'],
+        updates.push([
+          `${list}/${fileName}/soundQualityReporting`,
+          {
+            status: row['Status'] || 'Spare',
+            timestampGiven: row['Date Given']
+              ? helpers
+                  .convertFromSerialDate(
+                    row['Date Given'],
+                    spreadsheet.timeZone
+                  )
+                  .toMillis()
+              : null,
+            timestampDone: row['Date Done']
+              ? helpers
+                  .convertFromSerialDate(row['Date Done'], spreadsheet.timeZone)
+                  .toMillis()
+              : null,
+            assignee: {
+              emailAddress: row['Email'],
+              name: row['Devotee'],
+            },
+            notes: row['Notes'],
           },
-          notes: row['Notes'],
-        }]);
+        ]);
       });
 
       const batches = _.chunk(updates, 500);
@@ -440,8 +446,8 @@ export const importSpreadSheetData = functions.https.onCall(
       await Promise.all(
         batches.map(batch =>
           admin
-        .database()
-        .ref('/original')
+            .database()
+            .ref('/original')
             .update(_.fromPairs(batch))
         )
       );
@@ -499,6 +505,7 @@ export const exportAllotmentToSpreadsheet = functions.database
   });
 
 interface IAudioChunkDescription {
+  entireFile: boolean;
   beginning: string; // h:mm:ss
   ending: string; // h:mm:ss
   type: string;
@@ -517,7 +524,9 @@ export function formatMultilineComment(
   return audioDescriptionList
     .map(
       item =>
-        `${item.beginning}–${item.ending}: ${item.type} — ${item.description}`
+        `${
+          item.entireFile ? 'Entire file' : `${item.beginning}–${item.ending}`
+        }: ${item.type} — ${item.description}`
     )
     .join('\n');
 }

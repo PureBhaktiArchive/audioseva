@@ -39,7 +39,8 @@
   <ul>
     {% for soundIssue in params.submission.soundIssues %}
     <li>
-      {{ soundIssue.beginning }}–{{ soundIssue.ending }}:
+      {% if soundIssue.entireFile %}Entire file{% else %}
+      {{ soundIssue.beginning }}–{{ soundIssue.ending }}{% endif %}:
       {{ soundIssue.type }} — {{ soundIssue.description }}
     </li>
     {% endfor %}
