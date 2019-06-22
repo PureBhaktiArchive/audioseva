@@ -466,7 +466,7 @@ export default class Form extends Vue {
       if (save && !completed) {
         data.completed = firebase.database.ServerValue.TIMESTAMP;
       }
-      if (this.initialData[".value"] === null) {
+      if (!created) {
         data.created = firebase.database.ServerValue.TIMESTAMP;
       }
       const updated = await firebase
@@ -483,16 +483,26 @@ export default class Form extends Vue {
 
       this.draftStatus = FormState.SAVED;
 
+      const response = (await firebase
+        .database()
+        .ref(`${this.submissionPath()}`)
+        .once("value")).val();
+
+      const formUpdate: any = {};
+
+      if (response.changed) formUpdate.changed = response.changed;
+
+      if (!created) {
+        if (response.created) formUpdate.created = response.created;
+      }
+
       if (save) {
         this.submitSuccess = true;
         if (!completed) {
-          const response = (await firebase
-            .database()
-            .ref(`${this.submissionPath()}/completed`)
-            .once("value")).val();
-          if (response) this.$set(this.form, "completed", response);
+          if (response.completed) formUpdate.completed = response.completed;
         }
       }
+      this.form = _.merge(this.form, formUpdate);
       this.initialData = _.cloneDeep(this.form);
     }
   }
