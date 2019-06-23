@@ -46,14 +46,17 @@ class SQR {
   }
 
   static async getCurrentSet(emailAddress: string, list: string) {
-    return Object.entries<any>(
-      (await admin
-        .database()
-        .ref(`/original/${list}`)
-        .orderByChild('soundQualityReporting/assignee/emailAddress')
-        .equalTo(emailAddress)
-        .once('value')).val()
-    ).map(([fileName, value]) => {
+    const allotments = await admin
+      .database()
+      .ref(`/original/${list}`)
+      .orderByChild('soundQualityReporting/assignee/emailAddress')
+      .equalTo(emailAddress)
+      .once('value');
+    console.log(allotments);
+
+    if (!allotments.exists()) return [];
+
+    return Object.entries<any>(allotments.val()).map(([fileName, value]) => {
       const datetimeGiven = DateTime.fromMillis(
         value.soundQualityReporting.timestampGiven
       );
