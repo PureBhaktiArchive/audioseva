@@ -259,7 +259,7 @@ export const processSubmission = functions.database
     if (!fileSnapshot.exists())
       warnings.push(`Audio file name ${fileName} is not found in the backend!`);
 
-    if (currentSet.filter(item => item.status === 'Given').length === 1)
+    if (currentSet.filter(item => item.status === 'Given').length === 0)
       warnings.push("It's time to allot!");
 
     await admin
