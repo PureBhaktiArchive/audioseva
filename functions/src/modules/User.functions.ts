@@ -3,8 +3,8 @@
  */
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { DateTimeConverter } from '../classes/DateTimeConverter';
 import { Spreadsheet } from '../classes/GoogleSheets';
-import { convertFromSerialDate } from '../helpers';
 
 const db = admin.database();
 const userRoles = functions.database.ref('/users/{userId}/roles');
@@ -68,7 +68,10 @@ export const importUserRegistrationData = functions.https.onCall(
       return {
         notes: row[RegistrationColumns.Details],
         status: row[RegistrationColumns.Status],
-        timestamp: convertFromSerialDate(row[RegistrationColumns.Timestamp], spreadsheet.timeZone).toMillis(),
+        timestamp: DateTimeConverter.fromSerialDate(
+          row[RegistrationColumns.Timestamp],
+          spreadsheet.timeZone
+        ).toMillis(),
         name: row[RegistrationColumns.Name],
         location: row[RegistrationColumns.Country],
         emailAddress: row[RegistrationColumns.EmailAddress],
@@ -94,8 +97,8 @@ export const importUserRegistrationData = functions.https.onCall(
       };
     });
 
-    await Promise.all(readyForDatabaseUpdate.map(
-      async (spreadsheetRecord: any) => {
+    await Promise.all(
+      readyForDatabaseUpdate.map(async (spreadsheetRecord: any) => {
         const usersRef = db.ref('/users');
         const snapshot = await usersRef
           .orderByChild('emailAddress')

@@ -5,6 +5,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { URL } from 'url';
+import { DateTimeConverter } from '../classes/DateTimeConverter';
 import { RowUpdateMode, Spreadsheet } from '../classes/GoogleSheets';
 import * as helpers from './../helpers';
 import uuidv4 = require('uuid/v4');
@@ -47,10 +48,10 @@ class SQR {
 
   static async getCurrentSet(emailAddress: string) {
     const allotments = await admin
-      .database()
+        .database()
       .ref(`/allotments/SQR`)
       .orderByChild('assignee/emailAddress')
-      .equalTo(emailAddress)
+        .equalTo(emailAddress)
       .once('value');
 
     if (!allotments.exists()) return [];
@@ -60,14 +61,14 @@ class SQR {
       .filter(([, value]) => Number.isInteger(value.timestampGiven))
       .map(([fileName, value]) => {
         const datetimeGiven = DateTime.fromMillis(value.timestampGiven);
-        return {
-          fileName,
-          dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
+      return {
+        fileName,
+        dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
           status: value.status,
-          daysPassed: DateTime.local()
-            .diff(datetimeGiven, ['days', 'hours'])
-            .toObject().days,
-        };
+        daysPassed: DateTime.local()
+          .diff(datetimeGiven, ['days', 'hours'])
+          .toObject().days,
+      };
       })
       .value();
   }
@@ -278,10 +279,10 @@ export const processSubmission = functions.database
     );
 
     const row = {
-      Completed: helpers.convertToSerialDate(
+      Completed: DateTimeConverter.toSerialDate(
         DateTime.fromMillis(submission.completed)
       ),
-      Updated: helpers.convertToSerialDate(
+      Updated: DateTimeConverter.toSerialDate(
         DateTime.fromMillis(submission.changed)
       ),
       'Update Link': SQR.createSubmissionLink(fileName, token),
@@ -402,15 +403,18 @@ export const importSpreadSheetData = functions.https.onCall(
         const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
         updates[`${fileName}/${token}`] = {
-          completed: helpers
-            .convertFromSerialDate(row['Completed'], spreadsheet.timeZone)
-            .toMillis(),
-          created: helpers
-            .convertFromSerialDate(row['Completed'], spreadsheet.timeZone)
-            .toMillis(),
-          changed: helpers
-            .convertFromSerialDate(row['Updated'], spreadsheet.timeZone)
-            .toMillis(),
+          completed: DateTimeConverter.fromSerialDate(
+            row['Completed'],
+            spreadsheet.timeZone
+          ).toMillis(),
+          created: DateTimeConverter.fromSerialDate(
+            row['Completed'],
+            spreadsheet.timeZone
+          ).toMillis(),
+          changed: DateTimeConverter.fromSerialDate(
+            row['Updated'],
+            spreadsheet.timeZone
+          ).toMillis(),
           comments: row['Comments'],
           soundIssues: parseAudioChunkRemark(row['Sound Issues']),
           soundQualityRating: row['Sound Quality Rating'],
@@ -464,17 +468,16 @@ export const importSpreadSheetData = functions.https.onCall(
           {
             status: row['Status'] || 'Spare',
             timestampGiven: row['Date Given']
-              ? helpers
-                  .convertFromSerialDate(
-                    row['Date Given'],
-                    spreadsheet.timeZone
-                  )
-                  .toMillis()
+              ? DateTimeConverter.fromSerialDate(
+                  row['Date Given'],
+                  spreadsheet.timeZone
+                ).toMillis()
               : null,
             timestampDone: row['Date Done']
-              ? helpers
-                  .convertFromSerialDate(row['Date Done'], spreadsheet.timeZone)
-                  .toMillis()
+              ? DateTimeConverter.fromSerialDate(
+                  row['Date Done'],
+                  spreadsheet.timeZone
+                ).toMillis()
               : null,
             assignee: {
               emailAddress: row['Email'],
@@ -530,7 +533,7 @@ export const exportAllotmentToSpreadsheet = functions.database
 
     const row = {
       'Date Given': changedValues.timestampGiven
-        ? helpers.convertToSerialDate(
+        ? DateTimeConverter.toSerialDate(
             DateTime.fromMillis(changedValues.timestampGiven)
           )
         : null,
@@ -541,7 +544,7 @@ export const exportAllotmentToSpreadsheet = functions.database
         ? changedValues.assignee.emailAddress
         : null,
       'Date Done': changedValues.timestampDone
-        ? helpers.convertToSerialDate(
+        ? DateTimeConverter.toSerialDate(
             DateTime.fromMillis(changedValues.timestampDone)
           )
         : null,
@@ -677,8 +680,8 @@ export const cancelAllotment = functions.https.onCall(
     }
 
     await snapshot.ref.update({
-      notes: [allotment.notes, comments].filter(Boolean).join('\n'),
-      status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
+        notes: [allotment.notes, comments].filter(Boolean).join('\n'),
+        status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
       timestampGiven: null,
       token: null,
     });

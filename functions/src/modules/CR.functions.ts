@@ -5,6 +5,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as _ from 'lodash';
 import { DateTime } from 'luxon';
+import { DateTimeConverter } from '../classes/DateTimeConverter';
 import { Spreadsheet } from '../classes/GoogleSheets';
 import * as helpers from '../helpers';
 
@@ -185,7 +186,7 @@ export const processAllotment = functions.https.onCall(
         }
         const rowNumber = index + 1;
         const row = await sheet.getRow(rowNumber);
-        row['Date Given'] = helpers.convertToSerialDate(DateTime.local());
+        row['Date Given'] = DateTimeConverter.toSerialDate(DateTime.local());
         row['Status'] = 'Given';
         row['Devotee'] = assignee.name;
         row['Email'] = assignee.emailAddress;
