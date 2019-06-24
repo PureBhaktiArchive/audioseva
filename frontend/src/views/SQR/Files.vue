@@ -26,11 +26,10 @@
           </v-btn-toggle>
         </v-flex>
         <v-flex align-self-center :style="{ textAlign: 'right' }">
-          <router-link :style="{ padding: '0 8px' }" to="sqr/statistics">Statistics</router-link>
-          <router-link to="sqr/allot">Allot</router-link>
+          <v-btn small to="sqr/statistics">Statistics</v-btn>
+          <v-btn small to="sqr/allot">Allot</v-btn>
           <v-btn
             small
-            color="primary"
             :disabled="importingData"
             :loading="importingData"
             @click="importSpreadSheetData"
