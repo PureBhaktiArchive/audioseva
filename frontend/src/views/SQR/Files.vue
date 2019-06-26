@@ -26,8 +26,16 @@
           </v-btn-toggle>
         </v-flex>
         <v-flex align-self-center :style="{ textAlign: 'right' }">
-          <router-link :style="{ padding: '0 8px' }" to="sqr/statistics">Statistics</router-link>
-          <router-link to="sqr/allot">Allot</router-link>
+          <v-btn small to="sqr/statistics">Statistics</v-btn>
+          <v-btn small to="sqr/allot">Allot</v-btn>
+          <v-btn
+            small
+            :disabled="importingData"
+            :loading="importingData"
+            @click="importSpreadSheetData"
+          >
+            Import Spreadsheet Data
+          </v-btn>
         </v-flex>
       </v-flex>
     </v-layout>
@@ -72,6 +80,7 @@ import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
 import InlineSave from "@/mixins/InlineSave";
 import firebase from "firebase/app";
 import "firebase/database";
+import "firebase/functions";
 
 @Component({
   name: "Files",
@@ -87,6 +96,7 @@ export default class Files extends Mixins<ShallowQuery, InlineSave>(
   InlineSave
 ) {
   files: IFileVueFire[] = [];
+  importingData = false;
   isLoadingLists = false;
   isLoadingFiles = false;
   search: string = "";
@@ -220,6 +230,15 @@ export default class Files extends Mixins<ShallowQuery, InlineSave>(
 
   getUpdatePath(item: any, path: any): string {
     return `/original/${this.list}/${item[".key"]}/${path["itemPath"]}`;
+  }
+
+  async importSpreadSheetData() {
+    this.importingData = true;
+    await firebase
+      .functions()
+      .httpsCallable("SQR-importSpreadSheetData")()
+      .catch(e => e);
+    this.importingData = false;
   }
 }
 </script>
