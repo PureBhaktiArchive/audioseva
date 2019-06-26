@@ -2,18 +2,15 @@
   <div>
     <h1>Content Reporting</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
-      <div v-if="errors.getAssignees">
-        {{ errors.getAssignees }}
-      </div>
       <v-autocomplete
-        v-else
         v-model="allotment.assignee"
         :hint="assigneeHint"
         :items="assignees || []"
-        :loading="assignees === null"
+        :loading="assignees === null && !errors.getAssignees"
         item-text="name"
         item-value="id"
         label="Select an assignee"
+        :error-messages="errors.getAssignees ? `Error getting assignees: ${errors.getAssignees}` : ''"
         persistent-hint
         return-object
         clearable

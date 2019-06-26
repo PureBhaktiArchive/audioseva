@@ -5,18 +5,16 @@
   <div>
     <h1>Sound Quality Reporting</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
-      <div class="red--text" v-if="errors.getAssignees">
-        {{ errors.getAssignees }}
-      </div>
+
       <v-autocomplete
-        v-else
         v-model="allotment.assignee"
         :hint="allotment.assignee ? `Languages: ${allotment.assignee.languages.join(', ')}`: ''"
         :items="assignees || []"
-        :loading="assignees === null"
+        :loading="assignees === null && !errors.getAssignees"
         item-text="name"
         item-value="id"
         label="Select an assignee"
+        :error-messages="errors.getAssignees ? `Error getting assignees: ${errors.getAssignees}` : ''"
         persistent-hint
         return-object
         clearable
