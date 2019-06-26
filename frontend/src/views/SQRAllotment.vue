@@ -40,14 +40,14 @@
       </v-layout>
       <!-- List -->
       <v-layout row class="py-2">
-        <div class="red--text" v-if="errors.getLists">{{ errors.getLists }}</div>
+        <div class="red--text" v-if="errors.getLists">Error getting lists: {{ errors.getLists }}</div>
         <v-btn-toggle v-model="filter.list" v-else-if="lists">
           <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
         </v-btn-toggle>
         <p v-else>Loading lists…</p>
       </v-layout>
       <!-- Files -->
-      <div class="red--text" v-if="errors.getSpareFiles">{{ errors.getSpareFiles }}</div>
+      <div class="red--text" v-if="errors.getSpareFiles">Error getting files: {{ errors.getSpareFiles }}</div>
       <template v-else-if="filter.list && filter.languages.length">
         <template v-if="files">
           <template v-if="files.length > 0">
@@ -79,7 +79,12 @@
       <!-- Buttons -->
       <div>
         <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
-        <p  v-if="errors.processAllotment" class="mb-0 d-inline red--text">{{ errors.processAllotment }}</p>
+        <p
+          v-if="errors.processAllotment"
+          class="mb-0 d-inline red--text"
+        >
+          Error submitting allotment: {{ errors.processAllotment }}
+        </p>
       </div>
     </v-form>
     <v-alert
