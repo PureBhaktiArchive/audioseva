@@ -69,7 +69,7 @@
         </template>
         <p v-else>Loading files…</p>
       </template>
-      <p v-else>Choose list and language to select files.</p>
+      <p v-else-if="!errors.getLists">Choose list and language to select files.</p>
       <!-- Comment -->
       <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
       <!-- Buttons -->
