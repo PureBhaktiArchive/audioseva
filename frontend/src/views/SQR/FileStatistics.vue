@@ -139,10 +139,12 @@ export default class FileStatistics extends Vue {
       }
     });
     this.fileCountByStatus = fileCountByStatus;
-    this.filesByStatus = Object.entries(statusByList).map(([list, stats]) => ({
-      ...stats,
-      list
-    }));
+    this.filesByStatus = Object.entries<IFileByStatus>(statusByList).map(
+      ([list, stats]) => ({
+        ...stats,
+        list
+      })
+    );
     this.spareByLanguage = spareByLanguage;
     this.isLoadingFiles = false;
   }
