@@ -5,8 +5,10 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as _ from 'lodash';
 import { DateTime } from 'luxon';
+import { Chunk } from '../classes/Chunk';
 import { DateTimeConverter } from '../classes/DateTimeConverter';
 import { Spreadsheet } from '../classes/GoogleSheets';
+import { Track } from '../classes/Track';
 import * as helpers from '../helpers';
 
 export enum SheetNames {
@@ -215,3 +217,87 @@ export const processAllotment = functions.https.onCall(
       });
   }
 );
+
+/**
+ * Imports procesessed submissions from the spreadsheet
+ */
+export const importProcessedSubmissions = functions
+  .runWith({
+    timeoutSeconds: 300,
+    memory: '512MB',
+  })
+  .pubsub.topic('import-chunks')
+  .onPublish(async () => {
+    const spreadsheet = await Spreadsheet.open(
+      functions.config().cr.processing.spreadsheet.id
+    );
+
+    const warnings = new Map<string, Set<string>>();
+    for (const sheetName of spreadsheet.sheetNames) {
+      const sheet = await spreadsheet.useSheet(sheetName);
+
+      // Skip sheets not having Beginning and Ending columns
+      if (
+        !sheet.headers.includes('Beginning') ||
+        !sheet.headers.includes('Ending')
+      )
+        continue;
+
+      const groups = _.groupBy(
+        (await sheet.getRows()).map(row => Chunk.createFromRow(row)),
+        chunk => chunk.fileName
+      );
+
+      for (const fileName in groups) {
+        /// File name should belong to the list identified by the sheet name
+        if (helpers.extractListFromFilename(fileName) !== sheetName) {
+          console.warn(
+            `Skipping file ${fileName} found on sheet ${sheetName}.`
+          );
+          continue;
+        }
+
+        const track = new Track(groups[fileName]);
+
+        if (!track.allHasResolution) {
+          console.log(
+            `Skipping ${fileName} as some chunks don't have resolution.`
+          );
+          continue;
+        }
+
+        const trackWarnings = track.warnings;
+
+        const ref = admin.database().ref(`/chunks/${sheetName}/${fileName}`);
+        const snapshot = await ref.once('value');
+
+        /// Chunks should not have been changed after previous import
+        if (snapshot.exists()) {
+          if (
+            !_(track.chunks).isEqualWith(
+              snapshot.val(),
+              (a: Chunk, b: Chunk) =>
+                a.beginning === b.beginning &&
+                a.ending === a.ending &&
+                a.continuationFrom === b.continuationFrom
+            )
+          )
+            trackWarnings.push(
+              'Chunks were imported and then changed in the spreadsheet'
+            );
+        }
+
+        if (trackWarnings) warnings.set(fileName, new Set(trackWarnings));
+        else await ref.set(track.chunks);
+      }
+    }
+
+    await admin
+      .database()
+      .ref(`/email/notifications`)
+      .push({
+        template: 'cr-processed-submissions-import-summary',
+        to: functions.config().coordinator.email_address,
+        params: { warnings },
+      });
+  });
