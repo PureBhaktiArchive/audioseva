@@ -5,14 +5,16 @@
   <div>
     <h1>Sound Quality Reporting</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
+
       <v-autocomplete
         v-model="allotment.assignee"
         :hint="allotment.assignee ? `Languages: ${allotment.assignee.languages.join(', ')}`: ''"
         :items="assignees || []"
-        :loading="assignees === null"
+        :loading="assignees === null && !errors.getAssignees"
         item-text="name"
         item-value="id"
         label="Select an assignee"
+        :error-messages="errors.getAssignees ? `Error getting assignees: ${errors.getAssignees}` : ''"
         persistent-hint
         return-object
         clearable
@@ -38,13 +40,15 @@
       </v-layout>
       <!-- List -->
       <v-layout row class="py-2">
-        <v-btn-toggle v-model="filter.list" v-if="lists">
+        <div class="red--text" v-if="errors.getLists">Error getting lists: {{ errors.getLists }}</div>
+        <v-btn-toggle v-model="filter.list" v-else-if="lists">
           <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
         </v-btn-toggle>
         <p v-else>Loading lists…</p>
       </v-layout>
       <!-- Files -->
-      <template v-if="filter.list && filter.languages.length">
+      <div class="red--text" v-if="errors.getSpareFiles">Error getting files: {{ errors.getSpareFiles }}</div>
+      <template v-else-if="filter.list && filter.languages.length">
         <template v-if="files">
           <template v-if="files.length > 0">
             <template v-for="(file, index) in files">
@@ -69,11 +73,19 @@
         </template>
         <p v-else>Loading files…</p>
       </template>
-      <p v-else>Choose list and language to select files.</p>
+      <p v-else-if="!errors.getLists">Choose list and language to select files.</p>
       <!-- Comment -->
       <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
       <!-- Buttons -->
-      <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
+      <div>
+        <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
+        <p
+          v-if="errors.processAllotment"
+          class="mb-0 d-inline red--text"
+        >
+          Error submitting allotment: {{ errors.processAllotment }}
+        </p>
+      </div>
     </v-form>
     <v-alert
       v-else
@@ -101,7 +113,10 @@ import firebase from "firebase/app";
 import "firebase/functions";
 import * as _ from "lodash";
 
+import ErrorMessages from "../mixins/ErrorMessages";
+
 export default {
+  mixins: [ErrorMessages],
   name: "SQRAllotment",
   data: () => ({
     assignees: null,
@@ -133,7 +148,8 @@ export default {
             assignee => assignee.emailAddress === this.$route.query.emailAddress
           );
         }
-      });
+      })
+      .catch(this.addErrorMessage("getAssignees"));
 
     // Getting lists
     firebase
@@ -141,7 +157,8 @@ export default {
       .httpsCallable("SQR-getLists")()
       .then(result => {
         this.lists = result.data;
-      });
+      })
+      .catch(this.addErrorMessage("getLists"));
 
     this.filter.languages = this.languages;
   },
@@ -160,7 +177,9 @@ export default {
 
         const result = await firebase
           .functions()
-          .httpsCallable("SQR-getSpareFiles")(this.filter);
+          .httpsCallable("SQR-getSpareFiles")(this.filter)
+          .catch(this.addErrorMessage("getSpareFiles"));
+        if (!result) return;
         this.files = result.data;
       }, 1000)
     }
@@ -172,9 +191,11 @@ export default {
         await firebase.functions().httpsCallable("SQR-processAllotment")(
           this.allotment
         );
+        this.errors = {};
         this.submissionStatus = "complete";
       } catch (error) {
-        alert(error.message);
+        this.addErrorMessage("processAllotment")(error);
+        // alert(error.message);
         this.submissionStatus = "error";
       }
     },
