@@ -8,6 +8,9 @@ import "firebase/database";
 export default class InlineSave extends Vue {
   itemsKey: string = "items";
   itemComparePath: string = ".key";
+  snack!: boolean;
+  snackColor!: string;
+  snackText!: string;
 
   getUpdatePath(item: any, path: any) {
     return "";
