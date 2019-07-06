@@ -104,7 +104,7 @@ import "firebase/database";
 })
 export default class DonationForm extends Vue {
   date = new Date().toISOString().substr(0, 10);
-  currencies = ["INR", "USD", "EUR", "RUB", "AUD", "YEN"];
+  currencies = ["INR", "USD", "EUR", "RUB", "AUD", "YEN", "BRL"];
   menu = false;
   amountRules = [(v: string) => (v && !!v.match(/^\d*$/)) || "Numbers only"];
   emailRules = [
