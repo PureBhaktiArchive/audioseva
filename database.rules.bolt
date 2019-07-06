@@ -1,38 +1,30 @@
-hasRole(role) { auth.token[role] === true }
+hasRole(role) { auth != null && auth.token[role] == true }
+isCoordinator() { hasRole('coordinator') }
+
+isNew() { prior(this) == null }
 
 type CurrentTimestamp extends Number {
   validate() { this == now }
 }
 
 type InitialTimestamp extends CurrentTimestamp {
-  validate() { prior(this) == null }
+  validate() { isNew() }
 }
 
 type ReadOnlyCoordinator {
-  read() { hasRole("coordinator") }
+  read() { isCoordinator()) }
 }
 
 type WriteOnlyCoordinator {
-  write() { hasRole("coordinator") }
+  write() { isCoordinator()) }
 }
 
 type WriteOnlyCoordinatorField<T> extends T {
-  write() { hasRole("coordinator") }
+  write() { isCoordinator() }
 }
 
 type OnlyNew {
-  validate() { prior(this) == null }
-}
-
-type OriginalFileReporting {
-  followUp: WriteOnlyCoordinatorField<String> | Null,
-  timestampGiven: InitialTimestamp,
-  timestampDone: CurrentTimestamp | Null
-}
-
-type OriginalFile {
-  contentReporting: OriginalFileReporting | Null,
-  soundQualityReporting: OriginalFileReporting | Null
+  validate() { isNew() }
 }
 
 type EditedFileFieldsStatus {
@@ -67,16 +59,6 @@ path /donations {
   }
 }
 
-path /original is ReadOnlyCoordinator {
-  path /{list} {
-    index() { ["soundQualityReporting/status", "soundQualityReporting/assignee/emailAddress"] }
-    /{fileName} is OriginalFile {
-      index() { ["token"] }
-      read() { query.orderByChild === 'token' && query.equalTo == this.child("soundQualityReporting/token").val() }
-    }
-  }
-}
-
 path /users is ReadOnlyCoordinator {
   index() {[
     "emailAddress",
@@ -100,6 +82,39 @@ path /users is ReadOnlyCoordinator {
     path /roles is WriteOnlyCoordinator {
       /{roleId} is Boolean;
     }
+  }
+}
+
+type OriginalFileName extends String {
+  validate() { this.test(/^\w+-\d+/) }
+}
+
+type Assignee {
+  emailAddress: String,
+  name: String,
+}
+
+type Allotment<Status> {
+  assignee: Assignee,
+  status: Status,
+  notes: String | Null,
+  timestampGiven: InitialTimestamp,
+  timestampDone: CurrentTimestamp | Null,
+  token: String | Null,
+
+  validate() { this.status != 'Done' || this.timestampGiven != null }
+}
+
+type ReportingAllotmentStatus extends String {
+  validate() { this.test(/^Spare|Given|WIP|Done$/) }
+}
+
+type ReportingAllotment extends Allotment<ReportingAllotmentStatus>;
+
+path /allotments {
+  path /SQR is Map<OriginalFileName, ReportingAllotment> {
+    index() { ["status", "assignee/emailAddress", "token"] }
+    read() { query.orderByChild == 'token' && query.equalTo == this.token }
   }
 }
 

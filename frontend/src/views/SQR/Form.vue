@@ -333,11 +333,11 @@ export default class Form extends Vue {
     const listId = getListId(fileName);
     const response = (await firebase
       .database()
-      .ref(`original/${listId}/${fileName}`)
+      .ref(`/allotments/SQR`)
       .orderByChild("token")
       .equalTo(token)
       .once("value")).val();
-    const sqrStatus = _.get(response, "soundQualityReporting.status", "");
+    const sqrStatus = _.get(response, "status", "");
     if (!sqrStatus || (sqrStatus as string).toLowerCase() === "done") {
       this.isLoadingForm = false;
     } else {
