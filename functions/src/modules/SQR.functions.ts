@@ -46,14 +46,17 @@ class SQR {
   }
 
   static async getCurrentSet(emailAddress: string, list: string) {
-    return Object.entries<any>(
-      (await admin
-        .database()
-        .ref(`/original/${list}`)
-        .orderByChild('soundQualityReporting/assignee/emailAddress')
-        .equalTo(emailAddress)
-        .once('value')).val()
-    ).map(([fileName, value]) => {
+    const allotments = await admin
+      .database()
+      .ref(`/original/${list}`)
+      .orderByChild('soundQualityReporting/assignee/emailAddress')
+      .equalTo(emailAddress)
+      .once('value');
+    console.log(allotments);
+
+    if (!allotments.exists()) return [];
+
+    return Object.entries<any>(allotments.val()).map(([fileName, value]) => {
       const datetimeGiven = DateTime.fromMillis(
         value.soundQualityReporting.timestampGiven
       );
@@ -259,7 +262,7 @@ export const processSubmission = functions.database
     if (!fileSnapshot.exists())
       warnings.push(`Audio file name ${fileName} is not found in the backend!`);
 
-    if (currentSet.filter(item => item.status === 'Given').length === 1)
+    if (currentSet.filter(item => item.status === 'Given').length === 0)
       warnings.push("It's time to allot!");
 
     await admin
