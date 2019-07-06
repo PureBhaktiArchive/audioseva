@@ -45,25 +45,22 @@ class SQR {
     return url.toString();
   }
 
-  static async getCurrentSet(emailAddress: string, list: string) {
+  static async getCurrentSet(emailAddress: string) {
     const allotments = await admin
       .database()
-      .ref(`/original/${list}`)
-      .orderByChild('soundQualityReporting/assignee/emailAddress')
+      .ref(`/allotments/SQR`)
+      .orderByChild('assignee/emailAddress')
       .equalTo(emailAddress)
       .once('value');
-    console.log(allotments);
 
     if (!allotments.exists()) return [];
 
     return Object.entries<any>(allotments.val()).map(([fileName, value]) => {
-      const datetimeGiven = DateTime.fromMillis(
-        value.soundQualityReporting.timestampGiven
-      );
+      const datetimeGiven = DateTime.fromMillis(value.timestampGiven);
       return {
         fileName,
         dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
-        status: value.soundQualityReporting.status,
+        status: value.status,
         daysPassed: DateTime.local()
           .diff(datetimeGiven, ['days', 'hours'])
           .toObject().days,
@@ -112,18 +109,20 @@ export const processAllotment = functions.https.onCall(
     files.forEach(async ({ filename: fileName }) => {
       tokens.set(fileName, uuidv4());
 
-      const list = helpers.extractListFromFilename(fileName);
-      const pathPrefix = `${list}/${fileName}/soundQualityReporting`;
-      updates[`${pathPrefix}/status`] = 'Given';
-      updates[`${pathPrefix}/timestampGiven`] =
+      updates[`${fileName}/status`] = 'Given';
+      updates[`${fileName}/timestampGiven`] =
         admin.database.ServerValue.TIMESTAMP;
-      updates[`${pathPrefix}/assignee`] = assignee;
-      updates[`${pathPrefix}/token`] = tokens.get(fileName);
+      updates[`${fileName}/assignee`] = _.pick(
+        assignee,
+        'emailAddress',
+        'name'
+      );
+      updates[`${fileName}/token`] = tokens.get(fileName);
     });
 
     await admin
       .database()
-      .ref(`/original`)
+      .ref(`/allotments/SQR`)
       .update(updates);
 
     const spreadsheet = await Spreadsheet.open(
@@ -197,19 +196,17 @@ export const processSubmission = functions.database
       return;
     }
 
-    const fileSnapshot = await admin
+    const allotmentSnapshot = await admin
       .database()
-      .ref(`/original/${list}/${fileName}`)
+      .ref(`/allotments/SQR/${fileName}`)
       .once('value');
 
-    if (!fileSnapshot.exists())
+    if (!allotmentSnapshot.exists())
       console.warn(`File ${fileName} is not found in the database.`);
 
-    const allotmentRef = fileSnapshot.ref.child('soundQualityReporting');
+    await allotmentSnapshot.ref.update({ status: 'WIP' });
 
-    await allotmentRef.update({ status: 'WIP' });
-
-    const allotment = (await allotmentRef.once('value')).val();
+    const allotment = (await allotmentSnapshot.ref.once('value')).val();
 
     // * Update the spreadsheet
 
@@ -247,20 +244,17 @@ export const processSubmission = functions.database
 
     const coordinator = functions.config().coordinator;
 
-    const currentSet = await SQR.getCurrentSet(
-      allotment.assignee.emailAddress,
-      list
-    );
+    const currentSet = await SQR.getCurrentSet(allotment.assignee.emailAddress);
 
     const warnings = [];
     if (submission.changed !== submission.completed)
       warnings.push('This is an updated submission!');
 
-    if (!['Given', 'WIP'].includes(allotment.status))
-      warnings.push(`Status of file is ${allotment.status || 'Spare'}`);
+    if (!['Given', 'WIP'].includes(allotmentSnapshot.val().status))
+      warnings.push(`Status of file is ${allotment.val().status || 'Spare'}`);
 
-    if (!fileSnapshot.exists())
-      warnings.push(`Audio file name ${fileName} is not found in the backend!`);
+    if (!allotmentSnapshot.exists())
+      warnings.push(`Allotment for ${fileName} is not found in the database!`);
 
     if (currentSet.filter(item => item.status === 'Given').length === 0)
       warnings.push("It's time to allot!");
@@ -406,7 +400,7 @@ export const importSpreadSheetData = functions.https.onCall(
         }
 
         updates.push([
-          `${list}/${fileName}/soundQualityReporting`,
+          fileName,
           {
             status: row['Status'] || 'Spare',
             timestampGiven: row['Date Given']
@@ -438,7 +432,7 @@ export const importSpreadSheetData = functions.https.onCall(
         batches.map(batch =>
           admin
             .database()
-            .ref('/original')
+            .ref('/allotments/SQR')
             .update(_.fromPairs(batch))
         )
       );
@@ -451,7 +445,7 @@ export const importSpreadSheetData = functions.https.onCall(
  *
  */
 export const exportAllotmentToSpreadsheet = functions.database
-  .ref('/original/{listName}/{fileName}/soundQualityReporting')
+  .ref('/allotments/SQR/{fileName}')
   .onWrite(async (change, { params: { fileName } }) => {
     // Ignore deletions
     if (!change.after.exists()) {
@@ -597,10 +591,9 @@ export const getSpareFiles = functions.https.onCall(
 
 export const cancelAllotment = functions.https.onCall(
   async ({ fileName, comments, token, reason }) => {
-    const list = helpers.extractListFromFilename(fileName);
     const snapshot = await admin
       .database()
-      .ref(`original/${list}/${fileName}`)
+      .ref(`/allotments/SQR/${fileName}`)
       .orderByChild('token')
       .equalTo(token)
       .once('value');
@@ -609,12 +602,10 @@ export const cancelAllotment = functions.https.onCall(
       throw new functions.https.HttpsError('invalid-argument', 'Invalid token');
     }
 
-    const allotment = snapshot.val().soundQualityReporting;
+    const allotment = snapshot.val();
     await snapshot.ref.update({
-      soundQualityReporting: {
-        notes: [allotment.notes, comments].filter(Boolean).join('\n'),
-        status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
-      },
+      notes: [allotment.notes, comments].filter(Boolean).join('\n'),
+      status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
       timestampGiven: null,
       token: null,
     });
@@ -636,10 +627,7 @@ export const cancelAllotment = functions.https.onCall(
           allotmentLink: SQR.createAllotmentLink(
             allotment.assignee.emailAddress
           ),
-          currentSet: await SQR.getCurrentSet(
-            allotment.assignee.emailAddress,
-            list
-          ),
+          currentSet: await SQR.getCurrentSet(allotment.assignee.emailAddress),
         },
       });
   }
