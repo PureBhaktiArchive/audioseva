@@ -11,6 +11,24 @@
   "hosting": {
     "public": "frontend/dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    // un comment to deploy maintenance mode
+//    "redirects": [
+//      {
+//        "source": "/{,**/[!maintenance.html]**/**}",
+//        "destination": "/maintenance.html",
+//        "type": 307
+//      }
+//    ],
+//    "headers": [
+//      {
+//        "source": "/maintenance.html",
+//        "headers": [{
+//          "key": "status",
+//          "value": "503"
+//        }]
+//      }
+//    ],
+    // end uncomment to deploy maintenance mode
     "rewrites": [
       {
         "source": "**",
