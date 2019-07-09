@@ -109,11 +109,8 @@ type ReportingAllotmentStatus extends String {
 
 type ReportingAllotment extends Allotment<ReportingAllotmentStatus>;
 
-path /allotments {
-  path /SQR is Map<OriginalFileName, ReportingAllotment> {
-    index() { ["status", "assignee/emailAddress", "token"] }
-    read() { query.orderByChild == 'token' && query.equalTo == this.token }
-  }
+path /allotments/SQR is Map<OriginalFileName, ReportingAllotment> {
+  index() { ["status", "assignee/emailAddress", "token"] }
 }
 
 path /submissions {
