@@ -326,25 +326,6 @@ export default class Form extends Vue {
     }
   }
 
-  async canSubmitForm() {
-    const {
-      params: { fileName, token }
-    } = this.$route;
-    const listId = getListId(fileName);
-    const response = (await firebase
-      .database()
-      .ref(`/allotments/SQR`)
-      .orderByChild("token")
-      .equalTo(token)
-      .once("value")).val();
-    const sqrStatus = _.get(response, "status", "");
-    if (!sqrStatus || (sqrStatus as string).toLowerCase() === "done") {
-      this.isLoadingForm = false;
-    } else {
-      this.canSubmit = true;
-    }
-  }
-
   async removeField(field: string) {
     removeObjectKey(this.form, getPathAndKey(field));
 
@@ -369,7 +350,7 @@ export default class Form extends Vue {
   }
 
   async mounted() {
-    await this.canSubmitForm();
+    this.canSubmit = true;
     this.getSavedData();
     window.onbeforeunload = () => {
       if (this.draftStatus === FormState.UNSAVED_CHANGES) {
