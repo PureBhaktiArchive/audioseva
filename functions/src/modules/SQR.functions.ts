@@ -67,6 +67,62 @@ class SQR {
       };
     });
   }
+
+  static async spreadsheet() {
+    return await Spreadsheet.open(functions.config().sqr.spreadsheet_id);
+  }
+
+  static async allotmentsSheet() {
+    const spreadsheet = await this.spreadsheet();
+    return await spreadsheet.useSheet(ISoundQualityReportSheet.Allotments);
+  }
+
+  /**
+   * Imports allotment statuses from the spreadsheet.
+   * Coordinator is marking allotments as Done manually in the spreadsheet, so preiodically importing htem.
+   */
+  static async importStatusesFromSpreadsheet() {
+    const sheet = await this.allotmentsSheet();
+
+    const updates = [];
+    (await sheet.getRows()).forEach(row => {
+      const fileName = row['File Name'];
+
+      if (fileName.match(/[\.\[\]$#]/g)) {
+        console.warn(
+          `File "${fileName}" has forbidden characters that can't be used as a node name.`
+        );
+        return;
+      }
+
+      updates.push([
+        fileName,
+        {
+          status: row['Status'] || 'Spare',
+          timestampDone: row['Date Done']
+            ? helpers
+                .convertFromSerialDate(
+                  row['Date Done'],
+                  functions.config().coordinator.timezone
+                )
+                .toMillis()
+            : null,
+        },
+      ]);
+    });
+
+    const batches = _.chunk(updates, 500);
+    console.log(batches.length);
+
+    await Promise.all(
+      batches.map(batch =>
+        admin
+          .database()
+          .ref('/allotments/SQR')
+          .update(_.fromPairs(batch))
+      )
+    );
+  }
 }
 
 export enum ISoundQualityReportSheet {
@@ -634,31 +690,36 @@ export const cancelAllotment = functions.https.onCall(
 );
 
 export const restructureAllotments = functions.pubsub.topic('database-migration').onPublish(async () => {
-  const oldSnapshot = await admin
-    .database()
-    .ref('/original/')
-    .once('value');
+    const oldSnapshot = await admin
+      .database()
+      .ref('/original/')
+      .once('value');
 
-  const newAllotments = _(oldSnapshot.val())
-    .flatMap(list =>
-      _(list)
-        .toPairs()
-        .filter(([, file]) => file.soundQualityReporting.status !== 'Spare')
-        .map(([fileName, { soundQualityReporting }]) => [
-          fileName,
-          soundQualityReporting,
-        ])
+    const newAllotments = _(oldSnapshot.val())
+      .flatMap(list =>
+        _(list)
+          .toPairs()
+          .filter(([, file]) => file.soundQualityReporting.status !== 'Spare')
+          .map(([fileName, { soundQualityReporting }]) => [
+            fileName,
+            soundQualityReporting,
+          ])
 
-        .value()
-    )
+          .value()
+      )
     .fromPairs().value();
 
-  await admin
-    .database()
-    .ref('/allotments/SQR')
-    .remove();
-  await admin
-    .database()
-    .ref('/allotments/SQR')
-    .update(newAllotments);
-});
+    await admin
+      .database()
+      .ref('/allotments/SQR')
+      .remove();
+    await admin
+      .database()
+      .ref('/allotments/SQR')
+      .update(newAllotments);
+  });
+
+export const importStatuses = functions.pubsub
+  .schedule('every hour')
+  .timeZone(functions.config().coordinator.timezone)
+  .onRun(SQR.importStatusesFromSpreadsheet);
