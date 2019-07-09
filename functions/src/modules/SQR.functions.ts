@@ -689,7 +689,9 @@ export const cancelAllotment = functions.https.onCall(
   }
 );
 
-export const restructureAllotments = functions.pubsub.topic('database-migration').onPublish(async () => {
+export const restructureAllotments = functions.pubsub
+  .topic('database-migration')
+  .onPublish(async () => {
     const oldSnapshot = await admin
       .database()
       .ref('/original/')
@@ -707,7 +709,8 @@ export const restructureAllotments = functions.pubsub.topic('database-migration'
 
           .value()
       )
-    .fromPairs().value();
+      .fromPairs()
+      .value();
 
     await admin
       .database()
