@@ -632,3 +632,33 @@ export const cancelAllotment = functions.https.onCall(
       });
   }
 );
+
+export const restructureAllotments = functions.pubsub.topic('database-migration').onPublish(async () => {
+  const oldSnapshot = await admin
+    .database()
+    .ref('/original/')
+    .once('value');
+
+  const newAllotments = _(oldSnapshot.val())
+    .flatMap(list =>
+      _(list)
+        .toPairs()
+        .filter(([, file]) => file.soundQualityReporting.status !== 'Spare')
+        .map(([fileName, { soundQualityReporting }]) => [
+          fileName,
+          soundQualityReporting,
+        ])
+
+        .value()
+    )
+    .fromPairs().value();
+
+  await admin
+    .database()
+    .ref('/allotments/SQR')
+    .remove();
+  await admin
+    .database()
+    .ref('/allotments/SQR')
+    .update(newAllotments);
+});
