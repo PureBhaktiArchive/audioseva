@@ -228,8 +228,8 @@ export const processAllotment = functions.https.onCall(
  * Updating the allotment and sending notification email.
  */
 export const processSubmission = functions.database
-  .ref('/submissions/soundQualityReporting/{list}/{fileName}/{token}')
-  .onWrite(async (change, { authType, params: { list, fileName, token } }) => {
+  .ref('/submissions/SQR/{fileName}/{token}')
+  .onWrite(async (change, { authType, params: { fileName, token } }) => {
     // Ignore admin changes, only user submissions are processed
     if (authType === 'ADMIN') {
       console.log(
@@ -397,7 +397,7 @@ export const importSpreadSheetData = functions.https.onCall(
         const list = helpers.extractListFromFilename(fileName);
         const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
-        updates[`${list}/${fileName}/${token}`] = {
+        updates[`${fileName}/${token}`] = {
           completed: helpers
             .convertFromSerialDate(row['Completed'], spreadsheet.timeZone)
             .toMillis(),
@@ -425,7 +425,7 @@ export const importSpreadSheetData = functions.https.onCall(
       });
       await admin
         .database()
-        .ref('/submissions/soundQualityReporting')
+        .ref('/submissions/SQR')
         .update(updates);
     }
 
@@ -692,12 +692,13 @@ export const cancelAllotment = functions.https.onCall(
 export const restructureAllotments = functions.pubsub
   .topic('database-migration')
   .onPublish(async () => {
-    const oldSnapshot = await admin
+    // Allotments
+    const oldAllotments = await admin
       .database()
       .ref('/original/')
       .once('value');
 
-    const newAllotments = _(oldSnapshot.val())
+    const newAllotments = _(oldAllotments.val())
       .flatMap(list =>
         _(list)
           .toPairs()
@@ -720,6 +721,34 @@ export const restructureAllotments = functions.pubsub
       .database()
       .ref('/allotments/SQR')
       .update(newAllotments);
+
+    // Submissions
+    const oldSubmissions = await admin
+      .database()
+      .ref('/submissions/soundQualityReporting')
+      .once('value');
+    
+    const newSubmissions = _(oldSubmissions.val())
+      .flatMap(list =>
+        _(list)
+          .toPairs()
+          .map(([fileName, submission]) => [
+            fileName,
+            submission,
+          ])
+          .value()
+      )
+      .fromPairs()
+      .value();
+
+    await admin
+      .database()
+      .ref('/submissions/SQR')
+      .remove();
+    await admin
+      .database()
+      .ref('/submissions/SQR')
+      .update(newSubmissions);
   });
 
 export const importStatuses = functions.pubsub

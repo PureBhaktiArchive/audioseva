@@ -493,8 +493,7 @@ export default class Form extends Vue {
     const {
       params: { fileName, token }
     } = this.$route;
-    const listId = getListId(fileName);
-    return `/submissions/soundQualityReporting/${listId}/${fileName}/${token}`;
+    return `/submissions/SQR/${fileName}/${token}`;
   }
 
   get formStateMessageColor() {
