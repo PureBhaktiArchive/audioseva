@@ -45,30 +45,83 @@ class SQR {
     return url.toString();
   }
 
-  static async getCurrentSet(emailAddress: string, list: string) {
+  static async getCurrentSet(emailAddress: string) {
     const allotments = await admin
       .database()
-      .ref(`/original/${list}`)
-      .orderByChild('soundQualityReporting/assignee/emailAddress')
+      .ref(`/allotments/SQR`)
+      .orderByChild('assignee/emailAddress')
       .equalTo(emailAddress)
       .once('value');
-    console.log(allotments);
 
     if (!allotments.exists()) return [];
 
     return Object.entries<any>(allotments.val()).map(([fileName, value]) => {
-      const datetimeGiven = DateTime.fromMillis(
-        value.soundQualityReporting.timestampGiven
-      );
+      const datetimeGiven = DateTime.fromMillis(value.timestampGiven);
       return {
         fileName,
         dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
-        status: value.soundQualityReporting.status,
+        status: value.status,
         daysPassed: DateTime.local()
           .diff(datetimeGiven, ['days', 'hours'])
           .toObject().days,
       };
     });
+  }
+
+  static async spreadsheet() {
+    return await Spreadsheet.open(functions.config().sqr.spreadsheet_id);
+  }
+
+  static async allotmentsSheet() {
+    const spreadsheet = await this.spreadsheet();
+    return await spreadsheet.useSheet(ISoundQualityReportSheet.Allotments);
+  }
+
+  /**
+   * Imports allotment statuses from the spreadsheet.
+   * Coordinator is marking allotments as Done manually in the spreadsheet, so preiodically importing htem.
+   */
+  static async importStatusesFromSpreadsheet() {
+    const sheet = await this.allotmentsSheet();
+
+    const updates = [];
+    (await sheet.getRows()).forEach(row => {
+      const fileName = row['File Name'];
+
+      if (fileName.match(/[\.\[\]$#]/g)) {
+        console.warn(
+          `File "${fileName}" has forbidden characters that can't be used as a node name.`
+        );
+        return;
+      }
+
+      updates.push([
+        fileName,
+        {
+          status: row['Status'] || 'Spare',
+          timestampDone: row['Date Done']
+            ? helpers
+                .convertFromSerialDate(
+                  row['Date Done'],
+                  functions.config().coordinator.timezone
+                )
+                .toMillis()
+            : null,
+        },
+      ]);
+    });
+
+    const batches = _.chunk(updates, 500);
+    console.log(batches.length);
+
+    await Promise.all(
+      batches.map(batch =>
+        admin
+          .database()
+          .ref('/allotments/SQR')
+          .update(_.fromPairs(batch))
+      )
+    );
   }
 }
 
@@ -100,7 +153,7 @@ export const processAllotment = functions.https.onCall(
       );
 
     console.log(
-      `Allotting ${files.map(file => file.filename).join(', ')} to ${
+      `Allotting ${files.map(file => file.name).join(', ')} to ${
         assignee.emailAddress
       }`
     );
@@ -109,21 +162,23 @@ export const processAllotment = functions.https.onCall(
     const updates = {};
     const tokens = new Map<string, string>();
 
-    files.forEach(async ({ filename: fileName }) => {
-      tokens.set(fileName, uuidv4());
+    files.forEach(async file => {
+      tokens.set(file.name, uuidv4());
 
-      const list = helpers.extractListFromFilename(fileName);
-      const pathPrefix = `${list}/${fileName}/soundQualityReporting`;
-      updates[`${pathPrefix}/status`] = 'Given';
-      updates[`${pathPrefix}/timestampGiven`] =
+      updates[`${file.name}/status`] = 'Given';
+      updates[`${file.name}/timestampGiven`] =
         admin.database.ServerValue.TIMESTAMP;
-      updates[`${pathPrefix}/assignee`] = assignee;
-      updates[`${pathPrefix}/token`] = tokens.get(fileName);
+      updates[`${file.name}/assignee`] = _.pick(
+        assignee,
+        'emailAddress',
+        'name'
+      );
+      updates[`${file.name}/token`] = tokens.get(file.name);
     });
 
     await admin
       .database()
-      .ref(`/original`)
+      .ref(`/allotments/SQR`)
       .update(updates);
 
     const spreadsheet = await Spreadsheet.open(
@@ -146,13 +201,13 @@ export const processAllotment = functions.https.onCall(
         bcc: coordinator.email_address,
         replyTo: coordinator.email_address,
         params: {
-          files: files.map(({ filename: fileName }) => ({
-            name: fileName,
+          files: files.map(file => ({
+            name: file.name,
             links: {
-              listen: SQR.createListenLink(fileName),
+              listen: SQR.createListenLink(file.name),
               submission: SQR.createSubmissionLink(
-                fileName,
-                tokens.get(fileName)
+                file.name,
+                tokens.get(file.name)
               ),
             },
           })),
@@ -173,8 +228,8 @@ export const processAllotment = functions.https.onCall(
  * Updating the allotment and sending notification email.
  */
 export const processSubmission = functions.database
-  .ref('/submissions/soundQualityReporting/{list}/{fileName}/{token}')
-  .onWrite(async (change, { authType, params: { list, fileName, token } }) => {
+  .ref('/submissions/SQR/{fileName}/{token}')
+  .onWrite(async (change, { authType, params: { fileName, token } }) => {
     // Ignore admin changes, only user submissions are processed
     if (authType === 'ADMIN') {
       console.log(
@@ -197,19 +252,17 @@ export const processSubmission = functions.database
       return;
     }
 
-    const fileSnapshot = await admin
+    const allotmentSnapshot = await admin
       .database()
-      .ref(`/original/${list}/${fileName}`)
+      .ref(`/allotments/SQR/${fileName}`)
       .once('value');
 
-    if (!fileSnapshot.exists())
+    if (!allotmentSnapshot.exists())
       console.warn(`File ${fileName} is not found in the database.`);
 
-    const allotmentRef = fileSnapshot.ref.child('soundQualityReporting');
+    await allotmentSnapshot.ref.update({ status: 'WIP' });
 
-    await allotmentRef.update({ status: 'WIP' });
-
-    const allotment = (await allotmentRef.once('value')).val();
+    const allotment = (await allotmentSnapshot.ref.once('value')).val();
 
     // * Update the spreadsheet
 
@@ -247,20 +300,17 @@ export const processSubmission = functions.database
 
     const coordinator = functions.config().coordinator;
 
-    const currentSet = await SQR.getCurrentSet(
-      allotment.assignee.emailAddress,
-      list
-    );
+    const currentSet = await SQR.getCurrentSet(allotment.assignee.emailAddress);
 
     const warnings = [];
     if (submission.changed !== submission.completed)
       warnings.push('This is an updated submission!');
 
-    if (!['Given', 'WIP'].includes(allotment.status))
-      warnings.push(`Status of file is ${allotment.status || 'Spare'}`);
+    if (!['Given', 'WIP'].includes(allotmentSnapshot.val().status))
+      warnings.push(`Status of file is ${allotment.val().status || 'Spare'}`);
 
-    if (!fileSnapshot.exists())
-      warnings.push(`Audio file name ${fileName} is not found in the backend!`);
+    if (!allotmentSnapshot.exists())
+      warnings.push(`Allotment for ${fileName} is not found in the database!`);
 
     if (currentSet.filter(item => item.status === 'Given').length === 0)
       warnings.push("It's time to allot!");
@@ -347,7 +397,7 @@ export const importSpreadSheetData = functions.https.onCall(
         const list = helpers.extractListFromFilename(fileName);
         const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
 
-        updates[`${list}/${fileName}/${token}`] = {
+        updates[`${fileName}/${token}`] = {
           completed: helpers
             .convertFromSerialDate(row['Completed'], spreadsheet.timeZone)
             .toMillis(),
@@ -375,7 +425,7 @@ export const importSpreadSheetData = functions.https.onCall(
       });
       await admin
         .database()
-        .ref('/submissions/soundQualityReporting')
+        .ref('/submissions/SQR')
         .update(updates);
     }
 
@@ -406,7 +456,7 @@ export const importSpreadSheetData = functions.https.onCall(
         }
 
         updates.push([
-          `${list}/${fileName}/soundQualityReporting`,
+          fileName,
           {
             status: row['Status'] || 'Spare',
             timestampGiven: row['Date Given']
@@ -438,7 +488,7 @@ export const importSpreadSheetData = functions.https.onCall(
         batches.map(batch =>
           admin
             .database()
-            .ref('/original')
+            .ref('/allotments/SQR')
             .update(_.fromPairs(batch))
         )
       );
@@ -451,7 +501,7 @@ export const importSpreadSheetData = functions.https.onCall(
  *
  */
 export const exportAllotmentToSpreadsheet = functions.database
-  .ref('/original/{listName}/{fileName}/soundQualityReporting')
+  .ref('/allotments/SQR/{fileName}')
   .onWrite(async (change, { params: { fileName } }) => {
     // Ignore deletions
     if (!change.after.exists()) {
@@ -581,7 +631,7 @@ export const getSpareFiles = functions.https.onCall(
           (languages || [language]).includes(item['Language'] || 'None')
       )
       .map(item => ({
-        filename: item['File Name'],
+        name: item['File Name'],
         list: item['List'],
         serial: item['Serial'],
         notes:
@@ -597,10 +647,9 @@ export const getSpareFiles = functions.https.onCall(
 
 export const cancelAllotment = functions.https.onCall(
   async ({ fileName, comments, token, reason }) => {
-    const list = helpers.extractListFromFilename(fileName);
     const snapshot = await admin
       .database()
-      .ref(`original/${list}/${fileName}`)
+      .ref(`/allotments/SQR/${fileName}`)
       .orderByChild('token')
       .equalTo(token)
       .once('value');
@@ -609,12 +658,10 @@ export const cancelAllotment = functions.https.onCall(
       throw new functions.https.HttpsError('invalid-argument', 'Invalid token');
     }
 
-    const allotment = snapshot.val().soundQualityReporting;
+    const allotment = snapshot.val();
     await snapshot.ref.update({
-      soundQualityReporting: {
-        notes: [allotment.notes, comments].filter(Boolean).join('\n'),
-        status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
-      },
+      notes: [allotment.notes, comments].filter(Boolean).join('\n'),
+      status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
       timestampGiven: null,
       token: null,
     });
@@ -636,11 +683,75 @@ export const cancelAllotment = functions.https.onCall(
           allotmentLink: SQR.createAllotmentLink(
             allotment.assignee.emailAddress
           ),
-          currentSet: await SQR.getCurrentSet(
-            allotment.assignee.emailAddress,
-            list
-          ),
+          currentSet: await SQR.getCurrentSet(allotment.assignee.emailAddress),
         },
       });
   }
 );
+
+export const restructureAllotments = functions.pubsub
+  .topic('database-migration')
+  .onPublish(async () => {
+    // Allotments
+    const oldAllotments = await admin
+      .database()
+      .ref('/original/')
+      .once('value');
+
+    const newAllotments = _(oldAllotments.val())
+      .flatMap(list =>
+        _(list)
+          .toPairs()
+          .filter(([, file]) => file.soundQualityReporting.status !== 'Spare')
+          .map(([fileName, { soundQualityReporting }]) => [
+            fileName,
+            soundQualityReporting,
+          ])
+
+          .value()
+      )
+      .fromPairs()
+      .value();
+
+    await admin
+      .database()
+      .ref('/allotments/SQR')
+      .remove();
+    await admin
+      .database()
+      .ref('/allotments/SQR')
+      .update(newAllotments);
+
+    // Submissions
+    const oldSubmissions = await admin
+      .database()
+      .ref('/submissions/soundQualityReporting')
+      .once('value');
+    
+    const newSubmissions = _(oldSubmissions.val())
+      .flatMap(list =>
+        _(list)
+          .toPairs()
+          .map(([fileName, submission]) => [
+            fileName,
+            submission,
+          ])
+          .value()
+      )
+      .fromPairs()
+      .value();
+
+    await admin
+      .database()
+      .ref('/submissions/SQR')
+      .remove();
+    await admin
+      .database()
+      .ref('/submissions/SQR')
+      .update(newSubmissions);
+  });
+
+export const importStatuses = functions.pubsub
+  .schedule('every hour')
+  .timeZone(functions.config().coordinator.timezone)
+  .onRun(SQR.importStatusesFromSpreadsheet);
