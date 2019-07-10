@@ -67,8 +67,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           fieldProps: {
             box: true,
             label: "Description",
-            outline: true,
-            rules: [required]
+            outline: true
           }
         },
         style: this.style
