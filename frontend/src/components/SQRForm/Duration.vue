@@ -25,10 +25,6 @@ import { required, validateDuration } from "@/validation";
 export default class Duration extends Mixins<FormField>(FormField) {
   fields = ["Beginning", "Ending"];
 
-  mounted() {
-    console.log(this.form, "form");
-  }
-
   handleInput(field: any, value: any) {
     this.updateForm(`duration.${field}`, value);
   }
