@@ -117,14 +117,14 @@ type Submission {
   created: InitialTimestamp,
   changed: CurrentTimestamp,
   completed: InitialTimestamp | Null,
-  comments: String,
+  comments: String | Null,
 }
 
 type SQRSubmission extends Submission {
-  duration: Object,
-  soundQualityRating: String,
-  soundIssues: Any,
-  unwantedParts: Any,
+  duration: Object | Null,
+  soundQualityRating: String | Null,
+  soundIssues: Any | Null,
+  unwantedParts: Any | Null,
 }
 
 path /submissions/SQR/{fileName}/{token} is SQRSubmission {
