@@ -55,17 +55,21 @@ class SQR {
 
     if (!allotments.exists()) return [];
 
-    return Object.entries<any>(allotments.val()).map(([fileName, value]) => {
-      const datetimeGiven = DateTime.fromMillis(value.timestampGiven);
-      return {
-        fileName,
-        dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
-        status: value.status,
-        daysPassed: DateTime.local()
-          .diff(datetimeGiven, ['days', 'hours'])
-          .toObject().days,
-      };
-    });
+    return _(allotments.val())
+      .toPairs()
+      .filter(([, value]) => Number.isInteger(value.timestampGiven))
+      .map(([fileName, value]) => {
+        const datetimeGiven = DateTime.fromMillis(value.timestampGiven);
+        return {
+          fileName,
+          dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
+          status: value.status,
+          daysPassed: DateTime.local()
+            .diff(datetimeGiven, ['days', 'hours'])
+            .toObject().days,
+        };
+      })
+      .value();
   }
 
   static async spreadsheet() {
@@ -647,18 +651,31 @@ export const getSpareFiles = functions.https.onCall(
 
 export const cancelAllotment = functions.https.onCall(
   async ({ fileName, comments, token, reason }) => {
+    console.log(`${fileName}/${token}`);
+
     const snapshot = await admin
       .database()
       .ref(`/allotments/SQR/${fileName}`)
-      .orderByChild('token')
-      .equalTo(token)
       .once('value');
 
     if (!snapshot.exists()) {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid token');
+      console.error(`File ${fileName} not found in the database.`);
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        `File ${fileName} not found in the database.`
+      );
     }
 
     const allotment = snapshot.val();
+
+    if (allotment.token !== token) {
+      console.error(`Invalid token.`);
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Invalid token.'
+      );
+    }
+
     await snapshot.ref.update({
       notes: [allotment.notes, comments].filter(Boolean).join('\n'),
       status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
@@ -727,15 +744,12 @@ export const restructureAllotments = functions.pubsub
       .database()
       .ref('/submissions/soundQualityReporting')
       .once('value');
-    
+
     const newSubmissions = _(oldSubmissions.val())
       .flatMap(list =>
         _(list)
           .toPairs()
-          .map(([fileName, submission]) => [
-            fileName,
-            submission,
-          ])
+          .map(([fileName, submission]) => [fileName, submission])
           .value()
       )
       .fromPairs()
