@@ -82,14 +82,6 @@ export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
     updatePath: this.updatePath
   };
 
-  getFieldProps(value: string, item: any) {
-    return {
-      ...this.customData[value].props,
-      item,
-      value
-    };
-  }
-
   get customData(): any {
     return {
       ...this.componentData,

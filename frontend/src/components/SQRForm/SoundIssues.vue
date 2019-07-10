@@ -93,14 +93,6 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
     return _.get(this.form, `${this.updatePath}.${item}.entireFile`, false);
   }
 
-  getFieldProps(value: string, item: any) {
-    return {
-      ...this.customData[value].props,
-      item,
-      value
-    };
-  }
-
   get customData(): any {
     return {
       ...this.componentData,
