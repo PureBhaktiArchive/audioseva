@@ -1,12 +1,12 @@
-hasRole(role) { auth != null && auth.token[role] == true }
-isCoordinator() { hasRole('coordinator') }
+function hasRole(role) { auth != null && auth.token[role] == true }
+function isCoordinator() { hasRole('coordinator') }
 
 type CurrentTimestamp extends Number {
   validate() { this == now }
 }
 
-type InitialTimestamp extends CurrentTimestamp {
-  validate() { prior(this) == null }
+type InitialTimestamp extends Number {
+  validate() { this == (prior(this) == null ? now : prior(this)) }
 }
 
 type ReadOnlyCoordinator {
@@ -96,8 +96,8 @@ type Allotment<Status> {
   assignee: Assignee,
   status: Status,
   notes: String | Null,
-  timestampGiven: InitialTimestamp,
-  timestampDone: CurrentTimestamp | Null,
+  timestampGiven: InitialTimestamp | Null,
+  timestampDone: InitialTimestamp | Null,
   token: String | Null,
 
   validate() { this.status != 'Done' || this.timestampGiven != null }
@@ -113,29 +113,23 @@ path /allotments/SQR is Map<OriginalFileName, ReportingAllotment> {
   index() { ["status", "assignee/emailAddress", "token"] }
 }
 
-path /submissions {
-  path /soundQualityReporting {
-    path /{list}/{fileName}/{token} {
-      read() { true }
-      write() {
-        return (
-          this != null
-          &&
-          root
-            .original[list][fileName]
-            .soundQualityReporting
-            .token == token
-          &&
-          root.
-            original[list][fileName]
-            .soundQualityReporting
-            .status != "Done"
-        )
-      }
-      path /complete is OnlyNew;
-      path /created is OnlyNew;
-    }
-  }
+type Submission {
+  created: InitialTimestamp,
+  changed: CurrentTimestamp,
+  completed: InitialTimestamp | Null,
+  comments: String,
+}
+
+type SQRSubmission extends Submission {
+  duration: Object,
+  soundQualityRating: String,
+  soundIssues: Any,
+  unwantedParts: Any,
+}
+
+path /submissions/SQR/{fileName}/{token} is SQRSubmission {
+  read() { true }
+  write() { this != null }
 }
 
 path /edited/{list}/{fileName} is EditedFile;
