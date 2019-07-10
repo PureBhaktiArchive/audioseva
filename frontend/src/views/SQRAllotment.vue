@@ -52,7 +52,7 @@
         <template v-if="files">
           <template v-if="files.length > 0">
             <template v-for="(file, index) in files">
-              <div :key="file.filename">
+              <div :key="file.name">
                 <v-divider v-if="index > 0 && files[index - 1].date !== file.date"/>
                 <v-layout align-center>
                   <v-checkbox
@@ -62,7 +62,7 @@
                     :loading="!files"
                     class="mr-2"
                   >
-                    <code slot="label">{{ file.filename }}</code>
+                    <code slot="label">{{ file.name }}</code>
                   </v-checkbox>
                   <span>{{ file.date || "No date" }} {{ file.language || "No language" }} {{ file.notes }}</span>
                 </v-layout>

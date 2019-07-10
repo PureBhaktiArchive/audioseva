@@ -153,7 +153,7 @@ export const processAllotment = functions.https.onCall(
       );
 
     console.log(
-      `Allotting ${files.map(file => file.filename).join(', ')} to ${
+      `Allotting ${files.map(file => file.name).join(', ')} to ${
         assignee.emailAddress
       }`
     );
@@ -162,18 +162,18 @@ export const processAllotment = functions.https.onCall(
     const updates = {};
     const tokens = new Map<string, string>();
 
-    files.forEach(async ({ filename: fileName }) => {
-      tokens.set(fileName, uuidv4());
+    files.forEach(async file => {
+      tokens.set(file.name, uuidv4());
 
-      updates[`${fileName}/status`] = 'Given';
-      updates[`${fileName}/timestampGiven`] =
+      updates[`${file.name}/status`] = 'Given';
+      updates[`${file.name}/timestampGiven`] =
         admin.database.ServerValue.TIMESTAMP;
-      updates[`${fileName}/assignee`] = _.pick(
+      updates[`${file.name}/assignee`] = _.pick(
         assignee,
         'emailAddress',
         'name'
       );
-      updates[`${fileName}/token`] = tokens.get(fileName);
+      updates[`${file.name}/token`] = tokens.get(file.name);
     });
 
     await admin
@@ -201,13 +201,13 @@ export const processAllotment = functions.https.onCall(
         bcc: coordinator.email_address,
         replyTo: coordinator.email_address,
         params: {
-          files: files.map(({ filename: fileName }) => ({
-            name: fileName,
+          files: files.map(file => ({
+            name: file.name,
             links: {
-              listen: SQR.createListenLink(fileName),
+              listen: SQR.createListenLink(file.name),
               submission: SQR.createSubmissionLink(
-                fileName,
-                tokens.get(fileName)
+                file.name,
+                tokens.get(file.name)
               ),
             },
           })),
@@ -631,7 +631,7 @@ export const getSpareFiles = functions.https.onCall(
           (languages || [language]).includes(item['Language'] || 'None')
       )
       .map(item => ({
-        filename: item['File Name'],
+        name: item['File Name'],
         list: item['List'],
         serial: item['Serial'],
         notes:
