@@ -364,7 +364,10 @@ export default class Form extends Vue {
     this.$bindAsObject(
       "initialData",
       firebase.database().ref(this.submissionPath()),
-      null,
+      () => {
+        this.isLoadingForm = false;
+        this.canSubmit = false;
+      },
       this.populateForm
     );
   }
