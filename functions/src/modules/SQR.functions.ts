@@ -48,10 +48,10 @@ class SQR {
 
   static async getCurrentSet(emailAddress: string) {
     const allotments = await admin
-        .database()
+      .database()
       .ref(`/allotments/SQR`)
       .orderByChild('assignee/emailAddress')
-        .equalTo(emailAddress)
+      .equalTo(emailAddress)
       .once('value');
 
     if (!allotments.exists()) return [];
@@ -61,14 +61,14 @@ class SQR {
       .filter(([, value]) => Number.isInteger(value.timestampGiven))
       .map(([fileName, value]) => {
         const datetimeGiven = DateTime.fromMillis(value.timestampGiven);
-      return {
-        fileName,
-        dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
+        return {
+          fileName,
+          dateGiven: datetimeGiven.toLocaleString(DateTime.DATE_SHORT),
           status: value.status,
-        daysPassed: DateTime.local()
-          .diff(datetimeGiven, ['days', 'hours'])
-          .toObject().days,
-      };
+          daysPassed: DateTime.local()
+            .diff(datetimeGiven, ['days', 'hours'])
+            .toObject().days,
+        };
       })
       .value();
   }
@@ -105,12 +105,10 @@ class SQR {
         {
           status: row['Status'] || 'Spare',
           timestampDone: row['Date Done']
-            ? helpers
-                .convertFromSerialDate(
-                  row['Date Done'],
-                  functions.config().coordinator.timezone
-                )
-                .toMillis()
+            ? DateTimeConverter.fromSerialDate(
+                row['Date Done'],
+                functions.config().coordinator.timezone
+              ).toMillis()
             : null,
         },
       ]);
@@ -680,8 +678,8 @@ export const cancelAllotment = functions.https.onCall(
     }
 
     await snapshot.ref.update({
-        notes: [allotment.notes, comments].filter(Boolean).join('\n'),
-        status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
+      notes: [allotment.notes, comments].filter(Boolean).join('\n'),
+      status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
       timestampGiven: null,
       token: null,
     });
