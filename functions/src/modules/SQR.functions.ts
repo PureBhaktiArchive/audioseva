@@ -115,7 +115,6 @@ class SQR {
     });
 
     const batches = _.chunk(updates, 500);
-    console.log(batches.length);
 
     await Promise.all(
       batches.map(batch =>
@@ -155,7 +154,7 @@ export const processAllotment = functions.https.onCall(
         'Devotee and Files are required.'
       );
 
-    console.log(
+    console.info(
       `Allotting ${files.map(file => file.name).join(', ')} to ${
         assignee.emailAddress
       }`
@@ -235,7 +234,7 @@ export const processSubmission = functions.database
   .onWrite(async (change, { authType, params: { fileName, token } }) => {
     // Ignore admin changes, only user submissions are processed
     if (authType === 'ADMIN') {
-      console.log(
+      console.info(
         `Ignoring change to ${fileName}/${token} submission by ADMIN.`
       );
       return;
@@ -243,7 +242,7 @@ export const processSubmission = functions.database
 
     // Ignore deletions
     if (!change.after.exists()) {
-      console.log(`Ignoring deletion of ${fileName}/${token} submission.`);
+      console.info(`Ignoring deletion of ${fileName}/${token} submission.`);
       return;
     }
 
@@ -251,9 +250,11 @@ export const processSubmission = functions.database
 
     // Ignore draft submissions
     if (!submission.completed) {
-      console.log(`Ignoring draft of ${fileName}/${token} submission.`);
+      console.info(`Ignoring draft of ${fileName}/${token} submission.`);
       return;
     }
+
+    console.info(`Processing ${fileName}/${token} submission.`);
 
     const allotmentSnapshot = await admin
       .database()
@@ -261,7 +262,7 @@ export const processSubmission = functions.database
       .once('value');
 
     if (!allotmentSnapshot.exists())
-      console.warn(`File ${fileName} is not found in the database.`);
+      throw new Error(`File ${fileName} is not found in the database.`);
 
     await allotmentSnapshot.ref.update({ status: 'WIP' });
 
@@ -310,10 +311,7 @@ export const processSubmission = functions.database
       warnings.push('This is an updated submission!');
 
     if (!['Given', 'WIP'].includes(allotmentSnapshot.val().status))
-      warnings.push(`Status of file is ${allotment.val().status || 'Spare'}`);
-
-    if (!allotmentSnapshot.exists())
-      warnings.push(`Allotment for ${fileName} is not found in the database!`);
+      warnings.push(`Status of file is ${allotment.val().status}`);
 
     if (currentSet.filter(item => item.status === 'Given').length === 0)
       warnings.push("It's time to allot!");
@@ -453,14 +451,6 @@ export const importSpreadSheetData = functions.https.onCall(
           return;
         }
 
-        const list = helpers.extractListFromFilename(fileName);
-        if (!list) {
-          console.warn(
-            `Cannot get list name from tht file name "${fileName}".`
-          );
-          return;
-        }
-
         updates.push([
           fileName,
           {
@@ -487,7 +477,6 @@ export const importSpreadSheetData = functions.https.onCall(
       });
 
       const batches = _.chunk(updates, 500);
-      console.log(batches.length);
 
       await Promise.all(
         batches.map(batch =>
@@ -510,9 +499,11 @@ export const exportAllotmentToSpreadsheet = functions.database
   .onWrite(async (change, { params: { fileName } }) => {
     // Ignore deletions
     if (!change.after.exists()) {
-      console.log(`Ignoring deletion of ${fileName}.`);
+      console.info(`Ignoring deletion of ${fileName}.`);
       return;
     }
+
+    console.info(fileName, change.before.val(), change.after.val());
 
     const changedValues = change.after.val();
 
@@ -581,12 +572,11 @@ export function formatMultilineComment(
  * Gets lists with spare files
  */
 export const getLists = functions.https.onCall(async (data, context) => {
-  if (!context.auth || !context.auth.token || !context.auth.token.coordinator) {
+  if (!context.auth || !context.auth.token || !context.auth.token.coordinator)
     throw new functions.https.HttpsError(
       'permission-denied',
       'The function must be called by an authenticated coordinator.'
     );
-  }
 
   const spreadsheet = await Spreadsheet.open(
     functions.config().sqr.spreadsheet_id
@@ -608,16 +598,11 @@ export const getLists = functions.https.onCall(async (data, context) => {
  */
 export const getSpareFiles = functions.https.onCall(
   async ({ list, language, languages, count }, context) => {
-    if (
-      !context.auth ||
-      !context.auth.token ||
-      !context.auth.token.coordinator
-    ) {
+    if (!context.auth || !context.auth.token || !context.auth.token.coordinator)
       throw new functions.https.HttpsError(
         'permission-denied',
         'The function must be called by an authenticated coordinator.'
       );
-    }
 
     const spreadsheet = await Spreadsheet.open(
       functions.config().sqr.spreadsheet_id
@@ -652,30 +637,32 @@ export const getSpareFiles = functions.https.onCall(
 
 export const cancelAllotment = functions.https.onCall(
   async ({ fileName, comments, token, reason }) => {
-    console.log(`${fileName}/${token}`);
+    console.info(`${fileName}/${token}, ${reason}, ${comments}`);
 
     const snapshot = await admin
       .database()
       .ref(`/allotments/SQR/${fileName}`)
       .once('value');
 
-    if (!snapshot.exists()) {
-      console.error(`File ${fileName} not found in the database.`);
+    if (!snapshot.exists())
       throw new functions.https.HttpsError(
         'invalid-argument',
         `File ${fileName} not found in the database.`
       );
-    }
 
     const allotment = snapshot.val();
 
-    if (allotment.token !== token) {
-      console.error(`Invalid token.`);
+    if (allotment.token !== token)
       throw new functions.https.HttpsError(
         'invalid-argument',
         'Invalid token.'
       );
-    }
+
+    if (allotment.status === 'Done')
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'File is already marked as Done, cannot cancel allotment.'
+      );
 
     await snapshot.ref.update({
       notes: [allotment.notes, comments].filter(Boolean).join('\n'),
@@ -767,6 +754,6 @@ export const restructureAllotments = functions.pubsub
   });
 
 export const importStatuses = functions.pubsub
-  .schedule('every hour')
+  .schedule('every 1 hours')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(SQR.importStatusesFromSpreadsheet);
