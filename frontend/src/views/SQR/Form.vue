@@ -364,7 +364,10 @@ export default class Form extends Vue {
     this.$bindAsObject(
       "initialData",
       firebase.database().ref(this.submissionPath()),
-      null,
+      () => {
+        this.isLoadingForm = false;
+        this.canSubmit = false;
+      },
       this.populateForm
     );
   }
@@ -401,6 +404,7 @@ export default class Form extends Vue {
       const {
         params: { fileName, token }
       } = this.$route;
+      let showSuccess = true;
       await firebase
         .functions()
         .httpsCallable("SQR-cancelAllotment")({
@@ -410,9 +414,11 @@ export default class Form extends Vue {
           // cancel is a number greater than 0 or null
           reason: this.cancelFields[(this.cancel || 1) - 1].reason
         })
-        .catch(() => {
+        .catch(e => {
+          showSuccess = false;
           this.canSubmit = false;
         });
+      if (!showSuccess) return;
       this.cancelComplete = true;
     }
   }
