@@ -240,8 +240,12 @@ export const importProcessedSubmissions = functions
       if (
         !sheet.headers.includes('Beginning') ||
         !sheet.headers.includes('Ending')
-      )
+      ) {
+        console.log(`Skipping ${sheetName}.`);
         continue;
+      }
+
+      console.log(`Processing ${sheetName}`);
 
       const groups = _.groupBy(
         (await sheet.getRows()).map(row => Chunk.createFromRow(row)),
@@ -249,6 +253,8 @@ export const importProcessedSubmissions = functions
       );
 
       for (const fileName in groups) {
+        console.log(`Processing ${fileName}`);
+
         /// File name should belong to the list identified by the sheet name
         if (helpers.extractListFromFilename(fileName) !== sheetName) {
           console.warn(
@@ -287,8 +293,10 @@ export const importProcessedSubmissions = functions
             );
         }
 
-        if (trackWarnings) warnings.set(fileName, new Set(trackWarnings));
-        else await ref.set(track.chunks);
+        if (trackWarnings) {
+          warnings.set(fileName, new Set(trackWarnings));
+          console.info(`Warnings for ${fileName}: ${trackWarnings}`);
+        } else await ref.set(track.chunks);
       }
     }
 
