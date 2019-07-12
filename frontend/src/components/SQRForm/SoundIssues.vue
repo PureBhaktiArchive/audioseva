@@ -51,7 +51,7 @@
       </v-card-title>
     </v-card>
     <v-btn class="ma-0" color="success" @click="addField">
-      <v-icon small left v-text="`$vuetify.icons.plus`" />
+      Add
       Sound Issue
     </v-btn>
   </div>
@@ -91,14 +91,6 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
 
   hideField(value: any, item: any) {
     return _.get(this.form, `${this.updatePath}.${item}.entireFile`, false);
-  }
-
-  getFieldProps(value: string, item: any) {
-    return {
-      ...this.customData[value].props,
-      item,
-      value
-    };
   }
 
   get customData(): any {
