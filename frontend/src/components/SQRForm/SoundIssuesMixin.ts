@@ -17,6 +17,26 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
     updatePath: this.updatePath
   };
 
+  shouldValidateField(value: string, item: any) {
+    const part = _.get(this.form, `${this.updatePath}.${item}`);
+    return Object.values(part).some(fieldValue => !!fieldValue);
+  }
+
+  getFieldProps(value: string, item: any) {
+    const hasRules = this.shouldValidateField(value, item);
+    const props = this.customData[value].props;
+    const rules = _.get(props, "fieldProps.rules", []);
+    return {
+      ...props,
+      item,
+      value,
+      fieldProps: {
+        ..._.get(props, "fieldProps", {}),
+        rules: hasRules ? rules : []
+      }
+    };
+  }
+
   get componentData() {
     return {
       beginning: {
@@ -67,8 +87,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           fieldProps: {
             box: true,
             label: "Description",
-            outline: true,
-            rules: [required]
+            outline: true
           }
         },
         style: this.style

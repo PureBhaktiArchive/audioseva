@@ -309,7 +309,7 @@ export default class Form extends Vue {
   }
 
   updateForm(field: string, value: any, debounceSubmit = true) {
-    updateObject(this.form, { ...getPathAndKey(field), value });
+    updateObject(this.form, { ...getPathAndKey(field), value: value || null });
 
     if (debounceSubmit) {
       if (_.isEqual(_.get(this.initialData, field), _.get(this.form, field))) {

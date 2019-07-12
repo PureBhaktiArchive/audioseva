@@ -49,7 +49,7 @@
       </v-card-title>
     </v-card>
     <v-btn class="ma-0" color="success" @click="addField">
-      <v-icon small left v-text="`$vuetify.icons.plus`" />
+      Add
       Unwanted Part
     </v-btn>
   </div>
@@ -81,14 +81,6 @@ export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
     updateForm: this.updateForm,
     updatePath: this.updatePath
   };
-
-  getFieldProps(value: string, item: any) {
-    return {
-      ...this.customData[value].props,
-      item,
-      value
-    };
-  }
 
   get customData(): any {
     return {
