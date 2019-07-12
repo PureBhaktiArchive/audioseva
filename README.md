@@ -47,3 +47,9 @@ Add the following variables into your `.env.development.local` file:
 | `donations.cash.spreadsheet.id`   | Donations spreadsheet id                           |
 | `donations.cash.spreadsheet.name` | Donations sheet name                               |
 | `donations.contact.email_address` | Email address used in donations communication      |
+
+## Frontend
+
+### Maintenance mode
+
+In order to deploy the frontend in maintenance mode replace `index.html` with `maintenance.html` in the `hosting/rewrites` section of the [firebase.json](firebase.json) file.
