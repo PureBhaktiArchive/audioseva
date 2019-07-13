@@ -228,6 +228,9 @@ export const importProcessedSubmissions = functions
   })
   .pubsub.topic('import-chunks')
   .onPublish(async () => {
+    console.log(
+      `Opening ${functions.config().cr.processing.spreadsheet.id} spreadsheet.`
+    );
     const spreadsheet = await Spreadsheet.open(
       functions.config().cr.processing.spreadsheet.id
     );
@@ -241,11 +244,13 @@ export const importProcessedSubmissions = functions
         !sheet.headers.includes('Beginning') ||
         !sheet.headers.includes('Ending')
       ) {
-        console.log(`Skipping ${sheetName}.`);
+        console.log(
+          `Skipping “${sheetName}” sheet due to lack of necessary columns.`
+        );
         continue;
       }
 
-      console.log(`Processing ${sheetName}`);
+      console.log(`Processing “${sheetName}” sheet.`);
 
       const groups = _.groupBy(
         (await sheet.getRows()).map(row => Chunk.createFromRow(row)),
@@ -253,12 +258,10 @@ export const importProcessedSubmissions = functions
       );
 
       for (const fileName in groups) {
-        console.log(`Processing ${fileName}`);
-
         /// File name should belong to the list identified by the sheet name
         if (helpers.extractListFromFilename(fileName) !== sheetName) {
           console.warn(
-            `Skipping file ${fileName} found on sheet ${sheetName}.`
+            `Skipping file ${fileName} found on wrong sheet “${sheetName}”.`
           );
           continue;
         }
@@ -274,7 +277,7 @@ export const importProcessedSubmissions = functions
 
         const trackWarnings = track.warnings;
 
-        const ref = admin.database().ref(`/chunks/${sheetName}/${fileName}`);
+        const ref = admin.database().ref(`/chunks/${fileName}`);
         const snapshot = await ref.once('value');
 
         /// Chunks should not have been changed after previous import
@@ -293,9 +296,11 @@ export const importProcessedSubmissions = functions
             );
         }
 
-        if (trackWarnings) {
+        if (trackWarnings.length) {
           warnings.set(fileName, new Set(trackWarnings));
-          console.info(`Warnings for ${fileName}: ${trackWarnings}`);
+          console.info(
+            `Skipping ${fileName} due to warnings: ${trackWarnings}.`
+          );
         } else await ref.set(track.chunks);
       }
     }

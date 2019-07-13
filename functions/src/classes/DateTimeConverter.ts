@@ -4,7 +4,16 @@
 import { DateTime, Duration, Settings } from 'luxon';
 
 const daysBetweenEpochs = 25569; // Number of days between December 30th 1899 and January 1st 1970
-const secondsInDay = 86400; // 24 * 60 * 60
+const hoursInDay = 24;
+const minutesInHour = 60;
+const minutesInDay = minutesInHour * hoursInDay;
+const secondsInMinute = 60;
+const secondsInHour = secondsInMinute * minutesInHour;
+const secondsInDay = secondsInMinute * minutesInDay;
+const millisInSecond = 1000;
+const millisInMinute = millisInSecond * secondsInMinute;
+const millisInHour = millisInMinute * minutesInHour;
+const millisInDay = millisInHour * hoursInDay;
 
 export class DateTimeConverter {
   /**
@@ -39,11 +48,22 @@ export class DateTimeConverter {
   }
 
   /**
-   * Parses a human-entered timing in `[hh:]mm:ss` format.
-   * @param timing duration in `[hh:]mm:ss` format
+   * Parses a duration.
+   * @param timing duration in `[hh:]mm:ss` format or as a serial time from Excel/Sheets
    * @returns duration object
    */
-  public static durationFromHuman(timing: string): Duration {
+  public static parseDuration(timing: string): Duration {
+    // Treating the floating number as time portion of the serial date from Excel/Sheets.
+    if (!isNaN(+timing)) {
+      // Decimal part is the portion of a day.
+      // Using minutes directly as Sheets misinterpret `mm:ss` format as `hh:mm`.
+      const duration = Duration.fromMillis(
+        Math.round(millisInDay * +timing)
+      );
+      return (duration.valueOf() >= millisInHour)? 
+    }
+
+    // Otherwise treating the string as human-readable format `[hh:]mm:ss`
     const match = /^\s*(?:(0?[1-3]):)?([0-5]?\d):([0-5]?\d)\s*$/.exec(timing);
     if (!match) return Duration.invalid('Incorrect format');
     const [, hours = 0, minutes = NaN, seconds = NaN] = match;

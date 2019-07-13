@@ -52,5 +52,7 @@
       "${commentprefix} sri sri guru gauranga jayatah",
       "${commentend}"
     ]
-  }
+  },
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": true
 }

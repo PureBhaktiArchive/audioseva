@@ -25,22 +25,26 @@ describe.each`
 
 describe('Duration parsing', () => {
   test.each`
-    timing       | iso
-    ${'23:03'}   | ${'PT23M3S'}
-    ${'1:03:54'} | ${'PT1H3M54S'}
-  `('parses $timing as $duration', ({ timing, iso }) => {
-    expect(DateTimeConverter.durationFromHuman(timing).valueOf()).toEqual(
+    timing                   | iso
+    ${'23:03'}               | ${'PT23M3S'}
+    ${'1:03:54'}             | ${'PT1H3M54S'}
+    ${'0.835416666666667'}   | ${'PT20M3S'}
+    ${'1.95347222222222'}    | ${'PT46M53S'}
+    ${'0.00694444444444444'} | ${'PT10S'}
+    ${'0.0432638888888889'}  | ${'PT1H2M18S'}
+  `('parses $timing as $iso', ({ timing, iso }) => {
+    expect(DateTimeConverter.parseDuration(timing).valueOf()).toEqual(
       Duration.fromISO(iso).valueOf()
     );
   });
 
   test.each`
     input
-    ${'12.4'}
+    ${'haribol'}
     ${'1:03:54:33'}
     ${'7:130'}
   `('returns invalid Duration for “$input”', ({ input }) => {
-    const duration = DateTimeConverter.durationFromHuman(input);
+    const duration = DateTimeConverter.parseDuration(input);
     expect(duration.isValid).toBeFalsy();
     expect(duration.invalidReason).toEqual('Incorrect format');
   });

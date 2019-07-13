@@ -35,29 +35,33 @@
     },
     {
       "type": "npm",
-      "script": "shell",
-      "path": "functions/",
-      "problemMatcher": []
-    },
-    {
-      "type": "npm",
-      "script": "test",
-      "path": "functions/",
-      "problemMatcher": []
-    },
-    {
-      "type": "npm",
-      "script": "test:coverage",
-      "path": "functions/",
-      "problemMatcher": []
-    },
-    {
-      "type": "npm",
       "script": "lint",
       "path": "functions/",
       "problemMatcher": [
         "$tslint5"
       ]
+    },
+    {
+      "label": "Build Watch Functions",
+      "type": "npm",
+      "script": "build:watch",
+      "path": "functions/",
+      "problemMatcher": [
+        "$tsc-watch"
+      ],
+      "isBackground": true
+    },
+    {
+      "label": "Functions Shell",
+      "type": "shell",
+      "command": "firebase functions:shell",
+      "problemMatcher": []
+    },
+    {
+      "type": "npm",
+      "script": "test:watch",
+      "path": "functions/",
+      "problemMatcher": []
     }
   ]
 }

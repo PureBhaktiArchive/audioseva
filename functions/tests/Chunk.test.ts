@@ -3,27 +3,19 @@
  */
 
 import { Chunk, Resolution } from '../src/classes/Chunk';
-import { DateTimeConverter } from '../src/classes/DateTimeConverter';
 import _ = require('lodash');
 
 describe.each`
-  Audio File Name | Beginning  | Ending     | Continuation From | Date         | Location          | Category                                          | Topics                                     | Suggested Title                   | Languages           | Fidelity Check Resolution
-  ${'BR-05A'}     | ${'00:00'} | ${'47:11'} | ${null}           | ${'?'}       | ${'Mathura Math'} | ${'More of questions and clarifications Darsana'} | ${'Gurudev clarified following questions'} | ${'Bhakti Queries'}               | ${'English, Hindi'} | ${'OK'}
-  ${'BR-08B'}     | ${'01:00'} | ${'28:08'} | ${'BR-08A'}       | ${'unknown'} | ${'Not known'}    | ${'Lecture'}                                      | ${'-Gopis virah for Shri Krishna '}        | ${'Shri Krishna virah for gopis'} | ${'Hindi'}          | ${'OK'}
-  ${'BR-09B'}     | ${null}    | ${null}    | ${null}           | ${null}      | ${null}           | ${null}                                           | ${null}                                    | ${null}                           | ${null}             | ${'Haribol'}
+  Audio File Name | Beginning              | Ending           | Continuation From | Fidelity Check Resolution
+  ${'BR-05A'}     | ${'00:00'}             | ${'47:11'}       | ${null}           | ${'OK'}
+  ${'BR-08B'}     | ${'01:00'}             | ${'28:08'}       | ${'BR-08A'}       | ${'OK'}
+  ${'BR-08B'}     | ${'0.835416666666667'} | ${'1.953472222'} | ${null}           | ${'OK'}
+  ${'BR-09B'}     | ${null}                | ${null}          | ${null}           | ${'Haribol'}
 `('Chunk importing from spreadsheet', row => {
   const chunk = Chunk.createFromRow(row);
 
   it(`${row['Audio File Name']}`, () => {
     expect(chunk.fileName).toBe(row['Audio File Name']);
-
-    expect(chunk.beginning).toBe(
-      DateTimeConverter.durationFromHuman(row['Beginning']).as('seconds')
-    );
-
-    expect(chunk.ending).toBe(
-      DateTimeConverter.durationFromHuman(row['Ending']).as('seconds')
-    );
 
     expect(chunk.continuationFrom).toBe(row['Continuation From']);
 

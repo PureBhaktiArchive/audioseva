@@ -40,12 +40,11 @@ export class Chunk {
   public static createFromRow(row: any): Chunk {
     const chunk = new Chunk();
     chunk.fileName = row['Audio File Name'];
-    chunk.beginning = DateTimeConverter.durationFromHuman(row['Beginning']).as(
+
+    chunk.beginning = DateTimeConverter.parseDuration(row['Beginning']).as(
       'seconds'
     );
-    chunk.ending = DateTimeConverter.durationFromHuman(row['Ending']).as(
-      'seconds'
-    );
+    chunk.ending = DateTimeConverter.parseDuration(row['Ending']).as('seconds');
     chunk.continuationFrom = row['Continuation From'];
     chunk.date = row['Date'];
     chunk.location = row['Location'];
