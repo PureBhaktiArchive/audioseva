@@ -333,6 +333,11 @@ export default class Form extends Vue {
       this.draftStatus = FormState.INITIAL_LOAD;
     }
 
+    if (this.form.completed) {
+      this.draftStatus = FormState.UNSAVED_CHANGES;
+      return;
+    }
+
     const [updateFieldPath] = field.split(".");
     await firebase
       .database()
