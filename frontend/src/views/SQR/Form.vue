@@ -312,8 +312,8 @@ export default class Form extends Vue {
     updateObject(this.form, { ...getPathAndKey(field), value: value || null });
 
     if (debounceSubmit) {
-      if (_.isEqual(_.get(this.initialData, field), _.get(this.form, field))) {
-        this.draftStatus = FormState.SAVED;
+      if (_.isEqual(this.initialData, this.form)) {
+        this.draftStatus = FormState.INITIAL_LOAD;
         if (!this.form.completed) {
           this.debounceSubmitDraft.cancel();
         }
@@ -329,8 +329,11 @@ export default class Form extends Vue {
   async removeField(field: string) {
     removeObjectKey(this.form, getPathAndKey(field));
 
-    if (_.isEqual(_.get(this.initialData, field), _.get(this.form, field))) {
+    if (_.isEqual(this.initialData, this.form)) {
       this.draftStatus = FormState.INITIAL_LOAD;
+    } else if (this.form.completed) {
+      this.draftStatus = FormState.UNSAVED_CHANGES;
+      return;
     }
 
     const [updateFieldPath] = field.split(".");
