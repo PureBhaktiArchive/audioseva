@@ -113,8 +113,7 @@ import firebase from "firebase/app";
 import "firebase/functions";
 import * as _ from "lodash";
 
-import { initialAllotment } from "../utility";
-import CRAllotment from "@/views/CRAllotment.vue";
+import { initialAllotment, initialAllotmentFilter } from "../utility";
 import ErrorMessages from "../mixins/ErrorMessages";
 
 export default {
@@ -202,7 +201,7 @@ export default {
       }
     },
     reset() {
-      this.filter = CRAllotment.initialFilter();
+      this.filter = initialAllotmentFilter();
       this.allotment = initialAllotment();
       this.submissionStatus = null;
     }
