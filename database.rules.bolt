@@ -118,6 +118,7 @@ type Submission {
   changed: CurrentTimestamp,
   completed: InitialTimestamp | Null,
   comments: String | Null,
+  token: String,
 }
 
 type SQRSubmission extends Submission {
@@ -127,7 +128,20 @@ type SQRSubmission extends Submission {
   unwantedParts: Any | Null,
 }
 
-path /submissions/SQR/{fileName}/{token} is SQRSubmission {
+// Final SQR submissions are stored here
+path /submissions/SQR/final/{fileName} is SQRSubmission {
+  read() { true }
+  write() {
+    this != null
+    &&
+    // Checking that the submitted token matches the token in the allotment
+    root.allotments.SQR[fileName].token == this.token
+  }
+}
+
+// Draft SQR submissions are sotred here
+// Anyone having the token can edit the draft
+path /submissions/SQR/drafts/{fileName}/{token} is SQRSubmission {
   read() { true }
   write() { this != null }
 }
