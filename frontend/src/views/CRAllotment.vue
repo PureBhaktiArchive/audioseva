@@ -104,7 +104,7 @@ import "firebase/functions";
 import _ from "lodash";
 
 import ErrorMessages from "@/mixins/ErrorMessages";
-import { initialAllotment } from "@/utility";
+import { initialAllotment, initialAllotmentFilter } from "@/utility";
 
 @Component({
   name: "CRAllotment"
@@ -114,16 +114,9 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
   languages: string[] = ["English", "Hindi", "Bengali", "None"];
   lists = null;
   files: any = null;
-  filter = CRAllotment.initialFilter();
+  filter = initialAllotmentFilter();
   allotment: any = initialAllotment();
   submissionStatus: string | null = null;
-
-  static initialFilter() {
-    return {
-      languages: [] as string[],
-      list: null
-    };
-  }
 
   async mounted() {
     this.filter.languages = this.languages;
@@ -205,7 +198,7 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
   }
 
   reset() {
-    this.filter = CRAllotment.initialFilter();
+    this.filter = initialAllotmentFilter();
     this.allotment = initialAllotment();
     this.submissionStatus = null;
   }
