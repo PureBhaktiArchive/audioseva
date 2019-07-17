@@ -380,12 +380,12 @@ export default class Form extends Vue {
     };
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
-      if (initialData.changed) {
-        this.formStateMessages[
-          FormState.INITIAL_LOAD
-        ] = `Last edit was at ${moment(initialData.changed).format(
-          "MM/DD/YYYY, h:mm a"
-        )}`;
+      if (initialData.changed || initialData.completed) {
+        this.formStateMessages[FormState.INITIAL_LOAD] = `${
+          initialData.completed ? "Form was submitted" : "Last edit was"
+        } on ${moment(
+          initialData[initialData.completed ? "completed" : "changed"]
+        ).format("MM/DD/YYYY [at] h:mm a")}`;
       }
       this.form = {
         ...(initialData.unwantedParts || initialData.soundIssues
