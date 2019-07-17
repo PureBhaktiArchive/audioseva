@@ -313,7 +313,7 @@ export default class Form extends Vue {
 
     if (debounceSubmit) {
       if (_.isEqual(this.initialData, this.form)) {
-        this.draftStatus = FormState.SAVED;
+        this.draftStatus = FormState.INITIAL_LOAD;
         if (!this.form.completed) {
           this.debounceSubmitDraft.cancel();
         }
