@@ -105,6 +105,7 @@
 import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
 import moment from "moment";
+import "moment-timezone/builds/moment-timezone-with-data-10-year-range.min.js";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
@@ -383,9 +384,12 @@ export default class Form extends Vue {
       if (initialData.changed || initialData.completed) {
         this.formStateMessages[FormState.INITIAL_LOAD] = `${
           initialData.completed ? "Form was submitted" : "Last edit was"
-        } on ${moment(
-          initialData[initialData.completed ? "completed" : "changed"]
-        ).format("MM/DD/YYYY [at] h:mm a")}`;
+        } on ${(moment as any)
+          .tz(
+            initialData[initialData.completed ? "completed" : "changed"],
+            (moment as any).tz.guess()
+          )
+          .format("MM/DD/YYYY [at] h:mm a")}`;
       }
       this.form = {
         ...(initialData.unwantedParts || initialData.soundIssues
