@@ -79,6 +79,14 @@ export const initialFilter = () => ({
   list: null
 });
 
+export const initialAllotmentFilter = (): {
+  languages: string[];
+  list: null;
+} => ({
+  languages: [] as string[],
+  list: null
+});
+
 const getObject = (obj: any, path: string, defaultValue: any = {}) => {
   if (path) {
     const item = _.get(obj, path);
