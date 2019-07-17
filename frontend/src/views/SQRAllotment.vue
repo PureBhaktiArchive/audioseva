@@ -113,6 +113,7 @@ import firebase from "firebase/app";
 import "firebase/functions";
 import * as _ from "lodash";
 
+import { initialAllotment, initialAllotmentFilter } from "../utility";
 import ErrorMessages from "../mixins/ErrorMessages";
 
 export default {
@@ -200,8 +201,8 @@ export default {
       }
     },
     reset() {
-      Object.assign(this.$data.allotment, this.$options.data().allotment);
-      Object.assign(this.$data.filter, this.$options.data().filter);
+      this.filter = initialAllotmentFilter();
+      this.allotment = initialAllotment();
       this.submissionStatus = null;
     }
   }
