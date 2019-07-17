@@ -12,11 +12,13 @@
   "dependencies": {
     "@babel/polyfill": "^7.4.4",
     "@types/lodash": "^4.14.135",
+    "@types/moment-timezone": "^0.5.12",
     "@types/node": "^10.12.30",
     "firebase": "^5.8.6",
     "firebaseui": "^3.5.2",
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
+    "moment-timezone": "^0.5.26",
     "vue": "^2.6.10",
     "vue-class-component": "^6.0.0",
     "vue-property-decorator": "^7.3.0",
