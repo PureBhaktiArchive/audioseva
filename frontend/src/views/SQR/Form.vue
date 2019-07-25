@@ -130,6 +130,11 @@ enum FormState {
   ERROR = 4
 }
 
+enum SQRSubmissionPath {
+  COMPLETED = "completed",
+  DRAFTS = "drafts"
+}
+
 @Component({
   name: "Form",
   components: { SQRField, UnwantedParts, SoundIssues, Duration, TextArea }
@@ -340,7 +345,13 @@ export default class Form extends Vue {
     const [updateFieldPath] = field.split(".");
     await firebase
       .database()
-      .ref(`${this.submissionPath()}/${updateFieldPath}`)
+      .ref(
+        `${this.submissionPath(
+          this.form.completed
+            ? SQRSubmissionPath.COMPLETED
+            : SQRSubmissionPath.DRAFTS
+        )}/${updateFieldPath}`
+      )
       .set(this.form[updateFieldPath]);
   }
 
@@ -364,15 +375,24 @@ export default class Form extends Vue {
     };
   }
 
-  getSavedData() {
+  getSavedData(path: SQRSubmissionPath = SQRSubmissionPath.COMPLETED) {
     this.$bindAsObject(
       "initialData",
-      firebase.database().ref(this.submissionPath()),
+      firebase.database().ref(this.submissionPath(path)),
       () => {
         this.isLoadingForm = false;
         this.canSubmit = false;
       },
-      this.populateForm
+      () => {
+        if (
+          path === SQRSubmissionPath.COMPLETED &&
+          this.initialData[".value"] === null
+        ) {
+          this.getSavedData(SQRSubmissionPath.DRAFTS);
+        } else {
+          this.populateForm();
+        }
+      }
     );
   }
 
@@ -445,6 +465,9 @@ export default class Form extends Vue {
   }
 
   async submitForm(save = false) {
+    const sqrSubmissionPath = save
+      ? SQRSubmissionPath.COMPLETED
+      : SQRSubmissionPath.DRAFTS;
     if (!save) {
       this.draftStatus = FormState.SAVING;
     }
@@ -466,7 +489,7 @@ export default class Form extends Vue {
       }
       const updated = await firebase
         .database()
-        .ref(this.submissionPath())
+        .ref(this.submissionPath(sqrSubmissionPath))
         .update(data)
         .catch(() => "error");
 
@@ -475,12 +498,19 @@ export default class Form extends Vue {
         this.formStateMessages[FormState.ERROR] = "Permission denied";
         return;
       }
+      // first time completed
+      if (!completed && sqrSubmissionPath === SQRSubmissionPath.COMPLETED) {
+        firebase
+          .database()
+          .ref(this.submissionPath(SQRSubmissionPath.DRAFTS))
+          .remove();
+      }
 
       this.draftStatus = FormState.SAVED;
 
       const response = (await firebase
         .database()
-        .ref(`${this.submissionPath()}`)
+        .ref(`${this.submissionPath(sqrSubmissionPath)}`)
         .once("value")).val();
 
       const formUpdate: any = {};
@@ -502,11 +532,11 @@ export default class Form extends Vue {
     }
   }
 
-  submissionPath() {
+  submissionPath(path: SQRSubmissionPath = SQRSubmissionPath.COMPLETED) {
     const {
       params: { fileName, token }
     } = this.$route;
-    return `/submissions/SQR/${fileName}/${token}`;
+    return `/SQR/submissions/${path}/${fileName}/${token}`;
   }
 
   get formStateMessageColor() {
