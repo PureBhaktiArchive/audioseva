@@ -130,7 +130,7 @@ enum FormState {
   ERROR = 4
 }
 
-enum SQRSubmissionPath {
+enum SubmissionsBranch {
   COMPLETED = "completed",
   DRAFTS = "drafts"
 }
@@ -348,8 +348,8 @@ export default class Form extends Vue {
       .ref(
         `${this.submissionPath(
           this.form.completed
-            ? SQRSubmissionPath.COMPLETED
-            : SQRSubmissionPath.DRAFTS
+            ? SubmissionsBranch.COMPLETED
+            : SubmissionsBranch.DRAFTS
         )}/${updateFieldPath}`
       )
       .set(this.form[updateFieldPath]);
@@ -375,20 +375,20 @@ export default class Form extends Vue {
     };
   }
 
-  getSavedData(path: SQRSubmissionPath = SQRSubmissionPath.COMPLETED) {
+  getSavedData(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
     this.$bindAsObject(
       "initialData",
-      firebase.database().ref(this.submissionPath(path)),
+      firebase.database().ref(this.submissionPath(branch)),
       () => {
         this.isLoadingForm = false;
         this.canSubmit = false;
       },
       () => {
         if (
-          path === SQRSubmissionPath.COMPLETED &&
+          branch === SubmissionsBranch.COMPLETED &&
           this.initialData[".value"] === null
         ) {
-          this.getSavedData(SQRSubmissionPath.DRAFTS);
+          this.getSavedData(SubmissionsBranch.DRAFTS);
         } else {
           this.populateForm();
         }
@@ -465,9 +465,9 @@ export default class Form extends Vue {
   }
 
   async submitForm(save = false) {
-    const sqrSubmissionPath = save
-      ? SQRSubmissionPath.COMPLETED
-      : SQRSubmissionPath.DRAFTS;
+    const sqrSubmissionBranch = save
+      ? SubmissionsBranch.COMPLETED
+      : SubmissionsBranch.DRAFTS;
     if (!save) {
       this.draftStatus = FormState.SAVING;
     }
@@ -489,7 +489,7 @@ export default class Form extends Vue {
       }
       const updated = await firebase
         .database()
-        .ref(this.submissionPath(sqrSubmissionPath))
+        .ref(this.submissionPath(sqrSubmissionBranch))
         .update(data)
         .catch(() => "error");
 
@@ -499,10 +499,10 @@ export default class Form extends Vue {
         return;
       }
       // first time completed
-      if (!completed && sqrSubmissionPath === SQRSubmissionPath.COMPLETED) {
+      if (!completed && sqrSubmissionBranch === SubmissionsBranch.COMPLETED) {
         firebase
           .database()
-          .ref(this.submissionPath(SQRSubmissionPath.DRAFTS))
+          .ref(this.submissionPath(SubmissionsBranch.DRAFTS))
           .remove();
       }
 
@@ -510,7 +510,7 @@ export default class Form extends Vue {
 
       const response = (await firebase
         .database()
-        .ref(`${this.submissionPath(sqrSubmissionPath)}`)
+        .ref(`${this.submissionPath(sqrSubmissionBranch)}`)
         .once("value")).val();
 
       const formUpdate: any = {};
@@ -532,11 +532,11 @@ export default class Form extends Vue {
     }
   }
 
-  submissionPath(path: SQRSubmissionPath = SQRSubmissionPath.COMPLETED) {
+  submissionPath(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
     const {
       params: { fileName, token }
     } = this.$route;
-    return `/SQR/submissions/${path}/${fileName}/${token}`;
+    return `/SQR/submissions/${branch}/${fileName}/${token}`;
   }
 
   get formStateMessageColor() {
