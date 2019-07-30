@@ -11,6 +11,7 @@
               @input="handleTextInput"
               :value="otherTextField"
               placeholder="Other"
+              :rules="otherTextFieldRules"
             />
           </div>
         </v-expand-transition>
@@ -26,6 +27,7 @@
 import { Component, Mixins, Prop } from "vue-property-decorator";
 import _ from "lodash";
 import ItemPath from "@/mixins/ItemPath";
+import { required } from "@/validation";
 
 const statuses = [
   "blank space",
@@ -67,7 +69,7 @@ export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
         this.otherTextField = value;
         this.updateForm(this.itemPath, value, !mount);
       } else {
-        this.updateForm(this.itemPath, this.otherTextField || "other");
+        this.updateForm(this.itemPath, this.otherTextField || "");
       }
     }
   }
@@ -92,6 +94,12 @@ export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
 
   formData() {
     return _.get(this.form, this.itemPath);
+  }
+
+  get otherTextFieldRules() {
+    return this.selectedField === "other" && this.fieldProps.rules.length
+      ? [required]
+      : [];
   }
 }
 </script>
