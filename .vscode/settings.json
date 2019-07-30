@@ -46,11 +46,19 @@
   "tslint.alwaysShowRuleFailuresAsWarnings": true,
   "tslint.suppressWhileTypeErrorsPresent": true,
 
+  "fileHeaderComment.parameter": {
+    "*": {
+      "commentbegin": "/*!",
+      "commentprefix": " *",
+      "commentend": " */"
+    }
+  },
   "fileHeaderComment.template": {
     "*": [
       "${commentbegin}",
       "${commentprefix} sri sri guru gauranga jayatah",
-      "${commentend}"
+      "${commentend}",
+      ""
     ]
   }
 }
