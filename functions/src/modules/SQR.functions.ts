@@ -2,7 +2,6 @@
  * sri sri guru gauranga jayatah
  */
 
-import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { Allotment } from '../classes/Allotment';
 import { SQRSubmission } from '../classes/SQRSubmission';
@@ -125,53 +124,6 @@ export const cancelAllotment = functions.https.onCall(
     await SQRWorkflow.cancelAllotment(fileName, token, comments, reason);
   }
 );
-
-export const migrateSubmissions = functions.pubsub
-  .topic('database-migration')
-  .onPublish(async () => {
-    if ((await SQRWorkflow.submissionsRef.once('value')).exists()) {
-      console.warn('New path is not empty, aborting migration.');
-      return;
-    }
-
-    const existing = (await admin
-      .database()
-      .ref('/submissions/SQR')
-      .once('value')).val();
-
-    await Promise.all([
-      // Drafts
-      SQRWorkflow.draftSubmissionsRef.set(
-        _.mapValues(existing, submissions =>
-          _.omitBy(submissions, submission => submission.completed)
-        )
-      ),
-      //Finals
-      SQRWorkflow.finalSubmissionsRef.set(
-        _.mapValues(existing, submissions =>
-          _(submissions)
-            .sortBy(submission => submission.completed)
-            .findLast(submission => submission.completed)
-        )
-      ),
-    ]);
-  });
-
-export const migrateAllotments = functions.pubsub
-  .topic('database-migration')
-  .onPublish(async () => {
-    if ((await SQRWorkflow.allotmentsRef.once('value')).exists()) {
-      console.warn('New path is not empty, aborting migration.');
-      return;
-    }
-
-    const existing = (await admin
-      .database()
-      .ref('/allotments/SQR')
-      .once('value')).val();
-
-    await SQRWorkflow.allotmentsRef.set(existing);
-  });
 
 export const importStatuses = functions.pubsub
   .schedule('every 1 hours')
