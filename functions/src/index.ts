@@ -1,3 +1,7 @@
+/*!
+ * sri sri guru gauranga jayatah
+ */
+
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as glob from 'glob';
@@ -19,7 +23,7 @@ DateTimeSettings.defaultZoneName = functions.config().coordinator.timezone;
  **
  **********************************************/
 
-const functionFiles = glob.sync('./modules/*.functions.js', { cwd: __dirname });
+const functionFiles = glob.sync('./**/*.functions.js', { cwd: __dirname });
 
 functionFiles.forEach((file: string) => {
   const moduleName = file
