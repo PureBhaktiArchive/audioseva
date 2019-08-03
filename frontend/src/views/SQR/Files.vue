@@ -28,14 +28,6 @@
         <v-flex align-self-center :style="{ textAlign: 'right' }">
           <v-btn small to="sqr/statistics">Statistics</v-btn>
           <v-btn small to="sqr/allot">Allot</v-btn>
-          <v-btn
-            small
-            :disabled="importingData"
-            :loading="importingData"
-            @click="importSpreadSheetData"
-          >
-            Import Spreadsheet Data
-          </v-btn>
         </v-flex>
       </v-flex>
     </v-layout>

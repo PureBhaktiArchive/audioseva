@@ -87,12 +87,18 @@ type OriginalFileName extends String {
   validate() { this.test(/^\w+-\d+/) }
 }
 
+// Status of the allotment.
+// Can be either one of the predefined values or virtually any string.
+type Status extends String {
+  validate() { this.test(/^Spare|Given|WIP|Done|\w+(\s\w+)*]+$/) }
+}
+
 type Assignee {
   emailAddress: String,
   name: String,
 }
 
-type Allotment<Status> {
+type Allotment {
   assignee: Assignee,
   status: Status,
   notes: String | Null,
@@ -101,16 +107,6 @@ type Allotment<Status> {
   token: String | Null,
 
   validate() { this.status != 'Done' || this.timestampGiven != null }
-}
-
-type ReportingAllotmentStatus extends String {
-  validate() { this.test(/^Spare|Given|WIP|Done$/) }
-}
-
-type ReportingAllotment extends Allotment<ReportingAllotmentStatus>;
-
-path /allotments/SQR is Map<OriginalFileName, ReportingAllotment> {
-  index() { ["status", "assignee/emailAddress", "token"] }
 }
 
 type Submission {
@@ -127,9 +123,38 @@ type SQRSubmission extends Submission {
   unwantedParts: Any | Null,
 }
 
-path /submissions/SQR/{fileName}/{token} is SQRSubmission {
-  read() { true }
-  write() { this != null }
+function tokenIsValid(token, fileName, phase) {
+  return phase.allotments[fileName].token == token;
+}
+
+path /SQR {
+  path /allotments is Map<OriginalFileName, Allotment> {
+    index() { ["status", "assignee/emailAddress", "token"] }
+  }
+
+  path /submissions {
+
+    // Draft submissions, writable by anyone who knows the token.
+    path /drafts/{fileName}/{token} is SQRSubmission {
+      read() { true }
+      write() { true }
+    }
+
+    // Completed submissions, writable only if the token is valid.
+    // This path triggers submission processing.
+    path /completed/{fileName}/{token} is SQRSubmission {
+      read() { true }
+      create() { tokenIsValid(this.token, fileName, root.SQR) }
+      update() {
+        tokenIsValid(this.token, fileName, root.SQR)
+        &&
+        (isCoordinator() || root.SQR.allotments[fileName].status == 'WIP')
+      }
+    }
+
+    // Cold storage for the submission, writable only by the function.
+    path /final/{fileName} is SQRSubmission;
+  }
 }
 
 path /edited/{list}/{fileName} is EditedFile;
