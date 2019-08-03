@@ -1,0 +1,51 @@
+/*!
+ * sri sri guru gauranga jayatah
+ */
+
+import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
+import glob = require('glob');
+import _ = require('lodash');
+
+export const applyMigrations = functions.pubsub
+  .topic('database-migration')
+  .onPublish(async () => {
+    const migrations = glob.sync('./migrations/**/*.js', {
+      cwd: __dirname,
+    });
+
+    const migrationsRef = admin.database().ref('/schema/migrations/');
+
+    const completedMigrations = _((await migrationsRef.once('value')).val())
+      .pickBy()
+      .keys()
+      .value();
+
+    for (const file of migrations) {
+      const migrationName = file
+        .split('/')
+        .pop()
+        .split('.')
+        .shift();
+
+      if (completedMigrations.includes(migrationName)) {
+        console.info(
+          `Skipping ${migrationName} as it is already applied to the database.`
+        );
+        continue;
+      }
+
+      const migration = await import(file);
+      console.info(`Applying ${migrationName}.`);
+
+      for (const stepName in migration) {
+        if (!migration.hasOwnProperty(stepName)) continue;
+
+        const step = migration[stepName];
+        if (!(step instanceof Function)) continue;
+        console.info(`Running ${stepName} step.`);
+        await step();
+      }
+      await migrationsRef.update({ [migrationName]: true });
+    }
+  });
