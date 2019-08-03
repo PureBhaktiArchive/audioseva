@@ -51,25 +51,6 @@ export const processSubmission = functions.database
     );
   });
 
-export const importSpreadSheetData = functions.https.onCall(
-  async (_data, context) => {
-    if (
-      !functions.config().emulator &&
-      (!context.auth || !context.auth.token || !context.auth.token.coordinator)
-    ) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-    }
-
-    await Promise.all([
-      SQRWorkflow.importSubmissions(),
-      SQRWorkflow.importAllotments(),
-    ]);
-  }
-);
-
 /**
  * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
  *
