@@ -66,7 +66,7 @@
                   v-bind="field.props"
                   :form="form"
                   :removeField="removeField"
-                  :updateForm="field.updateForm || updateForm"
+                  :updateForm="field.updateForm || debounceUpdateForm"
                   :is="field.component"
                 ></component>
               </template>
@@ -331,6 +331,8 @@ export default class Form extends Vue {
       }
     }
   }
+
+  debounceUpdateForm = _.debounce(this.updateForm, 150);
 
   async removeField(field: string) {
     removeObjectKey(this.form, getPathAndKey(field));
