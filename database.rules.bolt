@@ -21,32 +21,6 @@ type WriteOnlyCoordinatorField<T> extends T {
   write() { isCoordinator() }
 }
 
-type OnlyNew {
-  validate() { prior(this) == null }
-}
-
-type EditedFileFieldsStatus {
-  validate() {
-    this.test(
-      /"Spare" | "Given" | "Submitted" | "Revise" | "Done"/
-    )
-  }
-}
-
-type EditedFileFields {
-  status: WriteOnlyCoordinatorField<EditedFileFieldsStatus> | Null,
-  assignee: WriteOnlyCoordinator | Null,
-  followUp: WriteOnlyCoordinatorField<String> | Null
-  feedback: WriteOnlyCoordinatorField<String> | Null
-}
-
-type EditedFile {
-  trackEditing: EditedFileFields | Null,
-  soundEngineering: EditedFileFields | Null
-
-  read() { hasRole("coordinator") }
-}
-
 path /donations {
   path /cash is ReadOnlyCoordinator {
     path /{push_id} {
@@ -83,6 +57,7 @@ path /users is ReadOnlyCoordinator {
   }
 }
 
+// Original file name, for example BR-035A.
 type OriginalFileName extends String {
   validate() { this.test(/^\w+-\d+/) }
 }
@@ -93,20 +68,32 @@ type Status extends String {
   validate() { this.test(/^Spare|Given|WIP|Done|\w+(\s\w+)*]+$/) }
 }
 
+type SoundQualityRating extends String {
+  validate() { this.test(/^Bad|Average|Good$/) }
+}
+
 type Assignee {
   emailAddress: String,
   name: String,
 }
 
 type Allotment {
-  assignee: Assignee,
   status: Status,
+  assignee: Assignee | Null,
   notes: String | Null,
   timestampGiven: InitialTimestamp | Null,
   timestampDone: InitialTimestamp | Null,
+
+  validate() {
+    (this.status != 'Done' || this.timestampDone != null) &&
+    (this.status == 'Spare' || (this.timestampGiven != null && this.assignee != null))
+  }
+}
+
+type ReportingAllotment extends Allotment {
   token: String | Null,
 
-  validate() { this.status != 'Done' || this.timestampGiven != null }
+  validate() { this.status == 'Spare' || this.token != null }
 }
 
 type Submission {
@@ -116,11 +103,22 @@ type Submission {
   comments: String | Null,
 }
 
+type TimingInterval {
+  beginning: String,
+  ending: String,
+}
+
+type AudioChunkAnnotation extends TimingInterval {
+  entireFile: Boolean,
+  type: String,
+  description: String,
+}
+
 type SQRSubmission extends Submission {
-  duration: Object | Null,
-  soundQualityRating: String | Null,
-  soundIssues: Any | Null,
-  unwantedParts: Any | Null,
+  duration: TimingInterval | Null,
+  soundQualityRating: SoundQualityRating | Null,
+  soundIssues: AudioChunkAnnotation[] | Null,
+  unwantedParts: AudioChunkAnnotation[] | Null,
 }
 
 function tokenIsValid(token, fileName, phase) {
@@ -128,7 +126,7 @@ function tokenIsValid(token, fileName, phase) {
 }
 
 path /SQR {
-  path /allotments is Map<OriginalFileName, Allotment> {
+  path /allotments is Map<OriginalFileName, ReportingAllotment> {
     index() { ["status", "assignee/emailAddress", "token"] }
   }
 
@@ -156,5 +154,3 @@ path /SQR {
     path /final/{fileName} is SQRSubmission;
   }
 }
-
-path /edited/{list}/{fileName} is EditedFile;
