@@ -164,9 +164,19 @@ type AudioChunk extends TimingInterval {
   fileName: String,
 }
 
+type TrackEditingVersion {
+  uploadPath: String, // Path in the `uploads` bucket
+  uploadTimestamp: InitialTimestamp,
+  feedback: String | Null,
+  feedbackTimstamp: InitialTimestamp | Null,
+
+  validate() { (feedback == null) == (feedbackTimstamp == null) }
+}
+
 type TrackEditingTask extends Allotment {
   chunks: AudioChunk[],
-  unwantedParts: AudioChunkAnnotation[];
+  unwantedParts: AudioChunkAnnotation[],
+  versions: TrackEditingVersion[],
 }
 
 path /TE {
