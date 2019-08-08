@@ -1,4 +1,5 @@
-function hasRole(role) { auth != null && auth.token[role] == true }
+function isSignedIn() { auth != null }
+function hasRole(role) { isSignedIn() && auth.token[role] == true }
 function isCoordinator() { hasRole('coordinator') }
 
 type CurrentTimestamp extends Number {
@@ -182,10 +183,18 @@ type TrackEditingTask extends Allotment {
   chunks: AudioChunk[],
   unwantedParts: AudioChunkAnnotation[],
   versions: TrackEditingVersion[],
+
+  read() { this.assignee.emailAddress == auth.token.email }
 }
 
 path /TE {
   path /tasks is Map<TaskID, TrackEditingTask> {
     index() { ["status", "assignee/emailAddress"] }
+    read() {
+      isSignedIn() && (
+        query.orderByChild == 'assignee/emailAddress' && query.equalTo == auth.token.email
+        || isCoordinator()
+      )
+    }
   }
 }
