@@ -109,13 +109,16 @@ type Submission {
   comments: String | Null,
 }
 
+// Audio timing interval, in seconds
 type TimingInterval {
-  beginning: String,
-  ending: String,
+  entire: Boolean | Null,
+  beginning: Number | Null,
+  ending: Number | Null,
+
+  validate() { entire != null || (beginning != null && ending != null) }
 }
 
-type AudioChunkAnnotation extends TimingInterval {
-  entireFile: Boolean,
+type AudioAnnotation extends TimingInterval {
   type: String,
   description: String,
 }
@@ -123,8 +126,8 @@ type AudioChunkAnnotation extends TimingInterval {
 type SQRSubmission extends Submission {
   duration: TimingInterval | Null,
   soundQualityRating: SoundQualityRating | Null,
-  soundIssues: AudioChunkAnnotation[] | Null,
-  unwantedParts: AudioChunkAnnotation[] | Null,
+  soundIssues: AudioAnnotation[] | Null,
+  unwantedParts: AudioAnnotation[] | Null,
 }
 
 function tokenIsValid(token, fileName, phase) {
@@ -163,10 +166,11 @@ path /SQR {
 
 type AudioChunk extends TimingInterval {
   fileName: String,
+  unwantedParts: AudioAnnotation[],
 }
 
 type Resolution {
-  timstamp: InitialTimestamp,
+  timestamp: InitialTimestamp,
   isApproved: Boolean,
   feedback: String,
 
@@ -180,8 +184,7 @@ type TrackEditingVersion {
 }
 
 type TrackEditingTask extends Allotment {
-  chunks: AudioChunk[],
-  unwantedParts: AudioChunkAnnotation[],
+  definition: AudioChunk[],
   versions: TrackEditingVersion[],
 
   read() { this.assignee.emailAddress == auth.token.email }
