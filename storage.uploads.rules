@@ -1,9 +1,14 @@
 service firebase.storage {
   match /b/{bucket}/o {
-    match /restored/{uploadCode}/{file=**} {
-      allow write: if request.resource.contentType.matches('audio/flac') &&
-        request.resource.name.matches('[\\w/]+/[\\w]+-\\d+-\\d+\\.flac');
+    match /{uid}/{time}/{fileName} {
       allow read;
+      allow write: if fileName.matches('\\w+-\\d+-\\d+\\.flac')
+        && resource == null
+        && request.resource.contentType == 'audio/flac'
+        && request.resource.size <= 100 * 1024 * 1024
+        && request.auth.uid == uid
+        && request.auth.token.TE
+        ;
     }
   }
 }
