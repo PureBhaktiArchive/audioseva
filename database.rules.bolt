@@ -184,7 +184,7 @@ type TrackEditingVersion {
 }
 
 type TrackEditingTask extends Allotment {
-  definition: AudioChunk[],
+  chunks: AudioChunk[],
   versions: TrackEditingVersion[],
 
   read() { this.assignee.emailAddress == auth.token.email }
