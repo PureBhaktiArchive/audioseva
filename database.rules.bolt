@@ -115,7 +115,7 @@ type TimingInterval {
   beginning: Number | Null,
   ending: Number | Null,
 
-  validate() { entire != null || (beginning != null && ending != null) }
+  validate() { this.entire != null || (this.beginning != null && this.ending != null) }
 }
 
 type AudioAnnotation extends TimingInterval {
