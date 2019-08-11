@@ -3,11 +3,10 @@
     <p class="font-weight-bold mb-0">{{ item[".key"] }}</p>
     <ul>
       <li
-        :style="{ whiteSpace: 'nowrap' }"
         v-for="(unwantedPart, key, index) in item.unwantedParts"
         :key="index"
-      >{{ `${formatSeconds(unwantedPart.beginning)}-${formatSeconds(unwantedPart.ending)}:
-        ${unwantedPart.type} - ${unwantedPart.description || ""}` }}
+      >{{ `${formatSeconds(unwantedPart.beginning)}&#8211;${formatSeconds(unwantedPart.ending)},
+        ${unwantedPart.type}, ${unwantedPart.description || ""}` }}
       </li>
     </ul>
   </div>
@@ -33,4 +32,10 @@ export default class UnwantedParts extends Vue {
 </script>
 
 <style scoped>
+ul {
+  list-style-type: none;
+}
+li:before {
+  content: "- ";
+}
 </style>

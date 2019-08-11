@@ -106,22 +106,6 @@ export const router = new Router({
           ]
         },
         {
-          path: "te/",
-          component: () => import("@/views/TE/TE.vue"),
-          meta: {
-            activator: true,
-            activatorName: "Track Editing",
-            menuIcon: "fas fa-headphones"
-          },
-          children: [
-            {
-              path: "allotment",
-              component: () => import("@/views/TE/Allotment.vue"),
-              meta: { menuItem: true }
-            }
-          ]
-        },
-        {
           path: "sqr/",
           component: () => import("@/views/SQR/SQR.vue"),
           meta: {
@@ -164,11 +148,6 @@ export const router = new Router({
             {
               path: "allot",
               component: () => import("@/views/TE/Allotment.vue"),
-              meta: { menuItem: true }
-            },
-            {
-              path: "upload",
-              component: () => import("@/views/TE/Upload.vue"),
               meta: { menuItem: true }
             }
           ]
