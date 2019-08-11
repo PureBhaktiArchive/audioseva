@@ -3,7 +3,7 @@
     <h1>Track Editing Allotment</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus !== 'complete'">
       <v-autocomplete
-        v-model="allotment.trackEditor"
+        v-model="allotment.assignee"
         :items="trackEditors || []"
         :loading="trackEditors === null"
         item-text="name"
@@ -26,53 +26,34 @@
         </template>
       </v-autocomplete>
 
-      <!-- Language -->
-      <v-layout row class="py-2">
-        <v-btn-toggle v-model="filter.languages" multiple>
-          <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
-        </v-btn-toggle>
-      </v-layout>
-
-      <!-- List -->
-      <v-layout row class="py-2">
-        <v-btn-toggle v-model="filter.list" v-if="lists">
-          <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
-        </v-btn-toggle>
-        <p v-else>Loading lists…</p>
-      </v-layout>
-
-      <template v-if="tasks !== null || filter.list">
-        <template v-if="tasks">
-          <template v-if="tasks.length">
-            <template v-for="task in tasks">
-              <div :key="task['.key']">
-                <v-layout align-center wrap>
-                  <v-flex :style="{ alignItems: 'center', flexWrap: 'wrap' }" shrink class="d-flex">
-                    <v-checkbox
-                      :style="{ flex: 'none' }"
-                      v-model="allotment.tasks"
-                      :value="task"
-                      :loading="!tasks"
-                      class="mr-2 pr-3"
-                    >
-                      <code slot="label">{{ task[".key"] }}</code>
-                    </v-checkbox>
-
-                    <span class="pr-3">{{ getTaskLanguages(task).join(", ")}}</span>
-
-                    <task-definition class="pr-3" :item="task" />
-
-                    <unwanted-parts :item="task" />
-                  </v-flex>
-                </v-layout>
-              </div>
-            </template>
-          </template>
-          <p v-else>No tasks in this list</p>
-        </template>
-        <p v-else>Loading tasks…</p>
+      <template v-if="isLoadingTasks">
+        <p>Loading tasks…</p>
       </template>
-      <p v-else>Choose list and language to select tasks.</p>
+      <template v-else-if="tasks.length">
+        <template v-for="task in tasks">
+          <div :key="task['.key']">
+            <v-layout align-start wrap>
+              <v-flex xs12 md2 lg2 xl1 :style="{ alignItems: 'center', flexWrap: 'wrap' }" shrink class="d-flex">
+                <v-checkbox
+                  :style="{ flex: 'none' }"
+                  v-model="allotment.tasks"
+                  :value="task['.key']"
+                  :loading="!tasks"
+                  class="mr-2 pr-3 mt-0 pt-0"
+                  :hide-details="true"
+                >
+                  <code slot="label">{{ task[".key"] }}</code>
+                </v-checkbox>
+              </v-flex>
+              <v-flex md9 lg10 xl11>
+                <task-definition class="pr-3" :item="task" />
+              </v-flex>
+            </v-layout>
+            <v-divider class="my-1 py-1"></v-divider>
+          </div>
+        </template>
+      </template>
+      <p v-else>No tasks</p>
 
       <!-- Comment -->
       <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
@@ -94,13 +75,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Watch } from "vue-property-decorator";
-import _ from "lodash";
+import { Component, Vue } from "vue-property-decorator";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
 
-import FirebaseShallowQuery from "@/mixins/FirebaseShallowQuery";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import UnwantedParts from "@/components/TE/UnwantedParts.vue";
 
@@ -108,93 +87,24 @@ import UnwantedParts from "@/components/TE/UnwantedParts.vue";
   name: "Allotment",
   components: { TaskDefinition, UnwantedParts }
 })
-export default class Allotment extends Mixins<FirebaseShallowQuery>(
-  FirebaseShallowQuery
-) {
+export default class Allotment extends Vue {
   allotment = Allotment.initialAllotment();
-  languages = ["English", "Hindi", "Bengali", "None"];
-  listsBasePath = "edited";
   trackEditors: any = null;
-  tasks: any[] | null = null;
-  lists: any = null;
-  filter = Allotment.initialFilter();
+  tasks: any[] | null = [];
   submissionStatus: string | null = null;
+  isLoadingTasks = true;
 
   static initialAllotment() {
     return {
-      trackEditor: null,
+      assignee: null,
       tasks: [],
       comment: null
     };
   }
 
-  static initialFilter(): { languages: string[]; list: any } {
-    return {
-      languages: [],
-      list: null
-    };
-  }
-
   async mounted() {
     this.getTrackEditors();
-    this.filter.languages = this.languages;
-    await this.getLists();
-    if (Array.isArray(this.lists) && this.lists.length) {
-      this.filter.list = this.lists[0];
-    }
-  }
-
-  @Watch("allotment.assignee")
-  handleAllotmentAssignee(newValue: any) {
-    if (newValue === null) return;
-
-    this.filter.languages = this.languages;
-  }
-
-  @Watch("filter", { deep: true })
-  handleFilter() {
-    this.debouncedFilter();
-  }
-
-  getTaskLanguages(item: any) {
-    return _.union(
-      _.get(item, "trackEditing.chunks", []).reduce(
-        (languageList: any, chunk: any) => [
-          ...languageList,
-          ..._.get(chunk, "contentReport.languages", [])
-        ],
-        []
-      )
-    );
-  }
-
-  debouncedFilter = _.debounce(async () => {
-    this.tasks = null;
-    this.allotment.tasks = [];
-    if (this.filter.list === null) return;
-
-    this.$bindAsArray(
-      "tasks",
-      firebase
-        .database()
-        .ref(`edited/${this.filter.list}`)
-        .orderByChild("trackEditing/status")
-        .equalTo("Spare"),
-      null, // cancel callback not used
-      () => this.filterSelectedTasks(this.tasks as any[])
-    );
-  }, 1000);
-
-  filterSelectedTasks(tasks: any[]) {
-    this.tasks = tasks.reduce((filteredItems: any[], task) => {
-      const taskLanguages = this.getTaskLanguages(task);
-      if (
-        this.filter.languages.some(language => taskLanguages.includes(language))
-      ) {
-        filteredItems.push(task);
-      }
-      return filteredItems;
-    }, []);
+    this.getTasks();
   }
 
   async getTrackEditors() {
@@ -205,10 +115,23 @@ export default class Allotment extends Mixins<FirebaseShallowQuery>(
     });
     this.trackEditors = editors.data;
     if (this.$route.query.emailAddress) {
-      this.allotment.trackEditor = this.trackEditors.find(
+      this.allotment.assignee = this.trackEditors.find(
         (editor: any) => editor.emailAddress === this.$route.query.emailAddress
       );
     }
+  }
+
+  getTasks() {
+    this.$bindAsArray(
+      "tasks",
+      firebase
+        .database()
+        .ref("/TE/tasks")
+        .orderByChild("status")
+        .equalTo("Spare"),
+      null,
+      () => (this.isLoadingTasks = false)
+    );
   }
 
   async allot() {
@@ -226,7 +149,6 @@ export default class Allotment extends Mixins<FirebaseShallowQuery>(
 
   reset() {
     this.allotment = Allotment.initialAllotment();
-    this.filter = Allotment.initialFilter();
     this.submissionStatus = null;
   }
 }
