@@ -9,13 +9,16 @@
         <v-btn to="reporting/content/allot" color="primary">CR</v-btn>
         <v-btn to="sqr" color="primary">SQR</v-btn>
         <v-btn to="se" color="primary">SE</v-btn>
+        <require-claims-buttons></require-claims-buttons>
       </v-flex>
     </v-layout>
   </v-container>
 </template>
 
 <script>
+import RequireClaimsButtons from "../components/RequireClaimsButtons";
 export default {
-  name: "Home"
+  name: "Home",
+  components: { RequireClaimsButtons }
 };
 </script>
