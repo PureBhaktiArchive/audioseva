@@ -5,7 +5,7 @@
       <li
         v-for="(unwantedPart, key, index) in item.unwantedParts"
         :key="index"
-      >{{ `${formatDurationUtc(unwantedPart.beginning, "mm:ss")}&#8211;${formatDurationUtc(unwantedPart.ending, "mm:ss")},
+      >{{ `${formatDurationUtc(unwantedPart.beginning, "mm:ss")}&ndash;${formatDurationUtc(unwantedPart.ending, "mm:ss")},
         ${unwantedPart.type}, ${unwantedPart.description || ""}` }}
       </li>
     </ul>

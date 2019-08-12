@@ -13,7 +13,7 @@
           </div>
         </v-flex>
         <v-flex xs8 sm2 md2 xl1>
-          <span>{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&#8211;{{ formatDurationUtc(chunk.ending, "mm:ss") }}</span>
+          <span>{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{ formatDurationUtc(chunk.ending, "mm:ss") }}</span>
         </v-flex>
         <v-flex sm12 md8 lg8 xl9>
           <unwanted-parts :item="chunk" />
