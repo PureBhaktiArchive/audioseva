@@ -1,9 +1,8 @@
 <template>
   <div>
-    <p class="font-weight-bold mb-0">{{ item[".key"] }}</p>
     <ul>
       <li
-        v-for="(unwantedPart, key, index) in item.unwantedParts"
+        v-for="(unwantedPart, key, index) in unwantedParts"
         :key="index"
       >{{ `${formatDurationUtc(unwantedPart.beginning, "mm:ss")}&ndash;${formatDurationUtc(unwantedPart.ending, "mm:ss")},
         ${unwantedPart.type}, ${unwantedPart.description || ""}` }}
@@ -20,8 +19,8 @@ import FormatDurationUtc from "@/mixins/FormatDurationUtc";
   name: "UnwantedParts"
 })
 export default class UnwantedParts extends Mixins(FormatDurationUtc) {
-  @Prop() item!: any;
-  @Prop() value!: string;
+  @Prop({ default: () => [] })
+  unwantedParts!: any[];
 }
 </script>
 
