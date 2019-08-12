@@ -5,7 +5,7 @@
       <li
         v-for="(unwantedPart, key, index) in item.unwantedParts"
         :key="index"
-      >{{ `${formatSeconds(unwantedPart.beginning)}&#8211;${formatSeconds(unwantedPart.ending)},
+      >{{ `${formatDurationUtc(unwantedPart.beginning, "mm:ss")}&#8211;${formatDurationUtc(unwantedPart.ending, "mm:ss")},
         ${unwantedPart.type}, ${unwantedPart.description || ""}` }}
       </li>
     </ul>
@@ -13,21 +13,15 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import moment from "moment";
+import { Component, Mixins, Prop } from "vue-property-decorator";
+import FormatDurationUtc from "@/mixins/FormatDurationUtc";
 
 @Component({
   name: "UnwantedParts"
 })
-export default class UnwantedParts extends Vue {
+export default class UnwantedParts extends Mixins(FormatDurationUtc) {
   @Prop() item!: any;
   @Prop() value!: string;
-
-  formatSeconds(seconds: number) {
-    return moment
-      .utc(moment.duration(seconds, "seconds").asMilliseconds())
-      .format("mm:ss");
-  }
 }
 </script>
 

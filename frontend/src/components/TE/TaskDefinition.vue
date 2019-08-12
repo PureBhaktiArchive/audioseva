@@ -13,7 +13,7 @@
           </div>
         </v-flex>
         <v-flex xs8 sm2 md2 xl1>
-          <span>{{ formatSeconds(chunk.beginning) }}&#8211;{{ formatSeconds(chunk.ending) }}</span>
+          <span>{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&#8211;{{ formatDurationUtc(chunk.ending, "mm:ss") }}</span>
         </v-flex>
         <v-flex sm12 md8 lg8 xl9>
           <unwanted-parts :item="chunk" />
@@ -24,9 +24,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import moment from "moment";
+import { Component, Prop, Mixins } from "vue-property-decorator";
 import UnwantedParts from "@/components/TE/UnwantedParts.vue";
+import FormatDurationUtc from "@/mixins/FormatDurationUtc";
 
 import { getListId } from "@/utility";
 
@@ -34,7 +34,7 @@ import { getListId } from "@/utility";
   name: "TaskDefinition",
   components: { UnwantedParts }
 })
-export default class TaskDefinition extends Vue {
+export default class TaskDefinition extends Mixins(FormatDurationUtc) {
   @Prop() item!: any;
 
   getLink(fileName: string) {
@@ -42,12 +42,6 @@ export default class TaskDefinition extends Vue {
     return `https://original.${
       process.env.VUE_APP_STORAGE_ROOT_DOMAIN
     }/${listId}/${fileName}.flac`;
-  }
-
-  formatSeconds(seconds: number) {
-    return moment
-      .utc(moment.duration(seconds, "seconds").asMilliseconds())
-      .format("mm:ss");
   }
 }
 </script>
