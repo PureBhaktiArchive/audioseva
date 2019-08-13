@@ -137,6 +137,22 @@ export const router = new Router({
           ]
         },
         {
+          path: "te/",
+          component: () => import("@/views/TE/TE.vue"),
+          meta: {
+            activator: true,
+            activatorName: "Track Editing",
+            menuIcon: "fas fa-cut"
+          },
+          children: [
+            {
+              path: "allot",
+              component: () => import("@/views/TE/Allotment.vue"),
+              meta: { menuItem: true }
+            }
+          ]
+        },
+        {
           path: "se/",
           component: () => import("@/views/SE/SE.vue"),
           meta: {
