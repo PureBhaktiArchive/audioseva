@@ -86,11 +86,7 @@ interface IFileStatus {
 
 const teUpload = firebase
   .app()
-  .storage(
-    `${process.env.VUE_APP_TE_UPLOADS_SUB_DOMAIN}.${
-      process.env.VUE_APP_STORAGE_ROOT_DOMAIN
-    }`
-  );
+  .storage(`te.uploads.${process.env.VUE_APP_STORAGE_ROOT_DOMAIN}`);
 
 @Component({
   name: "Upload",
