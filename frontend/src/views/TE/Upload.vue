@@ -84,10 +84,6 @@ interface IFileStatus {
   downloadUrl?: string;
 }
 
-const teUpload = firebase
-  .app()
-  .storage(`te.uploads.${process.env.VUE_APP_PROJECT_DOMAIN}`);
-
 @Component({
   name: "Upload",
   components: {
@@ -102,6 +98,9 @@ export default class Upload extends Vue {
   files: Map<File, IFileStatus> = new Map();
   totalUploadCount: number = 0;
   completedFileUploads: number = 0;
+  uploadsBucket = firebase
+    .app()
+    .storage(`te.uploads.${process.env.VUE_APP_PROJECT_DOMAIN}`);
 
   $refs!: {
     myDropzone: any;
@@ -204,7 +203,7 @@ export default class Upload extends Vue {
   }
 
   uploadFile(path: string, file: File) {
-    const uploadTask = teUpload
+    const uploadTask = this.uploadsBucket
       .ref()
       .child(path)
       .put(file);
