@@ -3,9 +3,13 @@ import moment from "moment";
 
 @Component
 export default class FormatDurationUtc extends Vue {
-  formatDurationUtc(duration: any, format: string) {
+  formatDurationUtc(
+    duration: any,
+    format: string,
+    unit: moment.DurationInputArg2 = "seconds"
+  ) {
     return moment
-      .utc(moment.duration(duration, "seconds").asMilliseconds())
+      .utc(moment.duration(duration, unit).asMilliseconds())
       .format(format);
   }
 }
