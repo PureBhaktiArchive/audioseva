@@ -4,7 +4,7 @@
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
     <div v-else>
-      <div class="d-inline-flex" :style="{ flexDirection: 'row' }">
+      <div :style="{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start' }">
         <h1 class="d-inline" :style="{ width: 'auto' }">Track Editing Task {{ $route.params.taskId }}</h1>
         <v-chip :style="getTaskStyle(task)">{{ task.status }}</v-chip>
       </div>
