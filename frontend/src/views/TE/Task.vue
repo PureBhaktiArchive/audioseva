@@ -8,7 +8,10 @@
         <h1 class="d-inline" :style="{ width: 'auto' }">Track Editing Task {{ $route.params.taskId }}</h1>
         <v-chip :style="getTaskStyle(task)">{{ task.status }}</v-chip>
       </div>
-      <task-definition :item="task"></task-definition>
+      <article>
+        <h3>Task definition</h3>
+        <task-definition :item="task"></task-definition>
+      </article>
       <versions :versions="task.versions"></versions>
       <template v-if="isCoordinator">
         <v-form @submit.prevent="handleSubmitForm" v-if="task.status === 'Uploaded'">
