@@ -6,7 +6,7 @@
     <div v-else>
       <div class="d-inline-flex" :style="{ flexDirection: 'row' }">
         <h1 class="d-inline" :style="{ width: 'auto' }">Track Editing Task {{ $route.params.taskId }}</h1>
-        <v-chip>{{ task.status }}</v-chip>
+        <v-chip :style="getTaskStyle(task)">{{ task.status }}</v-chip>
       </div>
       <task-definition :item="task"></task-definition>
       <versions :versions="task.versions"></versions>
@@ -27,12 +27,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Mixins } from "vue-property-decorator";
 import { mapActions } from "vuex";
 import firebase from "firebase/app";
 import "firebase/database";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import Versions from "@/components/TE/Versions.vue";
+import TaskMixin from "@/components/TE/TaskMixin";
 
 enum SubmissionState {
   IS_SUBMITTING = "submitting",
@@ -47,7 +48,7 @@ enum SubmissionState {
     ...mapActions("user", ["getUserClaims"])
   }
 })
-export default class Task extends Vue {
+export default class Task extends Mixins<TaskMixin>(TaskMixin) {
   task!: any;
   isFetchingTask = true;
   isCoordinator = false;
