@@ -1,7 +1,7 @@
 <template>
   <div>
     <template v-for="(chunk, index) in item.chunks">
-      <v-layout class="wrap pb-1" :key="index">
+      <v-layout class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
         <v-flex xs4 sm2 md2 xl1>
           <div>
             <a
@@ -19,6 +19,7 @@
           <unwanted-parts :unwantedParts="chunk.unwantedParts" />
         </v-flex>
       </v-layout>
+      <v-divider :key="`${item['key']}-${index}-divider`" class="mt-2 mb-2"></v-divider>
     </template>
   </div>
 </template>
