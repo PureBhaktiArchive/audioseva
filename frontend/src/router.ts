@@ -149,6 +149,11 @@ export const router = new Router({
               path: "allot",
               component: () => import("@/views/TE/Allotment.vue"),
               meta: { menuItem: true }
+            },
+            {
+              path: "upload",
+              component: () => import("@/views/TE/Upload.vue"),
+              meta: { menuItem: true, auth: { requireClaims: { TE: true } } }
             }
           ]
         },
