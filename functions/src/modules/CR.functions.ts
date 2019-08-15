@@ -5,8 +5,8 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as _ from 'lodash';
 import { DateTime } from 'luxon';
-import { DateTimeConverter } from '../classes/DateTimeConverter';
-import { Spreadsheet } from '../classes/GoogleSheets';
+import { DateTimeConverter } from '../DateTimeConverter';
+import { Spreadsheet } from '../GoogleSheets';
 import * as helpers from '../helpers';
 
 export enum SheetNames {
