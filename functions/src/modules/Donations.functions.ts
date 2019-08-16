@@ -3,7 +3,7 @@
  */
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { Spreadsheet } from '../classes/GoogleSheets';
+import { Spreadsheet } from '../GoogleSheets';
 
 export const processDonations = functions.database
   .ref('/donations/cash/{donation_id}')

@@ -2,9 +2,9 @@
  * sri sri guru gauranga jayatah
  */
 
-import { AudioFileAnnotation } from './AudioFileAnnotation';
-import { Submission } from './Submission';
-import { TimingInterval } from './TimingInterval';
+import { AudioFileAnnotation } from '../AudioFileAnnotation';
+import { Submission } from '../Submission';
+import { TimingInterval } from '../TimingInterval';
 
 export class SQRSubmission extends Submission {
   duration: TimingInterval;

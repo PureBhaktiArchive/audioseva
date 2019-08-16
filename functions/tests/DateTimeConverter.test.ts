@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 import { DateTime, Duration } from 'luxon';
-import { DateTimeConverter } from '../src/classes/DateTimeConverter';
+import { DateTimeConverter } from '../src/DateTimeConverter';
 
 describe.each`
   serialDate          | iso
