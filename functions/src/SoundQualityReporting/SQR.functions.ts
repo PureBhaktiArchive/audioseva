@@ -3,9 +3,9 @@
  */
 
 import * as functions from 'firebase-functions';
-import { Allotment } from '../classes/Allotment';
-import { SQRSubmission } from '../classes/SQRSubmission';
-import { SQRWorkflow } from '../classes/SQRWorkflow';
+import { Allotment } from '../Allotment';
+import { SQRSubmission } from './SQRSubmission';
+import { SQRWorkflow } from './SQRWorkflow';
 import _ = require('lodash');
 
 /**

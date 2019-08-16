@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import { SQRWorkflow } from '../../classes/SQRWorkflow';
+import { SQRWorkflow } from '../../SoundQualityReporting/SQRWorkflow';
 
 export const importAllotments = async () => {
   await SQRWorkflow.importAllotments();
