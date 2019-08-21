@@ -31,7 +31,10 @@ Vue.use(Vuetify, {
     sound: "fas fa-music",
     download: "fas fa-file-download",
     delete: "fas fa-trash",
-    event: "fas fa-calendar"
+    event: "fas fa-calendar",
+    undo: "mdi-undo-variant",
+    upload: "fas fa-upload",
+    check: "mdi-check-bold"
   }
 });
 
