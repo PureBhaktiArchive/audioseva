@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import { AudioChunkAnnotation } from '../src/classes/AudioFileAnnotation';
+import { AudioChunkAnnotation } from '../src/AudioFileAnnotation';
 
 describe('Audio Annotation parsing and formatting', () => {
   test.each`
