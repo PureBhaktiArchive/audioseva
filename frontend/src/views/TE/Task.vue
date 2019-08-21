@@ -9,57 +9,112 @@
         <v-chip :style="getTaskStyle(task)">{{ task.status }}</v-chip>
       </div>
       <article>
-        <h3>Task definition</h3>
+        <h3>Task Definition</h3>
         <task-definition :item="task"></task-definition>
       </article>
-      <versions :versions="task.versions"></versions>
-      <template v-if="isCoordinator">
-        <v-form @submit.prevent="handleSubmitForm" v-if="task.status === 'Uploaded'">
-          <v-checkbox v-model="form.isApproved" label="Approved"></v-checkbox>
-          <v-textarea v-model="form.feedback" label="Feedback" outline>
-          </v-textarea>
-          <v-btn :loading="isSubmitting" type="submit">Submit</v-btn>
-          <p v-if="showSubmitMessage" :class="`text-${formSubmissionState}`">{{ submitMessage }}</p>
-        </v-form>
-      </template>
-      <div v-else>
-        <v-btn to="/te/upload">Upload</v-btn>
-      </div>
+      <article>
+        <h3>History</h3>
+        <v-timeline dense>
+          <v-timeline-item icon="fas fa-paper-plane" fill-dot>
+            <v-layout justify-space-between wrap>
+              <v-flex xs7>
+                <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
+              </v-flex>
+              <v-flex text-xs-right>
+                {{ formatDurationUtc(task.timestampGiven, getDateFormat(task.timestampGiven), "ms", true) }}
+              </v-flex>
+            </v-layout>
+          </v-timeline-item>
+          <template v-for="(version, index) in task.versions">
+            <v-timeline-item :key="`version-${index}`" :icon="$vuetify.icons.upload" fill-dot>
+              <v-layout justify-space-between wrap>
+                <v-flex>
+                  <h4 class="pr-2 d-inline">Version {{ index + 1}} uploaded:</h4>
+                  <a :href="version.uploadPath">{{ task[".key"]}}</a>
+                </v-flex>
+                <v-flex text-xs-right>{{ formatDurationUtc(version.timestamp, getDateFormat(version.timestamp), "ms", true)}}</v-flex>
+              </v-layout>
+            </v-timeline-item>
+            <v-timeline-item
+              :key="`resolution-${index}`"
+              :color="version.resolution.isApproved ? 'green' : 'red'"
+              v-if="version.resolution"
+              :icon="version.resolution.isApproved ? $vuetify.icons.check : $vuetify.icons.undo"
+              fill-dot
+            >
+              <v-layout justify-space-between wrap>
+                <v-flex xs9 sm9 :style="{ display: 'flex', alignItems: 'center' }">
+                  <div :style="{ width: '100%' }">
+                    <v-chip
+                      :style="{ float: 'left' }"
+                      label
+                      :color="version.resolution.isApproved ? 'green' : 'red'"
+                      dark
+                    >
+                      <span>{{ version.resolution.isApproved ? 'Approved' : 'Disapproved' }}</span>
+                    </v-chip>
+                    <p class="mb-0" v-if="version.resolution.feedback">{{ version.resolution.feedback }}</p>
+                  </div>
+                </v-flex>
+                <v-flex xs3 sm3 text-xs-right>
+                  <p class="mb-0">
+                    {{ formatDurationUtc(version.resolution.timestamp, getDateFormat(version.resolution.timestamp), "ms", true)}}
+                  </p>
+                </v-flex>
+              </v-layout>
+            </v-timeline-item>
+            <v-timeline-item v-else :key="`resolution-${index}`">
+              <template v-slot:icon>
+                <v-avatar>
+                  <img :src="currentUser.photoURL" alt="user avatar" />
+                </v-avatar>
+              </template>
+              <v-form ref="form">
+                <v-textarea v-model="form.feedback" outline :rules="fieldRules" label="Feed back"></v-textarea>
+                <v-btn color="success" @click="handleSubmitForm(true)">Approve</v-btn>
+                <v-btn color="error" @click="handleSubmitForm(false)">Disapprove</v-btn>
+              </v-form>
+            </v-timeline-item>
+          </template>
+        </v-timeline>
+      </article>
+      <v-btn v-if="!isCoordinator" to="/te/upload">Upload</v-btn>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Mixins } from "vue-property-decorator";
-import { mapActions } from "vuex";
+import { Component, Mixins, Watch } from "vue-property-decorator";
+import { mapState, mapActions } from "vuex";
+import moment from "moment";
 import firebase from "firebase/app";
 import "firebase/database";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import Versions from "@/components/TE/Versions.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
-
-enum SubmissionState {
-  IS_SUBMITTING = "submitting",
-  SUCCESS = "success",
-  ERROR = "error"
-}
+import FormatDurationUtc from "@/mixins/FormatDurationUtc";
 
 @Component({
   name: "Task",
   components: { TaskDefinition, Versions },
+  computed: {
+    ...mapState("user", ["currentUser"])
+  },
   methods: {
     ...mapActions("user", ["getUserClaims"])
   }
 })
-export default class Task extends Mixins<TaskMixin>(TaskMixin) {
-  task!: any;
+export default class Task extends Mixins<TaskMixin, FormatDurationUtc>(
+  TaskMixin,
+  FormatDurationUtc
+) {
+  task: any = {};
   isFetchingTask = true;
   isCoordinator = false;
   form = {
-    isApproved: false
+    isApproved: false,
+    feedback: ""
   };
-  formSubmissionState!: SubmissionState;
-  submitMessage = "";
 
   mounted() {
     this.getTask();
@@ -82,36 +137,46 @@ export default class Task extends Mixins<TaskMixin>(TaskMixin) {
     this.isCoordinator = claims.coordinator;
   }
 
-  async handleSubmitForm() {
-    this.formSubmissionState = SubmissionState.IS_SUBMITTING;
-    const versionToUpdate = `/TE/tasks/${
-      this.$route.params.taskId
-    }/versions/${this.task.versions.length - 1}/resolution`;
-    const error = await firebase
-      .database()
-      .ref(versionToUpdate)
-      .update(this.form)
-      .catch(e => e.message);
-    if (error) {
-      this.formSubmissionState = SubmissionState.ERROR;
-      this.submitMessage = error;
-    } else {
-      this.formSubmissionState = SubmissionState.SUCCESS;
-      this.submitMessage = "Feedback submitted";
+  async handleSubmitForm(isApproved = false) {
+    this.form.isApproved = isApproved;
+    this.$nextTick(async () => {
+      if ((this.$refs as any).form[0].validate()) {
+        const versionToUpdate = `/TE/tasks/${
+          this.$route.params.taskId
+        }/versions/${this.task.versions.length - 1}/resolution`;
+        await firebase
+          .database()
+          .ref(versionToUpdate)
+          .update({
+            ...this.form,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+          });
+      }
+    });
+  }
+
+  getDateFormat(timestamp: number) {
+    return moment(timestamp).format("MM-DD-YYYY") ===
+      moment().format("MM-DD-YYYY")
+      ? "LT"
+      : "L";
+  }
+
+  get fieldRules() {
+    return this.form.isApproved ? [] : [(v: string) => !!v || "Required"];
+  }
+
+  @Watch("form.feedback")
+  handleFeedback(newValue: string) {
+    if (!newValue) {
+      (this.$refs as any).form[0].resetValidation();
     }
-  }
-
-  get isSubmitting() {
-    return this.formSubmissionState === SubmissionState.IS_SUBMITTING;
-  }
-
-  get showSubmitMessage() {
-    return [SubmissionState.ERROR, SubmissionState.SUCCESS].includes(
-      this.formSubmissionState
-    );
   }
 }
 </script>
 
 <style scoped>
+>>> .v-timeline {
+  max-width: 825px;
+}
 </style>
