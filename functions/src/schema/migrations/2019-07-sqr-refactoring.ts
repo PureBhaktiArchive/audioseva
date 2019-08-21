@@ -3,7 +3,7 @@
  */
 
 import * as admin from 'firebase-admin';
-import { SQRWorkflow } from '../../classes/SQRWorkflow';
+import { SQRWorkflow } from '../../SoundQualityReporting/SQRWorkflow';
 import _ = require('lodash');
 
 export const migrateSubmissions = async () => {
