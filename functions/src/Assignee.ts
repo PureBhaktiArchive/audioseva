@@ -2,7 +2,9 @@
  * sri sri guru gauranga jayatah
  */
 
-class Assignee {
+import * as admin from 'firebase-admin';
+
+export class Assignee {
   name: string;
   emailAddress: string;
 }
