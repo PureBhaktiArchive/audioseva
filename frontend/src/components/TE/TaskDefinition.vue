@@ -27,7 +27,7 @@
 <script lang="ts">
 import { Component, Prop, Mixins } from "vue-property-decorator";
 import UnwantedParts from "@/components/TE/UnwantedParts.vue";
-import FormatDurationUtc from "@/mixins/FormatDurationUtc";
+import FormatTime from "@/mixins/FormatTime";
 
 import { getListId } from "@/utility";
 
@@ -35,13 +35,13 @@ import { getListId } from "@/utility";
   name: "TaskDefinition",
   components: { UnwantedParts }
 })
-export default class TaskDefinition extends Mixins(FormatDurationUtc) {
+export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   @Prop() item!: any;
 
   getLink(fileName: string) {
     const listId = getListId(fileName);
     return `https://original.${
-      process.env.VUE_APP_STORAGE_ROOT_DOMAIN
+      process.env.VUE_APP_PROJECT_DOMAIN
     }/${listId}/${fileName}.flac`;
   }
 }

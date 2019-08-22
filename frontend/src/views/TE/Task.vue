@@ -21,7 +21,7 @@
                 <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
               </v-flex>
               <v-flex text-xs-right>
-                {{ formatTimeLocal(task.timestampGiven, getDateFormat(task.timestampGiven)) }}
+                {{ formatTimestamp(task.timestampGiven) }}
               </v-flex>
             </v-layout>
           </v-timeline-item>
@@ -32,7 +32,7 @@
                   <h4 class="pr-2 d-inline">Version {{ index + 1}} uploaded:</h4>
                   <a :href="version.uploadPath">{{ task[".key"]}}</a>
                 </v-flex>
-                <v-flex text-xs-right>{{ formatTimeLocal(version.timestamp, getDateFormat(version.timestamp))}}</v-flex>
+                <v-flex text-xs-right>{{ formatTimestamp(version.timestamp)}}</v-flex>
               </v-layout>
             </v-timeline-item>
             <v-timeline-item
@@ -58,7 +58,7 @@
                 </v-flex>
                 <v-flex xs3 sm3 text-xs-right>
                   <p class="mb-0">
-                    {{ formatTimeLocal(version.resolution.timestamp, getDateFormat(version.resolution.timestamp))}}
+                    {{ formatTimestamp(version.resolution.timestamp)}}
                   </p>
                 </v-flex>
               </v-layout>
@@ -91,7 +91,7 @@ import firebase from "firebase/app";
 import "firebase/database";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
-import FormatTimeLocal from "@/mixins/FormatTimeLocal";
+import FormatTime from "@/mixins/FormatTime";
 
 @Component({
   name: "Task",
@@ -103,9 +103,9 @@ import FormatTimeLocal from "@/mixins/FormatTimeLocal";
     ...mapActions("user", ["getUserClaims"])
   }
 })
-export default class Task extends Mixins<TaskMixin, FormatTimeLocal>(
+export default class Task extends Mixins<TaskMixin, FormatTime>(
   TaskMixin,
-  FormatTimeLocal
+  FormatTime
 ) {
   task: any = {};
   isFetchingTask = true;
