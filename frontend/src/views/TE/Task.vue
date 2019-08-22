@@ -92,7 +92,6 @@ import "firebase/database";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import FormatTimeLocal from "@/mixins/FormatTimeLocal";
-import FormatDurationUtc from "@/mixins/FormatDurationUtc";
 
 @Component({
   name: "Task",
@@ -104,11 +103,10 @@ import FormatDurationUtc from "@/mixins/FormatDurationUtc";
     ...mapActions("user", ["getUserClaims"])
   }
 })
-export default class Task extends Mixins<
+export default class Task extends Mixins<TaskMixin, FormatTimeLocal>(
   TaskMixin,
-  FormatDurationUtc,
   FormatTimeLocal
->(TaskMixin, FormatDurationUtc, FormatTimeLocal) {
+) {
   task: any = {};
   isFetchingTask = true;
   isCoordinator = false;
