@@ -14,7 +14,6 @@ export enum AllotmentStatus {
 }
 
 export class Allotment {
-  fileName: string;
   assignee: Assignee;
   status: AllotmentStatus;
   notes?: string;
@@ -22,9 +21,8 @@ export class Allotment {
   timestampDone: number;
   token: string;
 
-  constructor(fileName: string, source: Partial<Allotment>) {
+  constructor(source: Partial<Allotment>) {
     Object.assign(this, source);
-    this.fileName = fileName;
   }
 
   public get dateTimeGiven(): DateTime {

@@ -10,6 +10,7 @@ import { Allotment, AllotmentStatus } from '../Allotment';
 import { AudioAnnotationArray } from '../AudioAnnotation';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { RowUpdateMode, Spreadsheet } from '../GoogleSheets';
+import { ReportingTask } from '../ReportingTask';
 import { SQRSubmission } from './SQRSubmission';
 import uuidv4 = require('uuid/v4');
 import _ = require('lodash');
@@ -98,17 +99,16 @@ export class SQRWorkflow {
   }
 
   static async getUserAllotments(emailAddress: string) {
+    const snapshot = await this.allotmentsRef
+      .orderByChild('assignee/emailAddress')
+      .equalTo(emailAddress)
+      .once('value');
     return (
-      _(
-        (await this.allotmentsRef
-          .orderByChild('assignee/emailAddress')
-          .equalTo(emailAddress)
-          .once('value')).val()
-      )
+      _(snapshot.val())
         .toPairs()
         // Considering only ones with Given Timestamp, as after cancelation the assignee can be kept.
         .filter(([, value]) => Number.isInteger(value.timestampGiven))
-        .map(item => new Allotment(...item))
+        .map(([fileName, item]) => new ReportingTask(fileName, item))
         .value()
     );
   }
@@ -255,16 +255,13 @@ export class SQRWorkflow {
     );
   }
 
-  static async exportAllotment(allotment: Allotment) {
+  static async exportAllotment(fileName: string, allotment: Allotment) {
     const sheet = await this.allotmentsSheet();
 
-    const rowNumber = await sheet.findRowNumber(
-      'File Name',
-      allotment.fileName
-    );
+    const rowNumber = await sheet.findRowNumber('File Name', fileName);
     if (!rowNumber)
       throw new Error(
-        `File ${allotment.fileName} is not found in the SQR allotments sheet.`
+        `File ${fileName} is not found in the SQR allotments sheet.`
       );
 
     await sheet.updateRow(
@@ -364,7 +361,7 @@ export class SQRWorkflow {
     if (!allotmentSnapshot.exists())
       throw new Error(`File ${fileName} is not allotted in the database.`);
 
-    const allotment = new Allotment(fileName, allotmentSnapshot.val());
+    const allotment = new Allotment(allotmentSnapshot.val());
 
     if (token !== allotment.token)
       throw new Error(`Token ${token} is invalid for ${fileName}.`);
