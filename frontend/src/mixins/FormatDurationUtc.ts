@@ -6,10 +6,10 @@ export default class FormatDurationUtc extends Vue {
   formatDurationUtc(
     duration: any,
     format: string,
-    unit: moment.DurationInputArg2 = "seconds",
-    useLocal = false
+    unit: moment.DurationInputArg2 = "seconds"
   ) {
-    const time = moment.utc(moment.duration(duration, unit).asMilliseconds());
-    return useLocal ? time.local().format(format) : time.format(format);
+    return moment
+      .utc(moment.duration(duration, unit).asMilliseconds())
+      .format(format);
   }
 }
