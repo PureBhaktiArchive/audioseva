@@ -169,7 +169,7 @@ type AudioChunk extends TimingInterval {
   unwantedParts: AudioAnnotation[],
 }
 
-type Resolution {
+type FileResolution {
   timestamp: InitialTimestamp,
   isApproved: Boolean,
   feedback: String,
@@ -177,15 +177,15 @@ type Resolution {
   create() { isCoordinator() }
 }
 
-type TrackEditingVersion {
+type FileVersion {
   timestamp: InitialTimestamp,
   uploadPath: String, // Path in the `uploads` bucket
-  resolution: Resolution | Null,
+  resolution: FileResolution | Null,
 }
 
 type TrackEditingTask extends Allotment {
   chunks: AudioChunk[],
-  versions: TrackEditingVersion[],
+  versions: FileVersion[],
 
   read() { this.assignee.emailAddress == auth.token.email }
 }
