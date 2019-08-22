@@ -21,7 +21,7 @@
                 <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
               </v-flex>
               <v-flex text-xs-right>
-                {{ formatDurationUtc(task.timestampGiven, getDateFormat(task.timestampGiven), "ms", true) }}
+                {{ formatTimeLocal(task.timestampGiven, getDateFormat(task.timestampGiven)) }}
               </v-flex>
             </v-layout>
           </v-timeline-item>
@@ -32,7 +32,7 @@
                   <h4 class="pr-2 d-inline">Version {{ index + 1}} uploaded:</h4>
                   <a :href="version.uploadPath">{{ task[".key"]}}</a>
                 </v-flex>
-                <v-flex text-xs-right>{{ formatDurationUtc(version.timestamp, getDateFormat(version.timestamp), "ms", true)}}</v-flex>
+                <v-flex text-xs-right>{{ formatTimeLocal(version.timestamp, getDateFormat(version.timestamp))}}</v-flex>
               </v-layout>
             </v-timeline-item>
             <v-timeline-item
@@ -58,7 +58,7 @@
                 </v-flex>
                 <v-flex xs3 sm3 text-xs-right>
                   <p class="mb-0">
-                    {{ formatDurationUtc(version.resolution.timestamp, getDateFormat(version.resolution.timestamp), "ms", true)}}
+                    {{ formatTimeLocal(version.resolution.timestamp, getDateFormat(version.resolution.timestamp))}}
                   </p>
                 </v-flex>
               </v-layout>
@@ -91,6 +91,7 @@ import firebase from "firebase/app";
 import "firebase/database";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
+import FormatTimeLocal from "@/mixins/FormatTimeLocal";
 import FormatDurationUtc from "@/mixins/FormatDurationUtc";
 
 @Component({
@@ -103,10 +104,11 @@ import FormatDurationUtc from "@/mixins/FormatDurationUtc";
     ...mapActions("user", ["getUserClaims"])
   }
 })
-export default class Task extends Mixins<TaskMixin, FormatDurationUtc>(
+export default class Task extends Mixins<
   TaskMixin,
-  FormatDurationUtc
-) {
+  FormatDurationUtc,
+  FormatTimeLocal
+>(TaskMixin, FormatDurationUtc, FormatTimeLocal) {
   task: any = {};
   isFetchingTask = true;
   isCoordinator = false;
