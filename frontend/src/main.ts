@@ -32,9 +32,9 @@ Vue.use(Vuetify, {
     download: "fas fa-file-download",
     delete: "fas fa-trash",
     event: "fas fa-calendar",
-    undo: "mdi-undo-variant",
+    undo: "fas fa-undo",
     upload: "fas fa-upload",
-    check: "mdi-check-bold"
+    check: "fas fa-check"
   }
 });
 
