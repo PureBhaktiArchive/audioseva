@@ -7,7 +7,7 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { URL } from 'url';
 import { Allotment, AllotmentStatus } from '../Allotment';
-import { AudioFileAnnotation } from '../AudioFileAnnotation';
+import { AudioAnnotationArray } from '../AudioAnnotation';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { RowUpdateMode, Spreadsheet } from '../GoogleSheets';
 import { SQRSubmission } from './SQRSubmission';
@@ -191,9 +191,9 @@ export class SQRWorkflow {
           functions.config().coordinator.timezone
         ).toMillis(),
         comments: row['Comments'],
-        soundIssues: AudioFileAnnotation.parse(row['Sound Issues']),
+        soundIssues: AudioAnnotationArray.parse(row['Sound Issues']),
         soundQualityRating: row['Sound Quality Rating'],
-        unwantedParts: AudioFileAnnotation.parse(row['Unwanted Parts']),
+        unwantedParts: AudioAnnotationArray.parse(row['Unwanted Parts']),
         duration: {
           //TODO: sanitze duration
           beginning: row['Beginning'],
@@ -386,8 +386,8 @@ export class SQRWorkflow {
         Updated: DateTimeConverter.toSerialDate(submission.changed),
         'Update Link': SQRWorkflow.createSubmissionLink(fileName, token),
         'Audio File Name': fileName,
-        'Unwanted Parts': submission.unwantedParts.format(),
-        'Sound Issues': submission.soundIssues.format(),
+        'Unwanted Parts': submission.unwantedParts.toString(),
+        'Sound Issues': submission.soundIssues.toString(),
         'Sound Quality Rating': submission.soundQualityRating,
         Beginning: submission.duration ? submission.duration.beginning : null,
         Ending: submission.duration ? submission.duration.ending : null,
