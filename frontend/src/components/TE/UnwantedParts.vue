@@ -13,12 +13,12 @@
 
 <script lang="ts">
 import { Component, Mixins, Prop } from "vue-property-decorator";
-import FormatDurationUtc from "@/mixins/FormatDurationUtc";
+import FormatTime from "@/mixins/FormatTime";
 
 @Component({
   name: "UnwantedParts"
 })
-export default class UnwantedParts extends Mixins(FormatDurationUtc) {
+export default class UnwantedParts extends Mixins<FormatTime>(FormatTime) {
   @Prop({ default: () => [] })
   unwantedParts!: any[];
 }
