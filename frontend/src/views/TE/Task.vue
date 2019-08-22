@@ -180,4 +180,8 @@ export default class Task extends Mixins<
 >>> .v-timeline {
   max-width: 825px;
 }
+
+>>> .v-timeline:before {
+  height: 92%;
+}
 </style>
