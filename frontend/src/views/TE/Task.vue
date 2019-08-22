@@ -90,13 +90,12 @@ import moment from "moment";
 import firebase from "firebase/app";
 import "firebase/database";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
-import Versions from "@/components/TE/Versions.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import FormatDurationUtc from "@/mixins/FormatDurationUtc";
 
 @Component({
   name: "Task",
-  components: { TaskDefinition, Versions },
+  components: { TaskDefinition },
   computed: {
     ...mapState("user", ["currentUser"])
   },
