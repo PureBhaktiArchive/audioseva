@@ -39,14 +39,14 @@ export const processUpload = functions.storage
   .bucket(StorageManager.trackEditedUploadsBucket)
   .object()
   .onFinalize(async (object, context) => {
-    await TrackEditingWorkflow.processUpload(object.name, context.auth.uid);
+    await TrackEditingWorkflow.processUpload(object, context.auth.uid);
   });
 
 export const processResolution = functions.database
   .ref('/TE/tasks/{taskId}/versions/{versionNumber}/resolution')
   .onUpdate(
     async (change, { params: { taskId, versionNumber } }): Promise<any> => {
-      TrackEditingWorkflow.processResolution(
+      await TrackEditingWorkflow.processResolution(
         taskId,
         versionNumber,
         change.after.val()
