@@ -67,7 +67,8 @@ export const exportAllotmentToSpreadsheet = functions.database
     console.info(fileName, change.before.val(), change.after.val());
 
     await SQRWorkflow.exportAllotment(
-      new Allotment(fileName, change.after.val())
+      fileName,
+      new Allotment(change.after.val())
     );
   });
 

@@ -1,22 +1,23 @@
 <body>
-  <p>Hare Krsna! Dandavat Pranams.</p>
+  <div style="color:red; font-weight:bold;">
+    {% for warning in params.warnings %}
+    <p>{{ warning }}</p>
+    {% endfor %}
+  </div>
+
+  <p><b>Track Edited File Link:</b> {{ task.uploadURL }}</p>
   <p>
-    Below are the details of the
-    <b>Track Editing Check</b> feedback.
-  </p>
-  <p>
-    <b>{{ params.resolution.feedback }}</b>
-  </p>
-  <p>
-    <b
-      >Please re-edit the file and upload it again
-      <a href="https://app.{{ params.settings.project.domain }}/te/upload"
-        >here</a
-      >.</b
+    <a
+      href="https://app.{{ params.settings.project.domain }}/te/tasks/{{
+        task.id
+      }}"
     >
+      Review
+    </a>
   </p>
 
   <p style="color: red;font-weight: bold">DETAILS OF THE TASK:</p>
+
   <p><b>Task ID:</b> {{ task.id }}</p>
   <p><b>Task Definition:</b></p>
   <ol>
