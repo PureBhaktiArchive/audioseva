@@ -162,6 +162,11 @@ export const router = new Router({
                 menuItem: false,
                 requireClaims: { TE: true, coordinator: true }
               }
+            },
+            {
+              path: "tasks",
+              component: () => import("@/views/TE/Tasks.vue"),
+              meta: { menuItem: true }
             }
           ]
         },

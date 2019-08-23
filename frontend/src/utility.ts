@@ -7,6 +7,17 @@ export function getDayDifference(date: number) {
   return moment().diff(date, "days");
 }
 
+export const getDaysPassed = (timestampPath: string) => (
+  value: string,
+  item: any
+) => {
+  const dateGiven = _.get(item, timestampPath, false);
+  if (typeof dateGiven === "number") {
+    return getDayDifference(dateGiven);
+  }
+  return "";
+};
+
 type MomentDateOrString = string | moment.Moment;
 
 export const getLastDays = (day = 5) => {

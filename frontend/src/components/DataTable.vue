@@ -12,6 +12,7 @@
           v-for="( value , key, index) in headers"
           :class="getStyles(value, item)"
           :key="getKey(item, value.value, index)"
+          v-bind="getAttributes(item, value.value)"
         >
           <template v-if="computedComponent[value.value]">
             <table-data
@@ -77,6 +78,9 @@ export default class DataTable extends Vue {
   @Prop({ default: () => ({}) })
   componentData!: { [key: string]: any };
 
+  @Prop({ default: () => ({}) })
+  tdAttributes!: { [key: string]: any };
+
   // Items for v-data-table component
   @Prop() items!: any[];
 
@@ -120,6 +124,10 @@ export default class DataTable extends Vue {
       return _.get(item, value).join(this.separator);
     }
     return _.get(item, value, this.missingFileCb(value));
+  }
+
+  getAttributes(item: any, value: string) {
+    return this.tdAttributes[value] || {};
   }
 
   computedCb(value: string, item: any) {

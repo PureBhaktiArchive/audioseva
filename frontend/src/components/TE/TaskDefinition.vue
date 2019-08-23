@@ -2,7 +2,7 @@
   <div>
     <template v-for="(chunk, index) in item.chunks">
       <v-layout class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
-        <v-flex xs4 sm2 md2 xl1>
+        <v-flex v-bind="layout.link">
           <div>
             <a
               download
@@ -12,10 +12,10 @@
             </a>
           </div>
         </v-flex>
-        <v-flex xs8 sm2 md2 xl1>
+        <v-flex v-bind="layout.duration">
           <span>{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{ formatDurationUtc(chunk.ending, "mm:ss") }}</span>
         </v-flex>
-        <v-flex sm12 md8 lg8 xl9>
+        <v-flex v-bind="layout.unwantedParts">
           <unwanted-parts :unwantedParts="chunk.unwantedParts" />
         </v-flex>
       </v-layout>
@@ -37,6 +37,29 @@ import { getListId } from "@/utility";
 })
 export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   @Prop() item!: any;
+  @Prop({
+    default: () => ({
+      link: {
+        xs4: true,
+        sm2: true,
+        md2: true,
+        xl1: true
+      },
+      duration: {
+        xs8: true,
+        sm2: true,
+        md2: true,
+        xl1: true
+      },
+      unwantedParts: {
+        sm12: true,
+        md8: true,
+        lg8: true,
+        xl9: true
+      }
+    })
+  })
+  layout!: { [key: string]: any };
 
   getLink(fileName: string) {
     const listId = getListId(fileName);
