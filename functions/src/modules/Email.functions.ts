@@ -6,8 +6,8 @@ import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 SibApiV3Sdk.ApiClient.instance.authentications[
   'api-key'
 ].apiKey = functions.config().send_in_blue
-    ? functions.config().send_in_blue.key
-    : '';
+  ? functions.config().send_in_blue.key
+  : '';
 const apiInstance = new SibApiV3Sdk.SMTPApi();
 
 const bucket = admin.storage().bucket();
@@ -145,17 +145,31 @@ export const sendNotificationEmail = functions.database
       `Sending an email to ${data.to} with template "${data.template}"`
     );
 
+    const coordinatorEmailAddress = functions.config().coordinator
+      .email_address;
+    data.to = data.to || coordinatorEmailAddress;
+
     const email: any = {
       to: [{ email: data.to }],
       templateId: await getTemplateId(data.template),
-      params: data.params,
+      params: {
+        ...data.params,
+        settings: {
+          project: {
+            domain: functions.config().project.domain,
+          },
+        },
+      },
     };
 
-    if (data.bcc)
-      email.bcc = [{ email: data.bcc }];
+    if (data.to !== coordinatorEmailAddress) {
+      if (!data.bcc) data.bcc = coordinatorEmailAddress;
+      if (!data.replyTo) data.replyTo = coordinatorEmailAddress;
+    }
 
-    if (data.replyTo)
-      email.replyTo = { email: data.replyTo };
+    if (data.bcc) email.bcc = [{ email: data.bcc }];
+
+    if (data.replyTo) email.replyTo = { email: data.replyTo };
 
     await apiInstance.sendTransacEmail(email);
 
