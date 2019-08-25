@@ -63,7 +63,11 @@ export default class Dashboard extends Vue {
 
   getText(path: string, params: any) {
     if (path) {
-      let customText = _.get(pathMap, path, _.capitalize(path));
+      let customText = _.get(
+        pathMap,
+        path,
+        path[0].toUpperCase() + path.substring(1)
+      );
       if (typeof customText === "function") {
         customText = customText(params);
       }
