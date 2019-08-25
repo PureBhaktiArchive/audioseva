@@ -49,7 +49,7 @@
                 <task-definition class="pr-3" :item="task" />
               </v-flex>
             </v-layout>
-            <v-divider class="my-1 py-1"></v-divider>
+            <v-divider :style="{ borderColor: '#9a9a9a' }" class="my-1 py-1"></v-divider>
           </div>
         </template>
       </template>
