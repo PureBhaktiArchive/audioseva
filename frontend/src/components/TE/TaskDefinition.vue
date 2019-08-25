@@ -1,7 +1,7 @@
 <template>
   <div>
     <template v-for="(chunk, index) in item.chunks">
-      <v-layout class="wrap pb-1" :key="index">
+      <v-layout class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
         <v-flex xs4 sm2 md2 xl1>
           <div>
             <a
@@ -19,6 +19,7 @@
           <unwanted-parts :unwantedParts="chunk.unwantedParts" />
         </v-flex>
       </v-layout>
+      <v-divider :key="`${item['key']}-${index}-divider`" class="mt-2 mb-2"></v-divider>
     </template>
   </div>
 </template>
@@ -26,7 +27,7 @@
 <script lang="ts">
 import { Component, Prop, Mixins } from "vue-property-decorator";
 import UnwantedParts from "@/components/TE/UnwantedParts.vue";
-import FormatDurationUtc from "@/mixins/FormatDurationUtc";
+import FormatTime from "@/mixins/FormatTime";
 
 import { getListId } from "@/utility";
 
@@ -34,13 +35,13 @@ import { getListId } from "@/utility";
   name: "TaskDefinition",
   components: { UnwantedParts }
 })
-export default class TaskDefinition extends Mixins(FormatDurationUtc) {
+export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   @Prop() item!: any;
 
   getLink(fileName: string) {
     const listId = getListId(fileName);
     return `https://original.${
-      process.env.VUE_APP_STORAGE_ROOT_DOMAIN
+      process.env.VUE_APP_PROJECT_DOMAIN
     }/${listId}/${fileName}.flac`;
   }
 }
