@@ -86,7 +86,6 @@
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
 import { mapState, mapActions } from "vuex";
-import moment from "moment";
 import firebase from "firebase/app";
 import "firebase/database";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
@@ -152,13 +151,6 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
           });
       }
     });
-  }
-
-  getDateFormat(timestamp: number) {
-    return moment(timestamp).format("MM-DD-YYYY") ===
-      moment().format("MM-DD-YYYY")
-      ? "LT"
-      : "L";
   }
 
   get fieldRules() {
