@@ -61,16 +61,16 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   TaskMixin
 ) {
   headers = [
-    { text: "Task ID", value: ".key" },
-    { text: "Status", value: "status" },
-    { text: "Days Passed", value: "daysPassed" },
-    { text: "Assignee", value: "assignee" },
-    { text: "Date Given", value: "timestampGiven" },
-    { text: "Date Done", value: "timestampDone" },
-    { text: "Audio Chunks", value: "taskDefinition" },
-    { text: "Unwanted Parts", value: "unwantedParts" },
-    { text: "Output", value: "output" },
-    { text: "Feedback", value: "feedback" }
+    { text: "Task ID", value: ".key", sortable: false },
+    { text: "Status", value: "status", sortable: false },
+    { text: "Days Passed", value: "daysPassed", sortable: false },
+    { text: "Assignee", value: "assignee", sortable: false },
+    { text: "Date Given", value: "timestampGiven", sortable: false },
+    { text: "Date Done", value: "timestampDone", sortable: false },
+    { text: "Audio Chunks", value: "taskDefinition", sortable: false },
+    { text: "Unwanted Parts", value: "unwantedParts", sortable: false },
+    { text: "Output", value: "output", sortable: false },
+    { text: "Feedback", value: "feedback", sortable: false }
   ];
 
   pagination = {
