@@ -99,7 +99,6 @@
 
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
-import firebase from "firebase/app";
 import "firebase/functions";
 import _ from "lodash";
 
@@ -125,10 +124,8 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
   }
 
   async getAssignees() {
-    const assignees = await firebase
-      .functions()
-      .httpsCallable("User-getAssignees")({ phase: "CR" })
-      .catch(this.addErrorMessage("getAssignees"));
+    const assignees = await this.$http.get(process.env
+      .VUE_APP_ASSIGNEES_URL as string);
 
     if (!assignees) return;
 
@@ -142,10 +139,8 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
   }
 
   async getLists() {
-    const lists = await firebase
-      .functions()
-      .httpsCallable("CR-getLists")()
-      .catch(this.addErrorMessage("getLists"));
+    const lists = await this.$http.jsonp(process.env
+      .VUE_APP_CR_LISTS_URL as string);
 
     if (!lists) return;
     this.lists = lists.data;
@@ -164,19 +159,22 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
     this.filter.languages = this.languages;
   }
 
-  debouncedFilter = _.debounce(async () => {
-    this.files = null;
-    this.allotment.files = [];
-    if (this.filter.list === null) return;
+  debouncedFilter = _.debounce(
+    async function(this: any) {
+      this.files = null;
+      this.allotment.files = [];
+      if (this.filter.list === null) return;
 
-    const spareFiles = await firebase
-      .functions()
-      .httpsCallable("CR-getSpareFiles")(this.filter)
-      .catch(this.addErrorMessage("getSpareFiles"));
+      const spareFiles = await this.$http.get(
+        process.env.VUE_APP_CR_FILES_URL,
+        { params: this.filter }
+      );
 
-    if (!spareFiles) return;
-    this.files = spareFiles.data;
-  }, 1000);
+      if (!spareFiles) return;
+      this.files = spareFiles.data;
+    } as any,
+    1000
+  );
 
   @Watch("filter", { deep: true })
   handleFilter() {
@@ -186,7 +184,8 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
   async allot() {
     this.submissionStatus = "inProgress";
     try {
-      await firebase.functions().httpsCallable("CR-processAllotment")(
+      await this.$http.post(
+        process.env.VUE_APP_CR_ALLOT_URL as string,
         this.allotment
       );
       this.errors = {};
