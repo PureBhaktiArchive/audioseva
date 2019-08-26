@@ -12,13 +12,30 @@
       :tableRowStyle="getTaskStyle"
       :styles="styles"
       :tdAttributes="tdAttributes"
+      :datatableProps="datatableProps"
+      :pagination.sync="pagination"
     >
+      <template v-slot:table-no-data>
+        <div :style="{ height: '100px', display: 'flex', justifyContent: 'center', alignItems: 'center' }">
+          <v-progress-circular color="#1867c0" indeterminate v-if="datatableProps.loading"></v-progress-circular>
+          <div v-else>
+            No records available
+          </div>
+        </div>
+      </template>
     </data-table>
+    <div :style="{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }">
+      <v-select :style="{ width: '60px', flex: 'none' }" :items="[50, 100, 200]" @change="handlePageSizeChange" :value="50">
+      </v-select>
+      <v-btn :disabled="pagination.page === 1" @click="handlePreviousPage">Previous</v-btn>
+      <v-btn :disabled="pagination.page === lastPageNumber" @click="handleNextPage">Next</v-btn>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Watch } from "vue-property-decorator";
+import { Component, Mixins } from "vue-property-decorator";
+import _ from "lodash";
 import DataTable from "@/components/DataTable.vue";
 import { formatTimestamp, getDaysPassed } from "@/utility";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
@@ -56,8 +73,19 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     { text: "Feedback", value: "feedback" }
   ];
 
-  selectedButton = 0;
-  statuses = ["All", "Spare", "Given", "Uploaded", "Revise", "Done"];
+  pagination = {
+    page: 1,
+    rowsPerPage: 50
+  };
+
+  datatableProps = {
+    hideActions: true,
+    loading: true
+  };
+  currentPage: any[] = [];
+  pages: any = {};
+  pageSize = 51;
+  lastPageNumber: number = 0;
 
   editEvents = {
     cancel: this.cancel,
@@ -146,6 +174,10 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     }
   };
 
+  mounted() {
+    this.loadNewPage();
+  }
+
   assigneeCancel() {
     return {
       status: "",
@@ -157,8 +189,60 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     };
   }
 
-  getTasks() {
-    this.$bindAsArray("tasks", firebase.database().ref("/TE/tasks"));
+  private paginationHandler() {
+    const entries = [...this.currentPage];
+    const isLastPage = entries.length < this.pageSize;
+    const id = !isLastPage ? entries.splice(0, 1)[0][".key"] : "__lastPage__";
+    if (isLastPage) {
+      this.lastPageNumber = this.pagination.page;
+    }
+    this.$set(this.pages, id, entries.reverse());
+    this.$set(this.datatableProps, "loading", false);
+  }
+
+  handlePageSizeChange(newSize: number) {
+    this.pageSize = newSize;
+    this.pagination = {
+      page: 1,
+      rowsPerPage: newSize
+    };
+    this.pages = {};
+    this.lastPageNumber = 0;
+    this.currentPage = [];
+    this.loadNewPage();
+  }
+
+  handlePreviousPage() {
+    const currentPage = _.get(this.pagination, "page", 1);
+    if (currentPage < 2) return;
+    this.pagination.page = currentPage - 1;
+  }
+
+  handleNextPage() {
+    const nextPage = _.get(this.pagination, "page", 0) + 1;
+    const pageKeys = Object.keys(this.pages);
+    this.pagination.page = nextPage;
+    if (!pageKeys[nextPage - 1]) {
+      this.loadNewPage();
+    }
+  }
+
+  loadNewPage() {
+    let query: any = firebase
+      .database()
+      .ref("/TE/tasks")
+      .orderByKey();
+    const pageKeys = Object.keys(this.pages);
+    if (pageKeys.length > 0) {
+      query = query.endAt(_.last(pageKeys));
+    }
+    this.$set(this.datatableProps, "loading", true);
+    this.$bindAsArray(
+      "currentPage",
+      query.limitToLast(this.pageSize),
+      null,
+      this.paginationHandler
+    );
   }
 
   getUpdatePath(item: any, path: any): string {
@@ -166,16 +250,7 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   }
 
   get items() {
-    return this.tasks;
-  }
-
-  @Watch("selectedStatus", { immediate: true })
-  handleSelectedStatus() {
-    this.getTasks();
-  }
-
-  get selectedStatus() {
-    return this.statuses[this.selectedButton];
+    return _.flatten(_.map(this.pages, page => page));
   }
 }
 </script>
