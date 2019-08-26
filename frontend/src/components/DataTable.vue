@@ -1,10 +1,10 @@
 <template>
   <v-data-table
     :headers="headers"
-    :pagination.sync="pagination"
-    hide-actions
+    :pagination.sync="customPagination"
     :items="items"
     v-bind="datatableProps"
+    v-on="$listeners"
   >
     <template slot="items" slot-scope="{ item }">
       <tr :style="getTableRowStyle(item)">
@@ -51,7 +51,16 @@ interface IAnyObject {
   components: { TableData }
 })
 export default class DataTable extends Vue {
-  pagination = { rowsPerPage: -1 };
+  @Prop({ default: () => ({ rowsPerPage: -1 }) })
+  pagination!: any;
+
+  get customPagination() {
+    return this.pagination;
+  }
+
+  set customPagination(newPagination: any) {
+    // not used but needed for customPagination getter
+  }
 
   // separator for array.join
   @Prop({ default: ", " })
@@ -85,7 +94,7 @@ export default class DataTable extends Vue {
   @Prop() items!: any[];
 
   // Props for v-data-table component
-  @Prop({ default: () => ({}) })
+  @Prop({ default: () => ({ hideActions: true }) })
   datatableProps!: IAnyObject;
 
   // Headers for v-data-table component
