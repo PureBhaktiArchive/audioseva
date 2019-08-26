@@ -10,6 +10,10 @@ Add the following variables into your `.env.development.local` file:
 - `VUE_APP_FIREBASE_DATABASE_URL`
 - `VUE_APP_FIREBASE_STORAGE_BUCKET`
 - `VUE_APP_SOUND_EDITING_UPLOADS_BUCKET` - a Firebase bucket for storing sound engineers' uploads
+- `VUE_APP_ASSIGNEES_URL` - Integromat URL for assignees
+- `VUE_APP_CR_LISTS_URL` - URL for CR lists
+- `VUE_APP_CR_FILES_URL` - Integromat URL for CR files
+- `VUE_APP_CR_ALLOT_URL` - Integromat URL for CR allot
 
 # Deployment
 
