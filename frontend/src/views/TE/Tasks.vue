@@ -33,6 +33,7 @@
 
 <script lang="ts">
 import { Component, Mixins } from "vue-property-decorator";
+import "@/styles/subtext.css";
 import _ from "lodash";
 import DataTable from "@/components/DataTable.vue";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
