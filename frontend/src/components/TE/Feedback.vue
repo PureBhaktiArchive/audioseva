@@ -1,6 +1,6 @@
 <template>
   <div v-if="version.resolution">
-    <v-chip label :color="isApproved ? 'green' : 'red' " text-color="white">{{ isApproved ? "Approved" : "Disapproved" }}</v-chip>
+    <v-chip disabled label :color="isApproved ? 'green' : 'red' " text-color="white">{{ isApproved ? "Approved" : "Disapproved" }}</v-chip>
     <p class="caption">{{ timestamp }}</p>
   </div>
 </template>
