@@ -1,7 +1,7 @@
 <template>
   <div>
     {{ timestamp }}
-    <p class="caption" :style="{ color: 'rgb(169, 169, 169)' }" v-if="daysPassed">{{ daysPassed }}</p>
+    <p class="subtext" v-if="daysPassed">{{ daysPassed }}</p>
   </div>
 </template>
 
