@@ -43,6 +43,7 @@ import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import Output from "@/components/TE/Output.vue";
 import Resolution from "@/components/TE/Resolution.vue";
 import DateGiven from "@/components/TE/TimestampGiven.vue";
+import Link from "@/components/DataTable/Link.vue";
 import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
 import InlineSave from "@/mixins/InlineSave";
 import TaskMixin from "@/components/TE/TaskMixin";
@@ -56,7 +57,8 @@ import "firebase/database";
     DataTable,
     DateGiven,
     Resolution,
-    InlineAssignEdit
+    InlineAssignEdit,
+    Link
   }
 })
 export default class Tasks extends Mixins<InlineSave, TaskMixin>(
@@ -104,6 +106,7 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   };
 
   computedComponent = {
+    ".key": Link,
     resolution: Resolution,
     output: Output,
     assignee: InlineAssignEdit,
