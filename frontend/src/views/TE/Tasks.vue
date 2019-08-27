@@ -37,10 +37,11 @@
 import { Component, Mixins } from "vue-property-decorator";
 import _ from "lodash";
 import DataTable from "@/components/DataTable.vue";
-import { formatTimestamp, getDaysPassed } from "@/utility";
+import { formatTimestamp } from "@/utility";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import Output from "@/components/TE/Output.vue";
 import Feedback from "@/components/TE/Feedback.vue";
+import DateGiven from "@/components/TE/TimestampGiven.vue";
 import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
 import InlineSave from "@/mixins/InlineSave";
 import TaskMixin from "@/components/TE/TaskMixin";
@@ -52,6 +53,7 @@ import "firebase/database";
   components: {
     TaskDefinition,
     DataTable,
+    DateGiven,
     Feedback,
     InlineAssignEdit
   }
@@ -63,7 +65,6 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   headers = [
     { text: "Task ID", value: ".key", sortable: false },
     { text: "Status", value: "status", sortable: false },
-    { text: "Days Passed", value: "daysPassed", sortable: false },
     { text: "Assignee", value: "assignee", sortable: false },
     { text: "Date Given", value: "timestampGiven", sortable: false },
     { text: "Date Done", value: "timestampDone", sortable: false },
@@ -110,9 +111,6 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     },
     timestampGiven: {
       caption: true
-    },
-    daysPassed: {
-      caption: true
     }
   };
 
@@ -120,12 +118,11 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     taskDefinition: TaskDefinition,
     feedback: Feedback,
     output: Output,
-    assignee: InlineAssignEdit
+    assignee: InlineAssignEdit,
+    timestampGiven: DateGiven
   };
 
   computedCb = {
-    daysPassed: getDaysPassed("timestampGiven"),
-    timestampGiven: formatTimestamp,
     timestampDone: formatTimestamp
   } as { [key: string]: (value: any, item: any) => any };
 
