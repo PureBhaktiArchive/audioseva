@@ -38,7 +38,7 @@ import _ from "lodash";
 import DataTable from "@/components/DataTable.vue";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import Output from "@/components/TE/Output.vue";
-import Feedback from "@/components/TE/Feedback.vue";
+import Resolution from "@/components/TE/Resolution.vue";
 import DateGiven from "@/components/TE/TimestampGiven.vue";
 import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
 import InlineSave from "@/mixins/InlineSave";
@@ -52,7 +52,7 @@ import "firebase/database";
     TaskDefinition,
     DataTable,
     DateGiven,
-    Feedback,
+    Resolution,
     InlineAssignEdit
   }
 })
@@ -66,7 +66,7 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     { text: "Date Given", value: "timestampGiven", sortable: false },
     { text: "Assignee", value: "assignee", sortable: false },
     { text: "Output", value: "output", sortable: false },
-    { text: "Feedback", value: "feedback", sortable: false }
+    { text: "Resolution", value: "resolution", sortable: false }
   ];
 
   pagination = {
@@ -101,7 +101,7 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   };
 
   computedComponent = {
-    feedback: Feedback,
+    resolution: Resolution,
     output: Output,
     assignee: InlineAssignEdit,
     timestampGiven: DateGiven
