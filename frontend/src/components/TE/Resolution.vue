@@ -12,7 +12,7 @@ import moment from "moment";
 import LastVersionMixin from "@/components/TE/LastVersionMixin";
 
 @Component({
-  name: "Feedback"
+  name: "Resolution"
 })
 export default class Feedback extends Mixins(LastVersionMixin) {
   @Prop() item!: any;
