@@ -6,12 +6,10 @@
     <data-table
       :headers="headers"
       :items="items"
-      :computedValue="computedCb"
       :computedComponent="computedComponent"
       :componentData="componentData"
       :tableRowStyle="getTaskStyle"
       :styles="styles"
-      :tdAttributes="tdAttributes"
       :datatableProps="datatableProps"
       :pagination.sync="pagination"
     >
@@ -37,7 +35,6 @@
 import { Component, Mixins } from "vue-property-decorator";
 import _ from "lodash";
 import DataTable from "@/components/DataTable.vue";
-import { formatTimestamp } from "@/utility";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import Output from "@/components/TE/Output.vue";
 import Feedback from "@/components/TE/Feedback.vue";
@@ -65,11 +62,8 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   headers = [
     { text: "Task ID", value: ".key", sortable: false },
     { text: "Status", value: "status", sortable: false },
-    { text: "Assignee", value: "assignee", sortable: false },
     { text: "Date Given", value: "timestampGiven", sortable: false },
-    { text: "Date Done", value: "timestampDone", sortable: false },
-    { text: "Audio Chunks", value: "taskDefinition", sortable: false },
-    { text: "Unwanted Parts", value: "unwantedParts", sortable: false },
+    { text: "Assignee", value: "assignee", sortable: false },
     { text: "Output", value: "output", sortable: false },
     { text: "Feedback", value: "feedback", sortable: false }
   ];
@@ -100,31 +94,17 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
       "font-weight-bold": true,
       "text-no-wrap": true
     },
-    unwantedParts: {
-      "d-none": true
-    },
     status: {
-      caption: true
-    },
-    timestampDone: {
-      caption: true
-    },
-    timestampGiven: {
       caption: true
     }
   };
 
   computedComponent = {
-    taskDefinition: TaskDefinition,
     feedback: Feedback,
     output: Output,
     assignee: InlineAssignEdit,
     timestampGiven: DateGiven
   };
-
-  computedCb = {
-    timestampDone: formatTimestamp
-  } as { [key: string]: (value: any, item: any) => any };
 
   componentData = {
     assignee: {
@@ -133,41 +113,6 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
         cancelData: this.assigneeCancel,
         shouldCancelChange: (task: any) => task.status === "Done"
       }
-    },
-    taskDefinition: {
-      class: {
-        "task-definition": true
-      },
-      props: {
-        layout: {
-          link: {
-            xs4: true,
-            sm4: true,
-            md2: true,
-            lg2: true,
-            xl1: true
-          },
-          duration: {
-            xs8: true,
-            sm6: true,
-            md3: true,
-            lg3: true,
-            xl1: true
-          },
-          unwantedParts: {
-            sm12: true,
-            md7: true,
-            lg7: true,
-            xl9: true
-          }
-        }
-      }
-    }
-  };
-
-  tdAttributes = {
-    taskDefinition: {
-      colspan: 2
     }
   };
 
