@@ -3,6 +3,9 @@
     <header>
       <h1>Track Editing</h1>
     </header>
+    <div>
+      <v-btn to="allot">Allot</v-btn>
+    </div>
     <data-table
       :headers="headers"
       :items="items"
