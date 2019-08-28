@@ -159,22 +159,18 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
     this.filter.languages = this.languages;
   }
 
-  debouncedFilter = _.debounce(
-    async function(this: any) {
-      this.files = null;
-      this.allotment.files = [];
-      if (this.filter.list === null) return;
+  debouncedFilter = _.debounce(async function(this: any) {
+    this.files = null;
+    this.allotment.files = [];
+    if (this.filter.list === null) return;
 
-      const spareFiles = await this.$http.get(
-        process.env.VUE_APP_CR_FILES_URL,
-        { params: this.filter }
-      );
+    const spareFiles = await this.$http.get(process.env.VUE_APP_CR_FILES_URL, {
+      params: this.filter
+    });
 
-      if (!spareFiles) return;
-      this.files = spareFiles.data;
-    } as any,
-    1000
-  );
+    if (!spareFiles) return;
+    this.files = spareFiles.data;
+  }, 1000);
 
   @Watch("filter", { deep: true })
   handleFilter() {
