@@ -122,9 +122,6 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     ".key": {
       "font-weight-bold": true,
       "text-no-wrap": true
-    },
-    status: {
-      caption: true
     }
   };
 
