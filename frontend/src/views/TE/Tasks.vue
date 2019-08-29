@@ -4,7 +4,7 @@
       <h1>Track Editing</h1>
     </header>
     <v-layout align-end wrap>
-      <v-flex><v-btn to="allot">Allot</v-btn></v-flex>
+      <v-flex><v-btn class="ml-0" to="allot">Allot</v-btn></v-flex>
       <v-flex>
         <pagination-controls
           :pagination="pagination"
