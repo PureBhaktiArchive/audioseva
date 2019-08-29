@@ -1,11 +1,18 @@
 <template>
   <div>
     <div v-if="resolution">
-      <v-chip disabled label :color="isApproved ? 'green' : 'red' " text-color="white">{{ isApproved ? "Approved" : "Disapproved" }}</v-chip>
+      <v-chip
+        class="ml-0"
+        disabled label
+        :color="isApproved ? 'green' : 'red' "
+        text-color="white"
+      >
+        {{ isApproved ? "Approved" : "Disapproved" }}
+      </v-chip>
       <p class="mb-0">{{ resolution.feedback }}</p>
       <p class="subtext">{{ timestamp }}</p>
     </div>
-    <v-btn v-else :to="`tasks/${item['.key']}`">Review</v-btn>
+    <v-btn class="ml-0" v-else :to="`tasks/${item['.key']}`">Review</v-btn>
   </div>
 </template>
 
