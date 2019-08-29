@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div v-if="version.resolution">
+    <div v-if="resolution">
       <v-chip disabled label :color="isApproved ? 'green' : 'red' " text-color="white">{{ isApproved ? "Approved" : "Disapproved" }}</v-chip>
-      <p class="mb-0">{{ version.resolution.feedback }}</p>
+      <p class="mb-0">{{ resolution.feedback }}</p>
       <p class="subtext">{{ timestamp }}</p>
     </div>
     <v-btn v-else :to="`tasks/${item['.key']}`">Review</v-btn>
@@ -18,7 +18,7 @@ import FormatTime from "@/mixins/FormatTime";
 @Component({
   name: "Resolution"
 })
-export default class Feedback extends Mixins<LastVersionMixin, FormatTime>(
+export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
   LastVersionMixin,
   FormatTime
 ) {
@@ -26,11 +26,7 @@ export default class Feedback extends Mixins<LastVersionMixin, FormatTime>(
   @Prop() value!: string;
 
   get timestamp() {
-    return this.formatTimestamp(this.version.resolution.timestamp);
-  }
-
-  get isApproved() {
-    return this.version.resolution.isApproved;
+    return this.formatTimestamp(this.resolution.timestamp);
   }
 }
 </script>

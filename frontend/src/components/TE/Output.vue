@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="item.versions">
     <span>Version {{ item.versions.length }}: <a :href="version.uploadPath">{{ item[".key"] }}</a></span>
     <p class="subtext">{{ timestamp }}</p>
   </div>

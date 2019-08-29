@@ -15,7 +15,7 @@
       <article>
         <h3>History</h3>
         <v-timeline dense>
-          <v-timeline-item icon="fas fa-paper-plane" fill-dot>
+          <v-timeline-item icon="fas fa-paper-plane" fill-dot v-if="task.assignee">
             <v-layout justify-space-between wrap>
               <v-flex xs7>
                 <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
