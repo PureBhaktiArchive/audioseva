@@ -28,7 +28,15 @@
       :pagination.sync="pagination"
     >
       <template v-slot:table-no-data>
-        <div :style="{ height: '100px', display: 'flex', justifyContent: 'center', alignItems: 'center' }">
+        <div class="no-results">
+          <v-progress-circular color="#1867c0" indeterminate v-if="datatableProps.loading"></v-progress-circular>
+          <div v-else>
+            No records available
+          </div>
+        </div>
+      </template>
+      <template v-slot:table-no-results>
+        <div class="no-results">
           <v-progress-circular color="#1867c0" indeterminate v-if="datatableProps.loading"></v-progress-circular>
           <div v-else>
             No records available
@@ -181,9 +189,12 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   handleNextPage() {
     const nextPage = _.get(this.pagination, "page", 0) + 1;
     const pageKeys = Object.keys(this.pages);
+    this.datatableProps.loading = true;
     this.pagination.page = nextPage;
     if (!pageKeys[nextPage - 1]) {
       this.loadNewPage();
+    } else {
+      this.datatableProps.loading = false;
     }
   }
 
@@ -222,5 +233,10 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
 
 >>> td:nth-child(n + 4):nth-child(-n + 6) {
   padding: 0 6px;
+}
+.no-results {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
