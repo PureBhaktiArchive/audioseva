@@ -3,9 +3,20 @@
     <header>
       <h1>Track Editing</h1>
     </header>
-    <div>
-      <v-btn to="allot">Allot</v-btn>
-    </div>
+    <v-layout align-end wrap>
+      <v-flex><v-btn to="allot">Allot</v-btn></v-flex>
+      <v-flex>
+        <pagination-controls
+          :pagination="pagination"
+          :lastPageNumber="lastPageNumber"
+          v-model="pagination.rowsPerPage"
+          @input="handlePageSizeChange"
+          @previousPage="handlePreviousPage"
+          @nextPage="handleNextPage"
+        >
+        </pagination-controls>
+      </v-flex>
+    </v-layout>
     <data-table
       :headers="headers"
       :items="items"
@@ -25,12 +36,15 @@
         </div>
       </template>
     </data-table>
-    <div :style="{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }">
-      <v-select :style="{ width: '60px', flex: 'none' }" :items="[50, 100, 200]" @change="handlePageSizeChange" :value="50">
-      </v-select>
-      <v-btn :disabled="pagination.page === 1" @click="handlePreviousPage">Previous</v-btn>
-      <v-btn :disabled="pagination.page === lastPageNumber" @click="handleNextPage">Next</v-btn>
-    </div>
+    <pagination-controls
+      :pagination="pagination"
+      :lastPageNumber="lastPageNumber"
+      v-model="pagination.rowsPerPage"
+      @input="handlePageSizeChange"
+      @previousPage="handlePreviousPage"
+      @nextPage="handleNextPage"
+    >
+    </pagination-controls>
   </div>
 </template>
 
@@ -39,6 +53,7 @@ import { Component, Mixins } from "vue-property-decorator";
 import "@/styles/subtext.css";
 import _ from "lodash";
 import DataTable from "@/components/DataTable.vue";
+import PaginationControls from "@/components/TE/PaginationControls.vue";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import Output from "@/components/TE/Output.vue";
 import Resolution from "@/components/TE/Resolution.vue";
@@ -53,6 +68,7 @@ import "firebase/database";
 @Component({
   name: "Tasks",
   components: {
+    PaginationControls,
     TaskDefinition,
     DataTable,
     DateGiven,
@@ -85,7 +101,6 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   };
   currentPage: any[] = [];
   pages: any = {};
-  pageSize = 51;
   lastPageNumber: number = 0;
 
   editEvents = {
@@ -140,7 +155,7 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
 
   private paginationHandler() {
     const entries = [...this.currentPage];
-    const isLastPage = entries.length < this.pageSize;
+    const isLastPage = entries.length < this.pagination.rowsPerPage;
     const id = !isLastPage ? entries.splice(0, 1)[0][".key"] : "__lastPage__";
     if (isLastPage) {
       this.lastPageNumber = this.pagination.page;
@@ -149,12 +164,8 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     this.$set(this.datatableProps, "loading", false);
   }
 
-  handlePageSizeChange(newSize: number) {
-    this.pageSize = newSize;
-    this.pagination = {
-      page: 1,
-      rowsPerPage: newSize
-    };
+  handlePageSizeChange() {
+    this.pagination.page = 1;
     this.pages = {};
     this.lastPageNumber = 0;
     this.currentPage = [];
@@ -188,7 +199,7 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     this.$set(this.datatableProps, "loading", true);
     this.$bindAsArray(
       "currentPage",
-      query.limitToLast(this.pageSize),
+      query.limitToLast(this.pagination.rowsPerPage + 1),
       null,
       this.paginationHandler
     );
