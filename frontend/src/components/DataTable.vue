@@ -34,6 +34,10 @@
     <template slot="footer">
       <slot name="table-footer"></slot>
     </template>
+
+    <template slot="no-results">
+      <slot name="table-no-results"></slot>
+    </template>
   </v-data-table>
 </template>
 
