@@ -9,7 +9,7 @@
       :value="value">
     </v-select>
     <v-btn :disabled="pagination.page === 1" @click="handlePreviousPage">Previous</v-btn>
-    <v-btn :disabled="pagination.page === lastPageNumber" @click="handleNextPage">Next</v-btn>
+    <v-btn class="mr-0" :disabled="pagination.page === lastPageNumber" @click="handleNextPage">Next</v-btn>
   </div>
 </template>
 
