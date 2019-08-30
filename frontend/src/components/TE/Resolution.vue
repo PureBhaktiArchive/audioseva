@@ -12,7 +12,7 @@
       <p class="mb-0">{{ resolution.feedback }}</p>
       <p class="subtext">{{ timestamp }}</p>
     </div>
-    <v-btn class="ml-0" v-else :to="`tasks/${item['.key']}`">Review</v-btn>
+    <v-btn class="ml-0" v-else-if="!resolution && item.status === 'WIP'" :to="`tasks/${item['.key']}`">Review</v-btn>
   </div>
 </template>
 
