@@ -4,7 +4,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { Spreadsheet } from '../GoogleSheets';
+import { Spreadsheet } from '../Spreadsheet';
 
 const db = admin.database();
 const userRoles = functions.database.ref('/users/{userId}/roles');

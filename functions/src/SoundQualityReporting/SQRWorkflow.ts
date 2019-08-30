@@ -9,7 +9,7 @@ import { URL } from 'url';
 import { Allotment, AllotmentStatus } from '../Allotment';
 import { AudioFileAnnotation } from '../AudioFileAnnotation';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { Spreadsheet } from '../GoogleSheets';
+import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import uuidv4 = require('uuid/v4');
 import _ = require('lodash');

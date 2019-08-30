@@ -6,8 +6,8 @@ import * as functions from 'firebase-functions';
 import * as _ from 'lodash';
 import { DateTime } from 'luxon';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { Spreadsheet } from '../GoogleSheets';
 import * as helpers from '../helpers';
+import { Spreadsheet } from '../Spreadsheet';
 
 export enum SheetNames {
   Allotments = 'Allotments',
