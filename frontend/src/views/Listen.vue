@@ -68,12 +68,11 @@ export default class ListenAudio extends Vue {
   }
 
   get audioUrl() {
-    const [name, extension] = this.nameAndExtension;
+    const [name] = this.nameAndExtension;
     const list = name ? name.split("-")[0] : null;
-    const folder = extension && extension === "mp3" ? "mp3" : "source";
-    return `http://original.${
-      process.env.VUE_APP_STORAGE_ROOT_DOMAIN
-    }/${folder}/${list}/${this.fileName}`;
+    return `http://original.${process.env.VUE_APP_PROJECT_DOMAIN}/${list}/${
+      this.fileName
+    }`;
   }
 
   get audioFileName() {
