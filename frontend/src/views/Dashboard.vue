@@ -41,7 +41,7 @@ export default class Dashboard extends Vue {
         breadcrumbs.push({
           text: this.getText(item, params),
           disabled: index === pathsLength,
-          to: this.getPath(item, index),
+          to: this.getPath(item, index, paths),
           exact: true
         });
       });
@@ -49,16 +49,8 @@ export default class Dashboard extends Vue {
     this.breadcrumbs = breadcrumbs;
   }
 
-  getPath(item: string, index: number) {
-    if (item) {
-      if (index === 1) {
-        return `/${item}`;
-      } else {
-        return item;
-      }
-    } else {
-      return "/";
-    }
+  getPath(item: string, index: number, paths: string[]) {
+    return `${paths.slice(0, index).join("/")}/${item}`;
   }
 
   getText(path: string, params: any) {
