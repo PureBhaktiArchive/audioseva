@@ -14,23 +14,23 @@ export const processDonations = functions.database
     ): Promise<any> => {
       const donation = snapshot.val();
 
-      const spreadsheet = await Spreadsheet.open(
-        functions.config().donations.cash.spreadsheet.id
-      );
-      const sheet = await spreadsheet.useSheet(
+      const sheet = await Spreadsheet.open(
+        functions.config().donations.cash.spreadsheet.id,
         functions.config().donations.cash.spreadsheet.name
       );
 
-      await sheet.appendRow({
-        Date: donation.date,
-        Amount: donation.sum.amount,
-        Currency: donation.sum.currency,
-        'Donor Name': donation.donor.name,
-        'Donor Phone Number': `'${donation.donor.phoneNumber}`,
-        'Donor Email Address': donation.donor.emailAddress,
-        'Collected By': donation.collectedBy,
-        Comment: donation.comment,
-      });
+      await sheet.appendRows([
+        {
+          Date: donation.date,
+          Amount: donation.sum.amount,
+          Currency: donation.sum.currency,
+          'Donor Name': donation.donor.name,
+          'Donor Phone Number': `'${donation.donor.phoneNumber}`,
+          'Donor Email Address': donation.donor.emailAddress,
+          'Collected By': donation.collectedBy,
+          Comment: donation.comment,
+        },
+      ]);
 
       return admin
         .database()
