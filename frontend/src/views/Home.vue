@@ -6,7 +6,7 @@
     <v-layout row wrap>
       <v-flex xs12 class="text-xs-center" mt-5>
         <h1>Welcome to Audio Seva</h1>
-        <v-btn to="reporting/content/allot" color="primary">CR</v-btn>
+        <v-btn to="cr/allot" color="primary">CR</v-btn>
         <v-btn to="sqr" color="primary">SQR</v-btn>
         <v-btn to="se" color="primary">SE</v-btn>
         <require-claims-buttons></require-claims-buttons>
