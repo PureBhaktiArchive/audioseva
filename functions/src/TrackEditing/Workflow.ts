@@ -9,10 +9,13 @@ import { DateTime } from 'luxon';
 import * as path from 'path';
 import { AllotmentStatus } from '../Allotment';
 import { Assignee } from '../Assignee';
+import { DateTimeConverter } from '../DateTimeConverter';
 import { FileResolution } from '../FileResolution';
 import { FileVersion } from '../FileVersion';
+import { Spreadsheet } from '../Spreadsheet';
 import { StorageManager } from '../StorageManager';
 import { TrackEditingTask } from './TrackEditingTask';
+import _ = require('lodash');
 
 export class TrackEditingWorkflow {
   static baseRef = admin.database().ref(`/TE`);
@@ -26,31 +29,52 @@ export class TrackEditingWorkflow {
     const snapshot = await this.getTaskRef(taskId).once('value');
     if (!snapshot.exists()) throw new Error(`Task ${taskId} does not exist.`);
 
-    return new TrackEditingTask(snapshot.val());
+    return new TrackEditingTask(taskId, snapshot.val());
+  }
+
+  static async allotmentsSheet() {
+    return await Spreadsheet.open(
+      functions.config().te.allotments.spreadsheet.id,
+      'Allotments'
+    );
   }
 
   static async processAllotment(
     assignee: Assignee,
-    tasks: any,
-    comment: String
+    taskIds: string[],
+    comment: string
   ) {
-    const tasksForEmail = await Promise.all(
-      tasks.map(async (taskId: string) => {
-        const taskRef = this.getTaskRef(taskId);
+    console.info(`Allotting ${taskIds.join(', ')} to ${assignee.emailAddress}`);
 
-        await taskRef.update({
-          status: 'Given',
-          assignee: assignee,
-          givenTimestamp: admin.database.ServerValue.TIMESTAMP,
-        });
+    const updates = _(taskIds)
+      .flatMap(taskId => [
+        [`${taskId}/status`, AllotmentStatus.Given],
+        [`${taskId}/assignee`, assignee],
+        [`${taskId}/timestampGiven`, admin.database.ServerValue.TIMESTAMP],
+      ])
+      .fromPairs()
+      .value();
 
-        // Getting the tasks list to be used when notifying the assignee
-        const task = (await taskRef.once('value')).val();
+    await this.tasksRef.update(updates);
 
-        //inject taskId and sourceFileLink into the task object returned by db call
-        task.id = taskId;
-        return task;
-      })
+    const tasks = await Promise.all(
+      taskIds.map(async (taskId: string) => this.getTask(taskId))
+    );
+
+    const sheet = await this.allotmentsSheet();
+
+    await sheet.updateOrAppendRows(
+      'Task ID',
+      tasks.map(task => ({
+        'SEd?': false,
+        'Task ID': task.id,
+        Status: task.status,
+        'Date Given': DateTimeConverter.toSerialDate(
+          DateTime.fromMillis(task.timestampGiven)
+        ),
+        Devotee: task.assignee.name,
+        Email: task.assignee.emailAddress,
+      }))
     );
 
     // Notify the assignee
@@ -60,12 +84,10 @@ export class TrackEditingWorkflow {
       .push({
         template: 'track-editing-allotment',
         to: assignee.emailAddress,
-        bcc: functions.config().coordinator.email_address,
         params: {
-          tasks: tasksForEmail,
-          assignee: assignee,
-          comment: comment,
-          date: DateTime.local().toFormat('dd.MM'),
+          tasks,
+          assignee,
+          comment,
         },
       });
   }
