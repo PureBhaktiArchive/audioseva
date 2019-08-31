@@ -349,7 +349,7 @@ export class Spreadsheet {
    */
   public async updateOrAppendRows<T extends object>(
     columnName: string,
-    ...objects: T[]
+    objects: T[]
   ) {
     const column = await this.getColumn(columnName);
     const indexedByDataRowNumber = objects.map<[number, T]>(object => [
