@@ -9,7 +9,7 @@ import { URL } from 'url';
 import { Allotment, AllotmentStatus } from '../Allotment';
 import { AudioFileAnnotation } from '../AudioFileAnnotation';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { RowUpdateMode, Spreadsheet } from '../GoogleSheets';
+import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import uuidv4 = require('uuid/v4');
 import _ = require('lodash');
@@ -113,18 +113,18 @@ export class SQRWorkflow {
     );
   }
 
-  static async spreadsheet() {
-    return await Spreadsheet.open(functions.config().sqr.spreadsheet_id);
-  }
-
   static async allotmentsSheet() {
-    const spreadsheet = await this.spreadsheet();
-    return await spreadsheet.useSheet('Allotments');
+    return await Spreadsheet.open(
+      functions.config().sqr.spreadsheet_id,
+      'Allotments'
+    );
   }
 
   static async submissionsSheet() {
-    const spreadsheet = await this.spreadsheet();
-    return await spreadsheet.useSheet('Submissions');
+    return await Spreadsheet.open(
+      functions.config().sqr.spreadsheet_id,
+      'Submissions'
+    );
   }
 
   /**
@@ -258,7 +258,7 @@ export class SQRWorkflow {
   static async exportAllotment(allotment: Allotment) {
     const sheet = await this.allotmentsSheet();
 
-    const rowNumber = await sheet.findRowNumber(
+    const rowNumber = await sheet.findDataRowNumber(
       'File Name',
       allotment.fileName
     );
@@ -267,26 +267,22 @@ export class SQRWorkflow {
         `File ${allotment.fileName} is not found in the SQR allotments sheet.`
       );
 
-    await sheet.updateRow(
-      rowNumber,
-      {
-        'Date Given': allotment.timestampGiven
-          ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(allotment.timestampGiven)
-            )
-          : null,
-        Notes: allotment.notes,
-        Status: allotment.status.replace('Spare', ''),
-        Devotee: allotment.assignee ? allotment.assignee.name : null,
-        Email: allotment.assignee ? allotment.assignee.emailAddress : null,
-        'Date Done': allotment.timestampDone
-          ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(allotment.timestampDone)
-            )
-          : null,
-      },
-      RowUpdateMode.Partial
-    );
+    await sheet.updateRow(rowNumber, {
+      'Date Given': allotment.timestampGiven
+        ? DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(allotment.timestampGiven)
+          )
+        : null,
+      Notes: allotment.notes,
+      Status: allotment.status.replace('Spare', null),
+      Devotee: allotment.assignee ? allotment.assignee.name : null,
+      Email: allotment.assignee ? allotment.assignee.emailAddress : null,
+      'Date Done': allotment.timestampDone
+        ? DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(allotment.timestampDone)
+          )
+        : null,
+    });
   }
 
   static async processAllotment(files, assignee, comment) {
@@ -378,9 +374,8 @@ export class SQRWorkflow {
       });
 
     // Saving the submission to the spreadsheet
-    await (await this.allotmentsSheet()).updateOrAppendRow(
+    await (await this.submissionsSheet()).updateOrAppendRows(
       'Audio File Name',
-      fileName,
       {
         Completed: DateTimeConverter.toSerialDate(submission.completed),
         Updated: DateTimeConverter.toSerialDate(submission.changed),
