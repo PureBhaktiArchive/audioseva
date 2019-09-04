@@ -9,8 +9,8 @@ import { URL } from 'url';
 import { Allotment, AllotmentStatus } from '../Allotment';
 import { AudioAnnotationArray } from '../AudioAnnotation';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { Spreadsheet } from '../Spreadsheet';
 import { ReportingTask } from '../ReportingTask';
+import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import uuidv4 = require('uuid/v4');
 import _ = require('lodash');
@@ -265,20 +265,20 @@ export class SQRWorkflow {
       );
 
     await sheet.updateRow(rowNumber, {
-        'Date Given': allotment.timestampGiven
-          ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(allotment.timestampGiven)
-            )
-          : null,
-        Notes: allotment.notes,
+      'Date Given': allotment.timestampGiven
+        ? DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(allotment.timestampGiven)
+          )
+        : null,
+      Notes: allotment.notes,
       Status: allotment.status.replace('Spare', null),
-        Devotee: allotment.assignee ? allotment.assignee.name : null,
-        Email: allotment.assignee ? allotment.assignee.emailAddress : null,
-        'Date Done': allotment.timestampDone
-          ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(allotment.timestampDone)
-            )
-          : null,
+      Devotee: allotment.assignee ? allotment.assignee.name : null,
+      Email: allotment.assignee ? allotment.assignee.emailAddress : null,
+      'Date Done': allotment.timestampDone
+        ? DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(allotment.timestampDone)
+          )
+        : null,
     });
   }
 
@@ -373,20 +373,22 @@ export class SQRWorkflow {
     // Saving the submission to the spreadsheet
     await (await this.submissionsSheet()).updateOrAppendRows(
       'Audio File Name',
-      {
-        Completed: DateTimeConverter.toSerialDate(submission.completed),
-        Updated: DateTimeConverter.toSerialDate(submission.changed),
-        'Update Link': SQRWorkflow.createSubmissionLink(fileName, token),
-        'Audio File Name': fileName,
-        'Unwanted Parts': submission.unwantedParts.toString(),
-        'Sound Issues': submission.soundIssues.toString(),
-        'Sound Quality Rating': submission.soundQualityRating,
-        Beginning: submission.duration ? submission.duration.beginning : null,
-        Ending: submission.duration ? submission.duration.ending : null,
-        Comments: submission.comments,
-        Name: allotment.assignee.name,
-        'Email Address': allotment.assignee.emailAddress,
-      }
+      [
+        {
+          Completed: DateTimeConverter.toSerialDate(submission.completed),
+          Updated: DateTimeConverter.toSerialDate(submission.changed),
+          'Update Link': SQRWorkflow.createSubmissionLink(fileName, token),
+          'Audio File Name': fileName,
+          'Unwanted Parts': submission.unwantedParts.toString(),
+          'Sound Issues': submission.soundIssues.toString(),
+          'Sound Quality Rating': submission.soundQualityRating,
+          Beginning: submission.duration ? submission.duration.beginning : null,
+          Ending: submission.duration ? submission.duration.ending : null,
+          Comments: submission.comments,
+          Name: allotment.assignee.name,
+          'Email Address': allotment.assignee.emailAddress,
+        },
+      ]
     );
 
     // Sending email notification for the coordinator
