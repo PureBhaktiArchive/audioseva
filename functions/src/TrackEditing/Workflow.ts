@@ -92,11 +92,13 @@ export class TrackEditingWorkflow {
       });
   }
 
-  static async processUpload(object: ObjectMetadata, uid: string) {
+  static async processUpload(object: ObjectMetadata) {
+    const uid = object.name.match(/^([^/]+)/)[0];
     const taskId = path.basename(object.name, '.flac');
     const task = await TrackEditingWorkflow.getTask(taskId);
 
     const user = await admin.auth().getUser(uid);
+    console.info(`Processing upload of ${taskId} by ${user.displayName}.`);
 
     const warnings = [];
 
@@ -131,10 +133,7 @@ export class TrackEditingWorkflow {
       .push({
         template: 'track-editing-upload',
         params: {
-          task: {
-            id: taskId,
-            ...task,
-          },
+          task,
           warnings,
         },
       });

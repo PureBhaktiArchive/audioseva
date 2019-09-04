@@ -29,7 +29,8 @@ export const processUpload = functions.storage
   .bucket(StorageManager.trackEditedUploadsBucket)
   .object()
   .onFinalize(async (object, context) => {
-    await TrackEditingWorkflow.processUpload(object, context.auth.uid);
+    // `context.auth` is not populated here. See https://stackoverflow.com/a/49723193/3082178
+    await TrackEditingWorkflow.processUpload(object);
   });
 
 export const processResolution = functions.database
