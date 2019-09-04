@@ -1,6 +1,6 @@
 <template>
   <div v-if="item.versions">
-    <span>Version {{ item.versions.length }}: <a :href="lastVersion.uploadPath">{{ item[".key"] }}</a></span>
+    <span>Version {{ item.versions.length }}: <a :href="lastVersionLink">{{ item[".key"] }}</a></span>
     <p class="subtext">{{ timestamp }}</p>
   </div>
 </template>
@@ -9,6 +9,7 @@
 import { Component, Mixins, Prop } from "vue-property-decorator";
 import LastVersionMixin from "@/components/TE/LastVersionMixin";
 import FormatTime from "@/mixins/FormatTime";
+import { teUploadPath } from "@/utility";
 
 @Component({
   name: "Output"
@@ -24,10 +25,8 @@ export default class Output extends Mixins<LastVersionMixin, FormatTime>(
     return this.formatTimestamp(this.lastVersion.timestamp);
   }
 
-  getLink(item: any) {
-    return `https://te.uploads.${process.env.VUE_APP_PROJECT_DOMAIN}/${
-      item.uploadPath
-    }`;
+  get lastVersionLink() {
+    return `https://${teUploadPath}/${this.lastVersion.uploadPath}`;
   }
 }
 </script>

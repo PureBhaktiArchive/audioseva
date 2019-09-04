@@ -3,6 +3,8 @@ import _ from "lodash";
 import moment from "moment";
 import { ICount } from "@/types/DataTable";
 
+export const teUploadPath = `te.uploads.${process.env.VUE_APP_PROJECT_DOMAIN}`;
+
 export function getDayDifference(date: number) {
   return moment().diff(date, "days");
 }
