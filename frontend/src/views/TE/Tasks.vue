@@ -140,6 +140,12 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
         cancelData: this.assigneeCancel,
         shouldCancelChange: (task: any) => task.status === "Done"
       }
+    },
+    ".key": {
+      props: {
+        to: (item: any) => `/te/tasks/${item[".key"]}`,
+        linkText: (item: any) => item[".key"]
+      }
     }
   };
 
