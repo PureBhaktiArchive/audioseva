@@ -65,7 +65,7 @@ import PaginationControls from "@/components/TE/PaginationControls.vue";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import Output from "@/components/TE/Output.vue";
 import Resolution from "@/components/TE/Resolution.vue";
-import DateGiven from "@/components/TE/TimestampGiven.vue";
+import DateGiven from "@/components/DataTable/TimestampGiven.vue";
 import Link from "@/components/DataTable/Link.vue";
 import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
 import InlineSave from "@/mixins/InlineSave";

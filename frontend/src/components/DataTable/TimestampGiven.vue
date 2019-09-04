@@ -13,9 +13,8 @@ import FormatTime from "@/mixins/FormatTime";
 @Component({
   name: "TimestampGiven"
 })
-export default class DateGiven extends Mixins<FormatTime>(FormatTime) {
+export default class TimestampGiven extends Mixins<FormatTime>(FormatTime) {
   @Prop() item!: any;
-
   @Prop() value!: any;
 
   get daysPassed() {
