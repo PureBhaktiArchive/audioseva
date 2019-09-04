@@ -1,20 +1,18 @@
 import { Component, Vue } from "vue-property-decorator";
-import _ from "lodash";
 
 @Component
 export default class LastVersionMixin extends Vue {
-  get version() {
+  get lastVersion() {
     return (
-      this.item.versions &&
-      _.get(this.item, `versions[${this.item.versions.length - 1}]`, false)
+      this.item.versions && this.item.versions[this.item.versions.length - 1]
     );
   }
 
-  get resolution() {
-    return this.version && this.version.resolution;
+  get lastResolution() {
+    return this.lastVersion && this.lastVersion.resolution;
   }
 
-  get isApproved() {
-    return this.resolution && this.resolution.isApproved;
+  get lastIsApproved() {
+    return this.lastResolution && this.lastResolution.isApproved;
   }
 }
