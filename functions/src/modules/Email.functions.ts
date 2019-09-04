@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { DateTime } from 'luxon';
 // SendInBlue Helper Imports
 import * as SibApiV3Sdk from 'sib-api-v3-sdk';
 
@@ -153,12 +154,13 @@ export const sendNotificationEmail = functions.database
       to: [{ email: data.to }],
       templateId: await getTemplateId(data.template),
       params: {
-        ...data.params,
         settings: {
           project: {
             domain: functions.config().project.domain,
           },
         },
+        date: DateTime.local().toFormat('dd.MM'),
+        ...data.params,
       },
     };
 
