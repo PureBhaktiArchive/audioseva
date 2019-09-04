@@ -1,18 +1,18 @@
 <template>
   <div>
-    <div v-if="resolution">
+    <div v-if="lastResolution">
       <v-chip
         class="ml-0"
         disabled label
-        :color="isApproved ? 'green' : 'red' "
+        :color="lastIsApproved ? 'green' : 'red' "
         text-color="white"
       >
-        {{ isApproved ? "Approved" : "Disapproved" }}
+        {{ lastIsApproved ? "Approved" : "Disapproved" }}
       </v-chip>
-      <p class="mb-0">{{ resolution.feedback }}</p>
+      <p class="mb-0">{{ lastResolution.feedback }}</p>
       <p class="subtext">{{ timestamp }}</p>
     </div>
-    <v-btn class="ml-0" v-else-if="!resolution && item.status === 'WIP'" :to="`tasks/${item['.key']}`">Review</v-btn>
+    <v-btn class="ml-0" v-else-if="!lastResolution && item.status === 'WIP'" :to="`tasks/${item['.key']}`">Review</v-btn>
   </div>
 </template>
 
@@ -33,7 +33,7 @@ export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
   @Prop() value!: string;
 
   get timestamp() {
-    return this.formatTimestamp(this.resolution.timestamp);
+    return this.formatTimestamp(this.lastResolution.timestamp);
   }
 }
 </script>

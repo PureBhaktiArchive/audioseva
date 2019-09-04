@@ -1,6 +1,6 @@
 <template>
   <div v-if="item.versions">
-    <span>Version {{ item.versions.length }}: <a :href="version.uploadPath">{{ item[".key"] }}</a></span>
+    <span>Version {{ item.versions.length }}: <a :href="lastVersion.uploadPath">{{ item[".key"] }}</a></span>
     <p class="subtext">{{ timestamp }}</p>
   </div>
 </template>
@@ -21,7 +21,7 @@ export default class Output extends Mixins<LastVersionMixin, FormatTime>(
   @Prop() value!: string;
 
   get timestamp() {
-    return this.formatTimestamp(this.version.timestamp);
+    return this.formatTimestamp(this.lastVersion.timestamp);
   }
 
   getLink(item: any) {
