@@ -9,7 +9,7 @@
 import { Component, Mixins, Prop } from "vue-property-decorator";
 import LastVersionMixin from "@/components/TE/LastVersionMixin";
 import FormatTime from "@/mixins/FormatTime";
-import { teUploadPath } from "@/utility";
+import { trackEditingUploadsBucket } from "@/utility";
 
 @Component({
   name: "Output"
@@ -26,7 +26,7 @@ export default class Output extends Mixins<LastVersionMixin, FormatTime>(
   }
 
   get lastVersionLink() {
-    return `https://${teUploadPath}/${this.lastVersion.uploadPath}`;
+    return `http://${trackEditingUploadsBucket}/${this.lastVersion.uploadPath}`;
   }
 }
 </script>
