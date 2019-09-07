@@ -67,9 +67,7 @@ export default class ListenAudio extends Vue {
   mounted() {
     this.fileName = this.$route.params.fileName;
     this.audio = document.querySelector("audio") as HTMLMediaElement;
-    if (this.isValidFileExtension()) {
-      this.audio.addEventListener("error", this.handleFileError);
-    }
+    this.audio.addEventListener("error", this.handleFileError);
   }
 
   destroyed() {
@@ -84,17 +82,6 @@ export default class ListenAudio extends Vue {
 
   get nameAndExtension() {
     return this.fileName.split(".");
-  }
-
-  isValidFileExtension() {
-    if (["mp3", "flac"].includes(this.fileName.split(".")[1])) {
-      return true;
-    } else {
-      this.errorMessage = `Invalid extension on file: ${
-        this.fileName
-      }. The extension must be mp3 or flac.`;
-      return false;
-    }
   }
 
   get audioUrl() {
