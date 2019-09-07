@@ -1,10 +1,10 @@
 <template>
   <v-data-table
     :headers="headers"
-    :pagination.sync="pagination"
-    hide-actions
+    :pagination.sync="customPagination"
     :items="items"
     v-bind="datatableProps"
+    v-on="$listeners"
   >
     <template slot="items" slot-scope="{ item }">
       <tr :style="getTableRowStyle(item)">
@@ -12,6 +12,7 @@
           v-for="( value , key, index) in headers"
           :class="getStyles(value, item)"
           :key="getKey(item, value.value, index)"
+          v-bind="getAttributes(item, value.value)"
         >
           <template v-if="computedComponent[value.value]">
             <table-data
@@ -33,6 +34,10 @@
     <template slot="footer">
       <slot name="table-footer"></slot>
     </template>
+
+    <template slot="no-results">
+      <slot name="table-no-results"></slot>
+    </template>
   </v-data-table>
 </template>
 
@@ -50,7 +55,16 @@ interface IAnyObject {
   components: { TableData }
 })
 export default class DataTable extends Vue {
-  pagination = { rowsPerPage: -1 };
+  @Prop({ default: () => ({ rowsPerPage: -1 }) })
+  pagination!: any;
+
+  get customPagination() {
+    return this.pagination;
+  }
+
+  set customPagination(newPagination: any) {
+    // not used but needed for customPagination getter
+  }
 
   // separator for array.join
   @Prop({ default: ", " })
@@ -77,11 +91,14 @@ export default class DataTable extends Vue {
   @Prop({ default: () => ({}) })
   componentData!: { [key: string]: any };
 
+  @Prop({ default: () => ({}) })
+  tdAttributes!: { [key: string]: any };
+
   // Items for v-data-table component
   @Prop() items!: any[];
 
   // Props for v-data-table component
-  @Prop({ default: () => ({}) })
+  @Prop({ default: () => ({ hideActions: true }) })
   datatableProps!: IAnyObject;
 
   // Headers for v-data-table component
@@ -120,6 +137,10 @@ export default class DataTable extends Vue {
       return _.get(item, value).join(this.separator);
     }
     return _.get(item, value, this.missingFileCb(value));
+  }
+
+  getAttributes(item: any, value: string) {
+    return this.tdAttributes[value] || {};
   }
 
   computedCb(value: string, item: any) {
