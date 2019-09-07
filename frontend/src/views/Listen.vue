@@ -21,7 +21,7 @@ import { functions } from 'firebase';
         </div>
       </v-card-title>
       <v-card-title primary-title>
-        <audio controls="controls" :src="audioUrl" style="display: block; width: 100%;">
+        <audio ref="audioPlayer" controls="controls" :src="audioUrl" style="display: block; width: 100%;">
           Your browser does not support embedding audio. Please click
           <a :href="audioUrl">this link</a>.
         </audio>
@@ -62,16 +62,18 @@ import { Component, Vue } from "vue-property-decorator";
 export default class ListenAudio extends Vue {
   fileName: string = "";
   errorMessage = "";
-  audio!: HTMLMediaElement;
+
+  $refs!: {
+    audioPlayer: HTMLMediaElement;
+  };
 
   mounted() {
     this.fileName = this.$route.params.fileName;
-    this.audio = document.querySelector("audio") as HTMLMediaElement;
-    this.audio.addEventListener("error", this.handleFileError);
+    this.$refs.audioPlayer.addEventListener("error", this.handleFileError);
   }
 
   destroyed() {
-    this.audio.removeEventListener("error", this.handleFileError);
+    this.$refs.audioPlayer.removeEventListener("error", this.handleFileError);
   }
 
   handleFileError(e: any) {
