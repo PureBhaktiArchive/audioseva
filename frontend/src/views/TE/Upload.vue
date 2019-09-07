@@ -71,7 +71,11 @@ import moment from "moment";
 import firebase from "firebase/app";
 import "firebase/storage";
 
-import { getTaskId, validateFlacFile } from "@/utility";
+import {
+  getTaskId,
+  trackEditingUploadsBucket,
+  validateFlacFile
+} from "@/utility";
 
 interface IFileStatus {
   progress?: number;
@@ -98,9 +102,7 @@ export default class Upload extends Vue {
   files: Map<File, IFileStatus> = new Map();
   totalUploadCount: number = 0;
   completedFileUploads: number = 0;
-  uploadsBucket = firebase
-    .app()
-    .storage(`te.uploads.${process.env.VUE_APP_PROJECT_DOMAIN}`);
+  uploadsBucket = firebase.app().storage(trackEditingUploadsBucket);
 
   $refs!: {
     myDropzone: any;

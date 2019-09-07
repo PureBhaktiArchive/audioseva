@@ -146,6 +146,11 @@ export const router = new Router({
           },
           children: [
             {
+              path: "tasks",
+              component: () => import("@/views/TE/Tasks.vue"),
+              meta: { menuItem: true }
+            },
+            {
               path: "allot",
               component: () => import("@/views/TE/Allotment.vue"),
               meta: { menuItem: true }

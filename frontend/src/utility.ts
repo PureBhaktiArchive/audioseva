@@ -3,9 +3,24 @@ import _ from "lodash";
 import moment from "moment";
 import { ICount } from "@/types/DataTable";
 
+export const trackEditingUploadsBucket = `te.uploads.${
+  process.env.VUE_APP_PROJECT_DOMAIN
+}`;
+
 export function getDayDifference(date: number) {
   return moment().diff(date, "days");
 }
+
+export const getDaysPassed = (timestampPath: string) => (
+  value: string,
+  item: any
+) => {
+  const dateGiven = _.get(item, timestampPath, false);
+  if (typeof dateGiven === "number") {
+    return getDayDifference(dateGiven);
+  }
+  return "";
+};
 
 type MomentDateOrString = string | moment.Moment;
 
