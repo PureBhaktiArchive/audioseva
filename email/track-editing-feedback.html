@@ -1,26 +1,22 @@
 <body>
   <p>Hare Krsna! Dandavat Pranams.</p>
   <p>
-    Below are the details of the
-    <b>Track Editing Check</b> feedback.
+    The output of the task {{ params.task.id }} is not approved. Find the
+    details of the <b>Track Editing Check</b> feedback below. Please re-edit the
+    file and upload it again
+    <a href="https://app.{{ params.settings.project.domain }}/te/upload">here</a
+    >.
   </p>
   <p>
     <b>{{ params.resolution.feedback }}</b>
   </p>
-  <p>
-    <b
-      >Please re-edit the file and upload it again
-      <a href="https://app.{{ params.settings.project.domain }}/te/upload"
-        >here</a
-      >.</b
-    >
-  </p>
 
   <p style="color: red;font-weight: bold">DETAILS OF THE TASK:</p>
-  <p><b>Task ID:</b> {{ task.id }}</p>
+
+  <p><b>Task ID:</b> {{ params.task.id }}</p>
   <p><b>Task Definition:</b></p>
   <ol>
-    {% for chunk in task.chunks %}
+    {% for chunk in params.task.chunks %}
     <li>
       <a
         href="https://storage.googleapis.com/original.{{
@@ -34,6 +30,7 @@
           {{ unwantedPart.beginning }}&ndash;{{ unwantedPart.ending }},
           {{ unwantedPart.type }}, {{ unwantedPart.description }}
         </li>
+        {% endfor %}
       </ul>
     </li>
     {% endfor %}
