@@ -148,22 +148,28 @@ export class TrackEditingWorkflow {
 
   static async processResolution(
     taskId: string,
-    versionNumber: number,
+    versionKey: number,
     resolution: FileResolution
   ) {
     const task = await this.getTask(taskId);
-    if (resolution.isApproved) {
-      await this.getTaskRef(taskId).update({
-        status: AllotmentStatus.Done,
-        timestampDone: admin.database.ServerValue.TIMESTAMP,
-      });
+    console.info(
+      `Processing resolution of ${taskId}: ${
+        resolution.isApproved ? 'approved' : 'disapproved'
+      } with feedback “${resolution.feedback}”.`
+    );
 
+    if (resolution.isApproved) {
       // Saving the approved file to the final storage bucket
       await admin
         .storage()
         .bucket(StorageManager.trackEditedUploadsBucket)
-        .file(task.versions[versionNumber].uploadPath)
-        .copy(admin.storage().bucket(StorageManager.trackEditedFilesBucket));
+        .file(task.versions[versionKey].uploadPath)
+        .copy(admin.storage().bucket(StorageManager.trackEditedFinalBucket));
+
+      await this.getTaskRef(taskId).update({
+        status: AllotmentStatus.Done,
+        timestampDone: admin.database.ServerValue.TIMESTAMP,
+      });
     } else
       await admin
         .database()
@@ -172,10 +178,7 @@ export class TrackEditingWorkflow {
           to: task.assignee.emailAddress,
           template: 'track-editing-feedback',
           params: {
-            task: {
-              id: taskId,
-              ...task,
-            },
+            task,
             resolution,
           },
         });

@@ -2,10 +2,8 @@
  * sri sri guru gauranga jayatah
  */
 
-import { DateTime } from 'luxon';
-
 export class FileResolution {
-  timestamp: DateTime;
+  timestamp: number;
   isApproved: boolean;
   feedback: string;
 }

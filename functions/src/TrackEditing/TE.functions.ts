@@ -34,13 +34,11 @@ export const processUpload = functions.storage
   });
 
 export const processResolution = functions.database
-  .ref('/TE/tasks/{taskId}/versions/{versionNumber}/resolution')
-  .onUpdate(
-    async (change, { params: { taskId, versionNumber } }): Promise<any> => {
-      await TrackEditingWorkflow.processResolution(
-        taskId,
-        versionNumber,
-        change.after.val()
-      );
-    }
-  );
+  .ref('/TE/tasks/{taskId}/versions/{versionKey}/resolution')
+  .onCreate(async (resolution, { params: { taskId, versionKey } }) => {
+    await TrackEditingWorkflow.processResolution(
+      taskId,
+      versionKey,
+      resolution.val()
+    );
+  });
