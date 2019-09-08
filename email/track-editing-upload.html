@@ -5,11 +5,19 @@
     {% endfor %}
   </div>
 
-  <p><b>Track Edited File Link:</b> {{ task.uploadURL }}</p>
+  <p>
+    <b>Track Edited File Link:</b>
+    <a
+      href="https://storage.googleapis.com/te.uploads.{{
+        params.settings.project.domain
+      }}/{{ params.lastVersion.uploadPath }}"
+      >{{ params.task.id }}</a
+    >
+  </p>
   <p>
     <a
       href="https://app.{{ params.settings.project.domain }}/te/tasks/{{
-        task.id
+        params.task.id
       }}"
     >
       Review
@@ -18,10 +26,10 @@
 
   <p style="color: red;font-weight: bold">DETAILS OF THE TASK:</p>
 
-  <p><b>Task ID:</b> {{ task.id }}</p>
+  <p><b>Task ID:</b> {{ params.task.id }}</p>
   <p><b>Task Definition:</b></p>
   <ol>
-    {% for chunk in task.chunks %}
+    {% for chunk in params.task.chunks %}
     <li>
       <a
         href="https://storage.googleapis.com/original.{{
@@ -35,6 +43,7 @@
           {{ unwantedPart.beginning }}&ndash;{{ unwantedPart.ending }},
           {{ unwantedPart.type }}, {{ unwantedPart.description }}
         </li>
+        {% endfor %}
       </ul>
     </li>
     {% endfor %}
