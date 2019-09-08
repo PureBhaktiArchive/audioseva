@@ -95,23 +95,29 @@ export class TrackEditingWorkflow {
   static async processUpload(object: ObjectMetadata) {
     const uid = object.name.match(/^([^/]+)/)[0];
     const taskId = path.basename(object.name, '.flac');
-    const task = await TrackEditingWorkflow.getTask(taskId);
 
     const user = await admin.auth().getUser(uid);
-    console.info(`Processing upload of ${taskId} by ${user.displayName}.`);
+    console.info(`Processing upload of ${taskId} by ${user.email}.`);
 
-    const warnings = [];
+    let task = await TrackEditingWorkflow.getTask(taskId);
+    if (!task.assignee) throw new Error(`Task is not assigned.`);
 
     if (task.assignee.emailAddress !== user.email)
-      warnings.push(
+      throw new Error(
         `Task is assigned to ${task.assignee.emailAddress}, uploaded by ${user.email}.`
       );
 
-    if (task.status === AllotmentStatus.Done)
-      warnings.push('Task is already Done.');
+    // Update the task status if it is not in Done status
+    await this.getTaskRef(taskId)
+      .child('status')
+      .transaction((current: string) => {
+        return current !== AllotmentStatus.Done
+          ? AllotmentStatus.WIP
+          : undefined;
+      });
 
     const version = new FileVersion({
-      timestamp: DateTime.fromISO(object.timeCreated),
+      timestamp: DateTime.fromISO(object.timeCreated).toMillis(),
       uploadPath: object.name,
     });
 
@@ -119,12 +125,12 @@ export class TrackEditingWorkflow {
       .child('versions')
       .push(version);
 
-    // Update the task status if it is not in Done status
-    if (task.status !== AllotmentStatus.Done) {
-      await this.getTaskRef(taskId).update({
-        status: AllotmentStatus.WIP,
-      });
-    }
+    task = await TrackEditingWorkflow.getTask(taskId);
+
+    const warnings = [];
+
+    if (task.status === AllotmentStatus.Done)
+      warnings.push('Task is already Done.');
 
     // Notify the user
     await admin
@@ -134,6 +140,7 @@ export class TrackEditingWorkflow {
         template: 'track-editing-upload',
         params: {
           task,
+          lastVersion: task.lastVersion,
           warnings,
         },
       });

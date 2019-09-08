@@ -2,11 +2,10 @@
  * sri sri guru gauranga jayatah
  */
 
-import { DateTime } from 'luxon';
 import { FileResolution } from './FileResolution';
 
 export class FileVersion {
-  timestamp: DateTime;
+  timestamp: number;
   uploadPath: string;
   resolution: FileResolution;
 

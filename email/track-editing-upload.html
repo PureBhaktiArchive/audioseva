@@ -7,14 +7,12 @@
 
   <p>
     <b>Track Edited File Link:</b>
-    {% with params.task.versions | last as lastVersion %}
     <a
       href="https://storage.googleapis.com/te.uploads.{{
         params.settings.project.domain
-      }}/{{ lastVersion.uploadPath }}"
+      }}/{{ params.lastVersion.uploadPath }}"
       >{{ params.task.id }}</a
     >
-    {% endwith %}
   </p>
   <p>
     <a
