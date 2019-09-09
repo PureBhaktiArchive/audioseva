@@ -156,6 +156,11 @@ export const router = new Router({
               meta: { menuItem: true }
             },
             {
+              path: "my",
+              component: () => import("@/views/TE/MyTasks.vue"),
+              meta: { menuItem: true, menuLinkName: "My Tasks" }
+            },
+            {
               path: "upload",
               component: () => import("@/views/TE/Upload.vue"),
               meta: { menuItem: true, auth: { requireClaims: { TE: true } } }

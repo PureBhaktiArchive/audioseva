@@ -12,7 +12,13 @@
       <p class="mb-0">{{ lastResolution.feedback }}</p>
       <p class="subtext">{{ timestamp }}</p>
     </div>
-    <v-btn class="ml-0" v-else-if="!lastResolution && item.status === 'WIP'" :to="`tasks/${item['.key']}`">Review</v-btn>
+    <v-btn
+      class="ml-0"
+      v-else-if="showReviewButton && !lastResolution && item.status === 'WIP'"
+      :to="`tasks/${item['.key']}`"
+    >
+      Review
+    </v-btn>
   </div>
 </template>
 
@@ -31,6 +37,8 @@ export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
 ) {
   @Prop() item!: any;
   @Prop() value!: string;
+  @Prop({ default: true })
+  showReviewButton!: boolean;
 
   get timestamp() {
     return this.formatTimestamp(this.lastResolution.timestamp);
