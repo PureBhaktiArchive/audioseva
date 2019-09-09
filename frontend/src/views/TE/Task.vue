@@ -71,8 +71,8 @@
               </template>
               <v-form ref="form">
                 <v-textarea v-model="form.feedback" outline :rules="fieldRules" label="Feed back"></v-textarea>
-                <v-btn color="success" @click="handleSubmitForm(true)">Approve</v-btn>
-                <v-btn color="error" @click="handleSubmitForm(false)">Disapprove</v-btn>
+                <v-btn color="success" @click="handleSubmitForm(true, key)">Approve</v-btn>
+                <v-btn color="error" @click="handleSubmitForm(false, key)">Disapprove</v-btn>
               </v-form>
             </v-timeline-item>
           </template>
@@ -135,13 +135,13 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     this.isCoordinator = claims.coordinator;
   }
 
-  async handleSubmitForm(isApproved = false) {
+  async handleSubmitForm(isApproved = false, versionKey: string) {
     this.form.isApproved = isApproved;
     this.$nextTick(async () => {
       if ((this.$refs as any).form[0].validate()) {
         const versionToUpdate = `/TE/tasks/${
           this.$route.params.taskId
-        }/versions/${this.task.versions.length - 1}/resolution`;
+        }/versions/${versionKey}/resolution`;
         await firebase
           .database()
           .ref(versionToUpdate)
