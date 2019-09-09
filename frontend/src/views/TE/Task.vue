@@ -25,8 +25,8 @@
               </v-flex>
             </v-layout>
           </v-timeline-item>
-          <template v-for="(version, index) in task.versions">
-            <v-timeline-item :key="`version-${index}`" :icon="$vuetify.icons.upload" fill-dot>
+          <template v-for="(version, key, index) in task.versions">
+            <v-timeline-item :key="`version-${key}`" :icon="$vuetify.icons.upload" fill-dot>
               <v-layout justify-space-between wrap>
                 <v-flex>
                   <h4 class="pr-2 d-inline">Version {{ index + 1}} uploaded:</h4>
@@ -63,7 +63,7 @@
                 </v-flex>
               </v-layout>
             </v-timeline-item>
-            <v-timeline-item v-else :key="`resolution-${index}`">
+            <v-timeline-item v-else-if="index === versionsLength - 1" :key="`resolution-${key}`">
               <template v-slot:icon>
                 <v-avatar>
                   <img :src="currentUser.photoURL" alt="user avatar" />
@@ -155,6 +155,10 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
 
   get fieldRules() {
     return this.form.isApproved ? [] : [(v: string) => !!v || "Required"];
+  }
+
+  get versionsLength() {
+    return this.task.versions ? Object.keys(this.task.versions).length : 0;
   }
 
   @Watch("form.feedback")
