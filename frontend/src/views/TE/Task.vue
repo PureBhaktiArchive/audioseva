@@ -20,7 +20,7 @@
               <v-flex xs7>
                 <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
               </v-flex>
-              <v-flex text-xs-right>
+              <v-flex text-xs-right v-if="task.timestampGiven">
                 {{ formatTimestamp(task.timestampGiven) }}
               </v-flex>
             </v-layout>
@@ -32,7 +32,7 @@
                   <h4 class="pr-2 d-inline">Version {{ index + 1}} uploaded:</h4>
                   <a :href="version.uploadPath">{{ task[".key"]}}</a>
                 </v-flex>
-                <v-flex text-xs-right>{{ formatTimestamp(version.timestamp)}}</v-flex>
+                <v-flex v-if="version.timestamp" text-xs-right>{{ formatTimestamp(version.timestamp)}}</v-flex>
               </v-layout>
             </v-timeline-item>
             <v-timeline-item
@@ -56,7 +56,7 @@
                     <p class="mb-0" v-if="version.resolution.feedback">{{ version.resolution.feedback }}</p>
                   </div>
                 </v-flex>
-                <v-flex xs3 sm3 text-xs-right>
+                <v-flex xs3 sm3 text-xs-right v-if="version.resolution.timestamp">
                   <p class="mb-0">
                     {{ formatTimestamp(version.resolution.timestamp)}}
                   </p>
