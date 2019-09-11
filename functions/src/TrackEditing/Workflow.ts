@@ -153,7 +153,7 @@ export class TrackEditingWorkflow {
   ) {
     const task = await this.getTask(taskId);
     console.info(
-      `Processing resolution of ${taskId}: ${
+      `Processing resolution of ${taskId} (version ${versionKey}): ${
         resolution.isApproved
           ? 'approved'
           : `disapproved with feedback “${resolution.feedback}”`
