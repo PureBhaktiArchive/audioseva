@@ -148,14 +148,16 @@ export class TrackEditingWorkflow {
 
   static async processResolution(
     taskId: string,
-    versionKey: number,
+    versionKey: string,
     resolution: FileResolution
   ) {
     const task = await this.getTask(taskId);
     console.info(
       `Processing resolution of ${taskId}: ${
-        resolution.isApproved ? 'approved' : 'disapproved'
-      } with feedback “${resolution.feedback}”.`
+        resolution.isApproved
+          ? 'approved'
+          : `disapproved with feedback “${resolution.feedback}”`
+      }.`
     );
 
     if (resolution.isApproved) {
@@ -166,9 +168,22 @@ export class TrackEditingWorkflow {
         .file(task.versions[versionKey].uploadPath)
         .copy(admin.storage().bucket(StorageManager.trackEditedFinalBucket));
 
+      // Updating the database
       await this.getTaskRef(taskId).update({
         status: AllotmentStatus.Done,
         timestampDone: admin.database.ServerValue.TIMESTAMP,
+      });
+
+      // Updating the spreadsheet
+      const sheet = await this.allotmentsSheet();
+
+      const rowNumber = await sheet.findDataRowNumber('Task ID', taskId);
+      if (!rowNumber)
+        throw new Error(`Task ${taskId} is not found in the allotments sheet.`);
+
+      await sheet.updateRow(rowNumber, {
+        Status: AllotmentStatus.Done,
+        'Date Done': DateTimeConverter.toSerialDate(DateTime.local()),
       });
     } else
       await admin
