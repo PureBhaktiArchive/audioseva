@@ -166,7 +166,7 @@ export class TrackEditingWorkflow {
         .storage()
         .bucket(StorageManager.trackEditedUploadsBucket)
         .file(task.versions[versionKey].uploadPath)
-        .copy(admin.storage().bucket(StorageManager.trackEditedFinalBucket));
+        .copy(StorageManager.getEditedFile(taskId));
 
       // Updating the database
       await this.getTaskRef(taskId).update({
