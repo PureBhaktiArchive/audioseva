@@ -63,7 +63,7 @@
                 </v-flex>
               </v-layout>
             </v-timeline-item>
-            <v-timeline-item v-else-if="index === versionsLength - 1" :key="`resolution-${key}`">
+            <v-timeline-item v-else-if="index === versionsCount - 1" :key="`resolution-${key}`">
               <template v-slot:icon>
                 <v-avatar>
                   <img :src="currentUser.photoURL" alt="user avatar" />
@@ -157,7 +157,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     return this.form.isApproved ? [] : [(v: string) => !!v || "Required"];
   }
 
-  get versionsLength() {
+  get versionsCount() {
     return this.task.versions ? Object.keys(this.task.versions).length : 0;
   }
 
