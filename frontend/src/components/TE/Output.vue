@@ -1,6 +1,6 @@
 <template>
   <div v-if="item.versions">
-    <span>Version {{ item.versions.length }}: <a :href="lastVersionLink">{{ item[".key"] }}</a></span>
+    <span>Version {{ versionNumber }}: <a :href="lastVersionLink">{{ item[".key"] }}</a></span>
     <p class="subtext">{{ timestamp }}</p>
   </div>
 </template>
@@ -27,6 +27,10 @@ export default class Output extends Mixins<LastVersionMixin, FormatTime>(
 
   get lastVersionLink() {
     return `http://${trackEditingUploadsBucket}/${this.lastVersion.uploadPath}`;
+  }
+
+  get versionNumber() {
+    return Object.keys(this.item.versions).length;
   }
 }
 </script>

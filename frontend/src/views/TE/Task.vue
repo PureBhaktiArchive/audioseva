@@ -20,19 +20,19 @@
               <v-flex xs7>
                 <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
               </v-flex>
-              <v-flex text-xs-right>
+              <v-flex text-xs-right v-if="task.timestampGiven">
                 {{ formatTimestamp(task.timestampGiven) }}
               </v-flex>
             </v-layout>
           </v-timeline-item>
-          <template v-for="(version, index) in task.versions">
-            <v-timeline-item :key="`version-${index}`" :icon="$vuetify.icons.upload" fill-dot>
+          <template v-for="(version, key, index) in task.versions">
+            <v-timeline-item :key="`version-${key}`" :icon="$vuetify.icons.upload" fill-dot>
               <v-layout justify-space-between wrap>
                 <v-flex>
                   <h4 class="pr-2 d-inline">Version {{ index + 1}} uploaded:</h4>
                   <a :href="version.uploadPath">{{ task[".key"]}}</a>
                 </v-flex>
-                <v-flex text-xs-right>{{ formatTimestamp(version.timestamp)}}</v-flex>
+                <v-flex v-if="version.timestamp" text-xs-right>{{ formatTimestamp(version.timestamp)}}</v-flex>
               </v-layout>
             </v-timeline-item>
             <v-timeline-item
@@ -56,14 +56,14 @@
                     <p class="mb-0" v-if="version.resolution.feedback">{{ version.resolution.feedback }}</p>
                   </div>
                 </v-flex>
-                <v-flex xs3 sm3 text-xs-right>
+                <v-flex xs3 sm3 text-xs-right v-if="version.resolution.timestamp">
                   <p class="mb-0">
                     {{ formatTimestamp(version.resolution.timestamp)}}
                   </p>
                 </v-flex>
               </v-layout>
             </v-timeline-item>
-            <v-timeline-item v-else :key="`resolution-${index}`">
+            <v-timeline-item v-else-if="index === versionsCount - 1" :key="`resolution-${key}`">
               <template v-slot:icon>
                 <v-avatar>
                   <img :src="currentUser.photoURL" alt="user avatar" />
@@ -71,8 +71,8 @@
               </template>
               <v-form ref="form">
                 <v-textarea v-model="form.feedback" outline :rules="fieldRules" label="Feed back"></v-textarea>
-                <v-btn color="success" @click="handleSubmitForm(true)">Approve</v-btn>
-                <v-btn color="error" @click="handleSubmitForm(false)">Disapprove</v-btn>
+                <v-btn color="success" @click="handleSubmitForm(true, key)">Approve</v-btn>
+                <v-btn color="error" @click="handleSubmitForm(false, key)">Disapprove</v-btn>
               </v-form>
             </v-timeline-item>
           </template>
@@ -135,13 +135,13 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     this.isCoordinator = claims.coordinator;
   }
 
-  async handleSubmitForm(isApproved = false) {
+  async handleSubmitForm(isApproved = false, versionKey: string) {
     this.form.isApproved = isApproved;
     this.$nextTick(async () => {
       if ((this.$refs as any).form[0].validate()) {
         const versionToUpdate = `/TE/tasks/${
           this.$route.params.taskId
-        }/versions/${this.task.versions.length - 1}/resolution`;
+        }/versions/${versionKey}/resolution`;
         await firebase
           .database()
           .ref(versionToUpdate)
@@ -155,6 +155,10 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
 
   get fieldRules() {
     return this.form.isApproved ? [] : [(v: string) => !!v || "Required"];
+  }
+
+  get versionsCount() {
+    return this.task.versions ? Object.keys(this.task.versions).length : 0;
   }
 
   @Watch("form.feedback")
