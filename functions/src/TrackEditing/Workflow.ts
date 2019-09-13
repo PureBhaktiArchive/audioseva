@@ -148,22 +148,43 @@ export class TrackEditingWorkflow {
 
   static async processResolution(
     taskId: string,
-    versionNumber: number,
+    versionKey: string,
     resolution: FileResolution
   ) {
     const task = await this.getTask(taskId);
+    console.info(
+      `Processing resolution of ${taskId} (version ${versionKey}): ${
+        resolution.isApproved
+          ? 'approved'
+          : `disapproved with feedback “${resolution.feedback}”`
+      }.`
+    );
+
     if (resolution.isApproved) {
+      // Saving the approved file to the final storage bucket
+      await admin
+        .storage()
+        .bucket(StorageManager.trackEditedUploadsBucket)
+        .file(task.versions[versionKey].uploadPath)
+        .copy(StorageManager.getEditedFile(taskId));
+
+      // Updating the database
       await this.getTaskRef(taskId).update({
         status: AllotmentStatus.Done,
         timestampDone: admin.database.ServerValue.TIMESTAMP,
       });
 
-      // Saving the approved file to the final storage bucket
-      await admin
-        .storage()
-        .bucket(StorageManager.trackEditedUploadsBucket)
-        .file(task.versions[versionNumber].uploadPath)
-        .copy(admin.storage().bucket(StorageManager.trackEditedFilesBucket));
+      // Updating the spreadsheet
+      const sheet = await this.allotmentsSheet();
+
+      const rowNumber = await sheet.findDataRowNumber('Task ID', taskId);
+      if (!rowNumber)
+        throw new Error(`Task ${taskId} is not found in the allotments sheet.`);
+
+      await sheet.updateRow(rowNumber, {
+        Status: AllotmentStatus.Done,
+        'Date Done': DateTimeConverter.toSerialDate(DateTime.local()),
+      });
     } else
       await admin
         .database()
@@ -172,10 +193,7 @@ export class TrackEditingWorkflow {
           to: task.assignee.emailAddress,
           template: 'track-editing-feedback',
           params: {
-            task: {
-              id: taskId,
-              ...task,
-            },
+            task,
             resolution,
           },
         });
