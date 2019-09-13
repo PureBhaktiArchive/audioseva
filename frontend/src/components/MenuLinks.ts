@@ -8,6 +8,12 @@ export default class MenuLinks extends Vue {
   routes!: any;
   @Prop() parentRoute!: any;
 
+  getMenuLink({ meta, path }: any) {
+    if (meta && meta.menuLinkName) return meta.menuLinkName;
+
+    return path === "" ? "List" : `${path[0].toUpperCase()}${path.slice(1)}`;
+  }
+
   renderMenuLinks(
     createElement: any,
     route: any,
@@ -76,12 +82,7 @@ export default class MenuLinks extends Vue {
           },
           [
             createElement("v-list-tile-content", [
-              createElement(
-                "v-list-tile-title",
-                route.path === ""
-                  ? "List"
-                  : `${route.path[0].toUpperCase()}${route.path.slice(1)}`
-              )
+              createElement("v-list-tile-title", this.getMenuLink(route))
             ])
           ]
         );
