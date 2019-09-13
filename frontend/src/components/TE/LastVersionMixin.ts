@@ -4,7 +4,8 @@ import { Component, Vue } from "vue-property-decorator";
 export default class LastVersionMixin extends Vue {
   get lastVersion() {
     return (
-      this.item.versions && this.item.versions[this.item.versions.length - 1]
+      this.item.versions &&
+      (Object.values(this.item.versions).pop() as { [key: string]: any })
     );
   }
 
