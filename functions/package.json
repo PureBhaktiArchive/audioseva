@@ -23,6 +23,7 @@
     "googleapis": "^40.0.0",
     "lodash": "^4.17.14",
     "luxon": "^1.16.0",
+    "morphism": "^1.12.1",
     "sib-api-v3-sdk": "^7.1.4",
     "uuid": "^3.3.2"
   },
