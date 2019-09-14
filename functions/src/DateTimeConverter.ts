@@ -44,7 +44,7 @@ export class DateTimeConverter {
    * @returns duration object
    */
   public static durationFromHuman(timing: string): Duration {
-    const match = /^\s*(?:(0?[1-3]):)?([0-5]?\d):([0-5]?\d)\s*$/.exec(timing);
+    const match = /^\s*(?:(0?[0-3]):)?([0-5]?\d):([0-5]?\d)\s*$/.exec(timing);
     if (!match) return Duration.invalid('Incorrect format');
     const [, hours = 0, minutes = NaN, seconds = NaN] = match;
     return Duration.fromObject({
@@ -52,5 +52,24 @@ export class DateTimeConverter {
       minutes: +minutes,
       hours: +hours,
     });
+  }
+
+  /**
+   * Converts a duration to human format `[hh:]mm:ss`
+   * @param duration Luxon Duration object
+   * @returns Duration in `[hh:]mm:ss` format
+   */
+  public static durationToHuman(duration: Duration): string {
+    return duration.as('hours') >= 1
+      ? duration.toFormat('h:mm:ss')
+      : duration.toFormat('m:ss');
+  }
+
+  public static humanToSeconds(timing: string): number {
+    return this.durationFromHuman(timing).as('seconds');
+  }
+
+  public static secondsToHuman(seconds: number): string {
+    return this.durationToHuman(Duration.fromObject({ seconds }));
   }
 }

@@ -23,14 +23,19 @@ describe.each`
   });
 });
 
-describe('Duration parsing', () => {
+describe('Duration conversion', () => {
   test.each`
-    timing       | iso
-    ${'23:03'}   | ${'PT23M3S'}
-    ${'1:03:54'} | ${'PT1H3M54S'}
-  `('parses $timing as $duration', ({ timing, iso }) => {
+    timing       | iso            | formatted
+    ${'23:03'}   | ${'PT23M3S'}   | ${null}
+    ${'1:03:54'} | ${'PT1H3M54S'} | ${null}
+    ${'0:07:23'} | ${'PT7M23S'}   | ${'7:23'}
+  `('parses $timing as $iso', ({ timing, iso, formatted }) => {
     expect(DateTimeConverter.durationFromHuman(timing).valueOf()).toEqual(
       Duration.fromISO(iso).valueOf()
+    );
+
+    expect(DateTimeConverter.durationToHuman(Duration.fromISO(iso))).toEqual(
+      formatted || timing
     );
   });
 
