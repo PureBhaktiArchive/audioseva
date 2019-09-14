@@ -184,6 +184,7 @@ type FileVersion {
 }
 
 type TrackEditingTask extends Allotment {
+  isRestored: Boolean,
   chunks: AudioChunk[],
   versions: FileVersion[],
 

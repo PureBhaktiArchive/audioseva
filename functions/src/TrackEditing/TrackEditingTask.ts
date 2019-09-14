@@ -13,6 +13,7 @@ interface FileVersionMap {
 
 export class TrackEditingTask extends Allotment {
   id: string;
+  isRestored: boolean;
   chunks: AudioChunk[];
   versions: FileVersionMap;
 
