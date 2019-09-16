@@ -27,4 +27,8 @@ export class TrackEditingTask extends Allotment {
     const lastVersionKey = _.findLastKey(this.versions);
     return this.versions[lastVersionKey];
   }
+
+  public toString(): string {
+    return this.id;
+  }
 }
