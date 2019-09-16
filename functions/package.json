@@ -7,6 +7,7 @@
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "test": "jest",
+    "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
