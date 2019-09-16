@@ -48,9 +48,11 @@ export class AudioAnnotationArray extends Array<AudioAnnotation> {
   }
 
   static parse(text: string) {
-    return new AudioAnnotationArray(
-      text.split('\n').map(line => AudioAnnotation.parse(line))
-    );
+    return text
+      ? new AudioAnnotationArray(
+          text.split('\n').map(line => AudioAnnotation.parse(line))
+        )
+      : [];
   }
 
   public toString(): string {

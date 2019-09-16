@@ -37,4 +37,12 @@ describe('Audio Annotation parsing and formatting', () => {
     expect(annotations.toString()).toEqual(source);
     expect(`${annotations}`).toEqual(source);
   });
+
+  test.each`
+    input
+    ${''}
+    ${null}
+  `('empty', ({ input }) => {
+    expect(AudioAnnotationArray.parse(input)).toEqual([]);
+  });
 });
