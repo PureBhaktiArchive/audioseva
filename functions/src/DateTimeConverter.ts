@@ -44,14 +44,21 @@ export class DateTimeConverter {
    * @returns duration object
    */
   public static durationFromHuman(timing: string): Duration {
-    const match = /^\s*(?:(0?[0-3]):)?([0-5]?\d):([0-5]?\d)\s*$/.exec(timing);
-    if (!match) return Duration.invalid('Incorrect format');
-    const [, hours = 0, minutes = NaN, seconds = NaN] = match;
-    return Duration.fromObject({
-      seconds: +seconds,
-      minutes: +minutes,
-      hours: +hours,
-    });
+    const patterns = [
+      /^(?:(0?[0-3])\:)?([0-5]?\d)\:([0-5]?\d)$/,
+      /^(?:(0?[0-3])\.)?([0-5]?\d)\.([0-5]?\d)$/,
+    ];
+    for (const pattern of patterns) {
+      const match = pattern.exec(timing.trim());
+      if (!match) continue;
+      const [, hours = 0, minutes, seconds] = match;
+      return Duration.fromObject({
+        seconds: +seconds,
+        minutes: +minutes,
+        hours: +hours,
+      });
+    }
+    return Duration.invalid('Incorrect format');
   }
 
   /**

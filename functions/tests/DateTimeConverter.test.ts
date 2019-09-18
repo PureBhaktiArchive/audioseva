@@ -25,10 +25,13 @@ describe.each`
 
 describe('Duration conversion', () => {
   test.each`
-    timing       | iso            | formatted
-    ${'23:03'}   | ${'PT23M3S'}   | ${null}
-    ${'1:03:54'} | ${'PT1H3M54S'} | ${null}
-    ${'0:07:23'} | ${'PT7M23S'}   | ${'7:23'}
+    timing       | iso             | formatted
+    ${'12.4'}    | ${'PT12M4S'}    | ${'12:04'}
+    ${'1.30.2'}  | ${'PT1H30M2S'}  | ${'1:30:02'}
+    ${'23:03'}   | ${'PT23M3S'}    | ${null}
+    ${'1:03:54'} | ${'PT1H3M54S'}  | ${null}
+    ${'0:07:23'} | ${'PT7M23S'}    | ${'7:23'}
+    ${'3:59:59'} | ${'PT3H59M59S'} | ${null}
   `('parses $timing as $iso', ({ timing, iso, formatted }) => {
     expect(DateTimeConverter.durationFromHuman(timing).valueOf()).toEqual(
       Duration.fromISO(iso).valueOf()
@@ -41,7 +44,11 @@ describe('Duration conversion', () => {
 
   test.each`
     input
-    ${'12.4'}
+    ${'1:12.4'}
+    ${'1.12:4'}
+    ${'4:01:02'}
+    ${'1:60:02'}
+    ${'6:60'}
     ${'1:03:54:33'}
     ${'7:130'}
   `('returns invalid Duration for “$input”', ({ input }) => {
