@@ -3,10 +3,9 @@
  */
 
 import firebase from "firebase/app";
-
+import _ from "lodash";
 import Vue from "vue";
 import Router, { NavigationGuard, RouteConfig } from "vue-router";
-import _ from "lodash";
 
 Vue.use(Router);
 
@@ -32,16 +31,6 @@ export const router = new Router({
         {
           path: "",
           component: () => import("@/views/DonationReceiptForm.vue")
-        }
-      ]
-    },
-    {
-      path: "/sound-editing/upload/:uploadCode",
-      component: () => import("@/views/Layout/AnonymousLayout.vue"),
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/SE/Upload.vue")
         }
       ]
     },
@@ -80,32 +69,6 @@ export const router = new Router({
           meta: { menuItem: true, menuName: "People", menuIcon: "fas fa-users" }
         },
         {
-          path: "cr/",
-          component: () => import("@/views/CR/CR.vue"),
-          meta: {
-            activator: true,
-            activatorName: "Content Reporting",
-            menuIcon: "far fa-file-audio"
-          },
-          children: [
-            {
-              path: "",
-              component: () => import("@/views/CR/List.vue"),
-              meta: { menuItem: true }
-            },
-            {
-              path: "allot",
-              component: () => import("@/views/CRAllotment.vue"),
-              meta: { menuItem: true }
-            },
-            {
-              path: "allot-new",
-              component: () => import("@/views/CR/Allotment.vue"),
-              meta: { menuItem: true }
-            }
-          ]
-        },
-        {
           path: "sqr/",
           component: () => import("@/views/SQR/SQR.vue"),
           meta: {
@@ -122,16 +85,6 @@ export const router = new Router({
             {
               path: "allot",
               component: () => import("@/views/SQRAllotment.vue"),
-              meta: { menuItem: true }
-            },
-            {
-              path: "allot-new",
-              component: () => import("@/views/SQR/Allotment.vue"),
-              meta: { menuItem: true }
-            },
-            {
-              path: "statistics",
-              component: () => import("@/views/SQR/FileStatistics.vue"),
               meta: { menuItem: true }
             }
           ]
@@ -172,27 +125,6 @@ export const router = new Router({
                 menuItem: false,
                 requireClaims: { TE: true, coordinator: true }
               }
-            }
-          ]
-        },
-        {
-          path: "se/",
-          component: () => import("@/views/SE/SE.vue"),
-          meta: {
-            activator: true,
-            activatorName: "Sound Engineering",
-            menuIcon: "fas fa-music"
-          },
-          children: [
-            {
-              path: "",
-              component: () => import("@/views/SE/Tasks.vue"),
-              meta: { menuItem: true }
-            },
-            {
-              path: "allot",
-              component: () => import("@/views/SE/Allotment.vue"),
-              meta: { menuItem: true }
             }
           ]
         }
