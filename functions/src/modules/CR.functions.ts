@@ -9,12 +9,12 @@ import { DateTimeConverter } from '../DateTimeConverter';
 import * as helpers from '../helpers';
 import { Spreadsheet } from '../Spreadsheet';
 
-export enum SheetNames {
+enum SheetNames {
   Allotments = 'Allotments',
   Submissions = 'Submissions',
 }
 
-export const copySubmissionsToProcessing = functions.pubsub
+const copySubmissionsToProcessing = functions.pubsub
   .topic('daily-tick')
   .onPublish(async () => {
     const onlineSheet = await Spreadsheet.open(
@@ -79,7 +79,7 @@ export const copySubmissionsToProcessing = functions.pubsub
 /**
  * Gets lists with spare files
  */
-export const getLists = functions.https.onCall(async (data, context) => {
+const getLists = functions.https.onCall(async (data, context) => {
   if (!context.auth || !context.auth.token || !context.auth.token.coordinator) {
     throw new functions.https.HttpsError(
       'permission-denied',
@@ -103,7 +103,7 @@ export const getLists = functions.https.onCall(async (data, context) => {
 /**
  * Gets spare files for specified list and languages
  */
-export const getSpareFiles = functions.https.onCall(
+const getSpareFiles = functions.https.onCall(
   async ({ list, languages, count }, context) => {
     if (
       !context.auth ||
@@ -148,7 +148,7 @@ export const getSpareFiles = functions.https.onCall(
 /**
  * Saves allotment to the spreadsheet and sends an email notification
  */
-export const processAllotment = functions.https.onCall(
+const processAllotment = functions.https.onCall(
   async ({ assignee, files, comment }, context) => {
     if (
       !context.auth ||
