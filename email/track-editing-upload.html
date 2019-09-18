@@ -15,37 +15,12 @@
     >
   </p>
   <p>
+    See details of the task and review
     <a
       href="https://app.{{ params.settings.project.domain }}/te/tasks/{{
         params.task.id
       }}"
-    >
-      Review
-    </a>
+      >here</a
+    >.
   </p>
-
-  <p style="color: red;font-weight: bold">DETAILS OF THE TASK:</p>
-
-  <p><b>Task ID:</b> {{ params.task.id }}</p>
-  <p><b>Task Definition:</b></p>
-  <ol>
-    {% for chunk in params.task.chunks %}
-    <li>
-      <a
-        href="https://storage.googleapis.com/original.{{
-          params.settings.project.domain
-        }}/{{ chunk.fileName }}"
-        >{{ chunk.fileName }}</a
-      >&nbsp;{{ chunk.beginning }}&ndash;{{ chunk.ending }}
-      <ul>
-        {% for unwantedPart in chunk.unwantedParts %}
-        <li>
-          {{ unwantedPart.beginning }}&ndash;{{ unwantedPart.ending }},
-          {{ unwantedPart.type }}, {{ unwantedPart.description }}
-        </li>
-        {% endfor %}
-      </ul>
-    </li>
-    {% endfor %}
-  </ol>
 </body>
