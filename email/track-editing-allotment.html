@@ -8,52 +8,22 @@
       >the&nbsp;Track&nbsp;Editor&nbsp;Guidelines&nbsp;here</a
     >.
   </p>
-  <p>The following tasks comprise the current set allotted to you:</p>
-  <table
-    frame="border"
-    cellspacing="4"
-    cellpadding="2"
-    width="100%"
-    rules="all"
-    style="border-collapse:collapse;"
-  >
-    <thead align="left">
-      <tr>
-        <th scope="col">Output File Name</th>
-        <th>Input File Name</th>
-        <th>Timing</th>
-        <th>Unwanted Parts</th>
-      </tr>
-    </thead>
-    <tbody valign="top">
-      {% for task in params.tasks %} {% for chunk in task.chunks %}
-      <tr>
-        {% if forloop.First %}
-        <td rowspan="{{ task.chunks | length }}">{{ task.id }}</td>
-        {% endif %}
-        <td>
-          <a
-            href="https://storage.googleapis.com/original.{{
-              params.settings.project.domain
-            }}/{{ chunk.fileName }}"
-            >{{ chunk.fileName }}</a
-          >
-        </td>
-        <td>{{ chunk.beginning }}&ndash;{{ chunk.ending }}</td>
-        <td>
-          <ul>
-            {% for part in chunk.unwantedParts %}
-            <li>
-              {{ part.beginning }}&ndash;{{ part.ending }}, {{ part.type }},
-              {{ part.description }}
-            </li>
-            {% endfor %}
-          </ul>
-        </td>
-      </tr>
-      {% endfor %} {% endfor %}
-    </tbody>
-  </table>
+  <p>
+    The following tasks comprise the current set allotted to you. Click the
+    links to see the tasks details.
+  </p>
+  <ul>
+    {% for task in params.tasks %}
+    <li>
+      <a
+        href="https://app.{{ params.settings.project.domain }}/te/tasks/{{
+          task.id
+        }}"
+        ><strong>{{ task.id }}</strong></a
+      >
+    </li>
+    {% endfor %}
+  </ul>
 
   <p>{{ params.comment }}</p>
 

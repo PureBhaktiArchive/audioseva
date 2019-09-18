@@ -1,20 +1,20 @@
 <body>
   <p>Hare Krsna! Dandavat Pranams.</p>
   <p>
-    The output of the task {{ params.task.id }} is not approved. Find the
-    details of the <b>Track Editing Check</b> feedback below.
+    The output of the task <strong>{{ params.task.id }}</strong> is not
+    approved. Find the details of the feedback below.
   </p>
   <p style="color: red;font-weight: bold">
     <b>{{ params.resolution.feedback }}</b>
   </p>
 
   <p>
-    See
+    See details of the task
     <a
       href="https://app.{{ params.settings.project.domain }}/te/tasks/{{
         params.task.id
       }}"
-      >details of the task here</a
+      >here</a
     >.
   </p>
 
