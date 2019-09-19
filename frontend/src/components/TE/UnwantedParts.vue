@@ -1,12 +1,14 @@
 <template>
   <div>
     <ul>
-      <li
-        v-for="(unwantedPart, key, index) in unwantedParts"
-        :key="index"
-      >{{ `${formatDurationUtc(unwantedPart.beginning, "mm:ss")}&ndash;${formatDurationUtc(unwantedPart.ending, "mm:ss")},
-        ${unwantedPart.type}, ${unwantedPart.description || ""}` }}
-      </li>
+      <template v-for="(unwantedPart, key, index) in unwantedParts">
+        <li
+          v-if="unwantedPart"
+          :key="index"
+        >{{ `${formatDurationUtc(unwantedPart.beginning, "mm:ss")}&ndash;${formatDurationUtc(unwantedPart.ending, "mm:ss")},
+          ${unwantedPart.type}, ${unwantedPart.description || ""}` }}
+        </li>
+      </template>
     </ul>
   </div>
 </template>
