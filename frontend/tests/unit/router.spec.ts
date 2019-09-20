@@ -1,11 +1,15 @@
 import firebase from "firebase/app";
-import { routerBeforeEach, filterRoutesByClaims } from "@/router";
+import {
+  routerBeforeEach,
+  filterRoutesByClaims,
+  defaultFilterCb
+} from "@/router";
 
 jest.mock("firebase/app", () => ({
   auth: jest.fn(() => ({
     currentUser: {
       getIdTokenResult: async () => {
-        return await {
+        return {
           claims: { SE: true }
         };
       }
@@ -45,7 +49,10 @@ describe("filterRoutesByClaims", () => {
   ];
 
   test("filterRoutesByClaims", () => {
-    const filteredRoutes = filterRoutesByClaims(routes as any, { SE: true });
+    const filteredRoutes = filterRoutesByClaims(defaultFilterCb)(
+      routes as any,
+      { SE: true }
+    );
     expect(filteredRoutes).toMatchSnapshot();
   });
 });

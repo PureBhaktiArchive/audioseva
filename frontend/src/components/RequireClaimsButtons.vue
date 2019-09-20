@@ -1,6 +1,6 @@
 <template>
   <span>
-    <v-btn :key="button.text" v-for="button in buttons" v-bind="button.props">
+    <v-btn :key="`${button.text}-${index}`" v-for="(button, index) in routeButtons" v-bind="button.props">
       {{ button.text }}
     </v-btn>
   </span>
@@ -8,41 +8,72 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import firebase from "firebase/app";
-import "firebase/auth";
+import _ from "lodash";
+import { mapActions } from "vuex";
+import { RouteConfig } from "vue-router";
+import { filterRoutesByClaims, hasClaim } from "@/router";
 
 @Component({
-  name: "RequireClaimsButtons"
+  name: "RequireClaimsButtons",
+  methods: {
+    ...mapActions("user", ["getUserClaims"])
+  }
 })
 export default class RequireClaimsButtons extends Vue {
   userClaims: any = {};
-  initialButtons = [
-    {
-      claims: { TE: true },
-      props: {
-        to: "te/upload",
-        color: "primary"
-      },
-      text: "Upload"
-    }
-  ];
+  routeButtons: any[] = [];
 
-  mounted() {
-    this.getUserClaims();
+  async mounted() {
+    this.userClaims = (await this.getUserClaims()) || {};
+    this.makeButtons();
   }
 
-  get buttons() {
-    return this.initialButtons.filter((button: any) => {
-      return Object.entries(this.userClaims).some(([claimName, claimValue]) => {
-        return button.claims[claimName] === claimValue;
-      });
-    });
-  }
+  makeButtons() {
+    const buttons: any[] = [];
+    const defaultButtonProps = {
+      color: "primary"
+    };
+    const filterCb = (
+      route: RouteConfig,
+      userClaims: any,
+      requiredClaims: any,
+      parentPath: string
+    ): any => {
+      const homePageButton = _.get(route, "meta.homePageLink", false);
+      const fullPath = `${parentPath}${route.path}`;
+      let buttonProps: any;
+      if (homePageButton) {
+        buttonProps = {
+          text: homePageButton.text,
+          props: {
+            ...defaultButtonProps,
+            ...homePageButton.props,
+            to: fullPath
+          }
+        };
+      }
+      if (requiredClaims) {
+        if (hasClaim(requiredClaims, userClaims) && homePageButton) {
+          buttons.push(buttonProps);
+        }
+      } else if (homePageButton) {
+        buttons.push(buttonProps);
+      }
+      if (route.children) {
+        filterRoutesByClaims(filterCb)(
+          route.children,
+          userClaims,
+          requiredClaims,
+          fullPath
+        );
+      }
+    };
 
-  async getUserClaims() {
-    this.userClaims = (await (firebase as any)
-      .auth()
-      .currentUser.getIdTokenResult()).claims;
+    const routes = (this.$router as any).options.routes.find(
+      (route: any) => route.path === "/"
+    ).children;
+    filterRoutesByClaims(filterCb)(routes, this.userClaims, false, "/");
+    this.routeButtons = buttons;
   }
 }
 </script>
