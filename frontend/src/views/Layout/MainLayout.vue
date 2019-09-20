@@ -121,7 +121,7 @@ export default class MainLayout extends Vue {
 
   getMenuItems() {
     if (this.userClaims) {
-      return filterRoutesByClaims(this.routes, this.userClaims);
+      return filterRoutesByClaims()(this.routes, this.userClaims);
     }
     return [];
   }

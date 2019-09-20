@@ -80,7 +80,10 @@ export const router = new Router({
             {
               path: "",
               component: () => import("@/views/SQR/Files.vue"),
-              meta: { menuItem: true }
+              meta: {
+                menuItem: true,
+                homePageLink: { text: "SQR" }
+              }
             },
             {
               path: "allot",
@@ -101,7 +104,10 @@ export const router = new Router({
             {
               path: "tasks",
               component: () => import("@/views/TE/Tasks.vue"),
-              meta: { menuItem: true }
+              meta: {
+                menuItem: true,
+                homePageLink: { text: "Tasks" }
+              }
             },
             {
               path: "allot",
@@ -116,7 +122,11 @@ export const router = new Router({
             {
               path: "upload",
               component: () => import("@/views/TE/Upload.vue"),
-              meta: { menuItem: true, auth: { requireClaims: { TE: true } } }
+              meta: {
+                menuItem: true,
+                auth: { requireClaims: { TE: true } },
+                homePageLink: { text: "Upload" }
+              }
             },
             {
               path: "tasks/:taskId",
@@ -142,10 +152,37 @@ export const hasClaim = (
   );
 };
 
+export const defaultFilterCb = (
+  route: RouteConfig,
+  userClaims: any,
+  requireClaims: any
+): any => {
+  if (route.meta.activator) {
+    const childRoutes = filterRoutesByClaims(defaultFilterCb)(
+      route.children,
+      userClaims,
+      requireClaims
+    );
+    if (childRoutes.length) return { ...route, children: childRoutes };
+  } else if (requireClaims) {
+    if (hasClaim(requireClaims, userClaims)) return route;
+  } else {
+    return route;
+  }
+};
+
 export const filterRoutesByClaims = (
+  filterCb: <T>(
+    route: RouteConfig,
+    userClaims: { [key: string]: any },
+    requireParentClaims: boolean | { [key: string]: any },
+    ...args: any[]
+  ) => T = defaultFilterCb
+) => (
   routes: RouteConfig[] = [],
   userClaims: { [key: string]: any },
-  requireParentClaims: boolean | { [key: string]: any } = false
+  requireParentClaims: boolean | { [key: string]: any } = false,
+  ...args: any[]
 ) => {
   return routes.reduce(
     (filteredRoutes, route) => {
@@ -155,19 +192,13 @@ export const filterRoutesByClaims = (
         requireParentClaims
       );
 
-      if (route.meta.activator) {
-        const childRoutes = filterRoutesByClaims(
-          route.children,
-          userClaims,
-          requireClaims || requireParentClaims
-        );
-        childRoutes.length &&
-          filteredRoutes.push({ ...route, children: childRoutes });
-      } else if (requireClaims) {
-        hasClaim(requireClaims, userClaims) && filteredRoutes.push(route);
-      } else {
-        filteredRoutes.push(route);
-      }
+      const filteredRoute = filterCb<RouteConfig>(
+        route,
+        userClaims,
+        requireClaims,
+        ...args
+      );
+      filteredRoute && filteredRoutes.push(filteredRoute);
       return filteredRoutes;
     },
     [] as RouteConfig[]
