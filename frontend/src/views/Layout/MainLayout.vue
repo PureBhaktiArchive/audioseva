@@ -33,7 +33,7 @@
               v-if="item.meta && item.meta.activator"
               no-action
               :prepend-icon="item.meta.menuIcon"
-              :value="index === 0"
+              :value="true"
             >
               <v-list-tile slot="activator">
                 <v-list-tile-content>
