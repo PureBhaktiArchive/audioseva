@@ -66,7 +66,12 @@ export const router = new Router({
         {
           path: "users",
           component: () => import("@/views/Users/List.vue"),
-          meta: { menuItem: true, menuName: "People", menuIcon: "fas fa-users" }
+          meta: {
+            menuItem: true,
+            menuName: "People",
+            menuIcon: "fas fa-users",
+            auth: { requireClaims: { coordinator: true } }
+          }
         },
         {
           path: "sqr/",
@@ -74,7 +79,8 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Sound Quality Reporting",
-            menuIcon: "fas fa-headphones"
+            menuIcon: "fas fa-headphones",
+            auth: { requireClaims: { coordinator: true } }
           },
           children: [
             {
@@ -95,7 +101,8 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Track Editing",
-            menuIcon: "fas fa-cut"
+            menuIcon: "fas fa-cut",
+            auth: { requireClaims: { coordinator: true } }
           },
           children: [
             {
@@ -111,7 +118,11 @@ export const router = new Router({
             {
               path: "my",
               component: () => import("@/views/TE/MyTasks.vue"),
-              meta: { menuItem: true, menuLinkName: "My Tasks" }
+              meta: {
+                menuItem: true,
+                menuLinkName: "My Tasks",
+                auth: { requireClaims: { TE: true } }
+              }
             },
             {
               path: "upload",
@@ -123,7 +134,7 @@ export const router = new Router({
               component: () => import("@/views/TE/Task.vue"),
               meta: {
                 menuItem: false,
-                requireClaims: { TE: true, coordinator: true }
+                auth: { requireClaims: { TE: true, coordinator: true } }
               }
             }
           ]
