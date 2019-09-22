@@ -51,6 +51,8 @@ describe('Duration conversion', () => {
     ${'6:60'}
     ${'1:03:54:33'}
     ${'7:130'}
+    ${null}
+    ${''}
   `('returns invalid Duration for “$input”', ({ input }) => {
     const duration = DateTimeConverter.durationFromHuman(input);
     expect(duration.isValid).toBeFalsy();

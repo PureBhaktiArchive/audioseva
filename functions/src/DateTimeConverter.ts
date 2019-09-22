@@ -49,7 +49,7 @@ export class DateTimeConverter {
       /^(?:(0?[0-3])\.)?([0-5]?\d)\.([0-5]?\d)$/,
     ];
     for (const pattern of patterns) {
-      const match = pattern.exec(timing.trim());
+      const match = pattern.exec((timing || '').trim());
       if (!match) continue;
       const [, hours = 0, minutes, seconds] = match;
       return Duration.fromObject({
