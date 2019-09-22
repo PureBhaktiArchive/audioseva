@@ -27,6 +27,13 @@ describe('Audio Annotation parsing and formatting', () => {
     }
   );
 
+  test.each`
+    text
+    ${'Haribol'}
+  `('incorrect format', ({ text }) => {
+    expect(AudioAnnotation.parse(text)).toBeFalsy();
+  });
+
   test('in array', () => {
     const source =
       '2:30–4:50: Noise — Description\n5:20–17:01: Blank — Another';
