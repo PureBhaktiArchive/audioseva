@@ -113,7 +113,7 @@ export const router = new Router({
               component: () => import("@/views/TE/Tasks.vue"),
               meta: {
                 menuItem: true,
-                homePageLink: { text: "Tasks" }
+                homePageLink: { text: "TE" }
               }
             },
             {
@@ -163,23 +163,10 @@ export const hasClaim = (
   );
 };
 
-export const defaultFilterCb = (
-  route: RouteConfig,
-  userClaims: any,
-  requireClaims: any
-): any => {
-  if (route.meta.activator) {
-    const childRoutes = filterRoutesByClaims(defaultFilterCb)(
-      route.children,
-      userClaims,
-      requireClaims
-    );
-    if (childRoutes.length) return { ...route, children: childRoutes };
-  } else if (requireClaims) {
-    if (hasClaim(requireClaims, userClaims)) return route;
-  } else {
-    return route;
-  }
+export const getRouteChildren = () => {
+  return (router as any).options.routes.find(
+    (route: RouteConfig) => route.path === "/"
+  ).children;
 };
 
 export const filterRoutesByClaims = (
@@ -188,13 +175,13 @@ export const filterRoutesByClaims = (
     userClaims: { [key: string]: any },
     requireParentClaims: boolean | { [key: string]: any },
     ...args: any[]
-  ) => T = defaultFilterCb
+  ) => T
 ) => (
   routes: RouteConfig[] = [],
   userClaims: { [key: string]: any },
   requireParentClaims: boolean | { [key: string]: any } = false,
   ...args: any[]
-) => {
+): RouteConfig[] => {
   return routes.reduce(
     (filteredRoutes, route) => {
       const requireClaims = _.get(
@@ -215,6 +202,54 @@ export const filterRoutesByClaims = (
     [] as RouteConfig[]
   );
 };
+
+export const getHomePageRoutes = filterRoutesByClaims(
+  (route, userClaims, requiredClaims): any => {
+    const homePageButton = _.get(route, "meta.homePageLink", false);
+    let filteredRoute: RouteConfig = route;
+    if (route.children) {
+      const routeChildren = getHomePageRoutes(
+        route.children,
+        userClaims,
+        requiredClaims
+      );
+      filteredRoute = { ...route, children: routeChildren };
+    }
+
+    if (
+      homePageButton &&
+      typeof requiredClaims === "object" &&
+      hasClaim(requiredClaims, userClaims)
+    ) {
+      return filteredRoute;
+    } else if (filteredRoute.children && filteredRoute.children.length) {
+      filteredRoute = _.setWith(
+        _.clone(filteredRoute),
+        "meta.homePageLink",
+        false,
+        _.clone
+      );
+      return filteredRoute;
+    }
+  }
+);
+
+export const getMenuItems = filterRoutesByClaims(
+  (route: RouteConfig, userClaims, requireClaims): any => {
+    if (route.meta.activator) {
+      const childRoutes = getMenuItems(
+        route.children,
+        userClaims,
+        requireClaims
+      );
+      if (childRoutes.length) return { ...route, children: childRoutes };
+    } else if (typeof requireClaims === "object") {
+      if (hasClaim(requireClaims, userClaims)) return route;
+    } else {
+      return route;
+    }
+  }
+);
 
 export const routerBeforeEach: NavigationGuard = async (to, from, next) => {
   // reverse routes so nested routes can take control

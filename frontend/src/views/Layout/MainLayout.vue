@@ -81,7 +81,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { mapState, mapActions } from "vuex";
-import { filterRoutesByClaims } from "@/router";
+import { getMenuItems, getRouteChildren } from "@/router";
 import BaseLayout from "./BaseLayout.vue";
 import MenuLinks from "@/components/MenuLinks";
 
@@ -105,23 +105,18 @@ export default class MainLayout extends Vue {
   userClaims: any;
 
   async mounted() {
-    // @ts-ignore
-    this.navLinks = this.$router.options.routes.find(
-      (route: any) => route.path === "/"
-    ).children;
     this.userClaims = await this.getUserClaims();
   }
 
   get routes(): any {
-    // @ts-ignore
-    return this.navLinks.filter((route: any) => {
+    return getRouteChildren().filter((route: any) => {
       return route.meta && (route.meta.activator || route.meta.menuItem);
     });
   }
 
   getMenuItems() {
     if (this.userClaims) {
-      return filterRoutesByClaims()(this.routes, this.userClaims);
+      return getMenuItems(this.routes, this.userClaims);
     }
     return [];
   }

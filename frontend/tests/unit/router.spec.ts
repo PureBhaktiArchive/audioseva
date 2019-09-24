@@ -1,61 +1,5 @@
 import firebase from "firebase/app";
-import {
-  routerBeforeEach,
-  filterRoutesByClaims,
-  defaultFilterCb
-} from "@/router";
-
-jest.mock("firebase/app", () => ({
-  auth: jest.fn(() => ({
-    currentUser: {
-      getIdTokenResult: async () => {
-        return {
-          claims: { SE: true }
-        };
-      }
-    }
-  }))
-}));
-
-describe("filterRoutesByClaims", () => {
-  const routes = [
-    {
-      meta: {
-        auth: { requireClaims: { SE: true } }
-      }
-    },
-    {
-      meta: {
-        activator: true,
-        auth: { requireClaims: { CR: true } }
-      },
-      children: [
-        {
-          meta: {
-            activator: true,
-            auth: { requireClaims: { SQR: true } }
-          },
-          children: [
-            {
-              meta: {
-                auth: { requireClaims: { SE: true } }
-              }
-            },
-            { meta: { filteredOut: true } }
-          ]
-        }
-      ]
-    }
-  ];
-
-  test("filterRoutesByClaims", () => {
-    const filteredRoutes = filterRoutesByClaims(defaultFilterCb)(
-      routes as any,
-      { SE: true }
-    );
-    expect(filteredRoutes).toMatchSnapshot();
-  });
-});
+import { routerBeforeEach } from "@/router";
 
 describe("routerBeforeEach", () => {
   let to: any;
@@ -101,8 +45,18 @@ describe("routerBeforeEach", () => {
   });
 
   it("should not redirect on correct claims", async () => {
+    (firebase.auth as any).mockImplementationOnce(() => ({
+      currentUser: {
+        getIdTokenResult: async () => {
+          return {
+            claims: { TE: true }
+          };
+        }
+      }
+    }));
+
     to = {
-      matched: [{ meta: { auth: { requireClaims: { SE: true } } } }]
+      matched: [{ meta: { auth: { requireClaims: { TE: true } } } }]
     };
     await routerBeforeEach(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
