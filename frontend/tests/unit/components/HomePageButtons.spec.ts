@@ -1,8 +1,22 @@
 import Vue from "vue";
+import firebase from "firebase/app";
 import { createLocalVue, shallowMount } from "@vue/test-utils";
 import VueRouter from "vue-router";
+import flushPromises from "flush-promises";
 import HomePageButtons from "@/components/HomePageButtons.vue";
 import { router } from "@/router";
+
+export const mockClaims = (claims: { [key: string]: any }) => {
+  (firebase.auth as any).mockImplementation(() => ({
+    currentUser: {
+      getIdTokenResult: async () => {
+        return {
+          claims
+        };
+      }
+    }
+  }));
+};
 
 describe("HomePageButtons", () => {
   let localVue: typeof Vue;
@@ -12,29 +26,17 @@ describe("HomePageButtons", () => {
     localVue.use(VueRouter);
   });
 
-  it("should render buttons that match TE claims", () => {
+  test.each`
+    claims
+    ${{ TE: true }}
+    ${{ coordinator: true }}
+  `("should render buttons that match claims $claims", async ({ claims }) => {
+    mockClaims(claims);
     const wrapper = shallowMount(HomePageButtons, {
       localVue,
-      router,
-      methods: {
-        getUserClaims: () => ({ TE: true })
-      }
+      router
     });
-    wrapper.vm.$nextTick(() => {
-      expect(wrapper.vm.routeButtons).toMatchSnapshot();
-    });
-  });
-
-  it("should render buttons that match coordinator claims", () => {
-    const wrapper = shallowMount(HomePageButtons, {
-      localVue,
-      router,
-      methods: {
-        getUserClaims: () => ({ coordinator: true })
-      }
-    });
-    wrapper.vm.$nextTick(() => {
-      expect(wrapper.vm.routeButtons).toMatchSnapshot();
-    });
+    await flushPromises();
+    expect(wrapper.vm.routeButtons).toMatchSnapshot();
   });
 });

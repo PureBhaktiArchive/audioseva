@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`HomePageButtons should render buttons that match TE claims 1`] = `
+exports[`HomePageButtons should render buttons that match claims {"TE": true} 1`] = `
 Array [
   Object {
     "props": Object {
@@ -12,7 +12,7 @@ Array [
 ]
 `;
 
-exports[`HomePageButtons should render buttons that match coordinator claims 1`] = `
+exports[`HomePageButtons should render buttons that match claims {"coordinator": true} 1`] = `
 Array [
   Object {
     "props": Object {

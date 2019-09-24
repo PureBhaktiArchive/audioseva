@@ -8,23 +8,18 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import { mapActions } from "vuex";
 import { RouteConfig } from "vue-router";
-import { getHomePageRoutes, getRouteChildren } from "@/router";
+import { getHomePageRoutes } from "@/router";
 
 @Component({
-  name: "HomePageButtons",
-  methods: {
-    ...mapActions("user", ["getUserClaims"])
-  }
+  name: "HomePageButtons"
 })
-export default class RequireClaimsButtons extends Vue {
+export default class HomePageButtons extends Vue {
   userClaims: any = {};
   routeButtons: any[] = [];
 
   async mounted() {
-    this.userClaims = (await this.getUserClaims()) || {};
-    this.makeButtons(getHomePageRoutes(getRouteChildren(), this.userClaims));
+    this.makeButtons(await getHomePageRoutes());
   }
 
   makeButtons(routes: RouteConfig[], parentPath: string = "/") {
