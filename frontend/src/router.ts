@@ -163,7 +163,12 @@ export const hasClaim = (
   );
 };
 
-export const getRouteChildren = () => {
+const getUserClaims = async () => {
+  const currentUser = firebase.auth().currentUser;
+  return currentUser ? (await currentUser.getIdTokenResult()).claims : {};
+};
+
+const getRootRouteChildren = () => {
   return (router as any).options.routes.find(
     (route: RouteConfig) => route.path === "/"
   ).children;
@@ -203,12 +208,12 @@ export const filterRoutesByClaims = (
   );
 };
 
-export const getHomePageRoutes = filterRoutesByClaims(
+const filterHomePageRoutes = filterRoutesByClaims(
   (route, userClaims, requiredClaims): any => {
     const homePageButton = _.get(route, "meta.homePageLink", false);
     let filteredRoute: RouteConfig = route;
     if (route.children) {
-      const routeChildren = getHomePageRoutes(
+      const routeChildren = filterHomePageRoutes(
         route.children,
         userClaims,
         requiredClaims
@@ -234,10 +239,14 @@ export const getHomePageRoutes = filterRoutesByClaims(
   }
 );
 
-export const getMenuItems = filterRoutesByClaims(
+export const getHomePageRoutes = async () => {
+  return filterHomePageRoutes(getRootRouteChildren(), await getUserClaims());
+};
+
+const filterMenuItems = filterRoutesByClaims(
   (route: RouteConfig, userClaims, requireClaims): any => {
     if (route.meta.activator) {
-      const childRoutes = getMenuItems(
+      const childRoutes = filterMenuItems(
         route.children,
         userClaims,
         requireClaims
@@ -250,6 +259,15 @@ export const getMenuItems = filterRoutesByClaims(
     }
   }
 );
+
+export const getMenuItems = async () => {
+  return filterMenuItems(
+    getRootRouteChildren().filter((route: any) => {
+      return route.meta && (route.meta.activator || route.meta.menuItem);
+    }),
+    await getUserClaims()
+  );
+};
 
 export const routerBeforeEach: NavigationGuard = async (to, from, next) => {
   // reverse routes so nested routes can take control

@@ -1,8 +1,10 @@
 import Vue from "vue";
 import { createLocalVue, shallowMount } from "@vue/test-utils";
 import VueRouter from "vue-router";
+import flushPromises from "flush-promises";
 import MainLayout from "@/views/Layout/MainLayout.vue";
 import { router } from "@/router";
+import { mockClaims } from "../../components/HomePageButtons.spec";
 
 describe("MainLayout", () => {
   let localVue: typeof Vue;
@@ -12,43 +14,28 @@ describe("MainLayout", () => {
     localVue.use(VueRouter);
   });
 
-  it("should render menu items based on TE claims", () => {
-    const wrapper = shallowMount(MainLayout, {
-      localVue,
-      router,
-      computed: {
-        currentUser() {
-          return {};
+  test.each`
+    claims
+    ${{ TE: true }}
+    ${{ coordinator: true }}
+  `(
+    "should render menu items that match claims $claims",
+    async ({ claims }) => {
+      mockClaims(claims);
+      const wrapper = shallowMount(MainLayout, {
+        localVue,
+        router,
+        computed: {
+          currentUser() {
+            return {};
+          }
+        },
+        methods: {
+          signOut: () => {}
         }
-      },
-      methods: {
-        signOut: () => {},
-        getUserClaims: () => ({ TE: true })
-      }
-    });
-
-    wrapper.vm.$nextTick(() => {
-      expect(wrapper.vm.getMenuItems()).toMatchSnapshot();
-    });
-  });
-
-  it("should render menu items based on coordinator claims", () => {
-    const wrapper = shallowMount(MainLayout, {
-      localVue,
-      router,
-      computed: {
-        currentUser() {
-          return {};
-        }
-      },
-      methods: {
-        signOut: () => {},
-        getUserClaims: () => ({ coordinator: true })
-      }
-    });
-
-    wrapper.vm.$nextTick(() => {
-      expect(wrapper.vm.getMenuItems()).toMatchSnapshot();
-    });
-  });
+      });
+      await flushPromises();
+      expect(wrapper.vm.menuItems).toMatchSnapshot();
+    }
+  );
 });

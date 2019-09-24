@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MainLayout should render menu items based on TE claims 1`] = `
+exports[`MainLayout should render menu items that match claims {"TE": true} 1`] = `
 Array [
   Object {
     "children": Array [
@@ -62,7 +62,7 @@ Array [
 ]
 `;
 
-exports[`MainLayout should render menu items based on coordinator claims 1`] = `
+exports[`MainLayout should render menu items that match claims {"coordinator": true} 1`] = `
 Array [
   Object {
     "component": [Function],
