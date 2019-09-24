@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HomePageButtons should render buttons that match TE claims 1`] = `
+Array [
+  Object {
+    "props": Object {
+      "color": "primary",
+      "to": "/te/upload",
+    },
+    "text": "Upload",
+  },
+]
+`;
+
+exports[`HomePageButtons should render buttons that match coordinator claims 1`] = `
+Array [
+  Object {
+    "props": Object {
+      "color": "primary",
+      "to": "/sqr/",
+    },
+    "text": "SQR",
+  },
+  Object {
+    "props": Object {
+      "color": "primary",
+      "to": "/te/tasks",
+    },
+    "text": "TE",
+  },
+]
+`;

@@ -51,6 +51,7 @@
     "vue-template-compiler": "^2.6.10"
   },
   "jest": {
+    "setupFiles": ["<rootDir>/tests/unit/setupTests.ts"],
     "moduleFileExtensions": [
       "js",
       "json",
