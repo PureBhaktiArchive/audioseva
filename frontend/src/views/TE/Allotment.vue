@@ -128,7 +128,8 @@ export default class Allotment extends Vue {
         .database()
         .ref("/TE/tasks")
         .orderByChild("status")
-        .equalTo("Spare"),
+        .equalTo("Spare")
+        .limitToFirst(50),
       null,
       () => (this.isLoadingTasks = false)
     );
