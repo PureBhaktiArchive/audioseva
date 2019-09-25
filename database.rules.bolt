@@ -187,6 +187,7 @@ type TrackEditingTask extends Allotment {
   isRestored: Boolean,
   chunks: AudioChunk[],
   versions: FileVersion[],
+  timestampImported: InitialTimestamp | Null,
 
   read() { this.assignee.emailAddress == auth.token.email }
 }

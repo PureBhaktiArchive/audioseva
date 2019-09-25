@@ -16,6 +16,7 @@ export class TrackEditingTask extends Allotment {
   isRestored: boolean;
   chunks: AudioChunk[];
   versions: FileVersionMap;
+  timestampImported?: number;
 
   constructor(id: string, source: Partial<TrackEditingTask>) {
     super(source);
