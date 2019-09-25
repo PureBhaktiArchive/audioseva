@@ -10,6 +10,7 @@ import { ValidationRuleForEach } from '../validation/ValidationRule';
 import { Validator } from '../validation/Validator';
 import { TrackEditingTask } from './TrackEditingTask';
 import _ = require('lodash');
+import admin = require('firebase-admin');
 
 interface TasksSheetRow {
   isRestored: boolean;
@@ -59,6 +60,7 @@ export class TasksImporter {
               ({ fileName, beginning, ending, unwantedParts }) =>
                 new AudioChunk({ fileName, beginning, ending, unwantedParts })
             ),
+            timestampImported: admin.database.ServerValue.TIMESTAMP,
           })
       )
       .value();
