@@ -8,6 +8,7 @@ Use [Cloud Functions shell](https://firebase.google.com/docs/functions/local-emu
 1. Save the private key JSON file somewhere on your computer.
 1. Either set `GOOGLE_APPLICATION_CREDENTIALS` environment variable globally in your system, or export it in the command shell before running other commands.
 1. Run `firebase functions:config:get > .runtimeconfig.json` in the `functions` folder once to get a copy of the config for the local functions shell. You can edit the JSON file if needed.
+1. Run `npm run build:watch` to continuosly build the source code while the shell is running.
 1. Run `firebase functions:shell` to enter the shell.
 1. Invoke your function with data according to the above linked article.
 

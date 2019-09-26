@@ -2,62 +2,57 @@
   // See https://go.microsoft.com/fwlink/?LinkId=733558
   // for the documentation about the tasks.json format
   "version": "2.0.0",
+  "problemMatcher": [],
   "tasks": [
     {
       "type": "npm",
       "script": "deploy",
-      "path": "appsscript/",
-      "problemMatcher": []
+      "path": "appsscript/"
     },
     {
       "type": "npm",
       "script": "serve",
-      "path": "frontend/",
-      "problemMatcher": []
-    },
-    {
-      "type": "npm",
-      "script": "serve",
-      "path": "functions/",
-      "problemMatcher": []
+      "path": "frontend/"
     },
     {
       "type": "npm",
       "script": "deploy",
-      "path": "functions/",
-      "problemMatcher": []
+      "path": "functions/"
     },
     {
       "type": "npm",
       "script": "deploy",
-      "path": "frontend/",
-      "problemMatcher": []
-    },
-    {
-      "type": "npm",
-      "script": "shell",
-      "path": "functions/",
-      "problemMatcher": []
+      "path": "frontend/"
     },
     {
       "type": "npm",
       "script": "test",
+      "path": "functions/"
+    },
+    {
+      "type": "npm",
+      "script": "test:watch",
       "path": "functions/",
-      "problemMatcher": []
+      "group": "test"
     },
     {
       "type": "npm",
       "script": "test:coverage",
-      "path": "functions/",
-      "problemMatcher": []
+      "path": "functions/"
     },
     {
       "type": "npm",
       "script": "lint",
       "path": "functions/",
-      "problemMatcher": [
-        "$tslint5"
-      ]
+      "problemMatcher": ["$tslint5"]
+    },
+    {
+      "type": "npm",
+      "script": "build:watch",
+      "path": "functions/",
+      "problemMatcher": ["$tsc-watch"],
+      "group": "build",
+      "isBackground": true
     }
   ]
 }
