@@ -3,10 +3,9 @@
  */
 
 import firebase from "firebase/app";
-
+import _ from "lodash";
 import Vue from "vue";
 import Router, { NavigationGuard, RouteConfig } from "vue-router";
-import _ from "lodash";
 
 Vue.use(Router);
 
@@ -32,16 +31,6 @@ export const router = new Router({
         {
           path: "",
           component: () => import("@/views/DonationReceiptForm.vue")
-        }
-      ]
-    },
-    {
-      path: "/sound-editing/upload/:uploadCode",
-      component: () => import("@/views/Layout/AnonymousLayout.vue"),
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/SE/Upload.vue")
         }
       ]
     },
@@ -77,33 +66,12 @@ export const router = new Router({
         {
           path: "users",
           component: () => import("@/views/Users/List.vue"),
-          meta: { menuItem: true, menuName: "People", menuIcon: "fas fa-users" }
-        },
-        {
-          path: "cr/",
-          component: () => import("@/views/CR/CR.vue"),
           meta: {
-            activator: true,
-            activatorName: "Content Reporting",
-            menuIcon: "far fa-file-audio"
-          },
-          children: [
-            {
-              path: "",
-              component: () => import("@/views/CR/List.vue"),
-              meta: { menuItem: true }
-            },
-            {
-              path: "allot",
-              component: () => import("@/views/CRAllotment.vue"),
-              meta: { menuItem: true }
-            },
-            {
-              path: "allot-new",
-              component: () => import("@/views/CR/Allotment.vue"),
-              meta: { menuItem: true }
-            }
-          ]
+            menuItem: true,
+            menuName: "People",
+            menuIcon: "fas fa-users",
+            auth: { requireClaims: { coordinator: true } }
+          }
         },
         {
           path: "sqr/",
@@ -111,49 +79,73 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Sound Quality Reporting",
-            menuIcon: "fas fa-headphones"
+            menuIcon: "fas fa-headphones",
+            auth: { requireClaims: { coordinator: true } }
           },
           children: [
             {
               path: "",
               component: () => import("@/views/SQR/Files.vue"),
-              meta: { menuItem: true }
+              meta: {
+                menuItem: true,
+                homePageLink: { text: "SQR" }
+              }
             },
             {
               path: "allot",
               component: () => import("@/views/SQRAllotment.vue"),
               meta: { menuItem: true }
-            },
-            {
-              path: "allot-new",
-              component: () => import("@/views/SQR/Allotment.vue"),
-              meta: { menuItem: true }
-            },
-            {
-              path: "statistics",
-              component: () => import("@/views/SQR/FileStatistics.vue"),
-              meta: { menuItem: true }
             }
           ]
         },
         {
-          path: "se/",
-          component: () => import("@/views/SE/SE.vue"),
+          path: "te/",
+          component: () => import("@/views/TE/TE.vue"),
           meta: {
             activator: true,
-            activatorName: "Sound Engineering",
-            menuIcon: "fas fa-music"
+            activatorName: "Track Editing",
+            menuIcon: "fas fa-cut",
+            auth: { requireClaims: { coordinator: true } }
           },
           children: [
             {
-              path: "",
-              component: () => import("@/views/SE/Tasks.vue"),
-              meta: { menuItem: true }
+              path: "tasks",
+              component: () => import("@/views/TE/Tasks.vue"),
+              meta: {
+                menuItem: true,
+                homePageLink: { text: "TE" }
+              }
             },
             {
               path: "allot",
-              component: () => import("@/views/SE/Allotment.vue"),
+              component: () => import("@/views/TE/Allotment.vue"),
               meta: { menuItem: true }
+            },
+            {
+              path: "my",
+              component: () => import("@/views/TE/MyTasks.vue"),
+              meta: {
+                menuItem: true,
+                menuLinkName: "My Tasks",
+                auth: { requireClaims: { TE: true } }
+              }
+            },
+            {
+              path: "upload",
+              component: () => import("@/views/TE/Upload.vue"),
+              meta: {
+                menuItem: true,
+                auth: { requireClaims: { TE: true } },
+                homePageLink: { text: "Upload" }
+              }
+            },
+            {
+              path: "tasks/:taskId",
+              component: () => import("@/views/TE/Task.vue"),
+              meta: {
+                menuItem: false,
+                auth: { requireClaims: { TE: true, coordinator: true } }
+              }
             }
           ]
         }
@@ -171,11 +163,30 @@ export const hasClaim = (
   );
 };
 
+const getUserClaims = async () => {
+  const currentUser = firebase.auth().currentUser;
+  return currentUser ? (await currentUser.getIdTokenResult()).claims : {};
+};
+
+const getRootRouteChildren = () => {
+  return (router as any).options.routes.find(
+    (route: RouteConfig) => route.path === "/"
+  ).children;
+};
+
 export const filterRoutesByClaims = (
+  filterCb: <T>(
+    route: RouteConfig,
+    userClaims: { [key: string]: any },
+    requireParentClaims: boolean | { [key: string]: any },
+    ...args: any[]
+  ) => T
+) => (
   routes: RouteConfig[] = [],
   userClaims: { [key: string]: any },
-  requireParentClaims: boolean | { [key: string]: any } = false
-) => {
+  requireParentClaims: boolean | { [key: string]: any } = false,
+  ...args: any[]
+): RouteConfig[] => {
   return routes.reduce(
     (filteredRoutes, route) => {
       const requireClaims = _.get(
@@ -184,22 +195,77 @@ export const filterRoutesByClaims = (
         requireParentClaims
       );
 
-      if (route.meta.activator) {
-        const childRoutes = filterRoutesByClaims(
-          route.children,
-          userClaims,
-          requireClaims || requireParentClaims
-        );
-        childRoutes.length &&
-          filteredRoutes.push({ ...route, children: childRoutes });
-      } else if (requireClaims) {
-        hasClaim(requireClaims, userClaims) && filteredRoutes.push(route);
-      } else {
-        filteredRoutes.push(route);
-      }
+      const filteredRoute = filterCb<RouteConfig>(
+        route,
+        userClaims,
+        requireClaims,
+        ...args
+      );
+      filteredRoute && filteredRoutes.push(filteredRoute);
       return filteredRoutes;
     },
     [] as RouteConfig[]
+  );
+};
+
+const filterHomePageRoutes = filterRoutesByClaims(
+  (route, userClaims, requiredClaims): any => {
+    const homePageButton = _.get(route, "meta.homePageLink", false);
+    let filteredRoute: RouteConfig = route;
+    if (route.children) {
+      const routeChildren = filterHomePageRoutes(
+        route.children,
+        userClaims,
+        requiredClaims
+      );
+      filteredRoute = { ...route, children: routeChildren };
+    }
+
+    if (
+      homePageButton &&
+      typeof requiredClaims === "object" &&
+      hasClaim(requiredClaims, userClaims)
+    ) {
+      return filteredRoute;
+    } else if (filteredRoute.children && filteredRoute.children.length) {
+      filteredRoute = _.setWith(
+        _.clone(filteredRoute),
+        "meta.homePageLink",
+        false,
+        _.clone
+      );
+      return filteredRoute;
+    }
+  }
+);
+
+export const getHomePageRoutes = async () => {
+  return filterHomePageRoutes(getRootRouteChildren(), await getUserClaims());
+};
+
+const filterMenuItems = filterRoutesByClaims(
+  (route: RouteConfig, userClaims, requireClaims): any => {
+    if (route.meta.activator) {
+      const childRoutes = filterMenuItems(
+        route.children,
+        userClaims,
+        requireClaims
+      );
+      if (childRoutes.length) return { ...route, children: childRoutes };
+    } else if (typeof requireClaims === "object") {
+      if (hasClaim(requireClaims, userClaims)) return route;
+    } else {
+      return route;
+    }
+  }
+);
+
+export const getMenuItems = async () => {
+  return filterMenuItems(
+    getRootRouteChildren().filter((route: any) => {
+      return route.meta && (route.meta.activator || route.meta.menuItem);
+    }),
+    await getUserClaims()
   );
 };
 

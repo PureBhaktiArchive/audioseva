@@ -15,83 +15,75 @@ const db = admin.database();
 //      2. Send an email to the assignee to notify them of the new allotment
 //
 /////////////////////////////////////////////////
-export const processAllotment = functions.https.onCall(
-  async (allotment, context) => {
-    if (
-      !context.auth ||
-      !context.auth.token ||
-      !context.auth.token.coordinator
-    ) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-    }
-
-    const coordinator = functions.config().coordinator;
-
-    //  1. Ensure sound editor's `uploadCode`
-    const userRef = await db
-      .ref('/users')
-      .orderByChild('emailAddress')
-      .equalTo(allotment.assignee.emailAddress)
-      .once('value');
-    if (!userRef.exists()) {
-      console.warn("Assignee wasn't found!");
-      return -1;
-    }
-    const user = userRef.val();
-    let { uploadCode } = user;
-    if (!uploadCode) {
-      uploadCode = uuidv4();
-      await userRef.ref.child('uploadCode').set({ uploadCode });
-    }
-
-    // 2. Update the task
-    const tasks = [];
-    allotment.taskIds.forEach(async taskId => {
-      const regex = /(\w+)-(\d+)-(\d+)/g;
-      const taskIdMatch = regex.exec(taskId);
-      const list = taskIdMatch[1];
-
-      await db
-        .ref(`/sound-editing/tasks/${list}/${taskId}/restoration`)
-        .update({
-          status: 'Given',
-          assignee: allotment.assignee,
-          timestampGiven: admin.database.ServerValue.TIMESTAMP,
-        });
-
-      // Getting the tasks list to be used when notifying the assignee (Step 3)
-      const taskRef = await db
-        .ref(`/sound-editing/tasks/${list}/${taskId}`)
-        .once('value');
-      tasks.push(taskRef.val());
-    });
-
-    // Getting the list of allotments to check if the assignee was allotted before
-    // TODO
-
-    // 3. Notify the assignee
-    await db.ref(`/email/notifications`).push({
-      template: 'sound-editing-allotment',
-      to: allotment.assignee.emailAddress,
-      bcc: coordinator.email_address,
-      params: {
-        tasks,
-        assignee: allotment.assignee,
-        comment: allotment.comment,
-        date: DateTime.local().toFormat('dd.MM'),
-        uploadURL: new URL(
-          `sound-editing/upload/${uploadCode}`,
-          `https://app.${functions.config().project.domain}/`
-        ).toString(),
-        repeated: true,
-      },
-    });
-    return 1;
+const processAllotment = functions.https.onCall(async (allotment, context) => {
+  if (!context.auth || !context.auth.token || !context.auth.token.coordinator) {
+    throw new functions.https.HttpsError(
+      'permission-denied',
+      'The function must be called by an authenticated coordinator.'
+    );
   }
-);
+
+  const coordinator = functions.config().coordinator;
+
+  //  1. Ensure sound editor's `uploadCode`
+  const userRef = await db
+    .ref('/users')
+    .orderByChild('emailAddress')
+    .equalTo(allotment.assignee.emailAddress)
+    .once('value');
+  if (!userRef.exists()) {
+    console.warn("Assignee wasn't found!");
+    return -1;
+  }
+  const user = userRef.val();
+  let { uploadCode } = user;
+  if (!uploadCode) {
+    uploadCode = uuidv4();
+    await userRef.ref.child('uploadCode').set({ uploadCode });
+  }
+
+  // 2. Update the task
+  const tasks = [];
+  allotment.taskIds.forEach(async taskId => {
+    const regex = /(\w+)-(\d+)-(\d+)/g;
+    const taskIdMatch = regex.exec(taskId);
+    const list = taskIdMatch[1];
+
+    await db.ref(`/sound-editing/tasks/${list}/${taskId}/restoration`).update({
+      status: 'Given',
+      assignee: allotment.assignee,
+      timestampGiven: admin.database.ServerValue.TIMESTAMP,
+    });
+
+    // Getting the tasks list to be used when notifying the assignee (Step 3)
+    const taskRef = await db
+      .ref(`/sound-editing/tasks/${list}/${taskId}`)
+      .once('value');
+    tasks.push(taskRef.val());
+  });
+
+  // Getting the list of allotments to check if the assignee was allotted before
+  // TODO
+
+  // 3. Notify the assignee
+  await db.ref(`/email/notifications`).push({
+    template: 'sound-editing-allotment',
+    to: allotment.assignee.emailAddress,
+    bcc: coordinator.email_address,
+    params: {
+      tasks,
+      assignee: allotment.assignee,
+      comment: allotment.comment,
+      date: DateTime.local().toFormat('dd.MM'),
+      uploadURL: new URL(
+        `sound-editing/upload/${uploadCode}`,
+        `https://app.${functions.config().project.domain}/`
+      ).toString(),
+      repeated: true,
+    },
+  });
+  return 1;
+});
 
 const basePath = '/sound-editing/';
 
@@ -104,7 +96,7 @@ const validateTask = async (path: string) => {
   return response.val();
 };
 
-export const createTaskFromChunks = functions.database
+const createTaskFromChunks = functions.database
   .ref('/sound-editing/chunks/{listId}/{fileName}/{index}')
   .onCreate(async (snapshot, { params: { fileName, listId, index } }) => {
     const {
@@ -205,7 +197,7 @@ export const createTaskFromChunks = functions.database
  * Sends a notification email to the coordinator & udpates the corresponding Task
  */
 const stoargeBaseDomain = functions.config().project.domain;
-export const processUploadedFile = functions.storage
+const processUploadedFile = functions.storage
   .bucket(`uploads.${stoargeBaseDomain}`)
   .object()
   .onFinalize(async object => {

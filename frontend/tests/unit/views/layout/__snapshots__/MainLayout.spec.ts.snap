@@ -1,0 +1,161 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MainLayout should render menu items that match claims {"TE": true} 1`] = `
+Array [
+  Object {
+    "children": Array [
+      Object {
+        "component": [Function],
+        "meta": Object {
+          "auth": Object {
+            "requireClaims": Object {
+              "TE": true,
+            },
+          },
+          "menuItem": true,
+          "menuLinkName": "My Tasks",
+        },
+        "path": "my",
+      },
+      Object {
+        "component": [Function],
+        "meta": Object {
+          "auth": Object {
+            "requireClaims": Object {
+              "TE": true,
+            },
+          },
+          "homePageLink": Object {
+            "text": "Upload",
+          },
+          "menuItem": true,
+        },
+        "path": "upload",
+      },
+      Object {
+        "component": [Function],
+        "meta": Object {
+          "auth": Object {
+            "requireClaims": Object {
+              "TE": true,
+              "coordinator": true,
+            },
+          },
+          "menuItem": false,
+        },
+        "path": "tasks/:taskId",
+      },
+    ],
+    "component": [Function],
+    "meta": Object {
+      "activator": true,
+      "activatorName": "Track Editing",
+      "auth": Object {
+        "requireClaims": Object {
+          "coordinator": true,
+        },
+      },
+      "menuIcon": "fas fa-cut",
+    },
+    "path": "te/",
+  },
+]
+`;
+
+exports[`MainLayout should render menu items that match claims {"coordinator": true} 1`] = `
+Array [
+  Object {
+    "component": [Function],
+    "meta": Object {
+      "auth": Object {
+        "requireClaims": Object {
+          "coordinator": true,
+        },
+      },
+      "menuIcon": "fas fa-users",
+      "menuItem": true,
+      "menuName": "People",
+    },
+    "path": "users",
+  },
+  Object {
+    "children": Array [
+      Object {
+        "component": [Function],
+        "meta": Object {
+          "homePageLink": Object {
+            "text": "SQR",
+          },
+          "menuItem": true,
+        },
+        "path": "",
+      },
+      Object {
+        "component": [Function],
+        "meta": Object {
+          "menuItem": true,
+        },
+        "path": "allot",
+      },
+    ],
+    "component": [Function],
+    "meta": Object {
+      "activator": true,
+      "activatorName": "Sound Quality Reporting",
+      "auth": Object {
+        "requireClaims": Object {
+          "coordinator": true,
+        },
+      },
+      "menuIcon": "fas fa-headphones",
+    },
+    "path": "sqr/",
+  },
+  Object {
+    "children": Array [
+      Object {
+        "component": [Function],
+        "meta": Object {
+          "homePageLink": Object {
+            "text": "TE",
+          },
+          "menuItem": true,
+        },
+        "path": "tasks",
+      },
+      Object {
+        "component": [Function],
+        "meta": Object {
+          "menuItem": true,
+        },
+        "path": "allot",
+      },
+      Object {
+        "component": [Function],
+        "meta": Object {
+          "auth": Object {
+            "requireClaims": Object {
+              "TE": true,
+              "coordinator": true,
+            },
+          },
+          "menuItem": false,
+        },
+        "path": "tasks/:taskId",
+      },
+    ],
+    "component": [Function],
+    "meta": Object {
+      "activator": true,
+      "activatorName": "Track Editing",
+      "auth": Object {
+        "requireClaims": Object {
+          "coordinator": true,
+        },
+      },
+      "menuIcon": "fas fa-cut",
+    },
+    "path": "te/",
+  },
+]
+`;
