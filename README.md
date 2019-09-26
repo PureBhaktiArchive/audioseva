@@ -52,6 +52,7 @@ Add the following variables into your `.env.development.local` file:
 | `donations.cash.spreadsheet.name` | Donations sheet name                               |
 | `donations.contact.email_address` | Email address used in donations communication      |
 | `te.allotments.spreadsheet.id`    | Track Editing Allotments spreadsheet id            |
+| `te.tasks.spreadsheet.id`         | Track Editing Tasks Creation spreadsheet id        |
 
 ## Frontend
 
