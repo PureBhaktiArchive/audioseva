@@ -1,4 +1,5 @@
-function hasRole(role) { auth != null && auth.token[role] == true }
+function isSignedIn() { auth != null }
+function hasRole(role) { isSignedIn() && auth.token[role] == true }
 function isCoordinator() { hasRole('coordinator') }
 
 type CurrentTimestamp extends Number {
@@ -62,6 +63,11 @@ type OriginalFileName extends String {
   validate() { this.test(/^\w+-\d+/) }
 }
 
+// Task ID, for example ML2-135-3.
+type TaskID extends String {
+  validate() { this.test(/^\w+-\d+-\d{1,2}$/) }
+}
+
 // Status of the allotment.
 // Can be either one of the predefined values or virtually any string.
 type Status extends String {
@@ -103,13 +109,16 @@ type Submission {
   comments: String | Null,
 }
 
+// Audio timing interval, in seconds
 type TimingInterval {
-  beginning: String,
-  ending: String,
+  entire: Boolean | Null,
+  beginning: Number | Null,
+  ending: Number | Null,
+
+  validate() { this.entire != null || (this.beginning != null && this.ending != null) }
 }
 
-type AudioChunkAnnotation extends TimingInterval {
-  entireFile: Boolean,
+type AudioAnnotation extends TimingInterval {
   type: String,
   description: String,
 }
@@ -117,8 +126,8 @@ type AudioChunkAnnotation extends TimingInterval {
 type SQRSubmission extends Submission {
   duration: TimingInterval | Null,
   soundQualityRating: SoundQualityRating | Null,
-  soundIssues: AudioChunkAnnotation[] | Null,
-  unwantedParts: AudioChunkAnnotation[] | Null,
+  soundIssues: AudioAnnotation[] | Null,
+  unwantedParts: AudioAnnotation[] | Null,
 }
 
 function tokenIsValid(token, fileName, phase) {
@@ -152,5 +161,43 @@ path /SQR {
 
     // Cold storage for the submission, writable only by the function.
     path /final/{fileName} is SQRSubmission;
+  }
+}
+
+type AudioChunk extends TimingInterval {
+  fileName: String,
+  unwantedParts: AudioAnnotation[],
+}
+
+type FileResolution {
+  timestamp: InitialTimestamp,
+  isApproved: Boolean,
+  feedback: String,
+
+  create() { isCoordinator() }
+}
+
+type FileVersion {
+  timestamp: InitialTimestamp,
+  uploadPath: String, // Path in the `uploads` bucket
+  resolution: FileResolution | Null,
+}
+
+type TrackEditingTask extends Allotment {
+  chunks: AudioChunk[],
+  versions: FileVersion[],
+
+  read() { this.assignee.emailAddress == auth.token.email }
+}
+
+path /TE {
+  path /tasks is Map<TaskID, TrackEditingTask> {
+    index() { ["status", "assignee/emailAddress"] }
+    read() {
+      isSignedIn() && (
+        query.orderByChild == 'assignee/emailAddress' && query.equalTo == auth.token.email
+        || isCoordinator()
+      )
+    }
   }
 }

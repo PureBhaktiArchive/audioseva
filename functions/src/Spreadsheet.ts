@@ -45,9 +45,12 @@ export class Spreadsheet {
     this.api = api;
     this.schema = schema;
     this.sheetIndex = sheetIndex;
-    this.columnNames = this.sheet.data[0].rowData[0].values.map(
-      cell => cell.effectiveValue.stringValue
-    );
+    this.columnNames = _(this.sheet.data[0].rowData[0].values)
+      .map(cell =>
+        cell.effectiveValue ? cell.effectiveValue.stringValue : null
+      )
+      .takeWhile()
+      .value();
   }
 
   protected static getResponse<T>(response: GaxiosResponse<T>) {
@@ -349,7 +352,7 @@ export class Spreadsheet {
    */
   public async updateOrAppendRows<T extends object>(
     columnName: string,
-    ...objects: T[]
+    objects: T[]
   ) {
     const column = await this.getColumn(columnName);
     const indexedByDataRowNumber = objects.map<[number, T]>(object => [

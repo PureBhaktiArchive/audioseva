@@ -32,6 +32,24 @@ export default class InlineSave extends Vue {
     return this[this.itemsKey];
   }
 
+  multiFieldSave(item: any, itemPath: string, paths: any, fieldUpdates: any) {
+    this.$set(
+      this.getUpdateItems(),
+      this.items.findIndex(
+        (i: any) => i[this.itemComparePath] === item[this.itemComparePath]
+      ),
+      _.merge({}, item, fieldUpdates)
+    );
+    firebase
+      .database()
+      .ref(this.getUpdatePath(item, { itemPath }))
+      .update(paths);
+  }
+
+  getUpdateItems() {
+    return this.itemsKey ? this[this.itemsKey] : this.items;
+  }
+
   save(
     item: any,
     path: any,
@@ -46,7 +64,7 @@ export default class InlineSave extends Vue {
     // manual update state if component can't use v-model
     if (itemPath) {
       this.$set(
-        this.items,
+        this.getUpdateItems(),
         this.items.findIndex(
           (i: any) => i[this.itemComparePath] === item[this.itemComparePath]
         ),

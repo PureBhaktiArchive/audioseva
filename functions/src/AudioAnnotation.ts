@@ -2,23 +2,23 @@
  * sri sri guru gauranga jayatah
  */
 
-export class AudioChunkAnnotation {
+export class AudioAnnotation {
   entireFile: boolean;
   beginning: string; // h:mm:ss
   ending: string; // h:mm:ss
   type: string;
   description: string;
 
-  constructor(source: Partial<AudioChunkAnnotation>) {
+  constructor(source: Partial<AudioAnnotation>) {
     Object.assign(this, source);
   }
 
-  static parse(text: string): AudioChunkAnnotation {
+  static parse(text: string): AudioAnnotation {
     const regex = /((Entire file)|(.*?)–(.*)):(.*)—(.*)/;
     const matches = regex.exec(text);
     if (!matches) return null;
 
-    return new AudioChunkAnnotation({
+    return new AudioAnnotation({
       entireFile: matches[2] ? true : null,
       beginning: matches[2] ? null : matches[3],
       ending: matches[2] ? null : matches[4],
@@ -27,35 +27,25 @@ export class AudioChunkAnnotation {
     });
   }
 
-  public format() {
+  public toString(): string {
     return `${
       this.entireFile ? 'Entire file' : `${this.beginning}–${this.ending}`
     }: ${this.type} — ${this.description}`;
   }
 }
 
-AudioChunkAnnotation.prototype.toString = function(this: AudioChunkAnnotation) {
-  return this.format();
-};
-
-export class AudioFileAnnotation {
-  chunks: AudioChunkAnnotation[];
-
-  constructor(items: AudioChunkAnnotation[]) {
-    this.chunks = items;
+export class AudioAnnotationArray extends Array<AudioAnnotation> {
+  constructor(items?: Array<AudioAnnotation>) {
+    super(...items);
   }
 
   static parse(text: string) {
-    return new AudioFileAnnotation(
-      text.split('\n').map(line => AudioChunkAnnotation.parse(line))
+    return new AudioAnnotationArray(
+      text.split('\n').map(line => AudioAnnotation.parse(line))
     );
   }
 
-  public format() {
-    return this.chunks.map(i => i.toString()).join('\n');
+  public toString(): string {
+    return this.join('\n');
   }
 }
-
-AudioFileAnnotation.prototype.toString = function(this: AudioFileAnnotation) {
-  return this.format();
-};
