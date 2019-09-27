@@ -3,62 +3,34 @@
   <p>
     Thank you for your interest in the&nbsp;Track Editing&nbsp;service. Please
     read through
-    <a href="https://www.audioseva.com/track-editing"
-      >the&nbsp;Track&nbsp;Editor&nbsp;guidelines&nbsp;here</a
+    <a
+      href="https://docs.google.com/document/d/e/2PACX-1vT8C-A4sImsH2GkAWDYqGT8jDn2cUvXKqr1AfSAoFhKJPuSOjL1Z33u0QkzL2m6bpZXXUimG4co4Bdr/pub"
+      >the&nbsp;Track&nbsp;Editor&nbsp;Guidelines&nbsp;here</a
     >.
   </p>
-  <p>The following lectures comprise the current set allotted to you:</p>
-  <table
-    frame="border"
-    cellspacing="4"
-    cellpadding="2"
-    width="100%"
-    rules="all"
-    style="border-collapse:collapse;"
-  >
-    <thead align="left">
-      <tr>
-        <th scope="col">Output File Name</th>
-        <th>Task Definition</th>
-        <th>Unwanted Parts</th>
-      </tr>
-    </thead>
-    <tbody valign="top">
-      {% for task in params.tasks %}
-      <tr>
-        <td>{{ task.fileName }}</td>
-        <td>
-          {% for chunk in task.chunks %}
-          <a href="{{ chunk.sourceFileLink }}">{{ chunk.fileName }}</a
-          >&nbsp;{{ chunk.beginning }}&ndash;{{ chunk.ending }}<br />
-          {% endfor %}
-        </td>
-        <td>
-          {% for chunk in task.chunks %}
-          <b>{{ chunk.fileName }}</b>
-          <ul>
-            {% for part in chunk.unwantedParts %}
-            <li>
-              {{ part.beginning }}&ndash;{{ part.ending }}:&nbsp;{{
-                part.type
-              }}&nbsp;&mdash;&nbsp;{{ part.description }}
-            </li>
-            {% endfor %}
-          </ul>
-          {% endfor %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <p>{{ params.comment }}</p>
+  <p>
+    The following tasks comprise the current set allotted to you. Click the
+    links to see the tasks details.
+  </p>
+  <ul>
+    {% for task in params.tasks %}
+    <li>
+      <a
+        href="https://app.{{ params.settings.project.domain }}/te/tasks/{{
+          task.id
+        }}"
+        ><strong>{{ task.id }}</strong></a
+      >
+    </li>
+    {% endfor %}
+  </ul>
 
   <p style="color:red; font-weight:bold;">
     Please upload the edited files
-    <a href="{{ params.uploadURL }}">here</a>. You will need to sign in with
-    your Google account.
+    <a href="https://app.{{ params.settings.project.domain }}/te/upload">here</a
+    >. You will need to sign in with your Google account.
   </p>
+  <p>{{ params.comment }}</p>
   <p>Please feel free to clarify any doubts with us.</p>
   <p>Join us on Facebook - https://www.facebook.com/audiosevateam/</p>
   <p>Thank you!</p>

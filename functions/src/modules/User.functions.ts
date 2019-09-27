@@ -4,7 +4,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { Spreadsheet } from '../GoogleSheets';
+import { Spreadsheet } from '../Spreadsheet';
 
 const db = admin.database();
 const userRoles = functions.database.ref('/users/{userId}/roles');
@@ -57,10 +57,10 @@ export const importUserRegistrationData = functions.https.onCall(
       );
     }
 
-    const spreadsheet = await Spreadsheet.open(
-      functions.config().registrations.spreadsheet_id
+    const sheet = await Spreadsheet.open(
+      functions.config().registrations.spreadsheet_id,
+      'Registrations'
     );
-    const sheet = await spreadsheet.useSheet('Registrations');
 
     const registrationRows = await sheet.getRows();
 
@@ -70,7 +70,7 @@ export const importUserRegistrationData = functions.https.onCall(
         status: row[RegistrationColumns.Status],
         timestamp: DateTimeConverter.fromSerialDate(
           row[RegistrationColumns.Timestamp],
-          spreadsheet.timeZone
+          sheet.timeZone
         ).toMillis(),
         name: row[RegistrationColumns.Name],
         location: row[RegistrationColumns.Country],
@@ -249,10 +249,10 @@ export const getAssignees = functions.https.onCall(
       );
     }
 
-    const spreadsheet = await Spreadsheet.open(
-      functions.config().registrations.spreadsheet_id
+    const registrationsSheet = await Spreadsheet.open(
+      functions.config().registrations.spreadsheet_id,
+      'Registrations'
     );
-    const registrationsSheet = await spreadsheet.useSheet('Registrations');
 
     const rows = await registrationsSheet.getRows();
 

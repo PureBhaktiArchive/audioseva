@@ -1,21 +1,35 @@
 <body>
   <p>Hare Krsna! Dandavat Pranams.</p>
   <p>
-    Below are the details of the
-    <b>Track Editing Check</b> feedback.
+    The output of the task <strong>{{ params.task.id }}</strong> is not
+    approved. Find the details of the feedback below.
   </p>
-  <p>
-    <b>{{ task.feedback }}</b>
+  <p style="color: red;font-weight: bold">
+    <b>{{ params.resolution.feedback }}</b>
   </p>
-  <p><b>Please re-edit the file and upload it again.</b></p>
 
-  <p style="color: red;font-weight: bold">DETAILS OF THE TASK:</p>
-  <p><b>Task ID:</b> {{ task.id }}</p>
   <p>
-    <b>Task Definition:</b><br />
-    {% for chunk in task.chunks %}
-    <a href="{{ chunk.sourceFileLink }}">{{ chunk.fileName }}</a
-    >&nbsp;{{ chunk.beginning }}&ndash;{{ chunk.ending }}<br />
-    {% endfor %}
+    See details of the task
+    <a
+      href="https://app.{{ params.settings.project.domain }}/te/tasks/{{
+        params.task.id
+      }}"
+      >here</a
+    >.
+  </p>
+
+  <p>
+    Please re-edit the file and upload it again
+    <a href="https://app.{{ params.settings.project.domain }}/te/upload">here</a
+    >.
+  </p>
+
+  <p>Please feel free to clarify any doubts with us.</p>
+  <p>Join us on Facebook - https://www.facebook.com/audiosevateam/</p>
+  <p>Thank you!</p>
+  <p>
+    --<br />
+    Your Servants,<br />
+    Pure Bhakti Audio Seva Team.
   </p>
 </body>
