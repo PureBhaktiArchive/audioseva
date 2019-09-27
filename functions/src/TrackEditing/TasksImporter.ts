@@ -2,72 +2,66 @@
  * sri sri guru gauranga jayatah
  */
 
-import { createSchema, morphism } from 'morphism';
 import { AudioChunk } from '../AudioChunk';
-import { DateTimeConverter } from '../DateTimeConverter';
 import { TimingInterval } from '../TimingInterval';
 import { ValidationRuleForEach } from '../validation/ValidationRule';
 import { Validator } from '../validation/Validator';
+import { AllotmentRow } from './AllotmentRow';
+import { ChunkRow } from './ChunkRow';
 import { TrackEditingTask } from './TrackEditingTask';
 import _ = require('lodash');
 import admin = require('firebase-admin');
 
-interface TasksSheetRow {
-  isRestored: boolean;
-  taskId: string;
-  fileName: string;
-  beginning: number;
-  ending: number;
-  continuationFrom: string;
-  unwantedParts: string;
-}
-
 export class TasksImporter {
-  private schema = createSchema<TasksSheetRow>({
-    isRestored: ({ 'SEd?': text }) => (text ? !/^non/i.test(text) : undefined),
-    taskId: 'Output File Name',
-    fileName: 'File Name',
-    beginning: ({ 'Beginning Time': beginning }) =>
-      DateTimeConverter.humanToSeconds(beginning),
-    ending: ({ 'End Time': ending }) =>
-      DateTimeConverter.humanToSeconds(ending),
-    continuationFrom: 'Continuation',
-    unwantedParts: 'Unwanted Parts',
-  });
-
-  public import(rows: object[]) {
-    const groupedRows = _(morphism(this.schema, rows))
-      .filter(row => !!row.fileName)
-      .dropWhile(row => !row.taskId)
-      .reduce((accumulator, row) => {
-        if (row.taskId) accumulator.push([]);
-        accumulator[accumulator.length - 1].push(row);
-        return accumulator;
-      }, new Array<Array<TasksSheetRow>>());
-
-    return _(groupedRows)
-      .filter(taskRows => {
-        const validationResult = new TaskValidator().validate(taskRows);
-        if (!validationResult.isValid)
-          console.warn(`${taskRows[0].taskId}:`, validationResult.messages);
-        return validationResult.isValid;
-      })
-      .map(
-        taskRows =>
-          new TrackEditingTask(taskRows[0].taskId, {
-            isRestored: taskRows[0].isRestored,
-            chunks: taskRows.map(
-              ({ fileName, beginning, ending, unwantedParts }) =>
-                new AudioChunk({ fileName, beginning, ending, unwantedParts })
-            ),
-            timestampImported: admin.database.ServerValue.TIMESTAMP,
-          })
-      )
+  public import(chunkRows: ChunkRow[], allotmentRows: AllotmentRow[]) {
+    const allotmentsMap = _.chain(allotmentRows)
+      .keyBy(({ taskId }) => taskId)
+      .mapValues(({ status, assignee, timestampGiven }) => ({
+        assignee,
+        status,
+        timestampGiven,
+      }))
       .value();
+
+    return (
+      _.chain(chunkRows)
+        // Skip empty rows
+        .filter(row => !!row.fileName)
+        // Skip first rows without Task ID
+        .dropWhile(row => !row.taskId)
+        // Group chunks of one task together
+        .reduce((accumulator, row) => {
+          if (row.taskId) accumulator.push([]);
+          accumulator[accumulator.length - 1].push(row);
+          return accumulator;
+        }, new Array<Array<ChunkRow>>())
+        // Validate rows
+        .filter(taskRows => {
+          const validationResult = new TaskValidator().validate(taskRows);
+          if (!validationResult.isValid)
+            console.warn(`${taskRows[0].taskId}:`, validationResult.messages);
+          return validationResult.isValid;
+        })
+        // Convert the rows into the tasks
+        .map(
+          taskRows =>
+            new TrackEditingTask(taskRows[0].taskId, {
+              isRestored: taskRows[0].isRestored,
+              chunks: taskRows.map(
+                ({ fileName, beginning, ending, unwantedParts }) =>
+                  new AudioChunk({ fileName, beginning, ending, unwantedParts })
+              ),
+              timestampImported: admin.database.ServerValue.TIMESTAMP,
+            })
+        )
+        // Mix allotments into the tasks
+        .forEach(task => _.assign(task, allotmentsMap[task.id]))
+        .value()
+    );
   }
 }
 
-class TaskValidator extends Validator<TasksSheetRow[]> {
+class TaskValidator extends Validator<ChunkRow[]> {
   constructor() {
     super([
       new ValidationRuleForEach(
