@@ -42,3 +42,9 @@ export const processResolution = functions.database
       resolution.val()
     );
   });
+
+export const importTasks = functions.pubsub
+  .schedule('every day 00:00')
+  .onRun(async () => {
+    await TrackEditingWorkflow.importTasks();
+  });

@@ -2,12 +2,11 @@
  * sri sri guru gauranga jayatah
  */
 
-import { AudioAnnotationArray } from './AudioAnnotation';
 import { TimingInterval } from './TimingInterval';
 
 export class AudioChunk extends TimingInterval {
   fileName: string;
-  unwantedParts: AudioAnnotationArray;
+  unwantedParts?: string;
 
   constructor(source: Partial<AudioChunk>) {
     super();
