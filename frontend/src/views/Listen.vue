@@ -11,14 +11,17 @@ import { functions } from 'firebase';
         </router-link>
       </v-toolbar-title>
     </v-toolbar>
-    <v-card color="#d9edf7">
+    <v-alert type="warning" v-if="errorMessage" :value="true">
+      {{ errorMessage }}
+    </v-alert>
+    <v-card v-else color="#d9edf7">
       <v-card-title primary-title>
         <div>
           <h3 class="headline mb-0">Audio Player</h3>
         </div>
       </v-card-title>
       <v-card-title primary-title>
-        <audio controls="controls" :src="audioUrl" style="display: block; width: 100%;">
+        <audio ref="audioPlayer" controls="controls" :src="audioUrl" style="display: block; width: 100%;">
           Your browser does not support embedding audio. Please click
           <a :href="audioUrl">this link</a>.
         </audio>
@@ -58,9 +61,25 @@ import { Component, Vue } from "vue-property-decorator";
 })
 export default class ListenAudio extends Vue {
   fileName: string = "";
+  errorMessage = "";
+
+  $refs!: {
+    audioPlayer: HTMLMediaElement;
+  };
 
   mounted() {
     this.fileName = this.$route.params.fileName;
+    this.$refs.audioPlayer.addEventListener("error", this.handleFileError);
+  }
+
+  destroyed() {
+    this.$refs.audioPlayer.removeEventListener("error", this.handleFileError);
+  }
+
+  handleFileError(e: any) {
+    if (e.target.error.code === 4) {
+      this.errorMessage = `${this.fileName} does not exist.`;
+    }
   }
 
   get nameAndExtension() {
@@ -68,12 +87,11 @@ export default class ListenAudio extends Vue {
   }
 
   get audioUrl() {
-    const [name, extension] = this.nameAndExtension;
+    const [name] = this.nameAndExtension;
     const list = name ? name.split("-")[0] : null;
-    const folder = extension && extension === "mp3" ? "mp3" : "source";
-    return `http://original.${
-      process.env.VUE_APP_STORAGE_ROOT_DOMAIN
-    }/${folder}/${list}/${this.fileName}`;
+    return `http://original.${process.env.VUE_APP_PROJECT_DOMAIN}/${list}/${
+      this.fileName
+    }`;
   }
 
   get audioFileName() {
