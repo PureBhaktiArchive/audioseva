@@ -14,6 +14,9 @@ import { FileResolution } from '../FileResolution';
 import { FileVersion } from '../FileVersion';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageManager } from '../StorageManager';
+import { schema as allotmentRowSchema } from './AllotmentRow';
+import { schema as chunkRowSchema } from './ChunkRow';
+import { TasksImporter } from './TasksImporter';
 import { TrackEditingTask } from './TrackEditingTask';
 import _ = require('lodash');
 
@@ -36,6 +39,13 @@ export class TrackEditingWorkflow {
     return await Spreadsheet.open(
       functions.config().te.allotments.spreadsheet.id,
       'Allotments'
+    );
+  }
+
+  static async tasksCreationSheet() {
+    return await Spreadsheet.open(
+      functions.config().te.tasks.spreadsheet.id,
+      'Master List'
     );
   }
 
@@ -197,5 +207,36 @@ export class TrackEditingWorkflow {
             resolution,
           },
         });
+  }
+
+  static async importTasks() {
+    const tasksCreationSheet = await this.tasksCreationSheet();
+    const allotmentsSheet = await this.allotmentsSheet();
+
+    const tasks = new TasksImporter().import(
+      await tasksCreationSheet.getRows(chunkRowSchema),
+      await allotmentsSheet.getRows(allotmentRowSchema)
+    );
+
+    const newTasks = await Promise.all(
+      // Map tasks to null if the Task ID exists in the database
+      tasks.map(async task =>
+        (await this.getTaskRef(task.id)
+          .child('status')
+          .once('value')).exists()
+          ? null
+          : task
+      )
+    );
+
+    const updates = _(newTasks)
+      // Filter out nulls.
+      .filter()
+      .keyBy(({ id }) => id)
+      .mapValues(({ id, ...task }) => task)
+      .value();
+
+    await this.tasksRef.update(updates);
+    console.info(`Imported ${_.keys(updates).length} tasks.`);
   }
 }

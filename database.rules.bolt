@@ -166,7 +166,7 @@ path /SQR {
 
 type AudioChunk extends TimingInterval {
   fileName: String,
-  unwantedParts: AudioAnnotation[],
+  unwantedParts: String,
 }
 
 type FileResolution {
@@ -184,8 +184,10 @@ type FileVersion {
 }
 
 type TrackEditingTask extends Allotment {
+  isRestored: Boolean,
   chunks: AudioChunk[],
   versions: FileVersion[],
+  timestampImported: InitialTimestamp | Null,
 
   read() { this.assignee.emailAddress == auth.token.email }
 }
