@@ -3,6 +3,7 @@
  */
 import { GaxiosResponse } from 'gaxios';
 import { google, sheets_v4 } from 'googleapis';
+import { morphism, StrictSchema } from 'morphism';
 import _ = require('lodash');
 
 enum IValueInputOption {
@@ -272,15 +273,19 @@ export class Spreadsheet {
     return this.rowToObject(values[0]);
   }
 
+  public async getRows<T>(schema: StrictSchema<T>): Promise<T[]>;
+  public async getRows(): Promise<object[]>;
+
   /**
    * Gets all the rows on the sheet.
    */
-  public async getRows() {
+  public async getRows<T>(schema?: StrictSchema<T>) {
     const values = await this.getValues(
       this.rowsToA1Notation(this.fromDataRowNumber(1), this.rowCount)
     );
 
-    return values.map(row => this.rowToObject(row));
+    const objects = values.map(row => this.rowToObject(row));
+    return schema ? morphism(schema, <any[]>objects) : objects;
   }
 
   /**
