@@ -7,9 +7,10 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { URL } from 'url';
 import { Allotment, AllotmentStatus } from '../Allotment';
-import { AudioFileAnnotation } from '../AudioFileAnnotation';
+import { AudioAnnotationArray } from '../AudioAnnotation';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { RowUpdateMode, Spreadsheet } from '../GoogleSheets';
+import { ReportingTask } from '../ReportingTask';
+import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import uuidv4 = require('uuid/v4');
 import _ = require('lodash');
@@ -98,33 +99,32 @@ export class SQRWorkflow {
   }
 
   static async getUserAllotments(emailAddress: string) {
+    const snapshot = await this.allotmentsRef
+      .orderByChild('assignee/emailAddress')
+      .equalTo(emailAddress)
+      .once('value');
     return (
-      _(
-        (await this.allotmentsRef
-          .orderByChild('assignee/emailAddress')
-          .equalTo(emailAddress)
-          .once('value')).val()
-      )
+      _(snapshot.val())
         .toPairs()
         // Considering only ones with Given Timestamp, as after cancelation the assignee can be kept.
         .filter(([, value]) => Number.isInteger(value.timestampGiven))
-        .map(item => new Allotment(...item))
+        .map(([fileName, item]) => new ReportingTask(fileName, item))
         .value()
     );
   }
 
-  static async spreadsheet() {
-    return await Spreadsheet.open(functions.config().sqr.spreadsheet_id);
-  }
-
   static async allotmentsSheet() {
-    const spreadsheet = await this.spreadsheet();
-    return await spreadsheet.useSheet('Allotments');
+    return await Spreadsheet.open(
+      functions.config().sqr.spreadsheet_id,
+      'Allotments'
+    );
   }
 
   static async submissionsSheet() {
-    const spreadsheet = await this.spreadsheet();
-    return await spreadsheet.useSheet('Submissions');
+    return await Spreadsheet.open(
+      functions.config().sqr.spreadsheet_id,
+      'Submissions'
+    );
   }
 
   /**
@@ -191,9 +191,9 @@ export class SQRWorkflow {
           functions.config().coordinator.timezone
         ).toMillis(),
         comments: row['Comments'],
-        soundIssues: AudioFileAnnotation.parse(row['Sound Issues']),
+        soundIssues: AudioAnnotationArray.parse(row['Sound Issues']),
         soundQualityRating: row['Sound Quality Rating'],
-        unwantedParts: AudioFileAnnotation.parse(row['Unwanted Parts']),
+        unwantedParts: AudioAnnotationArray.parse(row['Unwanted Parts']),
         duration: {
           //TODO: sanitze duration
           beginning: row['Beginning'],
@@ -255,38 +255,31 @@ export class SQRWorkflow {
     );
   }
 
-  static async exportAllotment(allotment: Allotment) {
+  static async exportAllotment(fileName: string, allotment: Allotment) {
     const sheet = await this.allotmentsSheet();
 
-    const rowNumber = await sheet.findRowNumber(
-      'File Name',
-      allotment.fileName
-    );
+    const rowNumber = await sheet.findDataRowNumber('File Name', fileName);
     if (!rowNumber)
       throw new Error(
-        `File ${allotment.fileName} is not found in the SQR allotments sheet.`
+        `File ${fileName} is not found in the SQR allotments sheet.`
       );
 
-    await sheet.updateRow(
-      rowNumber,
-      {
-        'Date Given': allotment.timestampGiven
-          ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(allotment.timestampGiven)
-            )
-          : null,
-        Notes: allotment.notes,
-        Status: allotment.status.replace('Spare', ''),
-        Devotee: allotment.assignee ? allotment.assignee.name : null,
-        Email: allotment.assignee ? allotment.assignee.emailAddress : null,
-        'Date Done': allotment.timestampDone
-          ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(allotment.timestampDone)
-            )
-          : null,
-      },
-      RowUpdateMode.Partial
-    );
+    await sheet.updateRow(rowNumber, {
+      'Date Given': allotment.timestampGiven
+        ? DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(allotment.timestampGiven)
+          )
+        : null,
+      Notes: allotment.notes,
+      Status: allotment.status.replace('Spare', null),
+      Devotee: allotment.assignee ? allotment.assignee.name : null,
+      Email: allotment.assignee ? allotment.assignee.emailAddress : null,
+      'Date Done': allotment.timestampDone
+        ? DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(allotment.timestampDone)
+          )
+        : null,
+    });
   }
 
   static async processAllotment(files, assignee, comment) {
@@ -364,7 +357,7 @@ export class SQRWorkflow {
     if (!allotmentSnapshot.exists())
       throw new Error(`File ${fileName} is not allotted in the database.`);
 
-    const allotment = new Allotment(fileName, allotmentSnapshot.val());
+    const allotment = new Allotment(allotmentSnapshot.val());
 
     if (token !== allotment.token)
       throw new Error(`Token ${token} is invalid for ${fileName}.`);
@@ -378,23 +371,24 @@ export class SQRWorkflow {
       });
 
     // Saving the submission to the spreadsheet
-    await (await this.allotmentsSheet()).updateOrAppendRow(
+    await (await this.submissionsSheet()).updateOrAppendRows(
       'Audio File Name',
-      fileName,
-      {
-        Completed: DateTimeConverter.toSerialDate(submission.completed),
-        Updated: DateTimeConverter.toSerialDate(submission.changed),
-        'Update Link': SQRWorkflow.createSubmissionLink(fileName, token),
-        'Audio File Name': fileName,
-        'Unwanted Parts': submission.unwantedParts.format(),
-        'Sound Issues': submission.soundIssues.format(),
-        'Sound Quality Rating': submission.soundQualityRating,
-        Beginning: submission.duration ? submission.duration.beginning : null,
-        Ending: submission.duration ? submission.duration.ending : null,
-        Comments: submission.comments,
-        Name: allotment.assignee.name,
-        'Email Address': allotment.assignee.emailAddress,
-      }
+      [
+        {
+          Completed: DateTimeConverter.toSerialDate(submission.completed),
+          Updated: DateTimeConverter.toSerialDate(submission.changed),
+          'Update Link': SQRWorkflow.createSubmissionLink(fileName, token),
+          'Audio File Name': fileName,
+          'Unwanted Parts': submission.unwantedParts.toString(),
+          'Sound Issues': submission.soundIssues.toString(),
+          'Sound Quality Rating': submission.soundQualityRating,
+          Beginning: submission.duration ? submission.duration.beginning : null,
+          Ending: submission.duration ? submission.duration.ending : null,
+          Comments: submission.comments,
+          Name: allotment.assignee.name,
+          'Email Address': allotment.assignee.emailAddress,
+        },
+      ]
     );
 
     // Sending email notification for the coordinator

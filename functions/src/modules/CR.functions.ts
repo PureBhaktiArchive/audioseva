@@ -6,32 +6,32 @@ import * as functions from 'firebase-functions';
 import * as _ from 'lodash';
 import { DateTime } from 'luxon';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { Spreadsheet } from '../GoogleSheets';
 import * as helpers from '../helpers';
+import { Spreadsheet } from '../Spreadsheet';
 
-export enum SheetNames {
+enum SheetNames {
   Allotments = 'Allotments',
   Submissions = 'Submissions',
 }
 
-export const copySubmissionsToProcessing = functions.pubsub
+const copySubmissionsToProcessing = functions.pubsub
   .topic('daily-tick')
   .onPublish(async () => {
-    const sourceSpreadsheet = await Spreadsheet.open(
-      functions.config().cr.submissions.spreadsheet.id
+    const onlineSheet = await Spreadsheet.open(
+      functions.config().cr.submissions.spreadsheet.id,
+      'Online'
     );
-    const onlineSheet = await sourceSpreadsheet.useSheet('Online');
 
-    const destSpreadsheet = await Spreadsheet.open(
-      functions.config().cr.processing.spreadsheet.id
-    );
     const destinations = new Map();
 
     for (const row of await onlineSheet.getRows()) {
       const list = helpers.extractListFromFilename(row['Audio File Name']);
 
       if (!destinations.has(list)) {
-        const sheet = await destSpreadsheet.useSheet(list);
+        const sheet = await Spreadsheet.open(
+          functions.config().cr.processing.spreadsheet.id,
+          list
+        );
 
         /// We are not creating new sheets
         if (!sheet) continue;
@@ -79,7 +79,7 @@ export const copySubmissionsToProcessing = functions.pubsub
 /**
  * Gets lists with spare files
  */
-export const getLists = functions.https.onCall(async (data, context) => {
+const getLists = functions.https.onCall(async (data, context) => {
   if (!context.auth || !context.auth.token || !context.auth.token.coordinator) {
     throw new functions.https.HttpsError(
       'permission-denied',
@@ -87,10 +87,10 @@ export const getLists = functions.https.onCall(async (data, context) => {
     );
   }
 
-  const spreadsheet = await Spreadsheet.open(
-    functions.config().cr.allotments.spreadsheet.id
+  const allotmentsSheet = await Spreadsheet.open(
+    functions.config().cr.allotments.spreadsheet.id,
+    SheetNames.Allotments
   );
-  const allotmentsSheet = await spreadsheet.useSheet(SheetNames.Allotments);
 
   const rows = await allotmentsSheet.getRows();
 
@@ -103,7 +103,7 @@ export const getLists = functions.https.onCall(async (data, context) => {
 /**
  * Gets spare files for specified list and languages
  */
-export const getSpareFiles = functions.https.onCall(
+const getSpareFiles = functions.https.onCall(
   async ({ list, languages, count }, context) => {
     if (
       !context.auth ||
@@ -116,10 +116,10 @@ export const getSpareFiles = functions.https.onCall(
       );
     }
 
-    const spreadsheet = await Spreadsheet.open(
-      functions.config().cr.allotments.spreadsheet.id
+    const allotmentsSheet = await Spreadsheet.open(
+      functions.config().cr.allotments.spreadsheet.id,
+      SheetNames.Allotments
     );
-    const allotmentsSheet = await spreadsheet.useSheet(SheetNames.Allotments);
 
     const allotmentsRows = await allotmentsSheet.getRows();
 
@@ -148,7 +148,7 @@ export const getSpareFiles = functions.https.onCall(
 /**
  * Saves allotment to the spreadsheet and sends an email notification
  */
-export const processAllotment = functions.https.onCall(
+const processAllotment = functions.https.onCall(
   async ({ assignee, files, comment }, context) => {
     if (
       !context.auth ||
@@ -167,10 +167,10 @@ export const processAllotment = functions.https.onCall(
         'Devotee and Files are required.'
       );
 
-    const spreadsheet = await Spreadsheet.open(
-      functions.config().cr.allotments.spreadsheet.id
+    const sheet = await Spreadsheet.open(
+      functions.config().cr.allotments.spreadsheet.id,
+      SheetNames.Allotments
     );
-    const sheet = await spreadsheet.useSheet(SheetNames.Allotments);
     const fileNameColumn = await sheet.getColumn('File Name');
     const emailColumn = await sheet.getColumn('Email');
 

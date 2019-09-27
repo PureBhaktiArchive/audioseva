@@ -18,6 +18,7 @@ import _ from "lodash";
 const pathMap = {
   cr: "CR",
   sqr: "SQR",
+  te: "TE",
   allot: "Allotment"
 };
 
@@ -40,7 +41,7 @@ export default class Dashboard extends Vue {
         breadcrumbs.push({
           text: this.getText(item, params),
           disabled: index === pathsLength,
-          to: this.getPath(item, index),
+          to: this.getPath(item, index, paths),
           exact: true
         });
       });
@@ -48,21 +49,17 @@ export default class Dashboard extends Vue {
     this.breadcrumbs = breadcrumbs;
   }
 
-  getPath(item: string, index: number) {
-    if (item) {
-      if (index === 1) {
-        return `/${item}`;
-      } else {
-        return item;
-      }
-    } else {
-      return "/";
-    }
+  getPath(item: string, index: number, paths: string[]) {
+    return `${paths.slice(0, index).join("/")}/${item}`;
   }
 
   getText(path: string, params: any) {
     if (path) {
-      let customText = _.get(pathMap, path, _.capitalize(path));
+      let customText = _.get(
+        pathMap,
+        path,
+        path[0].toUpperCase() + path.substring(1)
+      );
       if (typeof customText === "function") {
         customText = customText(params);
       }
