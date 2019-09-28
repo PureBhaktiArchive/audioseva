@@ -1,7 +1,7 @@
 import firebase from "firebase/app";
-import { routerBeforeEach } from "@/router";
+import { checkAuth } from "@/router";
 
-describe("routerBeforeEach", () => {
+describe("checkAuth", () => {
   let to: any;
   let from: any = {};
   let next: any;
@@ -14,7 +14,7 @@ describe("routerBeforeEach", () => {
     to = {
       matched: [{ meta: { auth: { guestOnly: true } } }]
     };
-    await routerBeforeEach(to, from, next);
+    await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith("/");
   });
@@ -27,7 +27,7 @@ describe("routerBeforeEach", () => {
       fullPath: "/sqr",
       matched: [{ meta: { auth: { requireAuth: true } } }]
     };
-    await routerBeforeEach(to, from, next);
+    await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith({
       path: "/login",
@@ -39,7 +39,7 @@ describe("routerBeforeEach", () => {
     to = {
       matched: [{ meta: {} }]
     };
-    await routerBeforeEach(to, from, next);
+    await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith();
   });
@@ -58,7 +58,7 @@ describe("routerBeforeEach", () => {
     to = {
       matched: [{ meta: { auth: { requireClaims: { TE: true } } } }]
     };
-    await routerBeforeEach(to, from, next);
+    await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith();
   });
@@ -69,7 +69,7 @@ describe("routerBeforeEach", () => {
     };
     const from: any = {};
     const next: any = jest.fn();
-    await routerBeforeEach(to, from, next);
+    await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith("/");
   });

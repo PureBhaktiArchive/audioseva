@@ -269,7 +269,7 @@ export const getMenuItems = async () => {
   );
 };
 
-export const routerBeforeEach: NavigationGuard = async (to, from, next) => {
+export const checkAuth: NavigationGuard = async (to, from, next) => {
   // reverse routes so nested routes can take control
   const restrictedRoute = [...to.matched]
     .reverse()
@@ -305,4 +305,4 @@ export const routerBeforeEach: NavigationGuard = async (to, from, next) => {
   next();
 };
 
-router.beforeEach(routerBeforeEach);
+router.beforeEach(checkAuth);
