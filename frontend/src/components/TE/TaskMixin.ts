@@ -1,8 +1,37 @@
 import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
+import firebase from "firebase/app";
+import "firebase/functions";
 
 @Component
 export default class TaskMixin extends Vue {
+  cancelData() {
+    return {
+      status: "Spare",
+      timestampGiven: "",
+      assignee: {
+        emailAddress: "",
+        name: ""
+      }
+    };
+  }
+
+  async cancelAllotment(
+    item: any,
+    itemPath: string,
+    paths: any,
+    fieldUpdates: any
+  ) {
+    try {
+      await firebase.functions().httpsCallable("TE-cancelAllotment")({
+        taskId: item[".key"]
+      });
+      this.updateFields(item, fieldUpdates);
+    } catch (e) {
+      console.log(e.message);
+    }
+  }
+
   getTaskStyle(task: any) {
     let backgroundColor = "inherit";
     const resolution =

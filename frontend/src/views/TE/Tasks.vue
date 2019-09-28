@@ -110,12 +110,14 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   currentPage: any[] = [];
   pages: any = {};
   lastPageNumber: number = 0;
+  flattenedPages: any[] = [];
 
   editEvents = {
     cancel: this.cancel,
     save: this.save
   };
 
+  itemsKey = "flattenedPages";
   itemComparePath = ".key";
 
   styles = {
@@ -135,9 +137,9 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
 
   componentData = {
     assignee: {
-      on: { ...this.editEvents, multiSave: this.multiFieldSave },
+      on: { ...this.editEvents, multiSave: this.cancelAllotment },
       props: {
-        cancelData: this.assigneeCancel,
+        cancelData: this.cancelData,
         shouldCancelChange: (task: any) => task.status === "Done"
       }
     },
@@ -153,17 +155,6 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     this.loadNewPage();
   }
 
-  assigneeCancel() {
-    return {
-      status: "",
-      timestampGiven: "",
-      assignee: {
-        emailAddress: "",
-        name: ""
-      }
-    };
-  }
-
   private paginationHandler() {
     const entries = [...this.currentPage];
     const isLastPage = entries.length < this.pagination.rowsPerPage;
@@ -171,8 +162,10 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     if (isLastPage) {
       this.lastPageNumber = this.pagination.page;
     }
-    this.$set(this.pages, id, entries.reverse());
+    const reversedEntries = entries.reverse();
+    this.$set(this.pages, id, reversedEntries);
     this.$set(this.datatableProps, "loading", false);
+    this.flattenedPages = [...this.flattenedPages, ...reversedEntries];
   }
 
   handlePageSizeChange() {
@@ -224,7 +217,7 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   }
 
   get items() {
-    return _.flatten(_.map(this.pages, page => page));
+    return this.flattenedPages;
   }
 }
 </script>
