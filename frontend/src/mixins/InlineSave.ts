@@ -32,7 +32,7 @@ export default class InlineSave extends Vue {
     return this[this.itemsKey];
   }
 
-  multiFieldSave(item: any, itemPath: string, paths: any, fieldUpdates: any) {
+  updateFields(item: any, fieldUpdates: any) {
     this.$set(
       this.getUpdateItems(),
       this.items.findIndex(
@@ -40,6 +40,10 @@ export default class InlineSave extends Vue {
       ),
       _.merge({}, item, fieldUpdates)
     );
+  }
+
+  multiFieldSave(item: any, itemPath: string, paths: any, fieldUpdates: any) {
+    this.updateFields(item, fieldUpdates);
     firebase
       .database()
       .ref(this.getUpdatePath(item, { itemPath }))
