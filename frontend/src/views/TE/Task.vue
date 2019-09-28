@@ -17,8 +17,9 @@
         <v-timeline dense>
           <v-timeline-item icon="fas fa-paper-plane" fill-dot v-if="task.assignee">
             <v-layout justify-space-between wrap>
-              <v-flex xs7>
+              <v-flex xs8 :style="{ display: 'flex', flexWrap: 'wrap' }">
                 <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
+                <v-btn @click="onCancelClick" class="mt-0" color="error" small>Cancel</v-btn>
               </v-flex>
               <v-flex text-xs-right v-if="task.timestampGiven">
                 {{ formatTimestamp(task.timestampGiven) }}
@@ -88,6 +89,7 @@ import { Component, Mixins, Watch } from "vue-property-decorator";
 import { mapState, mapActions } from "vuex";
 import firebase from "firebase/app";
 import "firebase/database";
+import _ from "lodash";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import FormatTime from "@/mixins/FormatTime";
@@ -133,6 +135,14 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   async checkUserClaims() {
     const claims = await this.getUserClaims();
     this.isCoordinator = claims.coordinator;
+  }
+
+  onCancelClick() {
+    this.cancelAllotment(this.task, "", {}, this.cancelData());
+  }
+
+  updateFields(...args: any[]) {
+    this.task = _.merge({}, ...args);
   }
 
   async handleSubmitForm(isApproved = false, versionKey: string) {
