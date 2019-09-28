@@ -2,11 +2,12 @@ language: node_js
 node_js:
   - "lts/*"
 cache: npm
-install:
-  - npm install --prefix ./functions
-  - npm install --prefix ./frontend
+env:
+  - PROJECT=functions
+  - PROJECT=frontend
+before_install:
+  - cd $PROJECT
 script:
-  - npm run lint --prefix ./functions
-  - npm run build --prefix ./functions
-  - npm run test --prefix ./functions -- --passWithNoTests
-  - npm run build --prefix ./frontend
+  - npm run lint
+  - npm run build
+  - npm run test
