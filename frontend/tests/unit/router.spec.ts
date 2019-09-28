@@ -1,5 +1,36 @@
 import firebase from "firebase/app";
-import { checkAuth } from "@/router";
+import { checkAuth, redirectSections } from "@/router";
+import { mockClaims } from "./components/HomePageButtons.spec";
+
+describe("redirectSections", () => {
+  let to: any;
+  let from: any = {};
+  let next: any;
+
+  beforeEach(() => {
+    next = jest.fn();
+  });
+
+  test.each`
+    claims                   | expectedPath
+    ${{ TE: true }}          | ${"/te/my"}
+    ${{ coordinator: true }} | ${"/te/tasks"}
+  `(
+    "should redirect to first available child route that matches claims $claims",
+    async ({ claims, expectedPath }) => {
+      mockClaims(claims);
+      to = {
+        fullPath: "/te",
+        meta: {
+          activator: true,
+          auth: { requireClaims: { coordinator: true } }
+        }
+      };
+      await redirectSections(to, from, next);
+      expect(next).toHaveBeenCalledWith(expectedPath);
+    }
+  );
+});
 
 describe("checkAuth", () => {
   let to: any;
