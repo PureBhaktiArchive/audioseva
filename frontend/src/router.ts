@@ -305,4 +305,29 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
   next();
 };
 
+export const redirectSections: NavigationGuard = async (to, from, next) => {
+  if (_.get(to, "meta.activator", false)) {
+    const activatorChildren = getRootRouteChildren().find(
+      (route: RouteConfig) => `/${route.path}` === `${to.fullPath}/`
+    ).children;
+    const userClaims = await getUserClaims();
+    const childRedirectRoute = activatorChildren.find((route: RouteConfig) => {
+      const requireClaims = _.get(
+        route,
+        "meta.auth.requireClaims",
+        _.get(to, "meta.auth.requireClaims")
+      );
+      return hasClaim(requireClaims, userClaims);
+    });
+    if (childRedirectRoute) {
+      next(`${to.fullPath}/${childRedirectRoute.path}`);
+    } else {
+      next("/");
+    }
+  } else {
+    next();
+  }
+};
+
+router.beforeEach(redirectSections);
 router.beforeEach(checkAuth);
