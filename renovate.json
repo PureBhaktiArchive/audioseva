@@ -1,5 +1,25 @@
 {
-  "extends": [
-    "config:base"
+  "extends": ["config:base"],
+  "automerge": true,
+  "major": {
+    "automerge": false
+  },
+  "packageRules": [
+    {
+      "paths": ["frontend"],
+      "timezone": "America/New_York",
+      "assignees": ["DadImScared"],
+      "extends": ["schedule:daily"]
+    },
+    {
+      "paths": ["functions"],
+      "timezone": "Asia/Novokuznetsk",
+      "assignees": ["anantakrishna"],
+      "extends": ["schedule:earlyMondays"]
+    },
+    {
+      "depTypeList": ["devDependencies"],
+      "automerge": true
+    }
   ]
 }
