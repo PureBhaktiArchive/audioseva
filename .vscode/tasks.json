@@ -6,11 +6,6 @@
   "tasks": [
     {
       "type": "npm",
-      "script": "deploy",
-      "path": "appsscript/"
-    },
-    {
-      "type": "npm",
       "script": "serve",
       "path": "frontend/"
     },
