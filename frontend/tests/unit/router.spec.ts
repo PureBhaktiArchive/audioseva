@@ -18,7 +18,7 @@ describe("redirectSections", () => {
   `(
     "should redirect to first available child route that matches claims $claims",
     async ({ claims, expectedPath }) => {
-      mockClaims(claims);
+      await mockClaims(claims);
       to = {
         fullPath: "/te",
         meta: {
