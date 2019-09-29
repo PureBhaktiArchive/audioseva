@@ -12,18 +12,22 @@ describe("redirectSections", () => {
   });
 
   test.each`
-    claims                   | expectedPath
-    ${{ TE: true }}          | ${"/te/my"}
-    ${{ coordinator: true }} | ${"/te/tasks"}
+    claims                   | toProps                | expectedPath
+    ${{ TE: true }}          | ${{ fullPath: "/te" }} | ${"/te/my"}
+    ${{ coordinator: true }} | ${{ fullPath: "/te" }} | ${"/te/tasks"}
   `(
     "should redirect to first available child route that matches claims $claims",
-    async ({ claims, expectedPath }) => {
+    async ({
+      claims,
+      expectedPath,
+      toProps: { fullPath, toClaims = { coordinator: true } }
+    }) => {
       await mockClaims(claims);
       to = {
-        fullPath: "/te",
+        fullPath: fullPath,
         meta: {
           activator: true,
-          auth: { requireClaims: { coordinator: true } }
+          auth: { requireClaims: toClaims }
         }
       };
       await redirectSections(to, from, next);
