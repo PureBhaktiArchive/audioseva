@@ -24,19 +24,22 @@
     "lodash": "4.17.15",
     "luxon": "1.21.3",
     "morphism": "1.12.3",
-    "pug": "^2.0.4",
-    "sib-api-v3-sdk": "7.1.4",
+    "nodemailer": "6.4.2",
+    "nodemailer-sendinblue-transport": "1.2.3",
+    "pug": "2.0.4",
     "uuid": "3.3.3"
   },
   "peerDependencies": {
     "gaxios": "^2.0.0"
   },
   "devDependencies": {
+    "@types/email-templates": "6.0.2",
     "@types/glob": "7.1.1",
     "@types/jest": "24.0.24",
     "@types/lodash": "4.14.149",
     "@types/luxon": "1.21.0",
     "@types/node": "12.12.21",
+    "@types/nodemailer": "6.4.0",
     "@types/uuid": "3.4.6",
     "firebase-functions-test": "0.1.7",
     "jest": "24.9.0",
