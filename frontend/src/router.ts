@@ -6,6 +6,7 @@ import firebase from "firebase/app";
 import _ from "lodash";
 import Vue from "vue";
 import Router, { NavigationGuard, RouteConfig } from "vue-router";
+import { store } from "@/store";
 
 Vue.use(Router);
 
@@ -163,11 +164,6 @@ export const hasClaim = (
   );
 };
 
-const getUserClaims = async () => {
-  const currentUser = firebase.auth().currentUser;
-  return currentUser ? (await currentUser.getIdTokenResult()).claims : {};
-};
-
 const getRootRouteChildren = () => {
   return (router as any).options.routes.find(
     (route: RouteConfig) => route.path === "/"
@@ -240,7 +236,10 @@ const filterHomePageRoutes = filterRoutesByClaims(
 );
 
 export const getHomePageRoutes = async () => {
-  return filterHomePageRoutes(getRootRouteChildren(), await getUserClaims());
+  return filterHomePageRoutes(
+    getRootRouteChildren(),
+    (await store.dispatch("user/getUserClaims")) || {}
+  );
 };
 
 const filterMenuItems = filterRoutesByClaims(
@@ -265,7 +264,7 @@ export const getMenuItems = async () => {
     getRootRouteChildren().filter((route: any) => {
       return route.meta && (route.meta.activator || route.meta.menuItem);
     }),
-    await getUserClaims()
+    (await store.dispatch("user/getUserClaims")) || {}
   );
 };
 
@@ -310,7 +309,7 @@ export const redirectSections: NavigationGuard = async (to, from, next) => {
     const activatorChildren = getRootRouteChildren().find(
       (route: RouteConfig) => `/${route.path}` === `${to.fullPath}/`
     ).children;
-    const userClaims = await getUserClaims();
+    const userClaims = await store.dispatch("user/getUserClaims");
     const childRedirectRoute = activatorChildren.find((route: RouteConfig) => {
       const requireClaims = _.get(
         route,
