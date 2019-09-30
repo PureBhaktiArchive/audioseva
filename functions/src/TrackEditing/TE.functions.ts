@@ -25,6 +25,28 @@ export const processAllotment = functions.https.onCall(
   }
 );
 
+export const cancelAllotment = functions.https.onCall(
+  async ({ taskId }, context) => {
+    if (
+      !functions.config().emulator &&
+      (!context.auth || !context.auth.token || !context.auth.token.coordinator)
+    ) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'The function must be called by an authenticated coordinator.'
+      );
+    }
+
+    if (!taskId)
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Task ID is required.'
+      );
+
+    await TrackEditingWorkflow.cancelAllotment(taskId);
+  }
+);
+
 export const processUpload = functions.storage
   .bucket(StorageManager.trackEditedUploadsBucket)
   .object()

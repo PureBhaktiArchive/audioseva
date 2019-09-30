@@ -102,6 +102,37 @@ export class TrackEditingWorkflow {
       });
   }
 
+  static async cancelAllotment(taskId: string) {
+    const task = await this.getTask(taskId);
+    if (task.status === AllotmentStatus.Done)
+      throw new Error('Task is already Done, cannot cancel.');
+
+    console.info(
+      `Cancelling task ${taskId} currently assigned to ${task.assignee.emailAddress}`
+    );
+
+    const updates = {
+      status: AllotmentStatus.Spare,
+      assignee: null,
+      timestampGiven: null,
+    };
+
+    await this.getTaskRef(taskId).update(updates);
+
+    const sheet = await this.allotmentsSheet();
+
+    const rowNumber = await sheet.findDataRowNumber('Task ID', taskId);
+    if (!rowNumber)
+      throw new Error(`Task ${taskId} is not found in the allotments sheet.`);
+
+    await sheet.updateRow(rowNumber, {
+      Status: null,
+      'Date Given': null,
+      Devotee: null,
+      Email: null,
+    });
+  }
+
   static async processUpload(object: ObjectMetadata) {
     const uid = object.name.match(/^([^/]+)/)[0];
     const taskId = path.basename(object.name, '.flac');
