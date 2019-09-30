@@ -1,7 +1,7 @@
 <template>
   <div>
     {{ timestamp }}
-    <p class="subtext" v-if="daysPassed">{{ daysPassed }}</p>
+    <p class="subtext" v-if="timestamp && daysPassed">{{ daysPassed }}</p>
   </div>
 </template>
 
@@ -24,6 +24,7 @@ export default class TimestampGiven extends Mixins<FormatTime>(FormatTime) {
   }
 
   get timestamp() {
+    if (!this.item.timestampGiven) return "";
     return this.formatTimestamp(this.item.timestampGiven);
   }
 }

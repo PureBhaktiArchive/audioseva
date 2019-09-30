@@ -123,9 +123,9 @@ export class Spreadsheet {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
     let encoded = '';
-    while (index) {
+    while (index >= 0) {
       encoded = alphabet[index % alphabet.length] + encoded;
-      index = Math.floor(index / alphabet.length);
+      index = Math.floor(index / alphabet.length) - 1;
     }
     return encoded;
   }

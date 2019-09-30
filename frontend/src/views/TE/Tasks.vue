@@ -72,6 +72,7 @@ import InlineSave from "@/mixins/InlineSave";
 import TaskMixin from "@/components/TE/TaskMixin";
 import firebase from "firebase/app";
 import "firebase/database";
+import "firebase/functions";
 
 @Component({
   name: "Tasks",
@@ -110,12 +111,14 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   currentPage: any[] = [];
   pages: any = {};
   lastPageNumber: number = 0;
+  flattenedPages: any[] = [];
 
   editEvents = {
     cancel: this.cancel,
     save: this.save
   };
 
+  itemsKey = "flattenedPages";
   itemComparePath = ".key";
 
   styles = {
@@ -135,9 +138,9 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
 
   componentData = {
     assignee: {
-      on: { ...this.editEvents, multiSave: this.multiFieldSave },
+      on: { ...this.editEvents, multiSave: this.cancelAllotment },
       props: {
-        cancelData: this.assigneeCancel,
+        cancelData: this.cancelData,
         shouldCancelChange: (task: any) => task.status === "Done"
       }
     },
@@ -153,15 +156,20 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     this.loadNewPage();
   }
 
-  assigneeCancel() {
-    return {
-      status: "",
-      timestampGiven: "",
-      assignee: {
-        emailAddress: "",
-        name: ""
-      }
-    };
+  async cancelAllotment(
+    item: any,
+    itemPath: string,
+    paths: any,
+    fieldUpdates: any
+  ) {
+    try {
+      await firebase.functions().httpsCallable("TE-cancelAllotment")({
+        taskId: item[".key"]
+      });
+      this.updateFields(item, fieldUpdates);
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 
   private paginationHandler() {
@@ -171,8 +179,10 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     if (isLastPage) {
       this.lastPageNumber = this.pagination.page;
     }
-    this.$set(this.pages, id, entries.reverse());
+    const reversedEntries = entries.reverse();
+    this.$set(this.pages, id, reversedEntries);
     this.$set(this.datatableProps, "loading", false);
+    this.flattenedPages = [...this.flattenedPages, ...reversedEntries];
   }
 
   handlePageSizeChange() {
@@ -224,7 +234,7 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   }
 
   get items() {
-    return _.flatten(_.map(this.pages, page => page));
+    return this.flattenedPages;
   }
 }
 </script>
