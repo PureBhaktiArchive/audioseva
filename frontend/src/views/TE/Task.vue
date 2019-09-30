@@ -89,6 +89,7 @@ import { Component, Mixins, Watch } from "vue-property-decorator";
 import { mapState, mapActions } from "vuex";
 import firebase from "firebase/app";
 import "firebase/database";
+import "firebase/functions";
 import _ from "lodash";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
@@ -137,12 +138,15 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     this.isCoordinator = claims.coordinator;
   }
 
-  onCancelClick() {
-    this.cancelAllotment(this.task, "", {}, this.cancelData());
-  }
-
-  updateFields(...args: any[]) {
-    this.task = _.merge({}, ...args);
+  async onCancelClick() {
+    try {
+      await firebase.functions().httpsCallable("TE-cancelAllotment")({
+        taskId: this.task[".key"]
+      });
+      this.task = _.merge({}, this.task, this.cancelData());
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 
   async handleSubmitForm(isApproved = false, versionKey: string) {

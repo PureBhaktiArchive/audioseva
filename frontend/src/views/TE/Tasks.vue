@@ -72,6 +72,7 @@ import InlineSave from "@/mixins/InlineSave";
 import TaskMixin from "@/components/TE/TaskMixin";
 import firebase from "firebase/app";
 import "firebase/database";
+import "firebase/functions";
 
 @Component({
   name: "Tasks",
@@ -153,6 +154,22 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
 
   mounted() {
     this.loadNewPage();
+  }
+
+  async cancelAllotment(
+    item: any,
+    itemPath: string,
+    paths: any,
+    fieldUpdates: any
+  ) {
+    try {
+      await firebase.functions().httpsCallable("TE-cancelAllotment")({
+        taskId: item[".key"]
+      });
+      this.updateFields(item, fieldUpdates);
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 
   private paginationHandler() {
