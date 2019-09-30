@@ -1,7 +1,42 @@
 import firebase from "firebase/app";
-import { routerBeforeEach } from "@/router";
+import { checkAuth, redirectSections } from "@/router";
+import { mockClaims } from "./components/HomePageButtons.spec";
 
-describe("routerBeforeEach", () => {
+describe("redirectSections", () => {
+  let to: any;
+  let from: any = {};
+  let next: any;
+
+  beforeEach(() => {
+    next = jest.fn();
+  });
+
+  test.each`
+    claims                   | toProps                | expectedPath
+    ${{ TE: true }}          | ${{ fullPath: "/te" }} | ${"/te/my"}
+    ${{ coordinator: true }} | ${{ fullPath: "/te" }} | ${"/te/tasks"}
+  `(
+    "should redirect to first available child route that matches claims $claims",
+    async ({
+      claims,
+      expectedPath,
+      toProps: { fullPath, toClaims = { coordinator: true } }
+    }) => {
+      await mockClaims(claims);
+      to = {
+        fullPath: fullPath,
+        meta: {
+          activator: true,
+          auth: { requireClaims: toClaims }
+        }
+      };
+      await redirectSections(to, from, next);
+      expect(next).toHaveBeenCalledWith(expectedPath);
+    }
+  );
+});
+
+describe("checkAuth", () => {
   let to: any;
   let from: any = {};
   let next: any;
@@ -14,7 +49,7 @@ describe("routerBeforeEach", () => {
     to = {
       matched: [{ meta: { auth: { guestOnly: true } } }]
     };
-    await routerBeforeEach(to, from, next);
+    await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith("/");
   });
@@ -27,7 +62,7 @@ describe("routerBeforeEach", () => {
       fullPath: "/sqr",
       matched: [{ meta: { auth: { requireAuth: true } } }]
     };
-    await routerBeforeEach(to, from, next);
+    await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith({
       path: "/login",
@@ -39,7 +74,7 @@ describe("routerBeforeEach", () => {
     to = {
       matched: [{ meta: {} }]
     };
-    await routerBeforeEach(to, from, next);
+    await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith();
   });
@@ -58,7 +93,7 @@ describe("routerBeforeEach", () => {
     to = {
       matched: [{ meta: { auth: { requireClaims: { TE: true } } } }]
     };
-    await routerBeforeEach(to, from, next);
+    await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith();
   });
@@ -69,7 +104,7 @@ describe("routerBeforeEach", () => {
     };
     const from: any = {};
     const next: any = jest.fn();
-    await routerBeforeEach(to, from, next);
+    await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith("/");
   });
