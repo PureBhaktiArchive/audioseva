@@ -64,7 +64,7 @@
                 </v-flex>
               </v-layout>
             </v-timeline-item>
-            <v-timeline-item v-else-if="index === versionsCount - 1" :key="`resolution-${key}`">
+            <v-timeline-item v-else-if="index === versionsCount - 1 && isCoordinator" :key="`resolution-${key}`">
               <template v-slot:icon>
                 <v-avatar>
                   <img :src="currentUser.photoURL" alt="user avatar" />
