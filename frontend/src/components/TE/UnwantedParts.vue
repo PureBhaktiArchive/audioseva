@@ -1,12 +1,13 @@
 <template>
   <div>
     <ul>
-      <template v-for="(unwantedPart, key, index) in unwantedParts">
+      <li>{{ unwantedParts }}</li>
+      <template v-for="(unwantedPart, index) in splitUnwantedParts">
         <li
           v-if="unwantedPart"
           :key="index"
-        >{{ `${formatDurationUtc(unwantedPart.beginning, "mm:ss")}&ndash;${formatDurationUtc(unwantedPart.ending, "mm:ss")},
-          ${unwantedPart.type}, ${unwantedPart.description || ""}` }}
+        >
+          {{ unwantedPart }}
         </li>
       </template>
     </ul>
@@ -21,8 +22,13 @@ import FormatTime from "@/mixins/FormatTime";
   name: "UnwantedParts"
 })
 export default class UnwantedParts extends Mixins<FormatTime>(FormatTime) {
-  @Prop({ default: () => [] })
-  unwantedParts!: any[];
+  @Prop() unwantedParts!: string | undefined;
+
+  get splitUnwantedParts() {
+    return typeof this.unwantedParts === "string"
+      ? this.unwantedParts.split("\n")
+      : [];
+  }
 }
 </script>
 
