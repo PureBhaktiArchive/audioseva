@@ -16,7 +16,7 @@
           <span>{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{ formatDurationUtc(chunk.ending, "mm:ss") }}</span>
         </v-flex>
         <v-flex v-bind="layout.unwantedParts">
-          <pre :style="{ whiteSpace: 'pre-wrap' }">{{ chunk.unwantedParts }}</pre>
+          <div :style="{ whiteSpace: 'pre-wrap' }">{{ chunk.unwantedParts }}</div>
         </v-flex>
       </v-layout>
       <v-divider :key="`${item['key']}-${index}-divider`" class="mt-2 mb-2"></v-divider>
