@@ -16,7 +16,7 @@
           <span>{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{ formatDurationUtc(chunk.ending, "mm:ss") }}</span>
         </v-flex>
         <v-flex v-bind="layout.unwantedParts">
-          <unwanted-parts :unwantedParts="chunk.unwantedParts" />
+          <div :style="{ whiteSpace: 'pre-wrap' }">{{ chunk.unwantedParts }}</div>
         </v-flex>
       </v-layout>
       <v-divider :key="`${item['key']}-${index}-divider`" class="mt-2 mb-2"></v-divider>
@@ -26,14 +26,12 @@
 
 <script lang="ts">
 import { Component, Prop, Mixins } from "vue-property-decorator";
-import UnwantedParts from "@/components/TE/UnwantedParts.vue";
 import FormatTime from "@/mixins/FormatTime";
 
 import { getListId } from "@/utility";
 
 @Component({
-  name: "TaskDefinition",
-  components: { UnwantedParts }
+  name: "TaskDefinition"
 })
 export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   @Prop() item!: any;
