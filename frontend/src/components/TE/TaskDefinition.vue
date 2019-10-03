@@ -63,7 +63,7 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
 
   getLink(fileName: string) {
     const listId = getListId(fileName);
-    return `http://original.${
+    return `http://${this.item.isRestored ? "restored" : "original"}.${
       process.env.VUE_APP_PROJECT_DOMAIN
     }/${listId}/${fileName}.flac`;
   }
