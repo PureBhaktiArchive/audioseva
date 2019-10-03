@@ -81,11 +81,10 @@ import "firebase/database";
 import "firebase/functions";
 
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
-import UnwantedParts from "@/components/TE/UnwantedParts.vue";
 
 @Component({
   name: "Allotment",
-  components: { TaskDefinition, UnwantedParts }
+  components: { TaskDefinition }
 })
 export default class Allotment extends Vue {
   allotment = Allotment.initialAllotment();
