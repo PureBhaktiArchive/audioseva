@@ -31,11 +31,10 @@ class ListenController extends ControllerBase {
   }
 
   private function audio_url($file_name) {
-    $seva = \Drupal::request()->query->get('seva') ?: 'cr';
-    $type = $seva === 'cr' ? 'mp3': 'flac';
-    $folder = $type === 'mp3' ? 'mp3': 'source';
-
     $list = preg_match('/^(\w+)-.+$/', $file_name, $matches) ? $matches[1] : "ML1";
+    $seva = \Drupal::request()->query->get('seva') ?: 'cr';
+    $type = ($seva === 'cr' || substr($list, 0, 4) === 'DIGI') ? 'mp3': 'flac';
+    $folder = $type === 'mp3' ? 'mp3': 'source';
 
     $encoded_file_name = rawurldecode($file_name);
     if ($type === 'mp3')
