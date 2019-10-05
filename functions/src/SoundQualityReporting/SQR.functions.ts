@@ -26,10 +26,14 @@ export const processAllotment = functions.https.onCall(
     if (!assignee || !files || files.length === 0)
       throw new functions.https.HttpsError(
         'invalid-argument',
-        'Devotee and Files are required.'
+        'Assignee and Files are required.'
       );
 
-    await SQRWorkflow.processAllotment(files, assignee, comment);
+    await SQRWorkflow.processAllotment(
+      files.map(({ name }) => name),
+      _.pick(assignee, 'emailAddress', 'name'),
+      comment
+    );
   }
 );
 
