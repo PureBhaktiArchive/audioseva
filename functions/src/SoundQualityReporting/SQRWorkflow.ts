@@ -255,33 +255,6 @@ export class SQRWorkflow {
     );
   }
 
-  static async exportAllotment(fileName: string, allotment: Allotment) {
-    const sheet = await this.allotmentsSheet();
-
-    const rowNumber = await sheet.findDataRowNumber('File Name', fileName);
-    if (!rowNumber)
-      throw new Error(
-        `File ${fileName} is not found in the SQR allotments sheet.`
-      );
-
-    await sheet.updateRow(rowNumber, {
-      'Date Given': allotment.timestampGiven
-        ? DateTimeConverter.toSerialDate(
-            DateTime.fromMillis(allotment.timestampGiven)
-          )
-        : null,
-      Notes: allotment.notes,
-      Status: allotment.status.replace('Spare', null),
-      Devotee: allotment.assignee ? allotment.assignee.name : null,
-      Email: allotment.assignee ? allotment.assignee.emailAddress : null,
-      'Date Done': allotment.timestampDone
-        ? DateTimeConverter.toSerialDate(
-            DateTime.fromMillis(allotment.timestampDone)
-          )
-        : null,
-    });
-  }
-
   static async processAllotment(files, assignee, comment) {
     console.info(
       `Allotting ${files.map(file => file.name).join(', ')} to ${

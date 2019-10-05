@@ -3,7 +3,6 @@
  */
 
 import * as functions from 'firebase-functions';
-import { Allotment } from '../Allotment';
 import { SQRSubmission } from './SQRSubmission';
 import { SQRWorkflow } from './SQRWorkflow';
 import _ = require('lodash');
@@ -48,27 +47,6 @@ export const processSubmission = functions.database
       token,
       new SQRSubmission(change.after.val()),
       change.before.exists()
-    );
-  });
-
-/**
- * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
- *
- */
-export const exportAllotmentToSpreadsheet = functions.database
-  .ref('/SQR/allotments/{fileName}')
-  .onWrite(async (change, { params: { fileName } }) => {
-    // Ignore deletions
-    if (!change.after.exists()) {
-      console.info(`Ignoring deletion of ${fileName}.`);
-      return;
-    }
-
-    console.info(fileName, change.before.val(), change.after.val());
-
-    await SQRWorkflow.exportAllotment(
-      fileName,
-      new Allotment(change.after.val())
     );
   });
 
