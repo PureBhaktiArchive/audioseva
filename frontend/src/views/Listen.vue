@@ -11,10 +11,11 @@ import { functions } from 'firebase';
         </router-link>
       </v-toolbar-title>
     </v-toolbar>
+    <v-progress-circular :style="{ display: 'flex', margin: '0 auto' }" indeterminate v-if="isLoading"></v-progress-circular>
     <v-alert type="warning" v-if="errorMessage" :value="true">
       {{ errorMessage }}
     </v-alert>
-    <v-card v-else color="#d9edf7">
+    <v-card v-else v-show="shouldShowPlayer" color="#d9edf7">
       <v-card-title primary-title>
         <div>
           <h3 class="headline mb-0">Audio Player</h3>
@@ -62,6 +63,8 @@ import { Component, Vue } from "vue-property-decorator";
 export default class ListenAudio extends Vue {
   fileName: string = "";
   errorMessage = "";
+  isLoading = true;
+  shouldShowPlayer = false;
 
   $refs!: {
     audioPlayer: HTMLMediaElement;
@@ -70,13 +73,21 @@ export default class ListenAudio extends Vue {
   mounted() {
     this.fileName = this.$route.params.fileName;
     this.$refs.audioPlayer.addEventListener("error", this.handleFileError);
+    this.$refs.audioPlayer.addEventListener("loadeddata", this.onLoadedData);
   }
 
   destroyed() {
     this.$refs.audioPlayer.removeEventListener("error", this.handleFileError);
+    this.$refs.audioPlayer.removeEventListener("error", this.onLoadedData);
+  }
+
+  onLoadedData() {
+    this.isLoading = false;
+    this.shouldShowPlayer = true;
   }
 
   handleFileError(e: any) {
+    this.isLoading = false;
     if (e.target.error.code === 4) {
       this.errorMessage = `${this.fileName} does not exist.`;
     }
