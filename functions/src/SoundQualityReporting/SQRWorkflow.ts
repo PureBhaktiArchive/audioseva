@@ -4,14 +4,14 @@
 
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { DateTime } from 'luxon';
 import { URL } from 'url';
-import { Allotment, AllotmentStatus } from '../Allotment';
+import { AllotmentStatus } from '../Allotment';
+import { Assignee } from '../Assignee';
 import { AudioAnnotationArray } from '../AudioAnnotation';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { ReportingTask } from '../ReportingTask';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
+import { TasksRepository } from './TasksRepository';
 import uuidv4 = require('uuid/v4');
 import _ = require('lodash');
 
@@ -96,21 +96,6 @@ export class SQRWorkflow {
     );
     url.searchParams.set('email_address', emailAddress);
     return url.toString();
-  }
-
-  static async getUserAllotments(emailAddress: string) {
-    const snapshot = await this.allotmentsRef
-      .orderByChild('assignee/emailAddress')
-      .equalTo(emailAddress)
-      .once('value');
-    return (
-      _(snapshot.val())
-        .toPairs()
-        // Considering only ones with Given Timestamp, as after cancelation the assignee can be kept.
-        .filter(([, value]) => Number.isInteger(value.timestampGiven))
-        .map(([fileName, item]) => new ReportingTask(fileName, item))
-        .value()
-    );
   }
 
   static async allotmentsSheet() {
@@ -255,31 +240,40 @@ export class SQRWorkflow {
     );
   }
 
-  static async processAllotment(files, assignee, comment) {
+  static async processAllotment(
+    fileNames: string[],
+    assignee: Assignee,
+    comment: string
+  ) {
     console.info(
-      `Allotting ${files.map(file => file.name).join(', ')} to ${
-        assignee.emailAddress
-      }`
+      `Allotting ${fileNames.join(', ')} to ${assignee.emailAddress}`
     );
 
-    // Update the allotments in the database
-    const updates = {};
-    const tokens = new Map<string, string>();
+    const repository = await TasksRepository.open();
+    const tasks = await repository.getTasks(fileNames);
 
-    files.forEach(async file => {
-      tokens.set(file.name, uuidv4());
+    if (
+      _.some(
+        tasks,
+        ({ status, token, assignee: currentAssignee, timestampGiven }) =>
+          token ||
+          currentAssignee ||
+          timestampGiven ||
+          status !== AllotmentStatus.Spare
+      )
+    )
+      throw Error(`Some files are already allotted. Aborting.`);
 
-      updates[`${file.name}/status`] = 'Given';
-      updates[`${file.name}/timestampGiven`] =
-        admin.database.ServerValue.TIMESTAMP;
-      updates[`${file.name}/assignee`] = _.pick(
+    const updatedTasks = await repository.save(
+      ...fileNames.map(fileName => ({
+        fileName,
+        status: AllotmentStatus.Given,
+        timestampGiven: admin.database.ServerValue.TIMESTAMP,
         assignee,
-        'emailAddress',
-        'name'
-      );
-      updates[`${file.name}/token`] = tokens.get(file.name);
-    });
-    await this.allotmentsRef.update(updates);
+        token: uuidv4(),
+      }))
+    );
+
     /// Send the allotment email
     await admin
       .database()
@@ -287,25 +281,19 @@ export class SQRWorkflow {
       .push({
         template: 'sqr-allotment',
         to: assignee.emailAddress,
-        bcc: functions.config().coordinator.email_address,
-        replyTo: functions.config().coordinator.email_address,
         params: {
-          files: files.map(file => ({
-            name: file.name,
+          files: updatedTasks.map(({ fileName, token }) => ({
+            name: fileName,
             links: {
-              listen: SQRWorkflow.createListenLink(file.name),
-              submission: SQRWorkflow.createSubmissionLink(
-                file.name,
-                tokens.get(file.name)
-              ),
+              listen: SQRWorkflow.createListenLink(fileName),
+              submission: SQRWorkflow.createSubmissionLink(fileName, token),
             },
           })),
           assignee,
           comment,
-          date: DateTime.local().toFormat('dd.MM'),
           repeated:
-            (await this.getUserAllotments(assignee.emailAddress)).length >
-            files.length,
+            (await repository.getUserAllotments(assignee.emailAddress)).length >
+            fileNames.length,
           links: {
             selfTracking: SQRWorkflow.createSelfTrackingLink(
               assignee.emailAddress
@@ -323,23 +311,24 @@ export class SQRWorkflow {
   ) {
     console.info(`Processing ${fileName}/${token} submission.`);
 
-    const allotmentSnapshot = await this.allotmentsRef
-      .child(fileName)
-      .once('value');
+    const repository = await TasksRepository.open();
+    const task = await repository.getTask(fileName);
 
-    if (!allotmentSnapshot.exists())
-      throw new Error(`File ${fileName} is not allotted in the database.`);
-
-    const allotment = new Allotment(allotmentSnapshot.val());
-
-    if (token !== allotment.token)
+    if (token !== task.token)
       throw new Error(`Token ${token} is invalid for ${fileName}.`);
 
-    // Updating allotment status.
+    // Saving submission to the cold storage
+    await admin
+      .database()
+      .ref(`/SQR/submissions/final/${fileName}`)
+      .set(submission);
+
+    // Updating the task status.
     // Sometimes submission is updated after it is marked as Done.
     // In this case we don’t change the status back to WIP.
-    if (allotment.status === AllotmentStatus.Given)
-      await allotmentSnapshot.ref.update({
+    if (task.status !== AllotmentStatus.Done)
+      await repository.save({
+        fileName,
         status: AllotmentStatus.WIP,
       });
 
@@ -358,16 +347,16 @@ export class SQRWorkflow {
           Beginning: submission.duration ? submission.duration.beginning : null,
           Ending: submission.duration ? submission.duration.ending : null,
           Comments: submission.comments,
-          Name: allotment.assignee.name,
-          'Email Address': allotment.assignee.emailAddress,
+          Name: task.assignee.name,
+          'Email Address': task.assignee.emailAddress,
         },
       ]
     );
 
     // Sending email notification for the coordinator
 
-    const userAllotments = await this.getUserAllotments(
-      allotment.assignee.emailAddress
+    const userAllotments = await repository.getUserAllotments(
+      task.assignee.emailAddress
     );
 
     const currentSet = userAllotments.filter(item => item.isActive);
@@ -375,8 +364,8 @@ export class SQRWorkflow {
     const warnings = [];
     if (updated) warnings.push('This is an updated submission!');
 
-    if (!allotment.isActive)
-      warnings.push(`Status of the allotment is ${allotment.status}`);
+    if (!task.isActive)
+      warnings.push(`Status of the allotment is ${task.status}`);
 
     if (_(userAllotments).every(item => item.status !== AllotmentStatus.Given))
       warnings.push("It's time to allot!");
@@ -389,28 +378,21 @@ export class SQRWorkflow {
       .ref(`/email/notifications`)
       .push({
         template: 'sqr-submission',
-        replyTo: allotment.assignee.emailAddress,
-        to: functions.config().coordinator.email_address,
+        replyTo: task.assignee.emailAddress,
         params: {
           currentSet,
           submission: {
             fileName,
-            author: allotment.assignee,
+            author: task.assignee,
             ...submission,
           },
           warnings,
           allotmentLink: SQRWorkflow.createAllotmentLink(
-            allotment.assignee.emailAddress
+            task.assignee.emailAddress
           ),
           updateLink: SQRWorkflow.createSubmissionLink(fileName, token),
         },
       });
-
-    // Saving submission to the cold storage
-    await admin
-      .database()
-      .ref(`/SQR/submissions/final/${fileName}`)
-      .set(submission);
   }
 
   static async cancelAllotment(
@@ -419,31 +401,28 @@ export class SQRWorkflow {
     comments: string,
     reason: string
   ) {
-    const snapshot = await this.allotmentsRef.child(fileName).once('value');
+    const repository = await TasksRepository.open();
+    const task = await repository.getTask(fileName);
 
-    if (!snapshot.exists())
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        `File ${fileName} not found in the database.`
-      );
-
-    const allotment = snapshot.val();
-
-    if (allotment.token !== token)
+    if (task.token !== token)
       throw new functions.https.HttpsError(
         'invalid-argument',
         'Invalid token.'
       );
 
-    if (allotment.status === 'Done')
+    if (task.status === AllotmentStatus.Done)
       throw new functions.https.HttpsError(
         'failed-precondition',
         'File is already marked as Done, cannot cancel allotment.'
       );
 
-    await snapshot.ref.update({
-      notes: [allotment.notes, comments].filter(Boolean).join('\n'),
-      status: reason === 'unable to play' ? 'Audio Problem' : 'Spare',
+    await repository.save({
+      fileName,
+      notes: [task.notes, comments].filter(Boolean).join('\n'),
+      status:
+        reason === 'unable to play'
+          ? AllotmentStatus.AudioProblem
+          : AllotmentStatus.Spare,
       timestampGiven: null,
       token: null,
     });
@@ -453,18 +432,16 @@ export class SQRWorkflow {
       .ref(`/email/notifications`)
       .push({
         template: 'sqr-cancellation',
-        replyTo: allotment.assignee.emailAddress,
+        replyTo: task.assignee.emailAddress,
         to: functions.config().coordinator.email_address,
         params: {
           fileName,
           comments,
           reason,
-          assignee: allotment.assignee,
-          allotmentLink: this.createAllotmentLink(
-            allotment.assignee.emailAddress
-          ),
-          currentSet: (await this.getUserAllotments(
-            allotment.assignee.emailAddress
+          assignee: task.assignee,
+          allotmentLink: this.createAllotmentLink(task.assignee.emailAddress),
+          currentSet: (await repository.getUserAllotments(
+            task.assignee.emailAddress
           )).filter(item => item.isActive),
         },
       });
