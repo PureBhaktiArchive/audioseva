@@ -7,7 +7,6 @@ import * as functions from 'firebase-functions';
 import { URL } from 'url';
 import { AllotmentStatus } from '../Allotment';
 import { Assignee } from '../Assignee';
-import { AudioAnnotationArray } from '../AudioAnnotation';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
@@ -153,46 +152,6 @@ export class SQRWorkflow {
     await Promise.all(
       batches.map(batch => this.allotmentsRef.update(_.fromPairs(batch)))
     );
-  }
-
-  static async importSubmissions() {
-    const sheet = await this.submissionsSheet();
-    const updates = {};
-    (await sheet.getRows()).forEach(row => {
-      const fileName = row['Audio File Name'];
-      const token = /.*token=([\w-]+)/.exec(row['Update Link'])[1];
-
-      updates[`${fileName}`] = {
-        completed: DateTimeConverter.fromSerialDate(
-          row['Completed'],
-          functions.config().coordinator.timezone
-        ).toMillis(),
-        created: DateTimeConverter.fromSerialDate(
-          row['Completed'],
-          functions.config().coordinator.timezone
-        ).toMillis(),
-        changed: DateTimeConverter.fromSerialDate(
-          row['Updated'],
-          functions.config().coordinator.timezone
-        ).toMillis(),
-        comments: row['Comments'],
-        soundIssues: AudioAnnotationArray.parse(row['Sound Issues']),
-        soundQualityRating: row['Sound Quality Rating'],
-        unwantedParts: AudioAnnotationArray.parse(row['Unwanted Parts']),
-        duration: {
-          //TODO: sanitze duration
-          beginning: row['Beginning'],
-          ending: row['Ending'],
-        },
-        author: {
-          emailAddress: row['Email Address'],
-          name: row['Name'],
-        },
-        token,
-        imported: true,
-      };
-    });
-    await this.finalSubmissionsRef.update(updates);
   }
 
   static async importAllotments() {
