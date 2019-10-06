@@ -2,6 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
+import { AllotmentStatus } from '../Allotment';
 import { AudioChunk } from '../AudioChunk';
 import { TimingInterval } from '../TimingInterval';
 import { ValidationRuleForEach } from '../validation/ValidationRule';
@@ -46,6 +47,7 @@ export class TasksImporter {
         .map(
           taskRows =>
             new TrackEditingTask(taskRows[0].taskId, {
+              status: AllotmentStatus.Spare,
               isRestored: taskRows[0].isRestored,
               chunks: taskRows.map(
                 ({ fileName, beginning, ending, unwantedParts }) =>
