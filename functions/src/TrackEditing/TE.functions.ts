@@ -67,6 +67,7 @@ export const processResolution = functions.database
 
 export const importTasks = functions.pubsub
   .schedule('every day 00:00')
+  .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     await TrackEditingWorkflow.importTasks();
   });
