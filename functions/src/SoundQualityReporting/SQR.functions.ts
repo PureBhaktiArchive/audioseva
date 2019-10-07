@@ -90,10 +90,10 @@ export const cancelAllotment = functions.https.onCall(
   }
 );
 
-export const importStatuses = functions.pubsub
+export const importDoneStatuses = functions.pubsub
   .schedule('every 1 hours')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = await TasksRepository.open();
-    await repository.importStatuses();
+    await repository.importDoneStatuses();
   });
