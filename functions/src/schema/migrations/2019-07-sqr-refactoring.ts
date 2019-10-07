@@ -5,37 +5,35 @@
 import * as admin from 'firebase-admin';
 import _ = require('lodash');
 
-export const migrateSubmissions = async () => {
-  const existing = (await admin
+export const moveSubmissions = async () => {
+  const existingSubmissions = (await admin
     .database()
     .ref('/submissions/SQR')
     .once('value')).val();
 
   await Promise.all([
-    // Drafts
     admin
       .database()
       .ref('/SQR/submissions/drafts')
       .set(
-        _.mapValues(existing, submissions =>
-          _.omitBy(submissions, submission => submission.completed)
-        )
+        _(existingSubmissions)
+          .mapValues(_.partial(_.omitBy, _, 'completed'))
+          .omitBy(_.isEmpty)
+          .value()
       ),
-    //Finals
     admin
       .database()
       .ref('/SQR/submissions/final')
       .set(
-        _.mapValues(existing, submissions =>
-          _(submissions)
-            .sortBy(submission => submission.completed)
-            .findLast(submission => submission.completed)
-        )
+        _(existingSubmissions)
+          .mapValues(_.flow([_.values, _.partial(_.maxBy, _, 'completed')]))
+          .omitBy(_.isEmpty)
+          .value()
       ),
   ]);
 };
 
-export const migrateAllotments = async () => {
+export const moveAllotments = async () => {
   const existing = (await admin
     .database()
     .ref('/allotments/SQR')
