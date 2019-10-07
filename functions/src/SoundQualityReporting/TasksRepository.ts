@@ -5,6 +5,7 @@
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { createSchema, morphism } from 'morphism';
+import { AllotmentStatus } from '../Allotment';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { RequireOnly } from '../helpers';
 import { ReportingTask } from '../ReportingTask';
@@ -93,6 +94,17 @@ export class TasksRepository {
   }
 
   public async save(...tasks: IdentifyableTask[]) {
+    await this.saveToDatabase(tasks);
+
+    const updatedTasks = await this.getTasks(
+      tasks.map(({ fileName }) => fileName)
+    );
+
+    await this.saveToSpreadsheet(updatedTasks);
+    return updatedTasks;
+  }
+
+  private async saveToDatabase(tasks: IdentifyableTask[]) {
     await allotmentsRef.update(
       _.chain(tasks)
         .flatMap(task =>
@@ -104,17 +116,14 @@ export class TasksRepository {
         .fromPairs()
         .value()
     );
+  }
 
-    const updatedTasks = await this.getTasks(
-      tasks.map(({ fileName }) => fileName)
-    );
-
-    const rows = morphism(this.objectToRowSchema, updatedTasks);
+  private async saveToSpreadsheet(tasks: ReportingTask[]) {
+    const rows = morphism(this.objectToRowSchema, tasks);
     await this.sheet.updateOrAppendRows(
       <string>this.rowToObjectSchema.fileName,
       rows
     );
-    return updatedTasks;
   }
 
   /**
@@ -122,39 +131,17 @@ export class TasksRepository {
    * Coordinator is marking allotments as Done manually in the spreadsheet, so preiodically importing them.
    * To be replaced with labeling emails in Gmail mailbox.
    */
-  public async importStatuses() {
-    const updates = [];
-    (await this.sheet.getRows()).forEach(row => {
-      const fileName = row['File Name'];
+  public async importDoneStatuses() {
+    const tasks = morphism(this.rowToObjectSchema, await this.sheet.getRows());
 
-      if (fileName.match(/[\.\[\]$#]/g)) {
-        console.warn(
-          `File "${fileName}" has forbidden characters that can't be used as a node name.`
-        );
-        return;
-      }
-
-      updates.push([
-        fileName,
-        {
-          status: row['Status'] || 'Spare',
-          timestampDone: row['Date Done']
-            ? DateTimeConverter.fromSerialDate(
-                row['Date Done'],
-                functions.config().coordinator.timezone
-              ).toMillis()
-            : null,
-        },
-      ]);
-    });
-
-    // Updating in batches due to the limitation
-    // https://firebase.google.com/docs/database/usage/limits
-    // Number of Cloud Functions triggered by a single write	1000
-    const batches = _.chunk(updates, 500);
-
-    await Promise.all(
-      batches.map(batch => allotmentsRef.update(_.fromPairs(batch)))
+    await this.saveToDatabase(
+      _.chain(tasks)
+        .filter(
+          ({ fileName, status }) =>
+            !fileName.match(/[\.\[\]$#]/) && status === AllotmentStatus.Done
+        )
+        .map(t => _.pick(t, ['fileName', 'status', 'timestampDone']))
+        .value()
     );
   }
 }
