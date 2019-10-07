@@ -116,4 +116,45 @@ export class TasksRepository {
     );
     return updatedTasks;
   }
+
+  /**
+   * Imports allotment statuses from the spreadsheet.
+   * Coordinator is marking allotments as Done manually in the spreadsheet, so preiodically importing them.
+   * To be replaced with labeling emails in Gmail mailbox.
+   */
+  public async importStatuses() {
+    const updates = [];
+    (await this.sheet.getRows()).forEach(row => {
+      const fileName = row['File Name'];
+
+      if (fileName.match(/[\.\[\]$#]/g)) {
+        console.warn(
+          `File "${fileName}" has forbidden characters that can't be used as a node name.`
+        );
+        return;
+      }
+
+      updates.push([
+        fileName,
+        {
+          status: row['Status'] || 'Spare',
+          timestampDone: row['Date Done']
+            ? DateTimeConverter.fromSerialDate(
+                row['Date Done'],
+                functions.config().coordinator.timezone
+              ).toMillis()
+            : null,
+        },
+      ]);
+    });
+
+    // Updating in batches due to the limitation
+    // https://firebase.google.com/docs/database/usage/limits
+    // Number of Cloud Functions triggered by a single write	1000
+    const batches = _.chunk(updates, 500);
+
+    await Promise.all(
+      batches.map(batch => allotmentsRef.update(_.fromPairs(batch)))
+    );
+  }
 }

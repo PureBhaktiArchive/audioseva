@@ -5,6 +5,7 @@
 import * as functions from 'firebase-functions';
 import { SQRSubmission } from './SQRSubmission';
 import { SQRWorkflow } from './SQRWorkflow';
+import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
 
 /**
@@ -93,5 +94,6 @@ export const importStatuses = functions.pubsub
   .schedule('every 1 hours')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
-    await SQRWorkflow.importStatuses();
+    const repository = await TasksRepository.open();
+    await repository.importStatuses();
   });
