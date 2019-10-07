@@ -277,10 +277,7 @@ export class SQRWorkflow {
       throw new Error(`Token ${token} is invalid for ${fileName}.`);
 
     // Saving submission to the cold storage
-    await admin
-      .database()
-      .ref(`/SQR/submissions/final/${fileName}`)
-      .set(submission);
+    await this.finalSubmissionsRef.child(fileName).set(submission);
 
     // Updating the task status.
     // Sometimes submission is updated after it is marked as Done.
