@@ -154,51 +154,6 @@ export class SQRWorkflow {
     );
   }
 
-  static async importAllotments() {
-    const sheet = await this.allotmentsSheet();
-    const updates = [];
-    (await sheet.getRows()).forEach(row => {
-      const fileName = row['File Name'];
-
-      if (fileName.match(/[\.\[\]$#]/g)) {
-        console.warn(
-          `File "${fileName}" has forbidden characters that can't be used as a node name.`
-        );
-        return;
-      }
-
-      updates.push([
-        fileName,
-        {
-          status: row['Status'] || 'Spare',
-          timestampGiven: row['Date Given']
-            ? DateTimeConverter.fromSerialDate(
-                row['Date Given'],
-                functions.config().coordinator.timezone
-              ).toMillis()
-            : null,
-          timestampDone: row['Date Done']
-            ? DateTimeConverter.fromSerialDate(
-                row['Date Done'],
-                functions.config().coordinator.timezone
-              ).toMillis()
-            : null,
-          assignee: {
-            emailAddress: row['Email'],
-            name: row['Devotee'],
-          },
-          notes: row['Notes'],
-        },
-      ]);
-    });
-
-    const batches = _.chunk(updates, 500);
-
-    await Promise.all(
-      batches.map(batch => this.allotmentsRef.update(_.fromPairs(batch)))
-    );
-  }
-
   static async processAllotment(
     fileNames: string[],
     assignee: Assignee,
