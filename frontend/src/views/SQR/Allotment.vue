@@ -19,40 +19,40 @@
       >
         <template slot="item" slot-scope="{item}">
           <template v-if="typeof item !== 'object'">
-            <v-list-tile-content v-text="item"></v-list-tile-content>
+            <v-list-item-content v-text="item"></v-list-item-content>
           </template>
           <template v-else>
-            <v-list-tile-content>
-              <v-list-tile-title v-html="item.name"></v-list-tile-title>
-              <v-list-tile-sub-title v-html="item.emailAddress"></v-list-tile-sub-title>
-            </v-list-tile-content>
+            <v-list-item-content>
+              <v-list-item-title v-html="item.name"></v-list-item-title>
+              <v-list-item-subtitle v-html="item.emailAddress"></v-list-item-subtitle>
+            </v-list-item-content>
           </template>
         </template>
       </v-autocomplete>
       <!-- Language -->
-      <v-layout row class="py-2">
+      <v-row  class="py-2">
         <v-btn-toggle v-model="filter.language">
           <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
         </v-btn-toggle>
-      </v-layout>
+      </v-row>
       <!-- List -->
-      <v-layout row class="py-2">
+      <v-row  class="py-2">
         <v-btn-toggle v-model="filter.list" v-if="lists && lists.length">
           <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
         </v-btn-toggle>
         <p v-else-if="lists == null">Loading lists…</p>
         <p v-else-if="lists.length == 0">There is no spare file.</p>
-      </v-layout>
+      </v-row>
       <!-- Files -->
       <template v-if="filter.list && filter.language">
         <template v-if="files">
           <template v-if="files.length > 0">
-            <v-layout align-center v-for="file in files" :key="file.filename">
+            <v-row align="center" v-for="file in files" :key="file.filename">
               <v-checkbox v-model="allotment.files" :value="file.filename" :loading="!files">
                 <code slot="label">{{ file.filename }}</code>
               </v-checkbox>
               <span>{{ file.notes }}</span>
-            </v-layout>
+            </v-row>
           </template>
           <p v-else>No spare files found for selected language in {{filter.list}} list.</p>
         </template>

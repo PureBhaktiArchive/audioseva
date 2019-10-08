@@ -16,18 +16,18 @@
     </v-container>
     <v-form v-else-if="canSubmit" ref="form" @submit.prevent="handleSubmit">
       <v-container>
-        <v-layout wrap>
+        <v-row >
           <template v-for="(item, index) in cancelFields" >
-            <v-flex xs12 :key="item.label">
+            <v-col cols="12" :key="item.label">
               <v-list class="cancel-list">
                 <v-list-group @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
-                  <v-list-tile :style="item.styles" slot="activator">
-                    <v-list-tile-content>
-                      <v-list-tile-title :style="{ height: 'auto' }">
+                  <v-list-item :style="item.styles" slot="activator">
+                    <v-list-item-content>
+                      <v-list-item-title :style="{ height: 'auto' }">
                         {{ item.header }}
-                      </v-list-tile-title>
-                    </v-list-tile-content>
-                  </v-list-tile>
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
                   <div v-if="cancel !== null" :style="{ border: item.styles.border }" class="pa-1">
                     <v-checkbox
                       class="pa-2"
@@ -51,15 +51,15 @@
                   </div>
                 </v-list-group>
               </v-list>
-            </v-flex>
+            </v-col>
           </template>
           <template v-if="!isCancelChecked && Object.keys(form).length">
-            <v-flex xs12>
+            <v-col cols="12">
               <h3>A. Audio File Name</h3>
               <v-text-field disabled :value="$route.params.fileName">
               </v-text-field>
-            </v-flex>
-            <v-flex class="my-2" :style="{ backgroundColor: '#fff' }" xs12 v-for="(field, index) of fields" :key="index">
+            </v-col>
+            <v-col class="my-2" :style="{ backgroundColor: '#fff' }" cols="12" v-for="(field, index) of fields" :key="index">
               <h3>{{ field.title }}</h3>
               <template v-if="field.component">
                 <component
@@ -79,20 +79,20 @@
                   </v-card>
                 </v-expansion-panel-content>
               </v-expansion-panel>
-            </v-flex>
-            <v-layout class="sticky" wrap>
-              <v-flex xs12 sm6>
+            </v-col>
+            <v-row class="sticky" >
+              <v-col cols="12" sm="6">
                 <v-btn v-if="!form.completed" @click="submitDraft">Save draft</v-btn>
                 <v-btn type="submit" color="primary">Submit</v-btn>
-              </v-flex>
-              <v-flex align-self-center sm6 md6>
+              </v-col>
+              <v-col align-self="center" sm="6" md="6">
                 <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
                   {{ formStateMessages[draftStatus] }}
                 </p>
-              </v-flex>
-            </v-layout>
+              </v-col>
+            </v-row>
           </template>
-        </v-layout>
+        </v-row>
       </v-container>
     </v-form>
     <p class="d-flex justify-center red--text font-weight-bold" v-else>
