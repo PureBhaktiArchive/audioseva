@@ -3,9 +3,9 @@
  */
 
 <template>
-  <v-layout align-center justify-center fill-height>
+  <v-row class="fill-height" align="center" justify="center" >
     <div id="firebaseui-auth-container"></div>
-  </v-layout>
+  </v-row>
 </template>
 
 <script>
