@@ -28,19 +28,12 @@
         <v-list dense expand>
           <v-divider></v-divider>
           <template v-for="(item, index) in menuItems">
-            <v-list-group
+            <menu-links
+              :parentRoute="item"
               :key="index"
               v-if="item.meta && item.meta.activator"
-              no-action
-              :prepend-icon="item.meta.menuIcon"
-              :value="true"
-              :active-class="getActiveClass(item.path)"
             >
-              <template v-slot:activator>
-                <v-list-item-title>{{ item.meta.activatorName }}</v-list-item-title>
-              </template>
-              <menu-links :parentRoute="item" :routes="item.children"></menu-links>
-            </v-list-group>
+            </menu-links>
             <v-list-item
               :to="`/${item.path}`"
               v-else-if="item.meta.menuItem"
