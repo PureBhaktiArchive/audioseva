@@ -4,8 +4,6 @@ import { Component, Prop, Vue } from "vue-property-decorator";
   name: "MenuLinks"
 })
 export default class MenuLinks extends Vue {
-  @Prop({ default: () => [] })
-  routes!: any;
   @Prop() parentRoute!: any;
 
   getMenuLink({ meta, path }: any) {
@@ -44,13 +42,13 @@ export default class MenuLinks extends Vue {
 
   static renderActivator(createElement: any, item: any) {
     return createElement(
-      "v-list-tile",
+      "v-list-item",
       {
         slot: "activator"
       },
       [
-        createElement("v-list-tile-content", [
-          createElement("v-list-tile-title", item.meta.activatorName)
+        createElement("v-list-item-content", [
+          createElement("v-list-item-title", item.meta.activatorName)
         ])
       ]
     );
@@ -73,18 +71,18 @@ export default class MenuLinks extends Vue {
       }
       if (route.meta.menuItem) {
         return createElement(
-          "v-list-tile",
+          "v-list-item",
           {
             props: {
               to: `/${fullPath}${route.path ? `/${route.path}` : ""}`,
-              exact: true
-            }
+              exact: true,
+              link: true
+            },
+            key: `menu-link-${index}-${fullPath}${
+              route.path ? `/${route.path}` : ""
+            }`
           },
-          [
-            createElement("v-list-tile-content", [
-              createElement("v-list-tile-title", this.getMenuLink(route))
-            ])
-          ]
+          [createElement("v-list-item-title", this.getMenuLink(route))]
         );
       }
     });
@@ -92,12 +90,28 @@ export default class MenuLinks extends Vue {
 
   render(createElement: any) {
     return createElement(
-      "div",
-      this.renderNestedChildren(
-        createElement,
-        this.routes,
-        this.parentRoute.path.slice(0, -1)
-      )
+      "v-list-group",
+      {
+        props: {
+          noAction: true,
+          prependIcon: this.parentRoute.meta.menuIcon,
+          value: true
+        }
+      },
+      [
+        createElement(
+          "v-list-item-title",
+          {
+            slot: "activator"
+          },
+          this.parentRoute.meta.activatorName
+        ),
+        this.renderNestedChildren(
+          createElement,
+          this.parentRoute.children,
+          this.parentRoute.path.slice(0, -1)
+        )
+      ]
     );
   }
 }
