@@ -7,9 +7,9 @@
     >{{ status }}</p>
     <div>
       <v-list>
-        <v-list-tile @click="handleChange(item)" v-for="(item, index) in statusItems" :key="index">
-          <v-list-tile-title>{{ item }}</v-list-tile-title>
-        </v-list-tile>
+        <v-list-item @click="handleChange(item)" v-for="(item, index) in statusItems" :key="index">
+          <v-list-item-title>{{ item }}</v-list-item-title>
+        </v-list-item>
       </v-list>
     </div>
   </v-menu>

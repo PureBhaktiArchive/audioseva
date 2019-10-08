@@ -13,19 +13,19 @@
       >
         <template slot="item" slot-scope="{ item }">
           <template v-if="typeof item !== 'object'">
-            <v-list-tile-content v-text="item"></v-list-tile-content>
+            <v-list-item-content v-text="item"></v-list-item-content>
           </template>
           <template v-else>
-            <v-list-tile-content>
-              <v-list-tile-title v-html="item.name"></v-list-tile-title>
-              <v-list-tile-sub-title v-html="item.emailAddress"></v-list-tile-sub-title>
-            </v-list-tile-content>
+            <v-list-item-content>
+              <v-list-item-title v-html="item.name"></v-list-item-title>
+              <v-list-item-subtitle v-html="item.emailAddress"></v-list-item-subtitle>
+            </v-list-item-content>
           </template>
         </template>
       </v-autocomplete>
 
       <!-- Lists -->
-      <v-layout class="py-2">
+      <v-row class="py-2">
         <div v-if="lists">
           <v-btn-toggle v-model="selectedList" mandatory v-if="lists && lists.length">
             <v-btn flat v-for="list in lists" :key="list" :value="list">{{ list }}</v-btn>
@@ -37,7 +37,7 @@
           <span :style="{ marginRight: '4px' }">loading lists</span>
           <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
         </div>
-      </v-layout>
+      </v-row>
 
       <!-- Tasks -->
       <div v-if="isLoadingTasks">
@@ -45,7 +45,7 @@
       </div>
       <div v-else>
         <div v-if="tasks.length">
-          <v-layout align-center v-for="task in tasks" :key="task['.key']">
+          <v-row align="center" v-for="task in tasks" :key="task['.key']">
             <div :style="{ width: '60%' }">
               <v-checkbox v-model="allotment.tasks" :value="task['.key']">
                 <div slot="label">
@@ -59,7 +59,7 @@
             <div :style="{ width: '100%' }">
               <sound-issues-list :item="task"></sound-issues-list>
             </div>
-          </v-layout>
+          </v-row>
         </div>
         <p v-else>no tasks</p>
       </div>

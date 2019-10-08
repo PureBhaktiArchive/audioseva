@@ -15,15 +15,15 @@
       >{{ getRoleDisplayValue(role) }}</v-chip>
     </div>
     <v-list v-for="(role, index) in roles" :key="index">
-      <v-list-tile>
-        <v-list-tile-action>
+      <v-list-item>
+        <v-list-item-action>
           <v-switch
             @change="handleChange($event, role)"
             :label="getRoleDisplayValue(role)"
             :input-value="itemRoles[role]"
           ></v-switch>
-        </v-list-tile-action>
-      </v-list-tile>
+        </v-list-item-action>
+      </v-list-item>
     </v-list>
   </v-menu>
 </template>

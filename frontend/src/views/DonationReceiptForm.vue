@@ -4,9 +4,9 @@
       <h2>Donation Receipt form</h2>
     </div>
     <v-form ref="form" @submit.prevent="submitForm">
-      <v-layout row wrap>
-        <v-flex xs12 sm5 class="d-flex pa-1" :style="{ flexDirection: 'column', flexWrap: 'wrap' }">
-          <v-flex xs12>
+      <v-row  >
+        <v-col cols="12" sm="5" class="d-flex pa-1" :style="{ flexDirection: 'column', flexWrap: 'wrap' }">
+          <v-col cols="12">
             <v-text-field
               outline
               @click:prepend-inner="menu = !menu"
@@ -14,8 +14,8 @@
               v-model="form.date"
               label="Date"
             />
-          </v-flex>
-          <v-flex xs7>
+          </v-col>
+          <v-col cols="7">
             <v-menu
               :style="{ height: '100%', width: '100%' }"
               ref="menu"
@@ -31,10 +31,10 @@
                 <v-btn flat color="primary" @click="$refs.menu.save(form.date)">OK</v-btn>
               </v-date-picker>
             </v-menu>
-          </v-flex>
-        </v-flex>
-        <v-flex class="d-flex" xs12 sm7>
-          <v-flex xs4 sm4 md3 lg2 class="py-1 pl-1">
+          </v-col>
+        </v-col>
+        <v-col class="d-flex" cols="12" sm="7">
+          <v-col cols="4" sm="4" md="3" lg="2" class="py-1 pl-1">
             <v-combobox
               class="currency"
               outline
@@ -42,46 +42,46 @@
               v-model="form.sum.currency"
               :items="currencies"
             />
-          </v-flex>
-          <v-flex xs8 sm8 md9 lg10 class="py-1 pr-1">
+          </v-col>
+          <v-col cols="8" sm="8" md="9" lg="10" class="py-1 pr-1">
             <v-text-field class="amount" :rules="amountRules" outline label="Amount" v-model="form.sum.amount" />
-          </v-flex>
-        </v-flex>
-        <v-flex xs12 sm6 lg3 class="pa-1">
+          </v-col>
+        </v-col>
+        <v-col cols="12" sm="6" lg="3" class="pa-1">
           <v-text-field :rules="rules" outline label="Name" v-model="form.donor.name" />
-        </v-flex>
-        <v-flex xs12 sm6 lg4 class="pa-1">
+        </v-col>
+        <v-col cols="12" sm="6" lg="4" class="pa-1">
           <v-text-field
             :rules="emailRules"
             outline
             label="Email Address"
             v-model="form.donor.emailAddress"
           />
-        </v-flex>
-        <v-flex xs12 sm12 lg5 class="d-flex">
-          <v-flex xs5 sm4 md3 lg4 class="py-1 pl-1">
+        </v-col>
+        <v-col cols="12" sm="12" lg="5" class="d-flex">
+          <v-col cols="5" sm="4" md="3" lg="4" class="py-1 pl-1">
             <v-text-field
               class="currency country-code"
               outline
               label="Country code"
               v-model="phoneData.countryCode"
             />
-          </v-flex>
-          <v-flex xs7 sm8 md9 lg8 class="py-1 pr-1">
+          </v-col>
+          <v-col cols="7" sm="8" md="9" lg="8" class="py-1 pr-1">
             <v-text-field
               class="amount"
               outline
               label="Phone number"
               v-model="phoneData.phoneNumber"
             />
-          </v-flex>
-        </v-flex>
-        <v-flex xs12 class="pa-1">
+          </v-col>
+        </v-col>
+        <v-col cols="12" class="pa-1">
           <v-text-field :rules="rules" outline label="Collected By" v-model="form.collectedBy" />
-        </v-flex>
-        <v-flex xs12 class="pa-1">
+        </v-col>
+        <v-col cols="12" class="pa-1">
           <v-textarea outline label="Comment" v-model="form.comment" />
-        </v-flex>
+        </v-col>
         <v-btn :loading="isSubmitting" :disabled="isSubmitting" type="submit" color="success">Submit</v-btn>
         <span
           :style="{ color: submissionStatus === 'success' ? '#4caf50' : 'red'}"
@@ -89,7 +89,7 @@
         >
           {{ submissionMessage }}
         </span>
-      </v-layout>
+      </v-row>
     </v-form>
   </v-container>
 </template>

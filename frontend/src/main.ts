@@ -14,6 +14,7 @@ import { router } from "@/router";
 import { store } from "@/store";
 
 import Vuetify from "vuetify";
+import { VuetifyPreset } from "vuetify/types/presets";
 import "vuetify/dist/vuetify.min.css";
 
 import VueFire from "vuefire";
@@ -22,21 +23,7 @@ import "@babel/polyfill";
 
 Vue.use(VueResource);
 Vue.use(VueFire);
-Vue.use(Vuetify, {
-  iconfont: "fa",
-  icons: {
-    plus: "fas fa-plus",
-    listening: "fas fa-headphones",
-    track: "fas fa-cut",
-    sound: "fas fa-music",
-    download: "fas fa-file-download",
-    delete: "fas fa-trash",
-    event: "fas fa-calendar",
-    undo: "fas fa-undo",
-    upload: "fas fa-upload",
-    check: "fas fa-check"
-  }
-});
+Vue.use(Vuetify);
 
 async function getFirebaseConfig(): Promise<Object> {
   return process.env.NODE_ENV === "production"
@@ -53,6 +40,24 @@ async function getFirebaseConfig(): Promise<Object> {
       };
 }
 
+const vuetifyOptions: VuetifyPreset = {
+  icons: {
+    iconfont: "fa",
+    values: {
+      plus: "fas fa-plus",
+      listening: "fas fa-headphones",
+      track: "fas fa-cut",
+      sound: "fas fa-music",
+      download: "fas fa-file-download",
+      delete: "fas fa-trash",
+      event: "fas fa-calendar",
+      undo: "fas fa-undo",
+      upload: "fas fa-upload",
+      check: "fas fa-check"
+    }
+  }
+};
+
 getFirebaseConfig().then(config => {
   firebase.initializeApp(config);
   firebase.auth().onAuthStateChanged(user => {
@@ -63,6 +68,7 @@ getFirebaseConfig().then(config => {
     new Vue({
       router,
       store,
+      vuetify: new Vuetify(vuetifyOptions),
       firebase: {},
       render: h => h(App)
     }).$mount("#app");

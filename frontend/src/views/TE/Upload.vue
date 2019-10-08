@@ -33,15 +33,15 @@
       <v-list two-line>
         <template v-for="[file, status] in getFiles()">
           <div :key="file.upload.uuid">
-            <v-list-tile>
-              <v-list-tile-content>
-                <v-list-tile-sub-title
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-subtitle
                   :style="{ color: 'red' }"
                   v-if="status.error"
-                >{{ status.error }}</v-list-tile-sub-title>
-                <v-list-tile-title>{{ file.name }}</v-list-tile-title>
-              </v-list-tile-content>
-              <v-list-tile-action :style="{ flexDirection: 'row' }">
+                >{{ status.error }}</v-list-item-subtitle>
+                <v-list-item-title>{{ file.name }}</v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-action :style="{ flexDirection: 'row' }">
                 <v-btn v-if="status.error" color="red" @click="deleteFile(file)">remove</v-btn>
                 <v-icon color="green" v-else-if="status.complete">fa-check-circle</v-icon>
                 <div v-else>
@@ -52,8 +52,8 @@
                   ></v-progress-circular>
                   <v-btn color="red" @click="cancelFile(status)" v-if="status.uploading">Cancel</v-btn>
                 </div>
-              </v-list-tile-action>
-            </v-list-tile>
+              </v-list-item-action>
+            </v-list-item>
             <v-divider></v-divider>
           </div>
         </template>
