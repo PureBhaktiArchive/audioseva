@@ -1,8 +1,8 @@
 <template>
   <div>
     <template v-for="(chunk, index) in item.chunks">
-      <v-layout class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
-        <v-flex v-bind="layout.link">
+      <v-row class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
+        <v-col v-bind="layout.link">
           <div>
             <a
               download
@@ -11,14 +11,14 @@
               {{chunk.fileName}}
             </a>
           </div>
-        </v-flex>
-        <v-flex v-bind="layout.duration">
+        </v-col>
+        <v-col v-bind="layout.duration">
           <span>{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{ formatDurationUtc(chunk.ending, "mm:ss") }}</span>
-        </v-flex>
-        <v-flex v-bind="layout.unwantedParts">
+        </v-col>
+        <v-col v-bind="layout.unwantedParts">
           <div :style="{ whiteSpace: 'pre-wrap' }">{{ chunk.unwantedParts }}</div>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
       <v-divider :key="`${item['key']}-${index}-divider`" class="mt-2 mb-2"></v-divider>
     </template>
   </div>

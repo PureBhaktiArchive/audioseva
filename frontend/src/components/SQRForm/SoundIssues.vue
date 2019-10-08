@@ -2,52 +2,52 @@
   <div>
     <v-card class="my-3" v-for="(item, index) in items" :key="form.soundIssues[item].id">
       <v-card-title>
-        <v-layout class="justify-xl-evenly" justify-space-between wrap>
+        <v-row class="justify-xl-evenly" justify="space-between" >
 
-          <v-flex align-self-center xs12 class="d-flex justify-space-between pb-2" lg12>
-            <v-flex xs7 sm5>
+          <v-col align-self="center" cols="12" class="d-flex justify-space-between pb-2" lg="12">
+            <v-col cols="7" sm="5">
               <h3>Sound issue #{{ index + 1}}</h3>
-            </v-flex>
-            <v-flex :style="{ display: 'flex', justifyContent: 'flex-end' }" xs5>
+            </v-col>
+            <v-col :style="{ display: 'flex', justifyContent: 'flex-end' }" cols="5">
               <delete-button v-bind="getFieldProps('actions', item)" />
-            </v-flex>
-          </v-flex>
+            </v-col>
+          </v-col>
 
-          <v-flex xs12 class="pb-3">
+          <v-col cols="12" class="pb-3">
             <v-divider></v-divider>
-          </v-flex>
+          </v-col>
 
-          <v-flex
+          <v-col
             class="d-flex justify-space-between"
             :style="{ flexWrap: 'wrap', flexDirection: 'row', height: '100%' }"
-            xs12
-            sm6
-            md3
-            xl2
+            cols="12"
+            sm="6"
+            md="3"
+            xl="2"
           >
             <checkbox v-bind="getFieldProps('entireFile', item)"></checkbox>
-            <v-flex
+            <v-col
               v-if="!hideField('beginning', item)"
               class="d-flex justify-space-between"
               :style="{ flexWrap: 'wrap' }"
-              xs12>
-              <v-flex class="pr-1" xs6>
+              cols="12">
+              <v-col class="pr-1" cols="6">
                 <text-field v-bind="getFieldProps('beginning', item)"></text-field>
-              </v-flex>
-              <v-flex class="pl-1" xs6>
+              </v-col>
+              <v-col class="pl-1" cols="6">
                 <text-field v-bind="getFieldProps('ending', item)"></text-field>
-              </v-flex>
-            </v-flex>
-          </v-flex>
+              </v-col>
+            </v-col>
+          </v-col>
 
-          <v-flex xs12 sm5 md3 xl2>
+          <v-col cols="12" sm="5" md="3" xl="2">
             <sound-type-radio-group v-bind="getFieldProps('type', item)"></sound-type-radio-group>
-          </v-flex>
+          </v-col>
 
-          <v-flex xs12 md5 lg4 xl4>
+          <v-col cols="12" md="5" lg="4" xl="4">
             <text-area v-bind="getFieldProps('description', item)"></text-area>
-          </v-flex>
-        </v-layout>
+          </v-col>
+        </v-row>
       </v-card-title>
     </v-card>
     <v-btn class="ma-0" color="success" @click="addField">

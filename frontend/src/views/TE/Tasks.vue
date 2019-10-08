@@ -3,9 +3,9 @@
     <header>
       <h1>Track Editing Tasks</h1>
     </header>
-    <v-layout align-end wrap>
-      <v-flex><v-btn class="ml-0" to="allot">Allot</v-btn></v-flex>
-      <v-flex>
+    <v-row align="end" >
+      <v-col><v-btn class="ml-0" to="allot">Allot</v-btn></v-col>
+      <v-col>
         <pagination-controls
           :pagination="pagination"
           :lastPageNumber="lastPageNumber"
@@ -15,8 +15,8 @@
           @nextPage="handleNextPage"
         >
         </pagination-controls>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
     <data-table
       :headers="headers"
       :items="items"

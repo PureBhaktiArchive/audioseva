@@ -3,11 +3,11 @@
     <header>
       <h1>My Tasks</h1>
     </header>
-    <v-layout>
-      <v-flex>
+    <v-row>
+      <v-col>
         <v-btn to="/te/upload">Upload</v-btn>
-      </v-flex>
-    </v-layout>
+      </v-col>
+    </v-row>
     <data-table
       :componentData="componentData"
       :datatableProps="datatableProps"

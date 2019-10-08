@@ -15,7 +15,8 @@
       "webpack-env",
       "jest",
       "node",
-      "lodash"
+      "lodash",
+      "vuetify"
     ],
     "paths": {
       "@/*": [

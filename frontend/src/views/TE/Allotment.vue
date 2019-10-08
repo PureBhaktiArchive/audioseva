@@ -15,13 +15,13 @@
       >
         <template slot="item" slot-scope="{item}">
           <template v-if="typeof item !== 'object'">
-            <v-list-tile-content v-text="item"></v-list-tile-content>
+            <v-list-item-content v-text="item"></v-list-item-content>
           </template>
           <template v-else>
-            <v-list-tile-content>
-              <v-list-tile-title v-html="item.name"></v-list-tile-title>
-              <v-list-tile-sub-title v-html="item.emailAddress"></v-list-tile-sub-title>
-            </v-list-tile-content>
+            <v-list-item-content>
+              <v-list-item-title v-html="item.name"></v-list-item-title>
+              <v-list-item-subtitle v-html="item.emailAddress"></v-list-item-subtitle>
+            </v-list-item-content>
           </template>
         </template>
       </v-autocomplete>
@@ -32,8 +32,8 @@
       <template v-else-if="tasks.length">
         <template v-for="task in tasks">
           <div :key="task['.key']">
-            <v-layout align-start wrap>
-              <v-flex xs12 md2 lg2 xl1 :style="{ alignItems: 'center', flexWrap: 'wrap' }" shrink class="d-flex">
+            <v-row align="start" >
+              <v-col cols="12" md="2" lg="2" xl="1" :style="{ alignItems: 'center', flexWrap: 'wrap' }" class="d-flex shrink">
                 <v-checkbox
                   :style="{ flex: 'none' }"
                   v-model="allotment.tasks"
@@ -44,11 +44,11 @@
                 >
                   <code slot="label">{{ task[".key"] }}</code>
                 </v-checkbox>
-              </v-flex>
-              <v-flex md9 lg10 xl11>
+              </v-col>
+              <v-col md="9" lg="10" xl="11">
                 <task-definition class="pr-3" :item="task" />
-              </v-flex>
-            </v-layout>
+              </v-col>
+            </v-row>
             <v-divider :style="{ borderColor: '#9a9a9a' }" class="my-1 py-1"></v-divider>
           </div>
         </template>

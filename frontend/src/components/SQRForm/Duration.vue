@@ -1,6 +1,6 @@
 <template>
-  <v-layout wrap>
-    <v-flex xs6 class="pa-1" v-for="field in fields" :key="field">
+  <v-row >
+    <v-col cols="6" class="pa-1" v-for="field in fields" :key="field">
       <v-text-field
         outline
         placeholder="(h:)mm:ss"
@@ -9,8 +9,8 @@
         :value="getFormData(field.toLowerCase())"
         :rules="rules()"
       ></v-text-field>
-    </v-flex>
-  </v-layout>
+    </v-col>
+  </v-row>
 </template>
 
 <script lang="ts">
