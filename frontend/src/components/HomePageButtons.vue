@@ -1,9 +1,9 @@
 <template>
-  <span>
-    <v-btn :key="`${button.text}-${index}`" v-for="(button, index) in routeButtons" v-bind="button.props">
+  <div>
+    <v-btn class="mx-2" :key="`${button.text}-${index}`" v-for="(button, index) in routeButtons" v-bind="button.props">
       {{ button.text }}
     </v-btn>
-  </span>
+  </div>
 </template>
 
 <script lang="ts">
