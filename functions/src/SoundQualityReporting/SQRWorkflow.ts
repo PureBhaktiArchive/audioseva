@@ -24,45 +24,6 @@ export class SQRWorkflow {
   );
   static finalSubmissionsRef = SQRWorkflow.submissionsRef.child(`final`);
 
-  static async getLists() {
-    const sheet = await this.allotmentsSheet();
-
-    const rows = await sheet.getRows();
-
-    return rows
-      .filter(item => !item['Status'] && item['List'])
-      .map(item => item['List'])
-      .filter((value, index, self) => self.indexOf(value) === index);
-  }
-
-  static async getSpareFiles(
-    list: string,
-    languages: string[],
-    language: string,
-    count: number
-  ) {
-    const sheet = await this.allotmentsSheet();
-    return (await sheet.getRows())
-      .filter(
-        item =>
-          !item['Status'] &&
-          item['List'] === list &&
-          (languages || [language]).includes(item['Language'] || 'None')
-      )
-      .map(item => ({
-        name: item['File Name'],
-        list: item['List'],
-        serial: item['Serial'],
-        notes:
-          item['Notes'] + item['Devotee']
-            ? ` Devotee column is not empty: ${item['Devotee']}`
-            : '',
-        language: item['Language'],
-        date: item['Serial'],
-      }))
-      .slice(0, count || 20);
-  }
-
   static createSubmissionLink(fileName: string, token: string): string {
     return new URL(
       `form/sound-quality-report/${encodeURIComponent(
