@@ -52,7 +52,7 @@ export class TasksRepository {
     Status: 'status',
     'Date Given': ({ timestampGiven }) =>
       DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven)),
-    'Date Done': ({ timestampGiven: timestampDone }) =>
+    'Date Done': ({ timestampDone }) =>
       DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampDone)),
     Devotee: 'assignee.name',
     Email: 'assignee.emailAddress',
