@@ -64,10 +64,9 @@ export class TasksRepository {
 
   public async getTask(fileName: string) {
     const snapshot = await this.getTaskRef(fileName).once('value');
-    if (!snapshot.exists())
-      throw new Error(`SQR task for ${fileName} does not exist.`);
-
-    return new ReportingTask(fileName, snapshot.val());
+    return snapshot.exists()
+      ? new ReportingTask(fileName, snapshot.val())
+      : null;
   }
 
   public async getTasks(fileNames: string[]) {
