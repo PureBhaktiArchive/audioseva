@@ -64,7 +64,8 @@ export const getLists = functions.https.onCall(async (data, context) => {
       'permission-denied',
       'The function must be called by an authenticated coordinator.'
     );
-  return await SQRWorkflow.getLists();
+  const repository = await TasksRepository.open();
+  return await repository.getLists();
 });
 
 /**
@@ -78,7 +79,8 @@ export const getSpareFiles = functions.https.onCall(
         'The function must be called by an authenticated coordinator.'
       );
 
-    return await SQRWorkflow.getSpareFiles(list, languages, language, count);
+    const repository = await TasksRepository.open();
+    return await repository.getSpareFiles(list, languages, language, count);
   }
 );
 

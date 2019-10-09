@@ -76,6 +76,43 @@ export class TasksRepository {
     );
   }
 
+  public async getLists() {
+    const rows = await this.sheet.getRows();
+
+    return rows
+      .filter(item => !item['Status'] && item['List'])
+      .map(item => item['List'])
+      .filter((value, index, self) => self.indexOf(value) === index);
+  }
+
+  public async getSpareFiles(
+    list: string,
+    languages: string[],
+    language: string,
+    count: number
+  ) {
+    return _(await this.sheet.getRows())
+      .filter(
+        item =>
+          !item['Status'] &&
+          item['List'] === list &&
+          (languages || [language]).includes(item['Language'] || 'None')
+      )
+      .map(item => ({
+        name: item['File Name'],
+        list: item['List'],
+        serial: item['Serial'],
+        notes:
+          item['Notes'] + item['Devotee']
+            ? ` Devotee column is not empty: ${item['Devotee']}`
+            : '',
+        language: item['Language'],
+        date: item['Serial'],
+      }))
+      .take(count || 20)
+      .value();
+  }
+
   public async getUserAllotments(emailAddress: string) {
     const snapshot = await allotmentsRef
       .orderByChild('assignee/emailAddress')
