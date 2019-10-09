@@ -85,14 +85,15 @@ export class SQRWorkflow {
     const tasks = await repository.getTasks(fileNames);
 
     if (
-      _.some(
-        tasks,
-        ({ status, token, assignee: currentAssignee, timestampGiven }) =>
-          token ||
-          currentAssignee ||
-          timestampGiven ||
-          status !== AllotmentStatus.Spare
-      )
+      _(tasks)
+        .filter()
+        .some(
+          ({ status, token, assignee: currentAssignee, timestampGiven }) =>
+            token !== null ||
+            currentAssignee !== null ||
+            timestampGiven !== null ||
+            status !== AllotmentStatus.Spare
+        )
     )
       throw Error(`Some files are already allotted. Aborting.`);
 
