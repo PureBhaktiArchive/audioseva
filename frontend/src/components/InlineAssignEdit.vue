@@ -1,32 +1,41 @@
 <template>
-  <v-menu
-    v-if="assignee && assignee.name"
-    offset-y
-    :style="{ height: '100%', width: '100%' }"
-  >
-    <p class="ma-0 text-no-wrap" slot="activator">
+  <div v-if="assignee && assignee.name">
+    <v-menu
+      v-if="withDialog"
+      offset-y
+      :style="{ height: '100%', width: '100%' }"
+    >
+      <p class="ma-0 text-no-wrap" slot="activator">
+        <span>{{assignee.name}}</span>
+        <br>
+        <span
+          :style="{ fontSize: 'smaller',color: '#A9A9A9' }"
+        >{{assignee.emailAddress}}</span>
+      </p>
+      <div>
+        <v-card>
+          <v-list>
+            <v-list-tile>
+              <v-list-tile-title>{{`Are you sure you want to cancel ${item[".key"]} allotment?`}}</v-list-tile-title>
+            </v-list-tile>
+          </v-list>
+          <v-divider></v-divider>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="error" flat @click="handleChange()">Yes</v-btn>
+            <v-btn flat>No</v-btn>
+          </v-card-actions>
+        </v-card>
+      </div>
+    </v-menu>
+    <p class="ma-0 text-no-wrap" v-else>
       <span>{{assignee.name}}</span>
       <br>
       <span
         :style="{ fontSize: 'smaller',color: '#A9A9A9' }"
       >{{assignee.emailAddress}}</span>
     </p>
-    <div>
-      <v-card>
-        <v-list>
-          <v-list-tile>
-            <v-list-tile-title>{{`Are you sure you want to cancel ${item[".key"]} allotment?`}}</v-list-tile-title>
-          </v-list-tile>
-        </v-list>
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="error" flat @click="handleChange()">Yes</v-btn>
-          <v-btn flat>No</v-btn>
-        </v-card-actions>
-      </v-card>
-    </div>
-  </v-menu>
+  </div>
 </template>
 
 <script lang="ts">
@@ -45,6 +54,8 @@ export default class InlineAssignEdit extends Vue {
   multiFieldSave!: boolean;
   @Prop({ default: () => () => false })
   shouldCancelChange!: (item: any) => boolean;
+  @Prop({ default: true })
+  withDialog!: boolean;
   @Prop({
     default: () => () => ({
       status: "",

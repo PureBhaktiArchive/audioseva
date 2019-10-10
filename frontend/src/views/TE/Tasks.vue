@@ -26,6 +26,7 @@
       :styles="styles"
       :datatableProps="datatableProps"
       :pagination.sync="pagination"
+      @click:row="onRowClicked"
     >
       <template v-slot:table-no-data>
         <div class="no-results">
@@ -68,7 +69,6 @@ import Resolution from "@/components/TE/Resolution.vue";
 import DateGiven from "@/components/DataTable/TimestampGiven.vue";
 import Link from "@/components/DataTable/Link.vue";
 import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
-import InlineSave from "@/mixins/InlineSave";
 import TaskMixin from "@/components/TE/TaskMixin";
 import firebase from "firebase/app";
 import "firebase/database";
@@ -86,10 +86,7 @@ import "firebase/functions";
     Link
   }
 })
-export default class Tasks extends Mixins<InlineSave, TaskMixin>(
-  InlineSave,
-  TaskMixin
-) {
+export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   headers = [
     { text: "Task ID", value: ".key", sortable: false },
     { text: "Status", value: "status", sortable: false },
@@ -113,11 +110,6 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   lastPageNumber: number = 0;
   flattenedPages: any[] = [];
 
-  editEvents = {
-    cancel: this.cancel,
-    save: this.save
-  };
-
   itemsKey = "flattenedPages";
   itemComparePath = ".key";
 
@@ -138,10 +130,8 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
 
   componentData = {
     assignee: {
-      on: { ...this.editEvents, multiSave: this.cancelAllotment },
       props: {
-        cancelData: this.cancelData,
-        shouldCancelChange: (task: any) => task.status === "Done"
+        withDialog: false
       }
     },
     ".key": {
@@ -156,20 +146,8 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     this.loadNewPage();
   }
 
-  async cancelAllotment(
-    item: any,
-    itemPath: string,
-    paths: any,
-    fieldUpdates: any
-  ) {
-    try {
-      await firebase.functions().httpsCallable("TE-cancelAllotment")({
-        taskId: item[".key"]
-      });
-      this.updateFields(item, fieldUpdates);
-    } catch (e) {
-      console.log(e.message);
-    }
+  onRowClicked(item: any) {
+    this.$router.push(`/te/tasks/${item[".key"]}`);
   }
 
   private paginationHandler() {
@@ -227,10 +205,6 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
       null,
       this.paginationHandler
     );
-  }
-
-  getUpdatePath(item: any, path: any): string {
-    return `/TE/tasks/${item[".key"]}`;
   }
 
   get items() {
