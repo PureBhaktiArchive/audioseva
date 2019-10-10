@@ -19,7 +19,7 @@
             <v-layout justify-space-between wrap>
               <v-flex xs8 :style="{ display: 'flex', flexWrap: 'wrap' }">
                 <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
-                <v-btn @click="onCancelClick" class="mt-0" color="error" small>Cancel</v-btn>
+                <v-btn v-if="this.task.status !== 'Done'" @click="onCancelClick" class="mt-0" color="error" small>Cancel</v-btn>
               </v-flex>
               <v-flex text-xs-right v-if="task.timestampGiven">
                 {{ formatTimestamp(task.timestampGiven) }}
@@ -139,6 +139,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   }
 
   async onCancelClick() {
+    if (this.task.status === "Done") return;
     try {
       await firebase.functions().httpsCallable("TE-cancelAllotment")({
         taskId: this.task[".key"]
