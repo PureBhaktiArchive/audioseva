@@ -36,7 +36,7 @@ export class TasksRepository {
 
   private rowToObjectSchema = createSchema<IdentifyableTask>({
     fileName: 'File Name',
-    status: 'Status',
+    status: ({ Status: status }) => status || AllotmentStatus.Spare,
     timestampGiven: ({ 'Date Given': date }) =>
       DateTimeConverter.fromSerialDate(date).toMillis(),
     timestampDone: ({ 'Date Done': date }) =>
@@ -49,7 +49,7 @@ export class TasksRepository {
 
   private objectToRowSchema = createSchema<any, IdentifyableTask>({
     'File Name': 'fileName',
-    Status: 'status',
+    Status: ({ status }) => (status === AllotmentStatus.Spare ? null : status),
     'Date Given': ({ timestampGiven }) =>
       timestampGiven
         ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven))
