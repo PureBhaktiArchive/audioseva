@@ -51,7 +51,9 @@ export class TasksRepository {
     'File Name': 'fileName',
     Status: 'status',
     'Date Given': ({ timestampGiven }) =>
-      DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven)),
+      timestampGiven
+        ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven))
+        : null,
     'Date Done': ({ timestampDone }) =>
       timestampDone
         ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampDone))
