@@ -37,20 +37,6 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
     };
   }
 
-  getTimeFieldProps(value: string, item: any) {
-    return {
-      on: {
-        input: (e: number) => {
-          this.updateForm(`${this.updatePath}.${item}.${value}`, e);
-        }
-      },
-      props: {
-        value: _.get(this.form, `${this.updatePath}.${item}.${value}`),
-        ...this.getFieldProps(value, item).fieldProps
-      }
-    };
-  }
-
   get componentData() {
     return {
       beginning: {

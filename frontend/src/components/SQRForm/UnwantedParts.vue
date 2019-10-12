@@ -30,18 +30,10 @@
               :style="{ flexWrap: 'wrap' }"
               xs12>
               <v-flex class="pr-1" xs6>
-                <time-field
-                  v-on="getTimeFieldProps('beginning', item).on"
-                  v-bind="getTimeFieldProps('beginning', item).props"
-                >
-                </time-field>
+                <text-field v-bind="getFieldProps('beginning', item)"></text-field>
               </v-flex>
               <v-flex class="pl-1" xs6>
-                <time-field
-                  v-on="getTimeFieldProps('ending', item).on"
-                  v-bind="getTimeFieldProps('ending', item).props"
-                >
-                </time-field>
+                <text-field v-bind="getFieldProps('ending', item)"></text-field>
               </v-flex>
             </v-flex>
           </v-flex>
@@ -70,7 +62,6 @@ import TextArea from "@/components/Inputs/TextArea.vue";
 import DeleteButton from "@/components/SQRForm/DeleteButton.vue";
 import SoundIssuesMixin from "@/components/SQRForm/SoundIssuesMixin";
 import SoundTypeRadioGroup from "@/components/SQRForm/SoundTypeRadioGroup.vue";
-import TimeField from "@/components/SQRForm/TimeField.vue";
 
 @Component({
   name: "UnwantedParts",
@@ -78,8 +69,7 @@ import TimeField from "@/components/SQRForm/TimeField.vue";
     TextField,
     TextArea,
     DeleteButton,
-    SoundTypeRadioGroup,
-    TimeField
+    SoundTypeRadioGroup
   }
 })
 export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
