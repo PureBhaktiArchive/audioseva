@@ -4,9 +4,11 @@
 
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { DateTime } from 'luxon';
 import { URL } from 'url';
 import { AllotmentStatus } from '../Allotment';
 import { Assignee } from '../Assignee';
+import { formatAudioAnnotations } from '../AudioAnnotation';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
@@ -167,12 +169,16 @@ export class SQRWorkflow {
       'Audio File Name',
       [
         {
-          Completed: DateTimeConverter.toSerialDate(submission.completed),
-          Updated: DateTimeConverter.toSerialDate(submission.changed),
-          'Update Link': SQRWorkflow.createSubmissionLink(fileName, token),
+          Completed: DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(submission.completed)
+          ),
+          Updated: DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(submission.changed)
+          ),
+          'Update Link': this.createSubmissionLink(fileName, token),
           'Audio File Name': fileName,
-          'Unwanted Parts': submission.unwantedParts.toString(),
-          'Sound Issues': submission.soundIssues.toString(),
+          'Unwanted Parts': formatAudioAnnotations(...submission.unwantedParts),
+          'Sound Issues': formatAudioAnnotations(...submission.soundIssues),
           'Sound Quality Rating': submission.soundQualityRating,
           Beginning: submission.duration ? submission.duration.beginning : null,
           Ending: submission.duration ? submission.duration.ending : null,

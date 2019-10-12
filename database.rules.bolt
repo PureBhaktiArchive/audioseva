@@ -74,10 +74,6 @@ type Status extends String {
   validate() { this.test(/^Spare|Given|WIP|Done|\w+(\s\w+)*]+$/) }
 }
 
-type SoundQualityRating extends String {
-  validate() { this.test(/^Bad|Average|Good$/) }
-}
-
 type Assignee {
   emailAddress: String,
   name: String,
@@ -105,29 +101,31 @@ type ReportingAllotment extends Allotment {
 type Submission {
   created: InitialTimestamp,
   changed: CurrentTimestamp,
-  completed: InitialTimestamp | Null,
+  completed: InitialTimestamp,
   comments: String | Null,
 }
 
 // Audio timing interval, in seconds
-type TimingInterval {
-  entire: Boolean | Null,
-  beginning: Number | Null,
-  ending: Number | Null,
-
-  validate() { this.entire != null || (this.beginning != null && this.ending != null) }
+type TimingInterval<T> {
+  beginning: T,
+  ending: T,
 }
 
-type AudioAnnotation extends TimingInterval {
+type AudioAnnotation {
+  entireFile: Boolean | Null,
+  beginning: String | Null,
+  ending: String | Null,
   type: String,
   description: String,
+
+  validate() { this.entireFile != null || (this.beginning != null && this.ending != null) }
 }
 
 type SQRSubmission extends Submission {
-  duration: TimingInterval | Null,
-  soundQualityRating: SoundQualityRating | Null,
-  soundIssues: AudioAnnotation[] | Null,
-  unwantedParts: AudioAnnotation[] | Null,
+  duration: TimingInterval<String>,
+  soundQualityRating: String,
+  soundIssues: AudioAnnotation[],
+  unwantedParts: AudioAnnotation[],
 }
 
 function tokenIsValid(token, fileName, phase) {
@@ -142,7 +140,7 @@ path /SQR {
   path /submissions {
 
     // Draft submissions, writable by anyone who knows the token.
-    path /drafts/{fileName}/{token} is SQRSubmission {
+    path /drafts/{fileName}/{token} {
       read() { true }
       write() { true }
     }
@@ -151,9 +149,9 @@ path /SQR {
     // This path triggers submission processing.
     path /completed/{fileName}/{token} is SQRSubmission {
       read() { true }
-      create() { tokenIsValid(this.token, fileName, root.SQR) }
+      create() { tokenIsValid(token, fileName, root.SQR) }
       update() {
-        tokenIsValid(this.token, fileName, root.SQR)
+        tokenIsValid(token, fileName, root.SQR)
         &&
         (isCoordinator() || root.SQR.allotments[fileName].status == 'WIP')
       }
@@ -164,7 +162,7 @@ path /SQR {
   }
 }
 
-type AudioChunk extends TimingInterval {
+type AudioChunk extends TimingInterval<Number> {
   fileName: String,
   unwantedParts: String,
 }

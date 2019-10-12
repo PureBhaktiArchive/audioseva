@@ -3,8 +3,6 @@
  */
 
 import { AllotmentStatus } from '../Allotment';
-import { AudioChunk } from '../AudioChunk';
-import { TimingInterval } from '../TimingInterval';
 import { ValidationRuleForEach } from '../validation/ValidationRule';
 import { Validator } from '../validation/Validator';
 import { AllotmentRow } from './AllotmentRow';
@@ -49,9 +47,13 @@ export class TasksImporter {
             new TrackEditingTask(taskRows[0].taskId, {
               status: AllotmentStatus.Spare,
               isRestored: taskRows[0].isRestored,
-              chunks: taskRows.map(
-                ({ fileName, beginning, ending, unwantedParts }) =>
-                  new AudioChunk({ fileName, beginning, ending, unwantedParts })
+              chunks: taskRows.map(row =>
+                _.pick(row, [
+                  'fileName',
+                  'beginning',
+                  'ending',
+                  'unwantedParts',
+                ])
               ),
               timestampImported: admin.database.ServerValue.TIMESTAMP,
             })
@@ -70,7 +72,11 @@ class TaskValidator extends Validator<ChunkRow[]> {
         row => !row.taskId || row.isRestored !== undefined,
         `SEd is not defined.`
       ),
-      new ValidationRuleForEach(TimingInterval.IsValid, 'Timing is incorrect.'),
+      new ValidationRuleForEach(
+        ({ beginning, ending }) =>
+          !Number.isNaN(beginning) && !Number.isNaN(ending),
+        'Timing is incorrect.'
+      ),
       new ValidationRuleForEach(
         row => !row.taskId || !row.continuationFrom,
         `Continuation From is not empty for the first chunk.`

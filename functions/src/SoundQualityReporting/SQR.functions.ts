@@ -3,7 +3,6 @@
  */
 
 import * as functions from 'firebase-functions';
-import { SQRSubmission } from './SQRSubmission';
 import { SQRWorkflow } from './SQRWorkflow';
 import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
@@ -50,7 +49,7 @@ export const processSubmission = functions.database
     await SQRWorkflow.processSubmission(
       fileName,
       token,
-      new SQRSubmission(change.after.val()),
+      change.after.val(),
       change.before.exists()
     );
   });

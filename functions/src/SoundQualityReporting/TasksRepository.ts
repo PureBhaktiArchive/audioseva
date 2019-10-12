@@ -53,7 +53,9 @@ export class TasksRepository {
     'Date Given': ({ timestampGiven }) =>
       DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven)),
     'Date Done': ({ timestampDone }) =>
-      DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampDone)),
+      timestampDone
+        ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampDone))
+        : null,
     Devotee: 'assignee.name',
     Email: 'assignee.emailAddress',
   });
