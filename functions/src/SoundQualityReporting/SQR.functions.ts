@@ -3,6 +3,7 @@
  */
 
 import * as functions from 'firebase-functions';
+import { authorizeCoordinator } from '../auth';
 import { SQRWorkflow } from './SQRWorkflow';
 import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
@@ -12,16 +13,7 @@ import _ = require('lodash');
  */
 export const processAllotment = functions.https.onCall(
   async ({ assignee, files, comment }, context) => {
-    if (
-      !context.auth ||
-      !context.auth.token ||
-      !context.auth.token.coordinator
-    ) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-    }
+    authorizeCoordinator(context);
 
     if (!assignee || !files || files.length === 0)
       throw new functions.https.HttpsError(
@@ -58,11 +50,8 @@ export const processSubmission = functions.database
  * Gets lists with spare files
  */
 export const getLists = functions.https.onCall(async (data, context) => {
-  if (!context.auth || !context.auth.token || !context.auth.token.coordinator)
-    throw new functions.https.HttpsError(
-      'permission-denied',
-      'The function must be called by an authenticated coordinator.'
-    );
+  authorizeCoordinator(context);
+
   const repository = await TasksRepository.open();
   return await repository.getLists();
 });
@@ -72,12 +61,7 @@ export const getLists = functions.https.onCall(async (data, context) => {
  */
 export const getSpareFiles = functions.https.onCall(
   async ({ list, language, languages, count }, context) => {
-    if (!context.auth || !context.auth.token || !context.auth.token.coordinator)
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-
+    authorizeCoordinator(context);
     const repository = await TasksRepository.open();
     return await repository.getSpareFiles(list, languages, language, count);
   }
