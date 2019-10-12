@@ -68,7 +68,7 @@ import Output from "@/components/TE/Output.vue";
 import Resolution from "@/components/TE/Resolution.vue";
 import DateGiven from "@/components/DataTable/TimestampGiven.vue";
 import Link from "@/components/DataTable/Link.vue";
-import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
+import Assignee from "@/components/Assignee.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import firebase from "firebase/app";
 import "firebase/database";
@@ -82,7 +82,7 @@ import "firebase/functions";
     DataTable,
     DateGiven,
     Resolution,
-    InlineAssignEdit,
+    Assignee,
     Link
   }
 })
@@ -124,7 +124,7 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
     ".key": Link,
     resolution: Resolution,
     output: Output,
-    assignee: InlineAssignEdit,
+    assignee: Assignee,
     timestampGiven: DateGiven
   };
 
