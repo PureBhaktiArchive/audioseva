@@ -32,18 +32,10 @@
               :style="{ flexWrap: 'wrap' }"
               xs12>
               <v-flex class="pr-1" xs6>
-                <time-field
-                  v-on="getTimeFieldProps('beginning', item).on"
-                  v-bind="getTimeFieldProps('beginning', item).props"
-                >
-                </time-field>
+                <text-field v-bind="getFieldProps('beginning', item)"></text-field>
               </v-flex>
               <v-flex class="pl-1" xs6>
-                <time-field
-                  v-on="getTimeFieldProps('ending', item).on"
-                  v-bind="getTimeFieldProps('ending', item).props"
-                >
-                </time-field>
+                <text-field v-bind="getFieldProps('ending', item)"></text-field>
               </v-flex>
             </v-flex>
           </v-flex>
@@ -74,7 +66,6 @@ import DeleteButton from "@/components/SQRForm/DeleteButton.vue";
 import Checkbox from "@/components/Inputs/Checkbox.vue";
 import SoundIssuesMixin from "@/components/SQRForm/SoundIssuesMixin";
 import SoundTypeRadioGroup from "@/components/SQRForm/SoundTypeRadioGroup.vue";
-import TimeField from "@/components/SQRForm/TimeField.vue";
 import _ from "lodash";
 
 @Component({
@@ -85,8 +76,7 @@ import _ from "lodash";
     TextArea,
     SoundTypeRadioGroup,
     TextField,
-    DataTable,
-    TimeField
+    DataTable
   }
 })
 export default class SoundIssues extends Mixins<SoundIssuesMixin>(
