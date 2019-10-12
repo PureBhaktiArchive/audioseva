@@ -69,8 +69,6 @@ export const getSpareFiles = functions.https.onCall(
 
 export const cancelAllotment = functions.https.onCall(
   async ({ fileName, comments, token, reason }) => {
-    console.info(`${fileName}/${token}, ${reason}, ${comments}`);
-
     await SQRWorkflow.cancelAllotment(fileName, token, comments, reason);
   }
 );
