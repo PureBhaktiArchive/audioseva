@@ -99,7 +99,7 @@ type ReportingAllotment extends Allotment {
 }
 
 type Submission {
-  created: InitialTimestamp,
+  created: Number | Null,
   changed: CurrentTimestamp,
   completed: InitialTimestamp,
   comments: String | Null,
@@ -153,7 +153,7 @@ path /SQR {
       update() {
         tokenIsValid(token, fileName, root.SQR)
         &&
-        (isCoordinator() || root.SQR.allotments[fileName].status == 'WIP')
+        (isCoordinator() || root.SQR.allotments[fileName].status != 'Done')
       }
     }
 
