@@ -34,6 +34,7 @@
               no-action
               :prepend-icon="item.meta.menuIcon"
               :value="true"
+              :active-class="getActiveClass(item.path)"
             >
               <v-list-tile slot="activator">
                 <v-list-tile-content>
@@ -106,6 +107,10 @@ export default class MainLayout extends Vue {
 
   async mounted() {
     this.menuItems = await getMenuItems();
+  }
+
+  getActiveClass(path: string) {
+    return this.$route.path.includes(path) ? "primary--text" : "";
   }
 }
 </script>
