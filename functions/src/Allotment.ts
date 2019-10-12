@@ -14,12 +14,12 @@ export enum AllotmentStatus {
 }
 
 export class Allotment {
-  assignee: Assignee;
+  assignee?: Assignee;
   status: AllotmentStatus;
   notes?: string;
-  timestampGiven: number;
-  timestampDone: number;
-  token: string;
+  timestampGiven?: number;
+  timestampDone?: number;
+  token?: string;
 
   constructor(source: Partial<Allotment>) {
     Object.assign(this, source);
