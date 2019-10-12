@@ -271,6 +271,7 @@ export class SQRWorkflow {
           : AllotmentStatus.Spare,
       timestampGiven: null,
       token: null,
+      assignee: null,
     });
 
     await admin
