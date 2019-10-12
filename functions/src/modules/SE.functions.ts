@@ -2,6 +2,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { URL } from 'url';
+import { authorizeCoordinator } from '../auth';
 import { taskIdRegex } from '../helpers';
 import uuidv4 = require('uuid/v4');
 
@@ -16,12 +17,7 @@ const db = admin.database();
 //
 /////////////////////////////////////////////////
 const processAllotment = functions.https.onCall(async (allotment, context) => {
-  if (!context.auth || !context.auth.token || !context.auth.token.coordinator) {
-    throw new functions.https.HttpsError(
-      'permission-denied',
-      'The function must be called by an authenticated coordinator.'
-    );
-  }
+  authorizeCoordinator(context);
 
   const coordinator = functions.config().coordinator;
 

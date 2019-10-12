@@ -5,6 +5,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as _ from 'lodash';
 import { DateTime } from 'luxon';
+import { authorizeCoordinator } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
 import * as helpers from '../helpers';
 import { Spreadsheet } from '../Spreadsheet';
@@ -80,12 +81,7 @@ const copySubmissionsToProcessing = functions.pubsub
  * Gets lists with spare files
  */
 const getLists = functions.https.onCall(async (data, context) => {
-  if (!context.auth || !context.auth.token || !context.auth.token.coordinator) {
-    throw new functions.https.HttpsError(
-      'permission-denied',
-      'The function must be called by an authenticated coordinator.'
-    );
-  }
+  authorizeCoordinator(context);
 
   const allotmentsSheet = await Spreadsheet.open(
     functions.config().cr.allotments.spreadsheet.id,
@@ -105,16 +101,7 @@ const getLists = functions.https.onCall(async (data, context) => {
  */
 const getSpareFiles = functions.https.onCall(
   async ({ list, languages, count }, context) => {
-    if (
-      !context.auth ||
-      !context.auth.token ||
-      !context.auth.token.coordinator
-    ) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-    }
+    authorizeCoordinator(context);
 
     const allotmentsSheet = await Spreadsheet.open(
       functions.config().cr.allotments.spreadsheet.id,
@@ -150,16 +137,7 @@ const getSpareFiles = functions.https.onCall(
  */
 const processAllotment = functions.https.onCall(
   async ({ assignee, files, comment }, context) => {
-    if (
-      !context.auth ||
-      !context.auth.token ||
-      !context.auth.token.coordinator
-    ) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-    }
+    authorizeCoordinator(context);
 
     if (!assignee || !files || files.length === 0)
       throw new functions.https.HttpsError(
