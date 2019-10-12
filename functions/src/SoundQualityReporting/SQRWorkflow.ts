@@ -243,14 +243,16 @@ export class SQRWorkflow {
     if (task.token !== token)
       throw new functions.https.HttpsError(
         'invalid-argument',
-        'Invalid token.'
+        `Invalid token ${token} for file ${fileName}.`
       );
 
     if (task.status === AllotmentStatus.Done)
       throw new functions.https.HttpsError(
         'failed-precondition',
-        'File is already marked as Done, cannot cancel allotment.'
+        `File ${fileName} is already marked as Done, cannot cancel allotment.`
       );
+
+    console.info(`Cancelling ${fileName}/${token} allotment.`);
 
     await repository.save({
       fileName,
