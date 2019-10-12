@@ -60,6 +60,7 @@ export class TasksRepository {
         : null,
     Devotee: 'assignee.name',
     Email: 'assignee.emailAddress',
+    Notes: 'notes',
   });
 
   private getTaskRef(fileName: string) {
