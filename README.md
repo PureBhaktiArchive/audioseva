@@ -56,7 +56,7 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 | `send_in_blue.key`                | SendInBlue secret Key                              |
 | `coordinator.email_address`       | Coordinator email address                          |
 | `coordinator.timezone`            | Coordinator timezone. For example, `Asia/Calcutta` |
-| `sqr.spreadsheetId`               | Sound Quality Reporting spreadsheet id             |
+| `sqr.spreadsheet_id`              | Sound Quality Reporting spreadsheet id             |
 | `registrations.spreadsheet_id`    | User registrations spreadsheet id                  |
 | `cr.submissions.spreadsheet.id`   | Content Reporting submissions spreadsheet id       |
 | `cr.processing.spreadsheet.id`    | Content Reporting Processing spreadsheet id        |
