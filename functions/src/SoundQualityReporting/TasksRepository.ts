@@ -81,12 +81,12 @@ export class TasksRepository {
   }
 
   public async getLists() {
-    const rows = await this.sheet.getRows();
-
-    return rows
-      .filter(item => !item['Status'] && item['List'])
-      .map(item => item['List'])
-      .filter((value, index, self) => self.indexOf(value) === index);
+    return _(await this.sheet.getRows())
+      .filter(_.negate(_.property('Status')))
+      .filter('List')
+      .map('List')
+      .uniq()
+      .value();
   }
 
   public async getSpareFiles(
