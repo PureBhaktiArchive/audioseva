@@ -91,13 +91,18 @@ export class SQRWorkflow {
         .filter()
         .some(
           ({ status, token, assignee: currentAssignee, timestampGiven }) =>
-            token !== null ||
-            currentAssignee !== null ||
-            timestampGiven !== null ||
+            !!token ||
+            !!currentAssignee ||
+            !!timestampGiven ||
             status !== AllotmentStatus.Spare
         )
-    )
-      throw Error(`Some files are already allotted. Aborting.`);
+    ) {
+      console.error(`Some files are already allotted.`);
+      throw new functions.https.HttpsError(
+        'aborted',
+        'Some files are already allotted.'
+      );
+    }
 
     const updatedTasks = await repository.save(
       ...fileNames.map(fileName => ({
