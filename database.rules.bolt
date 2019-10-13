@@ -116,7 +116,7 @@ type AudioAnnotation {
   beginning: String | Null,
   ending: String | Null,
   type: String,
-  description: String,
+  description: String | Null,
 
   validate() { this.entireFile != null || (this.beginning != null && this.ending != null) }
 }
