@@ -7,7 +7,7 @@
     v-on="$listeners"
   >
     <template slot="items" slot-scope="{ item }">
-      <tr :style="getTableRowStyle(item)">
+      <tr :style="getTableRowStyle(item)" @click="$emit('click:row', item)">
         <td
           v-for="( value , key, index) in headers"
           :class="getStyles(value, item)"
