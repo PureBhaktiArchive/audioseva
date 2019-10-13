@@ -30,16 +30,14 @@
     >
       <template v-slot:table-no-data>
         <div class="no-results">
-          <v-progress-circular color="#1867c0" indeterminate v-if="datatableProps.loading"></v-progress-circular>
-          <div v-else>
+          <div v-if="!datatableProps.loading">
             No records available
           </div>
         </div>
       </template>
       <template v-slot:table-no-results>
         <div class="no-results">
-          <v-progress-circular color="#1867c0" indeterminate v-if="datatableProps.loading"></v-progress-circular>
-          <div v-else>
+          <div v-if="!datatableProps.loading">
             No records available
           </div>
         </div>
