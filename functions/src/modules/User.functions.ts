@@ -3,6 +3,7 @@
  */
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { authorizeCoordinator } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 
@@ -46,16 +47,7 @@ enum Decision {
  */
 export const importUserRegistrationData = functions.https.onCall(
   async (data, context) => {
-    if (
-      !context.auth ||
-      !context.auth.token ||
-      !context.auth.token.coordinator
-    ) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-    }
+    authorizeCoordinator(context);
 
     const sheet = await Spreadsheet.open(
       functions.config().registrations.spreadsheet_id,
@@ -238,16 +230,7 @@ export const onCreateUserCustomClaimRoles = functions.auth
 
 export const getAssignees = functions.https.onCall(
   async ({ phase }, context) => {
-    if (
-      !context.auth ||
-      !context.auth.token ||
-      !context.auth.token.coordinator
-    ) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-    }
+    authorizeCoordinator(context);
 
     const registrationsSheet = await Spreadsheet.open(
       functions.config().registrations.spreadsheet_id,
