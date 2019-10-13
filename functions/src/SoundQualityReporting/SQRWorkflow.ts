@@ -177,8 +177,12 @@ export class SQRWorkflow {
           ),
           'Update Link': this.createSubmissionLink(fileName, token),
           'Audio File Name': fileName,
-          'Unwanted Parts': formatAudioAnnotations(...submission.unwantedParts),
-          'Sound Issues': formatAudioAnnotations(...submission.soundIssues),
+          'Unwanted Parts': submission.unwantedParts
+            ? formatAudioAnnotations(...submission.unwantedParts)
+            : null,
+          'Sound Issues': submission.soundIssues
+            ? formatAudioAnnotations(...submission.soundIssues)
+            : null,
           'Sound Quality Rating': submission.soundQualityRating,
           Beginning: submission.duration ? submission.duration.beginning : null,
           Ending: submission.duration ? submission.duration.ending : null,
