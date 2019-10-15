@@ -3,9 +3,9 @@
  */
 
 import * as functions from 'firebase-functions';
-import { Allotment } from '../Allotment';
-import { SQRSubmission } from './SQRSubmission';
+import { authorizeCoordinator } from '../auth';
 import { SQRWorkflow } from './SQRWorkflow';
+import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
 
 /**
@@ -13,24 +13,19 @@ import _ = require('lodash');
  */
 export const processAllotment = functions.https.onCall(
   async ({ assignee, files, comment }, context) => {
-    if (
-      !context.auth ||
-      !context.auth.token ||
-      !context.auth.token.coordinator
-    ) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-    }
+    authorizeCoordinator(context);
 
     if (!assignee || !files || files.length === 0)
       throw new functions.https.HttpsError(
         'invalid-argument',
-        'Devotee and Files are required.'
+        'Assignee and Files are required.'
       );
 
-    await SQRWorkflow.processAllotment(files, assignee, comment);
+    await SQRWorkflow.processAllotment(
+      files.map(({ name }) => name),
+      _.pick(assignee, 'emailAddress', 'name'),
+      comment
+    );
   }
 );
 
@@ -46,29 +41,8 @@ export const processSubmission = functions.database
     await SQRWorkflow.processSubmission(
       fileName,
       token,
-      new SQRSubmission(change.after.val()),
+      change.after.val(),
       change.before.exists()
-    );
-  });
-
-/**
- * On creation of a new allotment record id, update and sync data values to Google Spreadsheets
- *
- */
-export const exportAllotmentToSpreadsheet = functions.database
-  .ref('/SQR/allotments/{fileName}')
-  .onWrite(async (change, { params: { fileName } }) => {
-    // Ignore deletions
-    if (!change.after.exists()) {
-      console.info(`Ignoring deletion of ${fileName}.`);
-      return;
-    }
-
-    console.info(fileName, change.before.val(), change.after.val());
-
-    await SQRWorkflow.exportAllotment(
-      fileName,
-      new Allotment(change.after.val())
     );
   });
 
@@ -76,12 +50,10 @@ export const exportAllotmentToSpreadsheet = functions.database
  * Gets lists with spare files
  */
 export const getLists = functions.https.onCall(async (data, context) => {
-  if (!context.auth || !context.auth.token || !context.auth.token.coordinator)
-    throw new functions.https.HttpsError(
-      'permission-denied',
-      'The function must be called by an authenticated coordinator.'
-    );
-  return await SQRWorkflow.getLists();
+  authorizeCoordinator(context);
+
+  const repository = await TasksRepository.open();
+  return await repository.getLists();
 });
 
 /**
@@ -89,27 +61,22 @@ export const getLists = functions.https.onCall(async (data, context) => {
  */
 export const getSpareFiles = functions.https.onCall(
   async ({ list, language, languages, count }, context) => {
-    if (!context.auth || !context.auth.token || !context.auth.token.coordinator)
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-
-    return await SQRWorkflow.getSpareFiles(list, languages, language, count);
+    authorizeCoordinator(context);
+    const repository = await TasksRepository.open();
+    return await repository.getSpareFiles(list, languages, language, count);
   }
 );
 
 export const cancelAllotment = functions.https.onCall(
   async ({ fileName, comments, token, reason }) => {
-    console.info(`${fileName}/${token}, ${reason}, ${comments}`);
-
     await SQRWorkflow.cancelAllotment(fileName, token, comments, reason);
   }
 );
 
-export const importStatuses = functions.pubsub
+export const importDoneStatuses = functions.pubsub
   .schedule('every 1 hours')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
-    await SQRWorkflow.importStatuses();
+    const repository = await TasksRepository.open();
+    await repository.importDoneStatuses();
   });

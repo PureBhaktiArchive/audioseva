@@ -1,19 +1,11 @@
 import * as functions from 'firebase-functions';
+import { authorizeCoordinator } from '../auth';
 import { StorageManager } from '../StorageManager';
 import { TrackEditingWorkflow } from './Workflow';
 
 export const processAllotment = functions.https.onCall(
   async ({ assignee, tasks, comment }, context) => {
-    if (
-      !context.auth ||
-      !context.auth.token ||
-      !context.auth.token.coordinator
-    ) {
-      throw new functions.https.HttpsError(
-        'permission-denied',
-        'The function must be called by an authenticated coordinator.'
-      );
-    }
+    authorizeCoordinator(context);
 
     if (!assignee || !tasks || tasks.length === 0)
       throw new functions.https.HttpsError(
@@ -22,6 +14,20 @@ export const processAllotment = functions.https.onCall(
       );
 
     await TrackEditingWorkflow.processAllotment(assignee, tasks, comment);
+  }
+);
+
+export const cancelAllotment = functions.https.onCall(
+  async ({ taskId }, context) => {
+    authorizeCoordinator(context);
+
+    if (!taskId)
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Task ID is required.'
+      );
+
+    await TrackEditingWorkflow.cancelAllotment(taskId);
   }
 );
 
@@ -45,6 +51,7 @@ export const processResolution = functions.database
 
 export const importTasks = functions.pubsub
   .schedule('every day 00:00')
+  .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     await TrackEditingWorkflow.importTasks();
   });

@@ -66,7 +66,7 @@ import DataTable from "@/components/DataTable.vue";
 import { getDayDifference, formatTimestamp } from "@/utility";
 import ShallowQuery from "@/mixins/FirebaseShallowQuery";
 import { IFileVueFire } from "@/types/DataTable";
-import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
+import InlineAssignEdit from "@/components/Assignee.vue";
 import InlineTextEdit from "@/components/InlineTextEdit.vue";
 import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
 import InlineSave from "@/mixins/InlineSave";

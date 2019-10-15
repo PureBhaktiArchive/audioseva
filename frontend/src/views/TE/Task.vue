@@ -17,8 +17,9 @@
         <v-timeline dense>
           <v-timeline-item icon="fas fa-paper-plane" fill-dot v-if="task.assignee">
             <v-layout justify-space-between wrap>
-              <v-flex xs7>
+              <v-flex xs8 :style="{ display: 'flex', flexWrap: 'wrap' }">
                 <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
+                <v-btn v-if="this.task.status !== 'Done'" @click="onCancelClick" class="mt-0" color="error" small>Cancel</v-btn>
               </v-flex>
               <v-flex text-xs-right v-if="task.timestampGiven">
                 {{ formatTimestamp(task.timestampGiven) }}
@@ -63,7 +64,7 @@
                 </v-flex>
               </v-layout>
             </v-timeline-item>
-            <v-timeline-item v-else-if="index === versionsCount - 1" :key="`resolution-${key}`">
+            <v-timeline-item v-else-if="index === versionsCount - 1 && isCoordinator" :key="`resolution-${key}`">
               <template v-slot:icon>
                 <v-avatar>
                   <img :src="currentUser.photoURL" alt="user avatar" />
@@ -88,6 +89,8 @@ import { Component, Mixins, Watch } from "vue-property-decorator";
 import { mapState, mapActions } from "vuex";
 import firebase from "firebase/app";
 import "firebase/database";
+import "firebase/functions";
+import _ from "lodash";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import FormatTime from "@/mixins/FormatTime";
@@ -133,6 +136,18 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   async checkUserClaims() {
     const claims = await this.getUserClaims();
     this.isCoordinator = claims.coordinator;
+  }
+
+  async onCancelClick() {
+    if (this.task.status === "Done") return;
+    try {
+      await firebase.functions().httpsCallable("TE-cancelAllotment")({
+        taskId: this.task[".key"]
+      });
+      this.task = _.merge({}, this.task, this.cancelData());
+    } catch (e) {
+      console.log(e.message);
+    }
   }
 
   async handleSubmitForm(isApproved = false, versionKey: string) {

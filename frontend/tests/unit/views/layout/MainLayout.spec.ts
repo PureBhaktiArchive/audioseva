@@ -21,7 +21,7 @@ describe("MainLayout", () => {
   `(
     "should render menu items that match claims $claims",
     async ({ claims }) => {
-      mockClaims(claims);
+      await mockClaims(claims);
       const wrapper = shallowMount(MainLayout, {
         localVue,
         router,
