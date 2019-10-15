@@ -4,7 +4,7 @@ import VueRouter from "vue-router";
 import flushPromises from "flush-promises";
 import MainLayout from "@/views/Layout/MainLayout.vue";
 import { router } from "@/router";
-import { mockClaims } from "../../components/HomePageButtons.spec";
+import { mockClaims } from "../../HomePageButtons.spec";
 
 describe("MainLayout", () => {
   let localVue: typeof Vue;
