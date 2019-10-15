@@ -62,7 +62,7 @@ import firebase from "firebase/app";
 import "firebase/database";
 import DataTable from "@/components/DataTable.vue";
 import SoundIssuesList from "@/components/SE/SoundIssuesList.vue";
-import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
+import InlineAssignEdit from "@/components/Assignee.vue";
 import InlineStatusEdit from "@/components/InlineStatusEdit.vue";
 import InlineTextEdit from "@/components/InlineTextEdit.vue";
 import InlineSave from "@/mixins/InlineSave";

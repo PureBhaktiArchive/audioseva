@@ -14,7 +14,7 @@
     </div>
     <v-btn
       class="ml-0"
-      v-else-if="showReviewButton && !lastResolution && item.status === 'WIP'"
+      v-else-if="shouldShowReviewButton"
       :to="`tasks/${item['.key']}`"
     >
       Review
@@ -42,6 +42,15 @@ export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
 
   get timestamp() {
     return this.formatTimestamp(this.lastResolution.timestamp);
+  }
+
+  get shouldShowReviewButton() {
+    return (
+      this.showReviewButton &&
+      !this.lastResolution &&
+      this.lastVersion &&
+      this.item.status === "WIP"
+    );
   }
 }
 </script>

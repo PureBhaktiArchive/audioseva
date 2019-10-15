@@ -1,7 +1,7 @@
 <template>
   <div>
     <header>
-      <h1>Track Editing</h1>
+      <h1>Track Editing Tasks</h1>
     </header>
     <v-layout align-end wrap>
       <v-flex><v-btn class="ml-0" to="allot">Allot</v-btn></v-flex>
@@ -26,19 +26,18 @@
       :styles="styles"
       :datatableProps="datatableProps"
       :pagination.sync="pagination"
+      @click:row="onRowClicked"
     >
       <template v-slot:table-no-data>
         <div class="no-results">
-          <v-progress-circular color="#1867c0" indeterminate v-if="datatableProps.loading"></v-progress-circular>
-          <div v-else>
+          <div v-if="!datatableProps.loading">
             No records available
           </div>
         </div>
       </template>
       <template v-slot:table-no-results>
         <div class="no-results">
-          <v-progress-circular color="#1867c0" indeterminate v-if="datatableProps.loading"></v-progress-circular>
-          <div v-else>
+          <div v-if="!datatableProps.loading">
             No records available
           </div>
         </div>
@@ -67,11 +66,11 @@ import Output from "@/components/TE/Output.vue";
 import Resolution from "@/components/TE/Resolution.vue";
 import DateGiven from "@/components/DataTable/TimestampGiven.vue";
 import Link from "@/components/DataTable/Link.vue";
-import InlineAssignEdit from "@/components/InlineAssignEdit.vue";
-import InlineSave from "@/mixins/InlineSave";
+import Assignee from "@/components/Assignee.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import firebase from "firebase/app";
 import "firebase/database";
+import "firebase/functions";
 
 @Component({
   name: "Tasks",
@@ -81,14 +80,11 @@ import "firebase/database";
     DataTable,
     DateGiven,
     Resolution,
-    InlineAssignEdit,
+    Assignee,
     Link
   }
 })
-export default class Tasks extends Mixins<InlineSave, TaskMixin>(
-  InlineSave,
-  TaskMixin
-) {
+export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   headers = [
     { text: "Task ID", value: ".key", sortable: false },
     { text: "Status", value: "status", sortable: false },
@@ -110,12 +106,9 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
   currentPage: any[] = [];
   pages: any = {};
   lastPageNumber: number = 0;
+  flattenedPages: any[] = [];
 
-  editEvents = {
-    cancel: this.cancel,
-    save: this.save
-  };
-
+  itemsKey = "flattenedPages";
   itemComparePath = ".key";
 
   styles = {
@@ -129,16 +122,14 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     ".key": Link,
     resolution: Resolution,
     output: Output,
-    assignee: InlineAssignEdit,
+    assignee: Assignee,
     timestampGiven: DateGiven
   };
 
   componentData = {
     assignee: {
-      on: { ...this.editEvents, multiSave: this.multiFieldSave },
       props: {
-        cancelData: this.assigneeCancel,
-        shouldCancelChange: (task: any) => task.status === "Done"
+        withDialog: false
       }
     },
     ".key": {
@@ -153,15 +144,8 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     this.loadNewPage();
   }
 
-  assigneeCancel() {
-    return {
-      status: "",
-      timestampGiven: "",
-      assignee: {
-        emailAddress: "",
-        name: ""
-      }
-    };
+  onRowClicked(item: any) {
+    this.$router.push(`/te/tasks/${item[".key"]}`);
   }
 
   private paginationHandler() {
@@ -171,8 +155,10 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     if (isLastPage) {
       this.lastPageNumber = this.pagination.page;
     }
-    this.$set(this.pages, id, entries.reverse());
+    const reversedEntries = entries.reverse();
+    this.$set(this.pages, id, reversedEntries);
     this.$set(this.datatableProps, "loading", false);
+    this.flattenedPages = [...this.flattenedPages, ...reversedEntries];
   }
 
   handlePageSizeChange() {
@@ -219,12 +205,8 @@ export default class Tasks extends Mixins<InlineSave, TaskMixin>(
     );
   }
 
-  getUpdatePath(item: any, path: any): string {
-    return `/TE/tasks/${item[".key"]}`;
-  }
-
   get items() {
-    return _.flatten(_.map(this.pages, page => page));
+    return this.flattenedPages;
   }
 }
 </script>
