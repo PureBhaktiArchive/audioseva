@@ -132,7 +132,8 @@ enum FormState {
 
 enum SubmissionsBranch {
   COMPLETED = "completed",
-  DRAFTS = "drafts"
+  DRAFTS = "drafts",
+  MIGRATED = "migrated"
 }
 
 @Component({
@@ -387,12 +388,16 @@ export default class Form extends Vue {
       },
       () => {
         if (
-          branch === SubmissionsBranch.COMPLETED &&
-          this.initialData[".value"] === null
+          this.initialData[".value"] !== null ||
+          branch === SubmissionsBranch.DRAFTS
         ) {
+          return this.populateForm();
+        }
+
+        if (branch === SubmissionsBranch.COMPLETED) {
+          this.getSavedData(SubmissionsBranch.MIGRATED);
+        } else if (branch === SubmissionsBranch.MIGRATED) {
           this.getSavedData(SubmissionsBranch.DRAFTS);
-        } else {
-          this.populateForm();
         }
       }
     );
