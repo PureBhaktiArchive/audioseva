@@ -32,16 +32,18 @@
               :parentRoute="item"
               :key="index"
               v-if="item.meta && item.meta.activator"
+              :activeClass="getActiveClass(item.path)"
             >
             </menu-links>
             <v-list-item
               :to="`/${item.path}`"
               v-else-if="item.meta.menuItem"
               :key="`no-nested-${index}`"
+              :active-class="getActiveClass(item.path)"
             >
-              <v-list-item-action>
-                <v-icon>{{ item.meta.menuIcon }}</v-icon>
-              </v-list-item-action>
+              <v-list-item-icon>
+                <v-icon v-text="item.meta.menuIcon"></v-icon>
+              </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title>{{ item.meta.menuName }}</v-list-item-title>
               </v-list-item-content>
@@ -101,10 +103,15 @@ export default class MainLayout extends Vue {
   }
 
   getActiveClass(path: string) {
-    return this.$route.path.includes(path) ? "primary--text" : "";
+    return this.$route.path.includes(path.substring(0, path.length - 1))
+      ? "primary--text"
+      : "inactive-menu";
   }
 }
 </script>
 
 <style scoped>
+>>> .inactive-menu {
+  color: rgba(0, 0, 0, 0.87);
+}
 </style>

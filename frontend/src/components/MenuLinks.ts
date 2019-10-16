@@ -5,6 +5,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 })
 export default class MenuLinks extends Vue {
   @Prop() parentRoute!: any;
+  @Prop() activeClass!: string;
 
   getMenuLink({ meta, path }: any) {
     if (meta && meta.menuLinkName) return meta.menuLinkName;
@@ -95,7 +96,8 @@ export default class MenuLinks extends Vue {
         props: {
           noAction: true,
           prependIcon: this.parentRoute.meta.menuIcon,
-          value: true
+          value: true,
+          activeClass: this.activeClass
         }
       },
       [
@@ -105,6 +107,18 @@ export default class MenuLinks extends Vue {
             slot: "activator"
           },
           this.parentRoute.meta.activatorName
+        ),
+        createElement(
+          "v-icon",
+          {
+            slot: "prependIcon",
+            props: {
+              // give no color to active menu because color is inherited
+              color:
+                this.activeClass === "inactive-menu" ? "rgba(0,0,0,.54)" : ""
+            }
+          },
+          "fas fa-cut"
         ),
         this.renderNestedChildren(
           createElement,
