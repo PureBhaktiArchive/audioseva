@@ -12,6 +12,13 @@
       "extends": ["schedule:daily"]
     },
     {
+      "paths": ["frontend"],
+      "timezone": "America/New_York",
+      "assignees": ["DadImScared"],
+      "packagePatterns": ["jest"],
+      "groupName": ["jest packages"]
+    },
+    {
       "paths": ["functions"],
       "timezone": "Asia/Novokuznetsk",
       "assignees": ["anantakrishna"],
