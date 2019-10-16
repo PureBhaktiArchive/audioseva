@@ -157,6 +157,10 @@ path /SQR {
       }
     }
 
+    path /migrated/{fileName}/{token} is SQRSubmission {
+      read() { true }
+    }
+    
     // Cold storage for the submission, writable only by the function.
     path /final/{fileName} is SQRSubmission;
   }
