@@ -9,14 +9,10 @@
       "paths": ["frontend"],
       "timezone": "America/New_York",
       "assignees": ["DadImScared"],
-      "extends": ["schedule:daily"]
-    },
-    {
-      "paths": ["frontend"],
-      "timezone": "America/New_York",
-      "assignees": ["DadImScared"],
-      "packagePatterns": ["jest"],
-      "groupName": ["jest packages"]
+      "extends": ["schedule:daily"],
+      "packagePatterns": ["*"],
+      "groupName": ["all dependencies"],
+      "groupSlug": "all"
     },
     {
       "paths": ["functions"],
