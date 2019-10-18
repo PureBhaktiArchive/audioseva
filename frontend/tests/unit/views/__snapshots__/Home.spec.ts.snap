@@ -1,43 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Home.vue should render 1`] = `
-<v-container
+<v-container-stub
   fluid=""
+  tag="div"
 >
-  <v-layout
+  <v-layout-stub
     row=""
+    tag="div"
     wrap=""
   >
-    <v-flex
+    <v-flex-stub
       class="text-xs-center"
       mt-5=""
+      tag="div"
       xs12=""
     >
       <h1>
         Welcome to Audio Seva
       </h1>
        
-      <v-btn
-        color="primary"
-        to="reporting/content/allot"
-      >
-        CR
-      </v-btn>
-       
-      <v-btn
-        color="primary"
-        to="sqr"
-      >
-        SQR
-      </v-btn>
-       
-      <v-btn
-        color="primary"
-        to="se"
-      >
-        SE
-      </v-btn>
-    </v-flex>
-  </v-layout>
-</v-container>
+      <home-page-buttons-stub />
+    </v-flex-stub>
+  </v-layout-stub>
+</v-container-stub>
 `;
