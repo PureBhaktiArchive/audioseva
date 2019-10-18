@@ -1,4 +1,4 @@
-import moment from "moment";
+import moment from "moment-timezone";
 import {
   getDayDifference,
   getLastDays,
@@ -21,6 +21,7 @@ describe("utility", function() {
   });
 
   test("getLastDays", () => {
+    (moment as any).tz.setDefault("America/New_York");
     moment.now = () => +new Date(1541497995699);
     const result = getLastDays();
     expect(result).toMatchSnapshot();
