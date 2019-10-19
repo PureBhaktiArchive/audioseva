@@ -16,9 +16,12 @@
     },
     {
       "paths": ["functions"],
-      "timezone": "Asia/Novokuznetsk",
-      "assignees": ["anantakrishna"],
-      "extends": ["schedule:earlyMondays"]
+      "extends": [
+        "schedule:earlyMondays",
+        "group:allNonMajor",
+        ":assignAndReview(anantakrishna)",
+        ":timezone(Asia/Novokuznetsk)"
+      ]
     },
     {
       "depTypeList": ["devDependencies"],
