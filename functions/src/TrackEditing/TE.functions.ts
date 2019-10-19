@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { authorizeCoordinator } from '../auth';
+import { abortCall, authorizeCoordinator } from '../auth';
 import { StorageManager } from '../StorageManager';
 import { TrackEditingWorkflow } from './Workflow';
 
@@ -8,10 +8,7 @@ export const processAllotment = functions.https.onCall(
     authorizeCoordinator(context);
 
     if (!assignee || !tasks || tasks.length === 0)
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'Assignee and Tasks are required.'
-      );
+      abortCall('invalid-argument', 'Assignee and Tasks are required.');
 
     await TrackEditingWorkflow.processAllotment(assignee, tasks, comment);
   }
@@ -21,11 +18,7 @@ export const cancelAllotment = functions.https.onCall(
   async ({ taskId }, context) => {
     authorizeCoordinator(context);
 
-    if (!taskId)
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'Task ID is required.'
-      );
+    if (!taskId) abortCall('invalid-argument', 'Task ID is required.');
 
     await TrackEditingWorkflow.cancelAllotment(taskId);
   }
