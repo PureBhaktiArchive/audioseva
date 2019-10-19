@@ -7,7 +7,8 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "deploy": "firebase deploy --only hosting",
-    "test:unit": "vue-cli-service test:unit"
+    "test": "vue-cli-service test:unit",
+    "test:unit": "npm run test"
   },
   "dependencies": {
     "@babel/polyfill": "7.6.0",
@@ -46,7 +47,7 @@
     "node-sass": "4.12.0",
     "sass-loader": "7.3.1",
     "ts-jest": "23.10.5",
-    "typescript": "3.1.6",
+    "typescript": "3.6.4",
     "vue-cli-plugin-vuetify": "0.2.1",
     "vue-jest": "3.0.5",
     "vue-template-compiler": "2.6.10"
