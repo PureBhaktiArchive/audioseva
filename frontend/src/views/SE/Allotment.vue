@@ -126,7 +126,7 @@ export default class Allotment extends Mixins<
     this.lists = null;
     await this.getLists();
     // set default selected list
-    if (Array.isArray(this.lists) && this.lists.length) {
+    if (Array.isArray(this.lists) && (this.lists as Array<string>).length) {
       this.selectedList = this.lists[0];
     } else {
       this.isLoadingTasks = false;
