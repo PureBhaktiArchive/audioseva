@@ -9,10 +9,25 @@
       "paths": ["frontend"],
       "timezone": "America/New_York",
       "assignees": ["DadImScared"],
-      "extends": ["schedule:daily"],
-      "packagePatterns": ["*"],
-      "groupName": ["all dependencies"],
-      "groupSlug": "all"
+      "extends": ["schedule:daily"]
+    },
+    {
+      "paths": ["frontend"],
+      "timezone": "America/New_York",
+      "extends": "monorepo:vue-cli",
+      "assignees": ["DadImScared"],
+      "groupName": "vue-cli monorepo"
+    },
+    {
+      "paths": ["frontend"],
+      "assignees": ["DadImScared"],
+      "packagePatterns": [
+        "*"
+      ],
+      "minor": {
+        "groupName": "all non-major dependencies",
+        "groupSlug": "all-minor-patch"
+      }
     },
     {
       "paths": ["functions"],
