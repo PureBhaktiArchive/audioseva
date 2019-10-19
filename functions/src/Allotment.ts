@@ -29,6 +29,10 @@ export class Allotment {
     return DateTime.fromMillis(this.timestampGiven);
   }
 
+  public get dateGiven(): Date {
+    return this.dateTimeGiven.toJSDate();
+  }
+
   public get daysPassed(): number {
     return DateTime.local()
       .diff(this.dateTimeGiven, ['days', 'hours'])
@@ -39,3 +43,10 @@ export class Allotment {
     return ![AllotmentStatus.Spare, AllotmentStatus.Done].includes(this.status);
   }
 }
+
+// Making the getter properties enumerable
+// in order for them to be saved to the database for emails
+Object.defineProperty(Allotment.prototype, 'dateGiven', {
+  enumerable: true,
+});
+Object.defineProperty(Allotment.prototype, 'daysPassed', { enumerable: true });
