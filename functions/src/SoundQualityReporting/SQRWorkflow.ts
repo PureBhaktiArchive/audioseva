@@ -9,6 +9,7 @@ import { URL } from 'url';
 import { AllotmentStatus } from '../Allotment';
 import { Assignee } from '../Assignee';
 import { formatAudioAnnotations } from '../AudioAnnotation';
+import { abortCall } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
@@ -156,8 +157,10 @@ export class SQRWorkflow {
     const repository = await TasksRepository.open();
     const task = await repository.getTask(fileName);
 
-    if (token !== task.token)
-      throw new Error(`Token ${token} is invalid for ${fileName}.`);
+    if (token !== task.token) {
+      console.error(`Token ${token} is invalid for ${fileName}. Aborting.`);
+      return;
+    }
 
     // Saving submission to the cold storage
     await this.finalSubmissionsRef.child(fileName).set(submission);
@@ -255,23 +258,17 @@ export class SQRWorkflow {
     const repository = await TasksRepository.open();
     const task = await repository.getTask(fileName);
 
-    if (task.token !== token) {
-      console.error(`Invalid token ${token} for file ${fileName}.`);
-      throw new functions.https.HttpsError(
-        'invalid-argument',
+    if (task.token !== token)
+      abortCall(
+        'permission-denied',
         `Invalid token ${token} for file ${fileName}.`
       );
-    }
 
-    if (task.status === AllotmentStatus.Done) {
-      console.error(
-        `File ${fileName} is already marked as Done, cannot cancel allotment.`
-      );
-      throw new functions.https.HttpsError(
+    if (task.status === AllotmentStatus.Done)
+      abortCall(
         'failed-precondition',
-        `File ${fileName} is already marked as Done, cannot cancel allotment.`
+        `File ${fileName} is already marked as Done, cannot cancel.`
       );
-    }
 
     await repository.save({
       fileName,
@@ -304,9 +301,4 @@ export class SQRWorkflow {
         },
       });
   }
-}
-
-function abortCall(code: functions.https.FunctionsErrorCode, message: string) {
-  console.error(message);
-  throw new functions.https.HttpsError(code, message);
 }
