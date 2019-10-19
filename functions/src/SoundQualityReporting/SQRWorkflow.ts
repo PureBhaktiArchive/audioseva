@@ -86,23 +86,25 @@ export class SQRWorkflow {
     const repository = await TasksRepository.open();
     const tasks = await repository.getTasks(fileNames);
 
-    if (
-      _(tasks)
-        .filter()
-        .some(
-          ({ status, token, assignee: currentAssignee, timestampGiven }) =>
-            !!token ||
-            !!currentAssignee ||
-            !!timestampGiven ||
-            status !== AllotmentStatus.Spare
-        )
-    ) {
-      console.error(`Some files are already allotted.`);
-      throw new functions.https.HttpsError(
+    const assignedTasks = _(tasks)
+      .filter()
+      .filter(
+        ({ status, token, assignee: currentAssignee, timestampGiven }) =>
+          !!token ||
+          !!currentAssignee ||
+          !!timestampGiven ||
+          status !== AllotmentStatus.Spare
+      )
+      .keys()
+      .value();
+
+    if (assignedTasks.length)
+      abortCall(
         'aborted',
-        'Some files are already allotted.'
+        `Files ${assignedTasks.join(
+          ', '
+        )} seem to be already allotted in the database. Please 🔨 the administrator.`
       );
-    }
 
     const updatedTasks = await repository.save(
       ...fileNames.map(fileName => ({
@@ -302,4 +304,9 @@ export class SQRWorkflow {
         },
       });
   }
+}
+
+function abortCall(code: functions.https.FunctionsErrorCode, message: string) {
+  console.error(message);
+  throw new functions.https.HttpsError(code, message);
 }
