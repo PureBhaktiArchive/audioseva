@@ -110,7 +110,9 @@ export default class MainLayout extends Vue {
   }
 
   getActiveClass(path: string) {
-    return this.$route.path.includes(path) ? "primary--text" : "";
+    return this.$route.path.includes(path.substring(0, path.length - 1))
+      ? "primary--text"
+      : "";
   }
 }
 </script>
