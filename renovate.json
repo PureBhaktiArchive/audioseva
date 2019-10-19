@@ -9,7 +9,10 @@
       "paths": ["frontend"],
       "timezone": "America/New_York",
       "assignees": ["DadImScared"],
-      "extends": ["schedule:daily"]
+      "extends": ["schedule:daily"],
+      "packagePatterns": ["*"],
+      "groupName": ["all dependencies"],
+      "groupSlug": "all"
     },
     {
       "paths": ["functions"],
