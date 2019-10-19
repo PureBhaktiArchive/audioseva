@@ -2,11 +2,15 @@
  * sri sri guru gauranga jayatah
  */
 
-import * as admin from 'firebase-admin';
 import _ = require('lodash');
+import admin = require('firebase-admin');
 
-export const importRestoredAllotments = async () => {
-  const data = {};
+export const untangleJalebi = async () => {
+  const data = (await admin
+    .database()
+    .ref('/schema/data/2019-10-18-sqr-jalebi')
+    .once('value')).val();
+
   const updates = _.chain(data)
     .flatMap((task, taskId) =>
       _.map(task, (value, key) => [`${taskId}/${key}`, value])
