@@ -18,7 +18,7 @@
     "firebase-admin": "8.6.0",
     "firebase-functions": "3.2.0",
     "glob": "7.1.4",
-    "googleapis": "43.0.0",
+    "googleapis": "44.0.0",
     "lodash": "4.17.15",
     "luxon": "1.19.3",
     "morphism": "1.12.1",
