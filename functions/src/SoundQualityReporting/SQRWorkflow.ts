@@ -162,6 +162,15 @@ export class SQRWorkflow {
       return;
     }
 
+    // Saving the author into submission
+    submission.author = task.assignee;
+
+    // Important: get this before saving current submission to final
+    const previousSubmissions = await this.finalSubmissionsRef
+      .orderByChild('author/emailAddress')
+      .equalTo(submission.author.emailAddress)
+      .once('value');
+
     // Saving submission to the cold storage
     await this.finalSubmissionsRef.child(fileName).set(submission);
 
@@ -197,8 +206,8 @@ export class SQRWorkflow {
           Beginning: submission.duration ? submission.duration.beginning : null,
           Ending: submission.duration ? submission.duration.ending : null,
           Comments: submission.comments,
-          Name: task.assignee.name,
-          'Email Address': task.assignee.emailAddress,
+          Name: submission.author.name,
+          'Email Address': submission.author.emailAddress,
         },
       ]
     );
@@ -220,7 +229,7 @@ export class SQRWorkflow {
     if (_(userAllotments).every(item => item.status !== AllotmentStatus.Given))
       warnings.push("It's time to allot!");
 
-    if (_(userAllotments).every(item => item.status !== AllotmentStatus.Done))
+    if (!previousSubmissions.exists())
       warnings.push('This is the first submission by this devotee!');
 
     await admin
