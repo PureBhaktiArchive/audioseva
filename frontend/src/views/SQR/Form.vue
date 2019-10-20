@@ -488,8 +488,8 @@ export default class Form extends Vue {
         ...form,
         changed: firebase.database.ServerValue.TIMESTAMP
       };
-      if (save && !completed) {
-        data.completed = firebase.database.ServerValue.TIMESTAMP;
+      if (save) {
+        data.completed = completed || firebase.database.ServerValue.TIMESTAMP;
       }
       if (!created) {
         data.created = firebase.database.ServerValue.TIMESTAMP;

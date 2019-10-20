@@ -9,6 +9,7 @@ import { URL } from 'url';
 import { AllotmentStatus } from '../Allotment';
 import { Assignee } from '../Assignee';
 import { formatAudioAnnotations } from '../AudioAnnotation';
+import { abortCall } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
@@ -86,23 +87,25 @@ export class SQRWorkflow {
     const repository = await TasksRepository.open();
     const tasks = await repository.getTasks(fileNames);
 
-    if (
-      _(tasks)
-        .filter()
-        .some(
-          ({ status, token, assignee: currentAssignee, timestampGiven }) =>
-            !!token ||
-            !!currentAssignee ||
-            !!timestampGiven ||
-            status !== AllotmentStatus.Spare
-        )
-    ) {
-      console.error(`Some files are already allotted.`);
-      throw new functions.https.HttpsError(
+    const assignedTasks = _(tasks)
+      .filter()
+      .filter(
+        ({ status, token, assignee: currentAssignee, timestampGiven }) =>
+          !!token ||
+          !!currentAssignee ||
+          !!timestampGiven ||
+          status !== AllotmentStatus.Spare
+      )
+      .keys()
+      .value();
+
+    if (assignedTasks.length)
+      abortCall(
         'aborted',
-        'Some files are already allotted.'
+        `Files ${assignedTasks.join(
+          ', '
+        )} seem to be already allotted in the database. Please 🔨 the administrator.`
       );
-    }
 
     const updatedTasks = await repository.save(
       ...fileNames.map(fileName => ({
@@ -154,8 +157,19 @@ export class SQRWorkflow {
     const repository = await TasksRepository.open();
     const task = await repository.getTask(fileName);
 
-    if (token !== task.token)
-      throw new Error(`Token ${token} is invalid for ${fileName}.`);
+    if (token !== task.token) {
+      console.error(`Token ${token} is invalid for ${fileName}. Aborting.`);
+      return;
+    }
+
+    // Saving the author into submission
+    submission.author = task.assignee;
+
+    // Important: get this before saving current submission to final
+    const previousSubmissions = await this.finalSubmissionsRef
+      .orderByChild('author/emailAddress')
+      .equalTo(submission.author.emailAddress)
+      .once('value');
 
     // Saving submission to the cold storage
     await this.finalSubmissionsRef.child(fileName).set(submission);
@@ -192,8 +206,8 @@ export class SQRWorkflow {
           Beginning: submission.duration ? submission.duration.beginning : null,
           Ending: submission.duration ? submission.duration.ending : null,
           Comments: submission.comments,
-          Name: task.assignee.name,
-          'Email Address': task.assignee.emailAddress,
+          Name: submission.author.name,
+          'Email Address': submission.author.emailAddress,
         },
       ]
     );
@@ -215,7 +229,7 @@ export class SQRWorkflow {
     if (_(userAllotments).every(item => item.status !== AllotmentStatus.Given))
       warnings.push("It's time to allot!");
 
-    if (_(userAllotments).every(item => item.status !== AllotmentStatus.Done))
+    if (!previousSubmissions.exists())
       warnings.push('This is the first submission by this devotee!');
 
     await admin
@@ -253,23 +267,17 @@ export class SQRWorkflow {
     const repository = await TasksRepository.open();
     const task = await repository.getTask(fileName);
 
-    if (task.token !== token) {
-      console.error(`Invalid token ${token} for file ${fileName}.`);
-      throw new functions.https.HttpsError(
-        'invalid-argument',
+    if (task.token !== token)
+      abortCall(
+        'permission-denied',
         `Invalid token ${token} for file ${fileName}.`
       );
-    }
 
-    if (task.status === AllotmentStatus.Done) {
-      console.error(
-        `File ${fileName} is already marked as Done, cannot cancel allotment.`
-      );
-      throw new functions.https.HttpsError(
+    if (task.status === AllotmentStatus.Done)
+      abortCall(
         'failed-precondition',
-        `File ${fileName} is already marked as Done, cannot cancel allotment.`
+        `File ${fileName} is already marked as Done, cannot cancel.`
       );
-    }
 
     await repository.save({
       fileName,
