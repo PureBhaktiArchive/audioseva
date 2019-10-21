@@ -123,7 +123,7 @@ type AudioAnnotation {
 }
 
 type SQRSubmission extends Submission {
-  duration: TimingInterval<String>,
+  duration: TimingInterval<String> | Null,
   soundQualityRating: String,
   soundIssues: AudioAnnotation[],
   unwantedParts: AudioAnnotation[],
