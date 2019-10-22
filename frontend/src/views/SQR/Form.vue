@@ -488,18 +488,14 @@ export default class Form extends Vue {
     this.debounceSubmitDraft.cancel();
   }
 
-  async submitForm(save = false) {
-    const sqrSubmissionBranch = save
+  async submitForm(submit = false) {
+    const sqrSubmissionBranch = submit
       ? SubmissionsBranch.COMPLETED
       : SubmissionsBranch.DRAFTS;
-    if (!save) {
+    if (!submit) {
       this.draftStatus = FormState.SAVING;
     }
-    if (!save || (this.$refs as any).form.validate()) {
-      if (save) {
-        this.cancelAutoSave();
-        this.draftStatus = FormState.SAVING;
-      }
+    if (!submit || (this.$refs as any).form.validate()) {
       const {
         created,
         changed,
@@ -514,7 +510,9 @@ export default class Form extends Vue {
         unwantedParts: this.removeId(unwantedParts),
         changed: firebase.database.ServerValue.TIMESTAMP
       };
-      if (save) {
+      if (submit) {
+        this.cancelAutoSave();
+        this.draftStatus = FormState.SAVING;
         data.completed = completed || firebase.database.ServerValue.TIMESTAMP;
       }
       if (!created) {
@@ -540,28 +538,10 @@ export default class Form extends Vue {
       }
 
       this.draftStatus = FormState.SAVED;
-
-      const response = (await firebase
-        .database()
-        .ref(`${this.submissionPath(sqrSubmissionBranch)}`)
-        .once("value")).val();
-
-      const formUpdate: any = {};
-
-      if (response.changed) formUpdate.changed = response.changed;
-
-      if (!created) {
-        if (response.created) formUpdate.created = response.created;
-      }
-
-      if (save) {
+      this.getSavedData(sqrSubmissionBranch);
+      if (submit) {
         this.submitSuccess = true;
-        if (!completed) {
-          if (response.completed) formUpdate.completed = response.completed;
-        }
       }
-      this.form = _.merge(this.form, formUpdate);
-      this.initialData = _.cloneDeep(this.form);
     }
   }
 
