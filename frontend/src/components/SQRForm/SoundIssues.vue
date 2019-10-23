@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-card class="my-3" v-for="(item, index) in items" :key="index">
+    <v-card class="my-3" v-for="(item, index) in items" :key="form.soundIssues[item].id">
       <v-card-title>
         <v-layout class="justify-xl-evenly" justify-space-between wrap>
 

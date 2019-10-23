@@ -355,7 +355,7 @@ export default class Form extends Vue {
             : SubmissionsBranch.DRAFTS
         )}/${updateFieldPath}`
       )
-      .set(this.form[updateFieldPath]);
+      .set(this.removeId(this.form[updateFieldPath]));
   }
 
   async handleSubmit() {
@@ -403,11 +403,22 @@ export default class Form extends Vue {
     );
   }
 
+  addId(soundIssuesOrUnwantedParts: Array<any>) {
+    return soundIssuesOrUnwantedParts.map(part => ({
+      id: _.uniqueId(),
+      ...part
+    }));
+  }
+
+  removeId(soundIssuesOrUnwantedParts: Array<any>) {
+    return soundIssuesOrUnwantedParts.map(({ id, ...part }) => part);
+  }
+
   populateForm() {
     this.isLoadingForm = false;
     const defaultData = {
-      unwantedParts: [{}],
-      soundIssues: [{}]
+      unwantedParts: this.addId([{}]),
+      soundIssues: this.addId([{}])
     };
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
@@ -421,11 +432,17 @@ export default class Form extends Vue {
           )
           .format("MM/DD/YYYY [at] h:mm a")}`;
       }
+      if (initialData.unwantedParts) {
+        initialData.unwantedParts = this.addId(initialData.unwantedParts);
+      }
+      if (initialData.soundIssues) {
+        initialData.soundIssues = this.addId(initialData.soundIssues);
+      }
       this.form = {
+        ...initialData,
         ...(initialData.unwantedParts || initialData.soundIssues
           ? {}
-          : defaultData),
-        ...initialData
+          : defaultData)
       };
     } else {
       this.form = defaultData;
@@ -483,9 +500,18 @@ export default class Form extends Vue {
         this.cancelAutoSave();
         this.draftStatus = FormState.SAVING;
       }
-      const { created, changed, completed, ...form } = this.form;
+      const {
+        created,
+        changed,
+        completed,
+        soundIssues = [],
+        unwantedParts = [],
+        ...form
+      } = this.form;
       const data: any = {
         ...form,
+        soundIssues: this.removeId(soundIssues),
+        unwantedParts: this.removeId(unwantedParts),
         changed: firebase.database.ServerValue.TIMESTAMP
       };
       if (save) {
