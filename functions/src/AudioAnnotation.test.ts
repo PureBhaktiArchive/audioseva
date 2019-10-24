@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import { formatAudioAnnotations } from '../src/AudioAnnotation';
+import { formatAudioAnnotations } from './AudioAnnotation';
 
 describe('Audio Annotation formatting', () => {
   test.each`
