@@ -8,7 +8,6 @@
     {
       "paths": ["frontend"],
       "extends": [
-        "schedule:daily",
         ":timezone(America/New_York)",
         ":assignAndReview(DadImScared)",
         "group:vue-cliMonorepo",
