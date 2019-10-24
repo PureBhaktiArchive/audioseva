@@ -15,6 +15,6 @@ module.exports = {
     "object-curly-spacing": ["error", "always"]
   },
   parserOptions: {
-    parser: "typescript-eslint-parser"
+    parser: "@typescript-eslint/parser"
   }
 };
