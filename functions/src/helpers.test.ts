@@ -1,4 +1,4 @@
-import { extractListFromFilename } from '../src/helpers';
+import { extractListFromFilename } from './helpers';
 
 describe('List extraction', () => {
   test.each`
