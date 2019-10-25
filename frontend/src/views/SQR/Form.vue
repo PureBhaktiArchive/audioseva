@@ -493,6 +493,7 @@ export default class Form extends Vue {
       ? SubmissionsBranch.COMPLETED
       : SubmissionsBranch.DRAFTS;
     if (!submit) {
+      this.formStateMessages[FormState.SAVING] = "Saving...";
       this.formStatus = FormState.SAVING;
     }
     if (!submit || (this.$refs as any).form.validate()) {
@@ -512,6 +513,7 @@ export default class Form extends Vue {
       };
       if (submit) {
         this.cancelAutoSave();
+        this.formStateMessages[FormState.SAVING] = "Submitting...";
         this.formStatus = FormState.SAVING;
         data.completed = completed || firebase.database.ServerValue.TIMESTAMP;
       }
