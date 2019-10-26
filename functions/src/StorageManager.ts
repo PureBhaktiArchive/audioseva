@@ -5,17 +5,27 @@
 // tslint:disable-next-line: no-implicit-dependencies
 import { File } from '@google-cloud/storage';
 import * as functions from 'firebase-functions';
+import { URL } from 'url';
 import { extractListFromFilename } from './helpers';
 import admin = require('firebase-admin');
 
 export class StorageManager {
   public static rootBucketDomain = functions.config().project.domain;
-  public static originalFilesBucket = `original.${StorageManager.rootBucketDomain}`;
-  public static trackEditedUploadsBucket = `te.uploads.${StorageManager.rootBucketDomain}`;
-  public static trackEditedFinalBucket = `edited.${StorageManager.rootBucketDomain}`;
+  public static originalFilesBucket = StorageManager.getBucketName('original');
+  public static trackEditedUploadsBucket = StorageManager.getBucketName(
+    'te.uploads'
+  );
+  public static trackEditedFinalBucket = StorageManager.getBucketName('edited');
 
-  static getPublicURL(bucket: string, filePath: string): any {
-    return `https://storage.googleapis.com/${bucket}/${filePath}`;
+  static getBucketName(bucketSubDomain: string) {
+    return `${bucketSubDomain}.${StorageManager.rootBucketDomain}`;
+  }
+
+  static getPublicURL(bucket: string, fileName: string) {
+    return new URL(
+      `/${bucket}/${extractListFromFilename(fileName)}/${fileName}`,
+      'https://storage.googleapis.com'
+    ).toString();
   }
 
   static getEditedFile(taskId: string) {

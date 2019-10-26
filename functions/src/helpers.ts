@@ -9,6 +9,21 @@ export const extractListFromFilename = (fileName: string): string => {
   return list === 'HI' ? 'ML1' : list;
 };
 
+export const standardizeFileName = (fileName: string) => {
+  return fileName
+    .replace(/^Hi/i, 'ML1-')
+    .replace(
+      /^(ML[12]|[a-zA-Z]+)-(\d{1,4})\s*([\w\s]*)$/i,
+      (match, list: string, serial: string, suffix: string, index, original) =>
+        [
+          list.toUpperCase(),
+          '-',
+          serial.padStart(list === 'ML2' ? 4 : 3, '0'),
+          suffix.toUpperCase().replace(/[-\s]/g, ''),
+        ].join('')
+    );
+};
+
 export const taskIdRegex = '^[a-zA-Z]+-\\d+';
 
 // Inspired by https://medium.com/@KevinBGreene/typescript-modeling-required-fields-with-mapped-types-f7bf17688786
