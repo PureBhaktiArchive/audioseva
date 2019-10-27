@@ -87,7 +87,7 @@ export class SQRWorkflow {
     const repository = await TasksRepository.open();
     const tasks = await repository.getTasks(fileNames);
 
-    const assignedTasks = _(tasks)
+    const dirtyTasks = _(tasks)
       .filter()
       .filter(
         ({ status, token, assignee: currentAssignee, timestampGiven }) =>
@@ -96,15 +96,13 @@ export class SQRWorkflow {
           !!timestampGiven ||
           status !== AllotmentStatus.Spare
       )
-      .keys()
-      .value();
+      .map(({ fileName }) => fileName)
+      .join();
 
-    if (assignedTasks.length)
+    if (dirtyTasks.length)
       abortCall(
         'aborted',
-        `Files ${assignedTasks.join(
-          ', '
-        )} seem to be already allotted in the database. Please 🔨 the administrator.`
+        `Files ${dirtyTasks} seem to be already allotted in the database. Please 🔨 the administrator.`
       );
 
     const updatedTasks = await repository.save(
@@ -152,7 +150,7 @@ export class SQRWorkflow {
     submission: SQRSubmission,
     updated: boolean = false
   ) {
-    console.info(`Processing ${fileName}/${token} submission.`);
+    console.info(`Processing ${fileName}/${token} submission:`, submission);
 
     const repository = await TasksRepository.open();
     const task = await repository.getTask(fileName);
@@ -214,11 +212,9 @@ export class SQRWorkflow {
 
     // Sending email notification for the coordinator
 
-    const userAllotments = await repository.getUserAllotments(
+    const currentSet = (await repository.getUserAllotments(
       task.assignee.emailAddress
-    );
-
-    const currentSet = userAllotments.filter(item => item.isActive);
+    )).filter(item => item.isActive);
 
     const warnings = [];
     if (updated) warnings.push('This is an updated submission!');
@@ -226,12 +222,13 @@ export class SQRWorkflow {
     if (!task.isActive)
       warnings.push(`Status of the allotment is ${task.status}`);
 
-    if (_(userAllotments).every(item => item.status !== AllotmentStatus.Given))
+    if (_(currentSet).every(item => item.status !== AllotmentStatus.Given))
       warnings.push("It's time to allot!");
 
     if (!previousSubmissions.exists())
       warnings.push('This is the first submission by this devotee!');
 
+    console.log('Current Set:', currentSet);
     await admin
       .database()
       .ref(`/email/notifications`)
@@ -291,6 +288,14 @@ export class SQRWorkflow {
       assignee: null,
     });
 
+    const currentSet = (await repository.getUserAllotments(
+      task.assignee.emailAddress
+    )).filter(item => item.isActive);
+
+    const warnings = [];
+    if (_(currentSet).every(item => item.status !== AllotmentStatus.Given))
+      warnings.push("It's time to allot!");
+
     await admin
       .database()
       .ref(`/email/notifications`)
@@ -304,9 +309,8 @@ export class SQRWorkflow {
           reason,
           assignee: task.assignee,
           allotmentLink: this.createAllotmentLink(task.assignee.emailAddress),
-          currentSet: (await repository.getUserAllotments(
-            task.assignee.emailAddress
-          )).filter(item => item.isActive),
+          currentSet,
+          warnings,
         },
       });
   }

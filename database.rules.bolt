@@ -99,6 +99,7 @@ type ReportingAllotment extends Allotment {
 }
 
 type Submission {
+  author: Assignee | Null,
   created: Number | Null,
   changed: CurrentTimestamp,
   completed: InitialTimestamp,
@@ -162,7 +163,10 @@ path /SQR {
     }
     
     // Cold storage for the submission, writable only by the function.
-    path /final/{fileName} is SQRSubmission;
+    path /final {
+      index() { ["author/emailAddress"] }
+      path /{fileName} is SQRSubmission;
+    }
   }
 }
 
