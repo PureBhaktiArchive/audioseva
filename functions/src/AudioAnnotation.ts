@@ -3,6 +3,7 @@
  */
 
 import { TimingInterval } from './TimingInterval';
+import _ = require('lodash');
 
 export interface AudioAnnotation extends TimingInterval<string> {
   entireFile: boolean;
@@ -13,7 +14,8 @@ export interface AudioAnnotation extends TimingInterval<string> {
 export const formatAudioAnnotations = (
   ...annotations: AudioAnnotation[]
 ): string => {
-  return annotations
+  return _(annotations)
+    .filter()
     .map(
       ({ entireFile, beginning, ending, type, description }) =>
         `${
