@@ -152,7 +152,7 @@ export class SQRWorkflow {
     submission: SQRSubmission,
     updated: boolean = false
   ) {
-    console.info(`Processing ${fileName}/${token} submission.`);
+    console.info(`Processing ${fileName}/${token} submission:`, submission);
 
     const repository = await TasksRepository.open();
     const task = await repository.getTask(fileName);
