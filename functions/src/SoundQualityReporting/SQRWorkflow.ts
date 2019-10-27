@@ -228,6 +228,7 @@ export class SQRWorkflow {
     if (!previousSubmissions.exists())
       warnings.push('This is the first submission by this devotee!');
 
+    console.log('Current Set:', currentSet);
     await admin
       .database()
       .ref(`/email/notifications`)
