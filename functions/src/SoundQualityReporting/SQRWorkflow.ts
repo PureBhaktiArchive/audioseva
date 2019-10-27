@@ -87,7 +87,7 @@ export class SQRWorkflow {
     const repository = await TasksRepository.open();
     const tasks = await repository.getTasks(fileNames);
 
-    const assignedTasks = _(tasks)
+    const dirtyTasks = _(tasks)
       .filter()
       .filter(
         ({ status, token, assignee: currentAssignee, timestampGiven }) =>
@@ -96,15 +96,13 @@ export class SQRWorkflow {
           !!timestampGiven ||
           status !== AllotmentStatus.Spare
       )
-      .keys()
-      .value();
+      .map(({ fileName }) => fileName)
+      .join();
 
-    if (assignedTasks.length)
+    if (dirtyTasks.length)
       abortCall(
         'aborted',
-        `Files ${assignedTasks.join(
-          ', '
-        )} seem to be already allotted in the database. Please 🔨 the administrator.`
+        `Files ${dirtyTasks} seem to be already allotted in the database. Please 🔨 the administrator.`
       );
 
     const updatedTasks = await repository.save(
