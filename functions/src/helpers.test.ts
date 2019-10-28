@@ -21,6 +21,6 @@ describe('File name standardization', () => {
     ${'SER-88A'}  | ${'SER-088A'}
     ${'ML2-71 A'} | ${'ML2-0071A'}
   `('$input → $standard', ({ input, standard }) => {
-    expect(standardizeFileName(input)).toEqual(standard);
+    expect(standardizeFileName(`${input}.mp3`)).toEqual(`${standard}.mp3`);
   });
 });

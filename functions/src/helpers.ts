@@ -13,13 +13,22 @@ export const standardizeFileName = (fileName: string) => {
   return fileName
     .replace(/^Hi/i, 'ML1-')
     .replace(
-      /^(ML[12]|[a-zA-Z]+)-(\d{1,4})\s*([\w\s]*)$/i,
-      (match, list: string, serial: string, suffix: string, index, original) =>
+      /^(ML[12]|[a-zA-Z]+)-(\d{1,4})\s*([\w\s]*)(\.\w{3,4})$/i,
+      (
+        match,
+        list: string,
+        serial: string,
+        suffix: string,
+        extension: string,
+        index,
+        original
+      ) =>
         [
           list.toUpperCase(),
           '-',
           serial.padStart(list === 'ML2' ? 4 : 3, '0'),
           suffix.toUpperCase().replace(/[-\s]/g, ''),
+          extension,
         ].join('')
     );
 };
