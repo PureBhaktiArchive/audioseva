@@ -14,7 +14,7 @@ app.get('/file/:bucket/:fileName', (req, res) =>
     .status(307)
     .redirect(
       StorageManager.getPublicURL(
-        StorageManager.getBucketName(req.params.bucket),
+        <any>req.params.bucket,
         standardizeFileName(req.params.fileName)
       )
     )
