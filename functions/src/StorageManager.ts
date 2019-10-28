@@ -9,29 +9,36 @@ import { URL } from 'url';
 import { extractListFromFilename } from './helpers';
 import admin = require('firebase-admin');
 
-export class StorageManager {
-  public static rootBucketDomain = functions.config().project.domain;
-  public static originalFilesBucket = StorageManager.getBucketName('original');
-  public static trackEditedUploadsBucket = StorageManager.getBucketName(
-    'te.uploads'
-  );
-  public static trackEditedFinalBucket = StorageManager.getBucketName('edited');
+export type BucketName = 'original' | 'edited' | 'te.uploads';
 
-  static getBucketName(bucketSubDomain: string) {
-    return `${bucketSubDomain}.${StorageManager.rootBucketDomain}`;
+export class StorageManager {
+  static getFullBucketName(bucketName: BucketName) {
+    return `${bucketName}.${functions.config().project.domain}`;
   }
 
-  static getPublicURL(bucket: string, fileName: string) {
+  static getBucket(bucketName: BucketName) {
+    return admin.storage().bucket(this.getFullBucketName(bucketName));
+  }
+
+  static getPublicURL(bucketName: BucketName, fileName: string) {
     return new URL(
-      `/${bucket}/${extractListFromFilename(fileName)}/${fileName}`,
+      [
+        this.getFullBucketName(bucketName),
+        extractListFromFilename(fileName),
+        fileName,
+      ].join('/'),
       'https://storage.googleapis.com'
     ).toString();
   }
 
-  static getEditedFile(taskId: string) {
+  static getFile(bucketName: BucketName, fileName: string) {
     return new File(
-      admin.storage().bucket(this.trackEditedFinalBucket),
-      `${extractListFromFilename(taskId)}/${taskId}.flac`
+      this.getBucket(bucketName),
+      `${extractListFromFilename(fileName)}/${fileName}`
     );
+  }
+
+  static getEditedFile(taskId: string) {
+    return this.getFile('edited', `${taskId}.flac`);
   }
 }

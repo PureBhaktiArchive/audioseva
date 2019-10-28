@@ -203,11 +203,10 @@ export class TrackEditingWorkflow {
 
     if (resolution.isApproved) {
       // Saving the approved file to the final storage bucket
-      await admin
-        .storage()
-        .bucket(StorageManager.trackEditedUploadsBucket)
-        .file(task.versions[versionKey].uploadPath)
-        .copy(StorageManager.getEditedFile(taskId));
+      await StorageManager.getFile(
+        'te.uploads',
+        task.versions[versionKey].uploadPath
+      ).copy(StorageManager.getEditedFile(taskId));
 
       // Updating the database
       await this.getTaskRef(taskId).update({
