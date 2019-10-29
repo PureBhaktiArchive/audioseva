@@ -87,7 +87,7 @@
               </v-flex>
               <v-flex align-self-center sm6 md6>
                 <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
-                  {{ formStateMessages[formStatus] }}
+                  {{ formStateMessages[formState] }}
                 </p>
               </v-flex>
             </v-layout>
@@ -296,7 +296,7 @@ export default class Form extends Vue {
     [FormState.UNSAVED_CHANGES]: "red",
     [FormState.ERROR]: "red"
   };
-  formStatus = FormState.INITIAL_LOAD;
+  formState = FormState.INITIAL_LOAD;
   initialData!: {
     [key: string]: any;
     created?: number;
@@ -320,14 +320,14 @@ export default class Form extends Vue {
 
     if (debounceSubmit) {
       if (_.isEqual(this.initialData, this.form)) {
-        this.formStatus = FormState.INITIAL_LOAD;
+        this.formState = FormState.INITIAL_LOAD;
         if (!this.form.completed) {
           this.debounceSubmitDraft.cancel();
         }
       } else if (this.form.completed) {
-        this.formStatus = FormState.UNSAVED_CHANGES;
+        this.formState = FormState.UNSAVED_CHANGES;
       } else {
-        this.formStatus = FormState.SAVING;
+        this.formState = FormState.SAVING;
         this.debounceSubmitDraft();
       }
     }
@@ -339,9 +339,9 @@ export default class Form extends Vue {
     removeObjectKey(this.form, getPathAndKey(field));
 
     if (_.isEqual(this.initialData, this.form)) {
-      this.formStatus = FormState.INITIAL_LOAD;
+      this.formState = FormState.INITIAL_LOAD;
     } else if (this.form.completed) {
-      this.formStatus = FormState.UNSAVED_CHANGES;
+      this.formState = FormState.UNSAVED_CHANGES;
       return;
     }
 
@@ -371,7 +371,7 @@ export default class Form extends Vue {
     this.canSubmit = true;
     this.getSavedData();
     window.onbeforeunload = () => {
-      if (this.formStatus === FormState.UNSAVED_CHANGES) {
+      if (this.formState === FormState.UNSAVED_CHANGES) {
         return "Changes are not saved!";
       }
       return;
@@ -494,7 +494,7 @@ export default class Form extends Vue {
       : SubmissionsBranch.DRAFTS;
     if (!submit) {
       this.formStateMessages[FormState.SAVING] = "Saving...";
-      this.formStatus = FormState.SAVING;
+      this.formState = FormState.SAVING;
     }
     if (!submit || (this.$refs as any).form.validate()) {
       const {
@@ -514,7 +514,7 @@ export default class Form extends Vue {
       if (submit) {
         this.cancelAutoSave();
         this.formStateMessages[FormState.SAVING] = "Submitting...";
-        this.formStatus = FormState.SAVING;
+        this.formState = FormState.SAVING;
         data.completed = completed || firebase.database.ServerValue.TIMESTAMP;
       }
       if (!created) {
@@ -527,7 +527,7 @@ export default class Form extends Vue {
         .catch(() => "error");
 
       if (updated === "error") {
-        this.formStatus = FormState.ERROR;
+        this.formState = FormState.ERROR;
         this.formStateMessages[FormState.ERROR] = "Permission denied";
         return;
       }
@@ -539,7 +539,7 @@ export default class Form extends Vue {
           .remove();
       }
 
-      this.formStatus = FormState.SAVED;
+      this.formState = FormState.SAVED;
       this.getSavedData(sqrSubmissionBranch);
       if (submit) {
         this.submitSuccess = true;
@@ -555,7 +555,7 @@ export default class Form extends Vue {
   }
 
   get formStateMessageColor() {
-    const color = this.formStateMessagesColor[this.formStatus];
+    const color = this.formStateMessagesColor[this.formState];
     return color ? color : "#000";
   }
 
