@@ -9,15 +9,15 @@ import { StorageManager } from '../StorageManager';
 
 const app = express();
 
-app.get('/download/:bucket/:fileName', (req, res) =>
-  res
-    .status(307)
-    .redirect(
-      StorageManager.getPublicURL(
-        <any>req.params.bucket,
-        standardizeFileName(req.params.fileName)
-      )
-    )
-);
+app.get('/download/:bucket/:fileName', async (req, res) => {
+  const file = StorageManager.getFile(
+    <any>req.params.bucket,
+    standardizeFileName(req.params.fileName)
+  );
+  if ((await file.exists())[0])
+    res.redirect(307, StorageManager.getPublicURL(file));
+  else
+    res.status(404).send('File is not found, please contact the coordinator.');
+});
 
 export const download = functions.https.onRequest(app);
