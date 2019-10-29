@@ -13,8 +13,8 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
-        "source": "/file/**",
-        "function": "Files-get"
+        "source": "/download/**",
+        "function": "Files-download"
       },
       {
         "source": "**",
