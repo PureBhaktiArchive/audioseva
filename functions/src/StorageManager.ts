@@ -20,13 +20,9 @@ export class StorageManager {
     return admin.storage().bucket(this.getFullBucketName(bucketName));
   }
 
-  static getPublicURL(bucketName: BucketName, fileName: string) {
+  static getPublicURL(file: File) {
     return new URL(
-      [
-        this.getFullBucketName(bucketName),
-        extractListFromFilename(fileName),
-        fileName,
-      ].join('/'),
+      `${file.bucket.name}/${file.name}`,
       'https://storage.googleapis.com'
     ).toString();
   }
