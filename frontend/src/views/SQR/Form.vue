@@ -489,61 +489,60 @@ export default class Form extends Vue {
   }
 
   async submitForm(submit = false) {
+    if (submit && !(this.$refs as any).form.validate()) return;
+
     const sqrSubmissionBranch = submit
       ? SubmissionsBranch.COMPLETED
       : SubmissionsBranch.DRAFTS;
-    if (!submit) {
+    const {
+      created,
+      changed,
+      completed,
+      soundIssues = [],
+      unwantedParts = [],
+      ...form
+    } = this.form;
+    const data: any = {
+      ...form,
+      soundIssues: this.removeId(soundIssues),
+      unwantedParts: this.removeId(unwantedParts),
+      changed: firebase.database.ServerValue.TIMESTAMP
+    };
+    if (submit) {
+      this.cancelAutoSave();
+      this.formStateMessages[FormState.SAVING] = "Submitting...";
+      this.formState = FormState.SAVING;
+      data.completed = completed || firebase.database.ServerValue.TIMESTAMP;
+    } else {
       this.formStateMessages[FormState.SAVING] = "Saving...";
       this.formState = FormState.SAVING;
     }
-    if (!submit || (this.$refs as any).form.validate()) {
-      const {
-        created,
-        changed,
-        completed,
-        soundIssues = [],
-        unwantedParts = [],
-        ...form
-      } = this.form;
-      const data: any = {
-        ...form,
-        soundIssues: this.removeId(soundIssues),
-        unwantedParts: this.removeId(unwantedParts),
-        changed: firebase.database.ServerValue.TIMESTAMP
-      };
-      if (submit) {
-        this.cancelAutoSave();
-        this.formStateMessages[FormState.SAVING] = "Submitting...";
-        this.formState = FormState.SAVING;
-        data.completed = completed || firebase.database.ServerValue.TIMESTAMP;
-      }
-      if (!created) {
-        data.created = firebase.database.ServerValue.TIMESTAMP;
-      }
-      const updated = await firebase
+    if (!created) {
+      data.created = firebase.database.ServerValue.TIMESTAMP;
+    }
+    const updated = await firebase
+      .database()
+      .ref(this.submissionPath(sqrSubmissionBranch))
+      .update(data)
+      .catch(() => "error");
+
+    if (updated === "error") {
+      this.formState = FormState.ERROR;
+      this.formStateMessages[FormState.ERROR] = "Permission denied";
+      return;
+    }
+    // first time completed
+    if (!completed && sqrSubmissionBranch === SubmissionsBranch.COMPLETED) {
+      firebase
         .database()
-        .ref(this.submissionPath(sqrSubmissionBranch))
-        .update(data)
-        .catch(() => "error");
+        .ref(this.submissionPath(SubmissionsBranch.DRAFTS))
+        .remove();
+    }
 
-      if (updated === "error") {
-        this.formState = FormState.ERROR;
-        this.formStateMessages[FormState.ERROR] = "Permission denied";
-        return;
-      }
-      // first time completed
-      if (!completed && sqrSubmissionBranch === SubmissionsBranch.COMPLETED) {
-        firebase
-          .database()
-          .ref(this.submissionPath(SubmissionsBranch.DRAFTS))
-          .remove();
-      }
-
-      this.formState = FormState.SAVED;
-      this.getSavedData(sqrSubmissionBranch);
-      if (submit) {
-        this.submitSuccess = true;
-      }
+    this.formState = FormState.SAVED;
+    this.getSavedData(sqrSubmissionBranch);
+    if (submit) {
+      this.submitSuccess = true;
     }
   }
 
