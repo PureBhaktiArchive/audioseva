@@ -9,7 +9,7 @@ import { StorageManager } from '../StorageManager';
 
 const app = express();
 
-app.get('/file/:bucket/:fileName', (req, res) =>
+app.get('/download/:bucket/:fileName', (req, res) =>
   res
     .status(307)
     .redirect(
@@ -20,4 +20,4 @@ app.get('/file/:bucket/:fileName', (req, res) =>
     )
 );
 
-export const get = functions.https.onRequest(app);
+export const download = functions.https.onRequest(app);
