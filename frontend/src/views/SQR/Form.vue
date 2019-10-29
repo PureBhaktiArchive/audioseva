@@ -127,7 +127,8 @@ enum FormState {
   UNSAVED_CHANGES = 1,
   INITIAL_LOAD = 2,
   SAVED = 3,
-  ERROR = 4
+  ERROR = 4,
+  SUBMITTING = 5
 }
 
 enum SubmissionsBranch {
@@ -287,6 +288,7 @@ export default class Form extends Vue {
   cancelComplete = false;
   formStateMessages = {
     [FormState.SAVING]: "Saving...",
+    [FormState.SUBMITTING]: "Submitting...",
     [FormState.UNSAVED_CHANGES]: "Unsaved changes",
     [FormState.INITIAL_LOAD]: "",
     [FormState.SAVED]: "All changes saved",
@@ -510,11 +512,9 @@ export default class Form extends Vue {
     };
     if (submit) {
       this.cancelAutoSave();
-      this.formStateMessages[FormState.SAVING] = "Submitting...";
-      this.formState = FormState.SAVING;
+      this.formState = FormState.SUBMITTING;
       data.completed = completed || firebase.database.ServerValue.TIMESTAMP;
     } else {
-      this.formStateMessages[FormState.SAVING] = "Saving...";
       this.formState = FormState.SAVING;
     }
     if (!created) {
