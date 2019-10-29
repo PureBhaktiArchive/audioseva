@@ -292,7 +292,7 @@ export default class Form extends Vue {
     [FormState.UNSAVED_CHANGES]: "Unsaved changes",
     [FormState.INITIAL_LOAD]: "",
     [FormState.SAVED]: "All changes saved",
-    [FormState.ERROR]: ""
+    [FormState.ERROR]: "Permission denied"
   };
   formStateMessagesColor: { [key: string]: string } = {
     [FormState.UNSAVED_CHANGES]: "red",
@@ -528,7 +528,6 @@ export default class Form extends Vue {
 
     if (updated === "error") {
       this.formState = FormState.ERROR;
-      this.formStateMessages[FormState.ERROR] = "Permission denied";
       return;
     }
     // first time completed
