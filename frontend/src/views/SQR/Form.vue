@@ -11,16 +11,22 @@
     </v-container>
     <v-container v-else-if="submitSuccess">
       <div class="submitSuccessBackground">
-        <p class="pa-4 title submitSuccessText">Thank you! We have received your submission.</p>
+        <p class="pa-4 title submitSuccessText">
+          Thank you! We have received your submission.
+        </p>
       </div>
     </v-container>
     <v-form v-else-if="canSubmit" ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
-          <template v-for="(item, index) in cancelFields" >
+          <template v-for="(item, index) in cancelFields">
             <v-flex xs12 :key="item.label">
               <v-list class="cancel-list">
-                <v-list-group @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
+                <v-list-group
+                  @click="handleListClick(index + 1)"
+                  :value="cancel === index + 1"
+                  no-action
+                >
                   <v-list-tile :style="item.styles" slot="activator">
                     <v-list-tile-content>
                       <v-list-tile-title :style="{ height: 'auto' }">
@@ -28,7 +34,11 @@
                       </v-list-tile-title>
                     </v-list-tile-content>
                   </v-list-tile>
-                  <div v-if="cancel !== null" :style="{ border: item.styles.border }" class="pa-1">
+                  <div
+                    v-if="cancel !== null"
+                    :style="{ border: item.styles.border }"
+                    class="pa-1"
+                  >
                     <v-checkbox
                       class="pa-2"
                       v-model="cancelCheck[index + 1]"
@@ -59,7 +69,13 @@
               <v-text-field disabled :value="$route.params.fileName">
               </v-text-field>
             </v-flex>
-            <v-flex class="my-2" :style="{ backgroundColor: '#fff' }" xs12 v-for="(field, index) of fields" :key="index">
+            <v-flex
+              class="my-2"
+              :style="{ backgroundColor: '#fff' }"
+              xs12
+              v-for="(field, index) of fields"
+              :key="index"
+            >
               <h3>{{ field.title }}</h3>
               <template v-if="field.component">
                 <component
@@ -72,24 +88,40 @@
               </template>
               <v-expansion-panel>
                 <v-expansion-panel-content>
-                  <div :style="{ flex: '0' }" class="pr-2" slot="header">Guidelines</div>
+                  <div :style="{ flex: '0' }" class="pr-2" slot="header">
+                    Guidelines
+                  </div>
                   <v-card>
-                    <v-card-text v-html="field.guidelines">
-                    </v-card-text>
+                    <v-card-text v-html="field.guidelines"> </v-card-text>
                   </v-card>
                 </v-expansion-panel-content>
               </v-expansion-panel>
             </v-flex>
             <v-layout class="sticky" wrap>
-              <v-flex xs12 sm6 :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
-                <v-btn v-if="!form.completed" @click="submitDraft">Save draft</v-btn>
+              <v-flex
+                xs12
+                sm6
+                :style="{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap'
+                }"
+              >
+                <v-btn v-if="!form.completed" @click="submitDraft"
+                  >Save draft</v-btn
+                >
                 <v-btn type="submit" color="primary">Submit</v-btn>
                 <p :style="{ color: 'red' }" v-if="formHasError" class="ma-0">
                   Some fields are not filled properly, see above.
                 </p>
               </v-flex>
               <v-flex align-self-center sm6 md6>
-                <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
+                <p
+                  :style="{
+                    margin: '6px 0 6px 8px',
+                    color: formStateMessageColor
+                  }"
+                >
                   {{ formStateMessages[draftStatus] }}
                 </p>
               </v-flex>

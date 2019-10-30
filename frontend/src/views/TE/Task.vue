@@ -4,8 +4,12 @@
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
     <div v-else>
-      <div :style="{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start' }">
-        <h1 class="d-inline" :style="{ width: 'auto' }">Track Editing Task {{ $route.params.taskId }}</h1>
+      <div
+        :style="{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start' }"
+      >
+        <h1 class="d-inline" :style="{ width: 'auto' }">
+          Track Editing Task {{ $route.params.taskId }}
+        </h1>
         <v-chip :style="getTaskStyle(task)">{{ task.status }}</v-chip>
       </div>
       <article>
@@ -15,11 +19,26 @@
       <article>
         <h3>History</h3>
         <v-timeline dense>
-          <v-timeline-item icon="fas fa-paper-plane" fill-dot v-if="task.assignee">
+          <v-timeline-item
+            icon="fas fa-paper-plane"
+            fill-dot
+            v-if="task.assignee"
+          >
             <v-layout justify-space-between wrap>
               <v-flex xs8 :style="{ display: 'flex', flexWrap: 'wrap' }">
-                <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
-                <v-btn v-if="this.task.status !== 'Done'" @click="onCancelClick" class="mt-0" color="error" small>Cancel</v-btn>
+                <p class="mb-0">
+                  Allotted to {{ task.assignee.name }} ({{
+                    task.assignee.emailAddress
+                  }}).
+                </p>
+                <v-btn
+                  v-if="this.task.status !== 'Done'"
+                  @click="onCancelClick"
+                  class="mt-0"
+                  color="error"
+                  small
+                  >Cancel</v-btn
+                >
               </v-flex>
               <v-flex text-xs-right v-if="task.timestampGiven">
                 {{ formatTimestamp(task.timestampGiven) }}
@@ -27,24 +46,40 @@
             </v-layout>
           </v-timeline-item>
           <template v-for="(version, key, index) in task.versions">
-            <v-timeline-item :key="`version-${key}`" :icon="$vuetify.icons.upload" fill-dot>
+            <v-timeline-item
+              :key="`version-${key}`"
+              :icon="$vuetify.icons.upload"
+              fill-dot
+            >
               <v-layout justify-space-between wrap>
                 <v-flex>
-                  <h4 class="pr-2 d-inline">Version {{ index + 1}} uploaded:</h4>
-                  <a :href="version.uploadPath">{{ task[".key"]}}</a>
+                  <h4 class="pr-2 d-inline">
+                    Version {{ index + 1 }} uploaded:
+                  </h4>
+                  <a :href="version.uploadPath">{{ task[".key"] }}</a>
                 </v-flex>
-                <v-flex v-if="version.timestamp" text-xs-right>{{ formatTimestamp(version.timestamp)}}</v-flex>
+                <v-flex v-if="version.timestamp" text-xs-right>{{
+                  formatTimestamp(version.timestamp)
+                }}</v-flex>
               </v-layout>
             </v-timeline-item>
             <v-timeline-item
               :key="`resolution-${index}`"
               :color="version.resolution.isApproved ? 'green' : 'red'"
               v-if="version.resolution"
-              :icon="version.resolution.isApproved ? $vuetify.icons.check : $vuetify.icons.undo"
+              :icon="
+                version.resolution.isApproved
+                  ? $vuetify.icons.check
+                  : $vuetify.icons.undo
+              "
               fill-dot
             >
               <v-layout justify-space-between wrap>
-                <v-flex xs9 sm9 :style="{ display: 'flex', alignItems: 'center' }">
+                <v-flex
+                  xs9
+                  sm9
+                  :style="{ display: 'flex', alignItems: 'center' }"
+                >
                   <div :style="{ width: '100%' }">
                     <v-chip
                       :style="{ float: 'left' }"
@@ -52,28 +87,51 @@
                       :color="version.resolution.isApproved ? 'green' : 'red'"
                       dark
                     >
-                      <span>{{ version.resolution.isApproved ? 'Approved' : 'Disapproved' }}</span>
+                      <span>{{
+                        version.resolution.isApproved
+                          ? "Approved"
+                          : "Disapproved"
+                      }}</span>
                     </v-chip>
-                    <p class="mb-0" v-if="version.resolution.feedback">{{ version.resolution.feedback }}</p>
+                    <p class="mb-0" v-if="version.resolution.feedback">
+                      {{ version.resolution.feedback }}
+                    </p>
                   </div>
                 </v-flex>
-                <v-flex xs3 sm3 text-xs-right v-if="version.resolution.timestamp">
+                <v-flex
+                  xs3
+                  sm3
+                  text-xs-right
+                  v-if="version.resolution.timestamp"
+                >
                   <p class="mb-0">
-                    {{ formatTimestamp(version.resolution.timestamp)}}
+                    {{ formatTimestamp(version.resolution.timestamp) }}
                   </p>
                 </v-flex>
               </v-layout>
             </v-timeline-item>
-            <v-timeline-item v-else-if="index === versionsCount - 1 && isCoordinator" :key="`resolution-${key}`">
+            <v-timeline-item
+              v-else-if="index === versionsCount - 1 && isCoordinator"
+              :key="`resolution-${key}`"
+            >
               <template v-slot:icon>
                 <v-avatar>
                   <img :src="currentUser.photoURL" alt="user avatar" />
                 </v-avatar>
               </template>
               <v-form ref="form">
-                <v-textarea v-model="form.feedback" outline :rules="fieldRules" label="Feed back"></v-textarea>
-                <v-btn color="success" @click="handleSubmitForm(true, key)">Approve</v-btn>
-                <v-btn color="error" @click="handleSubmitForm(false, key)">Disapprove</v-btn>
+                <v-textarea
+                  v-model="form.feedback"
+                  outline
+                  :rules="fieldRules"
+                  label="Feed back"
+                ></v-textarea>
+                <v-btn color="success" @click="handleSubmitForm(true, key)"
+                  >Approve</v-btn
+                >
+                <v-btn color="error" @click="handleSubmitForm(false, key)"
+                  >Disapprove</v-btn
+                >
               </v-form>
             </v-timeline-item>
           </template>
@@ -155,9 +213,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     this.form.isApproved = isApproved;
     this.$nextTick(async () => {
       if ((this.$refs as any).form[0].validate()) {
-        const versionToUpdate = `/TE/tasks/${
-          this.$route.params.taskId
-        }/versions/${versionKey}/resolution`;
+        const versionToUpdate = `/TE/tasks/${this.$route.params.taskId}/versions/${versionKey}/resolution`;
         await firebase
           .database()
           .ref(versionToUpdate)

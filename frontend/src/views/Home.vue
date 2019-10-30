@@ -1,6 +1,4 @@
-/*
- * sri sri guru gauranga jayatah
- */
+/* * sri sri guru gauranga jayatah */
 <template>
   <v-container fluid>
     <v-layout row wrap>

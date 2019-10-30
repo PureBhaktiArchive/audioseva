@@ -18,11 +18,17 @@
           <div v-if="isLoadingLists">
             <div>
               <span :style="{ marginRight: '4px' }">loading lists</span>
-              <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
+              <v-progress-circular
+                indeterminate
+                :size="15"
+                :width="2"
+              ></v-progress-circular>
             </div>
           </div>
           <v-btn-toggle v-model="selectedButton" mandatory v-else>
-            <v-btn v-for="(value, key, index) in lists" :key="index">{{ value }}</v-btn>
+            <v-btn v-for="(value, key, index) in lists" :key="index">{{
+              value
+            }}</v-btn>
           </v-btn-toggle>
         </v-flex>
         <v-flex align-self-center :style="{ textAlign: 'right' }">
@@ -41,7 +47,11 @@
         :datatableProps="{ loading: isLoadingTasks }"
       >
         <template slot="table-no-data">
-          <div :style="{ justifyContent: 'center' }" class="d-flex" v-if="isLoadingTasks">
+          <div
+            :style="{ justifyContent: 'center' }"
+            class="d-flex"
+            v-if="isLoadingTasks"
+          >
             <v-progress-circular indeterminate></v-progress-circular>
           </div>
         </template>
@@ -238,5 +248,4 @@ export default class Tasks extends Mixins<InlineSave>(InlineSave) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -1,8 +1,16 @@
 <template>
-  <v-radio-group :value="selectedField" v-bind="fieldProps" @change="handleRadioSelect">
+  <v-radio-group
+    :value="selectedField"
+    v-bind="fieldProps"
+    @change="handleRadioSelect"
+  >
     <template v-for="(field, index) in fields">
       <div class="other-option" v-if="isOtherOption(field)" :key="index">
-        <v-radio :disabled="otherField === 0" :value="getFieldValue(field)" label="Other...">
+        <v-radio
+          :disabled="otherField === 0"
+          :value="getFieldValue(field)"
+          label="Other..."
+        >
         </v-radio>
         <v-expand-transition>
           <div v-show="otherField === 0">

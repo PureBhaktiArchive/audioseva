@@ -134,5 +134,4 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

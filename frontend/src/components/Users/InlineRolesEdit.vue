@@ -12,7 +12,8 @@
         small
         v-for="(role, index) in Object.keys(itemRoles)"
         :key="`${index}-${role}-chip`"
-      >{{ getRoleDisplayValue(role) }}</v-chip>
+        >{{ getRoleDisplayValue(role) }}</v-chip
+      >
     </div>
     <v-list v-for="(role, index) in roles" :key="index">
       <v-list-tile>

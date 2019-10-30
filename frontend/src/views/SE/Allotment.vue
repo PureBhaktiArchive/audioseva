@@ -18,7 +18,9 @@
           <template v-else>
             <v-list-tile-content>
               <v-list-tile-title v-html="item.name"></v-list-tile-title>
-              <v-list-tile-sub-title v-html="item.emailAddress"></v-list-tile-sub-title>
+              <v-list-tile-sub-title
+                v-html="item.emailAddress"
+              ></v-list-tile-sub-title>
             </v-list-tile-content>
           </template>
         </template>
@@ -27,15 +29,25 @@
       <!-- Lists -->
       <v-layout class="py-2">
         <div v-if="lists">
-          <v-btn-toggle v-model="selectedList" mandatory v-if="lists && lists.length">
-            <v-btn flat v-for="list in lists" :key="list" :value="list">{{ list }}</v-btn>
+          <v-btn-toggle
+            v-model="selectedList"
+            mandatory
+            v-if="lists && lists.length"
+          >
+            <v-btn flat v-for="list in lists" :key="list" :value="list">{{
+              list
+            }}</v-btn>
           </v-btn-toggle>
           <p v-else-if="lists == null">Loading lists…</p>
           <p v-else-if="lists.length == 0">There is no spare file.</p>
         </div>
         <div v-else class="elevation-1 pa-1">
           <span :style="{ marginRight: '4px' }">loading lists</span>
-          <v-progress-circular indeterminate :size="15" :width="2"></v-progress-circular>
+          <v-progress-circular
+            indeterminate
+            :size="15"
+            :width="2"
+          ></v-progress-circular>
         </div>
       </v-layout>
 
@@ -50,8 +62,12 @@
               <v-checkbox v-model="allotment.tasks" :value="task['.key']">
                 <div slot="label">
                   <code class="mr-2">{{ task[".key"] }}</code>
-                  <v-chip :color="soundQualityRatingColor[task.soundQualityRating]">
-                    <span class="white--text">{{ task.soundQualityRating }}</span>
+                  <v-chip
+                    :color="soundQualityRatingColor[task.soundQualityRating]"
+                  >
+                    <span class="white--text">{{
+                      task.soundQualityRating
+                    }}</span>
                   </v-chip>
                 </div>
               </v-checkbox>
@@ -64,8 +80,15 @@
         <p v-else>no tasks</p>
       </div>
 
-      <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
-      <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">submit</v-btn>
+      <v-textarea
+        v-model="allotment.comment"
+        box
+        label="Comment"
+        rows="3"
+      ></v-textarea>
+      <v-btn @click="allot" :loading="submissionStatus === 'inProgress'"
+        >submit</v-btn
+      >
     </v-form>
     <v-alert
       v-else
@@ -172,5 +195,4 @@ export default class Allotment extends Mixins<
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

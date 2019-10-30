@@ -1,6 +1,10 @@
 <template>
   <span>
-    <v-btn :key="`${button.text}-${index}`" v-for="(button, index) in routeButtons" v-bind="button.props">
+    <v-btn
+      :key="`${button.text}-${index}`"
+      v-for="(button, index) in routeButtons"
+      v-bind="button.props"
+    >
       {{ button.text }}
     </v-btn>
   </span>
@@ -46,5 +50,4 @@ export default class HomePageButtons extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

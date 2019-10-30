@@ -1,7 +1,11 @@
 <template>
   <div>
     <span class=".font-weight-medium">Spare by language:</span>
-    <data-table :headers="headers" :items="statistics" :datatableProps="{ hideHeaders: true }"></data-table>
+    <data-table
+      :headers="headers"
+      :items="statistics"
+      :datatableProps="{ hideHeaders: true }"
+    ></data-table>
   </div>
 </template>
 
@@ -32,5 +36,4 @@ export default class SpareByLanguage extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

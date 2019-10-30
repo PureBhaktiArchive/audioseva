@@ -17,7 +17,9 @@
         <v-layout justify-end wrap>
           <v-flex md9 xl4 align-self-center>
             <v-btn-toggle v-model="selectedButton" mandatory>
-              <v-btn v-for="(value, key, index) in allRoles" :key="index">{{ value }}</v-btn>
+              <v-btn v-for="(value, key, index) in allRoles" :key="index">{{
+                value
+              }}</v-btn>
             </v-btn-toggle>
           </v-flex>
           <v-flex md3 align-self-center>
@@ -36,7 +38,7 @@
       :computedComponent="computedComponent"
       :componentData="componentData"
       :computedValue="computedValue"
-      :datatableProps="{ 'loading': isLoadingUsers }"
+      :datatableProps="{ loading: isLoadingUsers }"
       :tableRowStyle="tableRowStyle"
     ></data-table>
     <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
@@ -234,5 +236,4 @@ export default class List extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

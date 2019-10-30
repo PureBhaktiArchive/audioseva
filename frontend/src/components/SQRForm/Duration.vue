@@ -41,5 +41,4 @@ export default class Duration extends Mixins<FormField>(FormField) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

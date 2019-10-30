@@ -21,5 +21,4 @@ export default class SoundQualityBadge extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

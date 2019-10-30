@@ -13,14 +13,16 @@
         clearable
         dense
       >
-        <template slot="item" slot-scope="{item}">
+        <template slot="item" slot-scope="{ item }">
           <template v-if="typeof item !== 'object'">
             <v-list-tile-content v-text="item"></v-list-tile-content>
           </template>
           <template v-else>
             <v-list-tile-content>
               <v-list-tile-title v-html="item.name"></v-list-tile-title>
-              <v-list-tile-sub-title v-html="item.emailAddress"></v-list-tile-sub-title>
+              <v-list-tile-sub-title
+                v-html="item.emailAddress"
+              ></v-list-tile-sub-title>
             </v-list-tile-content>
           </template>
         </template>
@@ -33,7 +35,15 @@
         <template v-for="task in tasks">
           <div :key="task['.key']">
             <v-layout align-start wrap>
-              <v-flex xs12 md2 lg2 xl1 :style="{ alignItems: 'center', flexWrap: 'wrap' }" shrink class="d-flex">
+              <v-flex
+                xs12
+                md2
+                lg2
+                xl1
+                :style="{ alignItems: 'center', flexWrap: 'wrap' }"
+                shrink
+                class="d-flex"
+              >
                 <v-checkbox
                   :style="{ flex: 'none' }"
                   v-model="allotment.tasks"
@@ -49,16 +59,26 @@
                 <task-definition class="pr-3" :item="task" />
               </v-flex>
             </v-layout>
-            <v-divider :style="{ borderColor: '#9a9a9a' }" class="my-1 py-1"></v-divider>
+            <v-divider
+              :style="{ borderColor: '#9a9a9a' }"
+              class="my-1 py-1"
+            ></v-divider>
           </div>
         </template>
       </template>
       <p v-else>No tasks</p>
 
       <!-- Comment -->
-      <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
+      <v-textarea
+        v-model="allotment.comment"
+        box
+        label="Comment"
+        rows="3"
+      ></v-textarea>
       <!-- Buttons -->
-      <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
+      <v-btn @click="allot" :loading="submissionStatus === 'inProgress'"
+        >Allot</v-btn
+      >
     </v-form>
     <v-alert
       v-else
@@ -154,5 +174,4 @@ export default class Allotment extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

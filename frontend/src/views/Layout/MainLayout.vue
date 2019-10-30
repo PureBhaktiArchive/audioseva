@@ -12,10 +12,12 @@
           <v-list class="pa-0">
             <v-list-tile avatar>
               <v-list-tile-avatar>
-                <img :src="currentUser.photoURL">
+                <img :src="currentUser.photoURL" />
               </v-list-tile-avatar>
               <v-list-tile-content>
-                <v-list-tile-title>{{currentUser.displayName}}</v-list-tile-title>
+                <v-list-tile-title>{{
+                  currentUser.displayName
+                }}</v-list-tile-title>
               </v-list-tile-content>
               <v-list-tile-action>
                 <v-btn icon ripple @click="signOut">
@@ -38,10 +40,15 @@
             >
               <v-list-tile slot="activator">
                 <v-list-tile-content>
-                  <v-list-tile-title>{{ item.meta.activatorName }}</v-list-tile-title>
+                  <v-list-tile-title>{{
+                    item.meta.activatorName
+                  }}</v-list-tile-title>
                 </v-list-tile-content>
               </v-list-tile>
-              <menu-links :parentRoute="item" :routes="item.children"></menu-links>
+              <menu-links
+                :parentRoute="item"
+                :routes="item.children"
+              ></menu-links>
             </v-list-group>
             <v-list-tile
               :to="`/${item.path}`"
@@ -67,9 +74,14 @@
       </v-navigation-drawer>
 
       <v-toolbar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
-        <v-toolbar-side-icon @click="sidebar = !sidebar" v-if="currentUser"></v-toolbar-side-icon>
+        <v-toolbar-side-icon
+          @click="sidebar = !sidebar"
+          v-if="currentUser"
+        ></v-toolbar-side-icon>
         <v-toolbar-title>
-          <router-link to="/" tag="span" style="cursor: pointer">{{ appTitle }}</router-link>
+          <router-link to="/" tag="span" style="cursor: pointer">{{
+            appTitle
+          }}</router-link>
         </v-toolbar-title>
       </v-toolbar>
     </template>
@@ -117,5 +129,4 @@ export default class MainLayout extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

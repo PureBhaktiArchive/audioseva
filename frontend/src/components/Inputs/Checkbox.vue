@@ -1,5 +1,9 @@
 <template>
-  <v-checkbox v-bind="fieldProps" :input-value="getValue()" @change="handleInput"></v-checkbox>
+  <v-checkbox
+    v-bind="fieldProps"
+    :input-value="getValue()"
+    @change="handleInput"
+  ></v-checkbox>
 </template>
 
 <script lang="ts">
@@ -19,5 +23,4 @@ export default class Checkbox extends Mixins<ItemPath>(ItemPath) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

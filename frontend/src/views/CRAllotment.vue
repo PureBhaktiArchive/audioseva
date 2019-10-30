@@ -10,20 +10,26 @@
         item-text="name"
         item-value="id"
         label="Select an assignee"
-        :error-messages="errors.getAssignees ? `Error getting assignees: ${errors.getAssignees}` : ''"
+        :error-messages="
+          errors.getAssignees
+            ? `Error getting assignees: ${errors.getAssignees}`
+            : ''
+        "
         persistent-hint
         return-object
         clearable
         dense
       >
-        <template slot="item" slot-scope="{item}">
+        <template slot="item" slot-scope="{ item }">
           <template v-if="typeof item !== 'object'">
             <v-list-tile-content v-text="item"></v-list-tile-content>
           </template>
           <template v-else>
             <v-list-tile-content>
               <v-list-tile-title v-html="item.name"></v-list-tile-title>
-              <v-list-tile-sub-title v-html="item.emailAddress"></v-list-tile-sub-title>
+              <v-list-tile-sub-title
+                v-html="item.emailAddress"
+              ></v-list-tile-sub-title>
             </v-list-tile-content>
           </template>
         </template>
@@ -31,25 +37,39 @@
       <!-- Language -->
       <v-layout row class="py-2">
         <v-btn-toggle v-model="filter.languages" multiple>
-          <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
+          <v-btn
+            flat
+            v-for="language in languages"
+            :key="language"
+            :value="language"
+            >{{ language }}</v-btn
+          >
         </v-btn-toggle>
       </v-layout>
       <!-- List -->
       <v-layout row class="py-2">
-        <div class="red--text" v-if="errors.getLists">Error getting lists: {{ errors.getLists }}</div>
+        <div class="red--text" v-if="errors.getLists">
+          Error getting lists: {{ errors.getLists }}
+        </div>
         <v-btn-toggle v-model="filter.list" v-else-if="lists">
-          <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
+          <v-btn flat v-for="list in lists" :key="list" :value="list">{{
+            list
+          }}</v-btn>
         </v-btn-toggle>
         <p v-else>Loading lists…</p>
       </v-layout>
       <!-- Files -->
-      <div class="red--text" v-if="errors.getSpareFiles">Error getting files: {{ errors.getSpareFiles }}</div>
+      <div class="red--text" v-if="errors.getSpareFiles">
+        Error getting files: {{ errors.getSpareFiles }}
+      </div>
       <template v-else-if="filter.list && filter.languages.length">
         <template v-if="files">
           <template v-if="files.length > 0">
             <template v-for="(file, index) in files">
               <div :key="file.filename">
-                <v-divider v-if="index > 0 && files[index - 1].date !== file.date"/>
+                <v-divider
+                  v-if="index > 0 && files[index - 1].date !== file.date"
+                />
                 <v-layout align-center>
                   <v-checkbox
                     :style="{ flex: 'none' }"
@@ -60,25 +80,37 @@
                   >
                     <code slot="label">{{ file.filename }}</code>
                   </v-checkbox>
-                  <span>{{ file.date || "No date" }} {{ file.language || "No language" }} {{ file.notes }}</span>
+                  <span
+                    >{{ file.date || "No date" }}
+                    {{ file.language || "No language" }} {{ file.notes }}</span
+                  >
                 </v-layout>
               </div>
             </template>
           </template>
-          <p v-else>No spare files found for selected language in {{filter.list}} list.</p>
+          <p v-else>
+            No spare files found for selected language in
+            {{ filter.list }} list.
+          </p>
         </template>
         <p v-else>Loading files…</p>
       </template>
-      <p v-else-if="!errors.getLists">Choose list and language to select files.</p>
+      <p v-else-if="!errors.getLists">
+        Choose list and language to select files.
+      </p>
       <!-- Comment -->
-      <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
+      <v-textarea
+        v-model="allotment.comment"
+        box
+        label="Comment"
+        rows="3"
+      ></v-textarea>
       <!-- Buttons -->
       <div>
-        <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
-        <p
-          v-if="errors.processAllotment"
-          class="mb-0 d-inline red--text"
+        <v-btn @click="allot" :loading="submissionStatus === 'inProgress'"
+          >Allot</v-btn
         >
+        <p v-if="errors.processAllotment" class="mb-0 d-inline red--text">
           Error submitting allotment: {{ errors.processAllotment }}
         </p>
       </div>
@@ -200,5 +232,4 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

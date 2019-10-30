@@ -1,14 +1,25 @@
 <template>
   <div>
-    <v-card class="my-3" v-for="(item, index) in items" :key="form.soundIssues[item].id">
+    <v-card
+      class="my-3"
+      v-for="(item, index) in items"
+      :key="form.soundIssues[item].id"
+    >
       <v-card-title>
         <v-layout class="justify-xl-evenly" justify-space-between wrap>
-
-          <v-flex align-self-center xs12 class="d-flex justify-space-between pb-2" lg12>
+          <v-flex
+            align-self-center
+            xs12
+            class="d-flex justify-space-between pb-2"
+            lg12
+          >
             <v-flex xs7 sm5>
-              <h3>Sound issue #{{ index + 1}}</h3>
+              <h3>Sound issue #{{ index + 1 }}</h3>
             </v-flex>
-            <v-flex :style="{ display: 'flex', justifyContent: 'flex-end' }" xs5>
+            <v-flex
+              :style="{ display: 'flex', justifyContent: 'flex-end' }"
+              xs5
+            >
               <delete-button v-bind="getFieldProps('actions', item)" />
             </v-flex>
           </v-flex>
@@ -30,9 +41,12 @@
               v-if="!hideField('beginning', item)"
               class="d-flex justify-space-between"
               :style="{ flexWrap: 'wrap' }"
-              xs12>
+              xs12
+            >
               <v-flex class="pr-1" xs6>
-                <text-field v-bind="getFieldProps('beginning', item)"></text-field>
+                <text-field
+                  v-bind="getFieldProps('beginning', item)"
+                ></text-field>
               </v-flex>
               <v-flex class="pl-1" xs6>
                 <text-field v-bind="getFieldProps('ending', item)"></text-field>
@@ -41,7 +55,9 @@
           </v-flex>
 
           <v-flex xs12 sm5 md3 xl2>
-            <sound-type-radio-group v-bind="getFieldProps('type', item)"></sound-type-radio-group>
+            <sound-type-radio-group
+              v-bind="getFieldProps('type', item)"
+            ></sound-type-radio-group>
           </v-flex>
 
           <v-flex xs12 md5 lg4 xl4>
@@ -51,8 +67,7 @@
       </v-card-title>
     </v-card>
     <v-btn class="ma-0" color="success" @click="addField">
-      Add
-      Sound Issue
+      Add Sound Issue
     </v-btn>
   </div>
 </template>
@@ -134,5 +149,4 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
 }
 </script>
 
-<style>
-</style>
+<style></style>

@@ -5,7 +5,12 @@
     </div>
     <v-form ref="form" @submit.prevent="submitForm">
       <v-layout row wrap>
-        <v-flex xs12 sm5 class="d-flex pa-1" :style="{ flexDirection: 'column', flexWrap: 'wrap' }">
+        <v-flex
+          xs12
+          sm5
+          class="d-flex pa-1"
+          :style="{ flexDirection: 'column', flexWrap: 'wrap' }"
+        >
           <v-flex xs12>
             <v-text-field
               outline
@@ -23,12 +28,13 @@
               :close-on-content-click="false"
               :return-value.sync="date"
             >
-              <div slot="activator">
-              </div>
+              <div slot="activator"></div>
               <v-date-picker v-model="form.date" no-title scrollable>
                 <v-spacer></v-spacer>
                 <v-btn flat color="primary" @click="menu = false">Cancel</v-btn>
-                <v-btn flat color="primary" @click="$refs.menu.save(form.date)">OK</v-btn>
+                <v-btn flat color="primary" @click="$refs.menu.save(form.date)"
+                  >OK</v-btn
+                >
               </v-date-picker>
             </v-menu>
           </v-flex>
@@ -44,11 +50,22 @@
             />
           </v-flex>
           <v-flex xs8 sm8 md9 lg10 class="py-1 pr-1">
-            <v-text-field class="amount" :rules="amountRules" outline label="Amount" v-model="form.sum.amount" />
+            <v-text-field
+              class="amount"
+              :rules="amountRules"
+              outline
+              label="Amount"
+              v-model="form.sum.amount"
+            />
           </v-flex>
         </v-flex>
         <v-flex xs12 sm6 lg3 class="pa-1">
-          <v-text-field :rules="rules" outline label="Name" v-model="form.donor.name" />
+          <v-text-field
+            :rules="rules"
+            outline
+            label="Name"
+            v-model="form.donor.name"
+          />
         </v-flex>
         <v-flex xs12 sm6 lg4 class="pa-1">
           <v-text-field
@@ -77,14 +94,25 @@
           </v-flex>
         </v-flex>
         <v-flex xs12 class="pa-1">
-          <v-text-field :rules="rules" outline label="Collected By" v-model="form.collectedBy" />
+          <v-text-field
+            :rules="rules"
+            outline
+            label="Collected By"
+            v-model="form.collectedBy"
+          />
         </v-flex>
         <v-flex xs12 class="pa-1">
           <v-textarea outline label="Comment" v-model="form.comment" />
         </v-flex>
-        <v-btn :loading="isSubmitting" :disabled="isSubmitting" type="submit" color="success">Submit</v-btn>
+        <v-btn
+          :loading="isSubmitting"
+          :disabled="isSubmitting"
+          type="submit"
+          color="success"
+          >Submit</v-btn
+        >
         <span
-          :style="{ color: submissionStatus === 'success' ? '#4caf50' : 'red'}"
+          :style="{ color: submissionStatus === 'success' ? '#4caf50' : 'red' }"
           class="d-flex align-center"
         >
           {{ submissionMessage }}

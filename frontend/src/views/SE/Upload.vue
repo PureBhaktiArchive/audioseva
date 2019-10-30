@@ -10,23 +10,30 @@
         :useCustomSlot="true"
       >
         <div>
-          <p>Drop files here to upload or click here to pick the files from your computer.</p>
+          <p>
+            Drop files here to upload or click here to pick the files from your
+            computer.
+          </p>
         </div>
       </vue-dropzone>
     </div>
     <div>
       <div :style="{ alignItems: 'center' }" class="d-flex pa-1">
         <span v-if="totalUploadCount" class="pl-2">
-          Uploading {{ `${totalUploadCount} item${totalUploadCount > 1 ? 's' : ''}` }}
-          | {{ getTotalUploadTime()}}
+          Uploading
+          {{ `${totalUploadCount} item${totalUploadCount > 1 ? "s" : ""}` }} |
+          {{ getTotalUploadTime() }}
         </span>
         <div :style="{ justifyContent: 'flex-end', display: 'flex' }">
           <v-btn
             v-if="completedFileUploads"
             @click="clearCompletedFiles"
             color="green"
-          >Clear completed</v-btn>
-          <v-btn v-if="totalUploadCount" @click="cancelAllFiles" color="red">Cancel all</v-btn>
+            >Clear completed</v-btn
+          >
+          <v-btn v-if="totalUploadCount" @click="cancelAllFiles" color="red"
+            >Cancel all</v-btn
+          >
         </div>
       </div>
       <v-divider v-if="getFiles().length"></v-divider>
@@ -38,19 +45,29 @@
                 <v-list-tile-sub-title
                   :style="{ color: 'red' }"
                   v-if="status.error"
-                >{{ status.error }}</v-list-tile-sub-title>
+                  >{{ status.error }}</v-list-tile-sub-title
+                >
                 <v-list-tile-title>{{ file.name }}</v-list-tile-title>
               </v-list-tile-content>
               <v-list-tile-action :style="{ flexDirection: 'row' }">
-                <v-btn v-if="status.error" color="red" @click="deleteFile(file)">remove</v-btn>
-                <v-icon color="green" v-else-if="status.complete">fa-check-circle</v-icon>
+                <v-btn v-if="status.error" color="red" @click="deleteFile(file)"
+                  >remove</v-btn
+                >
+                <v-icon color="green" v-else-if="status.complete"
+                  >fa-check-circle</v-icon
+                >
                 <div v-else>
                   <v-progress-circular
                     :value="status.progress"
                     color="green"
-                    :style="{ marginRight: '16px'}"
+                    :style="{ marginRight: '16px' }"
                   ></v-progress-circular>
-                  <v-btn color="red" @click="cancelFile(status)" v-if="status.uploading">Cancel</v-btn>
+                  <v-btn
+                    color="red"
+                    @click="cancelFile(status)"
+                    v-if="status.uploading"
+                    >Cancel</v-btn
+                  >
                 </div>
               </v-list-tile-action>
             </v-list-tile>

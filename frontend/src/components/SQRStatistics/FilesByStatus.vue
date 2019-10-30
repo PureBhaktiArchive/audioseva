@@ -8,10 +8,12 @@
     >
       <template slot="table-footer">
         <td
-          :style="{ borderTop: 'double', backgroundColor: 'lightgray'}"
-          v-for="( value , key, index) in headers"
+          :style="{ borderTop: 'double', backgroundColor: 'lightgray' }"
+          v-for="(value, key, index) in headers"
           :key="index"
-        >{{ getFooterData(value) }}</td>
+        >
+          {{ getFooterData(value) }}
+        </td>
       </template>
     </data-table>
   </div>
@@ -49,5 +51,4 @@ export default class FilesByStatus extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

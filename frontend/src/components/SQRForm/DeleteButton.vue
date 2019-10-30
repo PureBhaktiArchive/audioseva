@@ -1,5 +1,10 @@
 <template>
-  <v-icon v-text="'$vuetify.icons.delete'" color="error" v-bind="buttonProps" @click="handleDelete"></v-icon>
+  <v-icon
+    v-text="'$vuetify.icons.delete'"
+    color="error"
+    v-bind="buttonProps"
+    @click="handleDelete"
+  ></v-icon>
 </template>
 
 <script lang="ts">
@@ -21,5 +26,4 @@ export default class Button extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

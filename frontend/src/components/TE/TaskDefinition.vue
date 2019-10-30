@@ -4,22 +4,28 @@
       <v-layout class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
         <v-flex v-bind="layout.link">
           <div>
-            <a
-              download
-              :href="getLink(chunk.fileName)"
-            >
-              {{chunk.fileName}}
+            <a download :href="getLink(chunk.fileName)">
+              {{ chunk.fileName }}
             </a>
           </div>
         </v-flex>
         <v-flex v-bind="layout.duration">
-          <span>{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{ formatDurationUtc(chunk.ending, "mm:ss") }}</span>
+          <span
+            >{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{
+              formatDurationUtc(chunk.ending, "mm:ss")
+            }}</span
+          >
         </v-flex>
         <v-flex v-bind="layout.unwantedParts">
-          <div :style="{ whiteSpace: 'pre-wrap' }">{{ chunk.unwantedParts }}</div>
+          <div :style="{ whiteSpace: 'pre-wrap' }">
+            {{ chunk.unwantedParts }}
+          </div>
         </v-flex>
       </v-layout>
-      <v-divider :key="`${item['key']}-${index}-divider`" class="mt-2 mb-2"></v-divider>
+      <v-divider
+        :key="`${item['key']}-${index}-divider`"
+        class="mt-2 mb-2"
+      ></v-divider>
     </template>
   </div>
 </template>
@@ -68,5 +74,4 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

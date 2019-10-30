@@ -3,8 +3,9 @@
     <div v-if="lastResolution">
       <v-chip
         class="ml-0"
-        disabled label
-        :color="lastIsApproved ? 'green' : 'red' "
+        disabled
+        label
+        :color="lastIsApproved ? 'green' : 'red'"
         text-color="white"
       >
         {{ lastIsApproved ? "Approved" : "Disapproved" }}
@@ -55,5 +56,4 @@ export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

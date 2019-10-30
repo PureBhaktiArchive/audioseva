@@ -9,7 +9,7 @@
     <template slot="items" slot-scope="{ item }">
       <tr :style="getTableRowStyle(item)" @click="$emit('click:row', item)">
         <td
-          v-for="( value , key, index) in headers"
+          v-for="(value, key, index) in headers"
           :class="getStyles(value, item)"
           :key="getKey(item, value.value, index)"
           v-bind="getAttributes(item, value.value)"
