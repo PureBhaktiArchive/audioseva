@@ -40,7 +40,7 @@ async function getFirebaseConfig(): Promise<Object> {
       };
 }
 
-const vuetifyOptions: VuetifyPreset = {
+export const vuetifyOptions: VuetifyPreset = {
   icons: {
     iconfont: "fa",
     values: {
