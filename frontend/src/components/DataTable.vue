@@ -1,12 +1,11 @@
 <template>
   <v-data-table
     :headers="headers"
-    :pagination.sync="customPagination"
     :items="items"
-    v-bind="datatableProps"
+    v-bind="$attrs"
     v-on="$listeners"
   >
-    <template slot="items" slot-scope="{ item }">
+    <template slot="item" slot-scope="{ item }">
       <tr :style="getTableRowStyle(item)" @click="$emit('click:row', item)">
         <td
           v-for="( value , key, index) in headers"
