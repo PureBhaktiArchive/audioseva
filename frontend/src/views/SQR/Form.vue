@@ -350,6 +350,25 @@ export default class Form extends Vue {
 
   debounceUpdateForm = _.debounce(this.updateForm, 150);
 
+  async canSubmitForm() {
+    const {
+      params: { fileName, token }
+    } = this.$route;
+    const listId = getListId(fileName);
+    const response = (await firebase
+      .database()
+      .ref(`/allotments/SQR`)
+      .orderByChild("token")
+      .equalTo(token)
+      .once("value")).val();
+    const sqrStatus = _.get(response, "status", "");
+    if (!sqrStatus || (sqrStatus as string).toLowerCase() === "done") {
+      this.isLoadingForm = false;
+    } else {
+      this.canSubmit = true;
+    }
+  }
+
   async removeField(field: string) {
     removeObjectKey(this.form, getPathAndKey(field));
 
@@ -383,7 +402,7 @@ export default class Form extends Vue {
   }
 
   async mounted() {
-    this.canSubmit = true;
+    await this.canSubmitForm();
     this.getSavedData();
     window.onbeforeunload = () => {
       if (this.formState === FormState.UNSAVED_CHANGES) {
