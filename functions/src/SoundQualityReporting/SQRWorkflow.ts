@@ -11,6 +11,7 @@ import { Assignee } from '../Assignee';
 import { formatAudioAnnotations } from '../AudioAnnotation';
 import { abortCall } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
+import { frontendUrl } from '../helpers';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import { TasksRepository } from './TasksRepository';
@@ -32,23 +33,20 @@ export class SQRWorkflow {
       `form/sound-quality-report/${encodeURIComponent(
         fileName
       )}/${encodeURIComponent(token)}`,
-      `https://app.${functions.config().project.domain}`
+      frontendUrl
     ).toString();
   }
 
   static createListenLink(fileName: string): string {
     const url = new URL(
-      `listen/${encodeURIComponent(fileName)}`,
-      functions.config().website.old.base_url
+      `listen/${encodeURIComponent(fileName)}.mp3`,
+      frontendUrl
     );
-    url.searchParams.set('seva', 'sqr');
     return url.toString();
   }
 
   static createAllotmentLink(emailAddress: string): string {
-    const url = new URL(
-      `https://app.${functions.config().project.domain}/sqr/allot`
-    );
+    const url = new URL('/sqr/allot', frontendUrl);
     url.searchParams.set('emailAddress', emailAddress);
     return url.toString();
   }

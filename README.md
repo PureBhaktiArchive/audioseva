@@ -52,7 +52,6 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 | Key                               | Description                                        |
 | --------------------------------- | -------------------------------------------------- |
 | `project.domain`                  | Root domain used for hosting and storage           |
-| `website.old.base_url`            | Base url of the old website                        |
 | `send_in_blue.key`                | SendInBlue secret Key                              |
 | `coordinator.email_address`       | Coordinator email address                          |
 | `coordinator.timezone`            | Coordinator timezone. For example, `Asia/Calcutta` |
