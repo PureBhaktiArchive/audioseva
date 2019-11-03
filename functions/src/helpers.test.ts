@@ -14,12 +14,13 @@ describe('List extraction', () => {
 
 describe('File name standardization', () => {
   test.each`
-    input         | standard
-    ${'Hi3 A'}    | ${'ML1-003A'}
-    ${'BR-01A'}   | ${'BR-001A'}
-    ${'DK-1A'}    | ${'DK-001A'}
-    ${'SER-88A'}  | ${'SER-088A'}
-    ${'ML2-71 A'} | ${'ML2-0071A'}
+    input          | standard
+    ${'Hi3 A'}     | ${'ML1-003A'}
+    ${'BR-01A'}    | ${'BR-001A'}
+    ${'DK-1A'}     | ${'DK-001A'}
+    ${'SER-88A'}   | ${'SER-088A'}
+    ${'ML2-71 A'}  | ${'ML2-0071A'}
+    ${'ML2-071-1'} | ${'ML2-071-1'}
   `('$input → $standard', ({ input, standard }) => {
     expect(standardizeFileName(`${input}.mp3`)).toEqual(`${standard}.mp3`);
   });
