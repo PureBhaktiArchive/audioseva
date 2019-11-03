@@ -102,7 +102,7 @@ type Submission {
   author: Assignee | Null,
   created: Number | Null,
   changed: CurrentTimestamp,
-  completed: InitialTimestamp,
+  completed: Number,
   comments: String | Null,
 }
 
