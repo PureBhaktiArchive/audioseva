@@ -3,6 +3,7 @@ module.exports = {
   env: {
     node: true
   },
+  plugins: ["@typescript-eslint"],
   extends: [
     "plugin:vue/essential",
     "@vue/prettier",
@@ -15,6 +16,6 @@ module.exports = {
     "object-curly-spacing": ["error", "always"]
   },
   parserOptions: {
-    parser: "typescript-eslint-parser"
+    parser: "@typescript-eslint/parser"
   }
 };

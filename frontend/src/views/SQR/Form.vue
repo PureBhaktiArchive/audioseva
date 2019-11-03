@@ -81,9 +81,12 @@
               </v-expansion-panel>
             </v-flex>
             <v-layout class="sticky" wrap>
-              <v-flex xs12 sm6>
+              <v-flex xs12 sm6 :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
                 <v-btn v-if="!form.completed" @click="submitDraft">Save draft</v-btn>
                 <v-btn type="submit" color="primary">Submit</v-btn>
+                <p :style="{ color: 'red' }" v-if="formHasError" class="ma-0">
+                  Some fields are not filled properly, see above.
+                </p>
               </v-flex>
               <v-flex align-self-center sm6 md6>
                 <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
@@ -102,7 +105,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Watch, Vue } from "vue-property-decorator";
 import _ from "lodash";
 import moment from "moment";
 import "moment-timezone/builds/moment-timezone-with-data-10-year-range.min.js";
@@ -308,6 +311,7 @@ export default class Form extends Vue {
     soundIssues?: any;
   };
   submitSuccess = false;
+  formHasError = false;
 
   rules = [required];
 
@@ -315,6 +319,15 @@ export default class Form extends Vue {
     this.cancelCheck = {};
     this.cancelComment = "";
     this.cancel = this.cancel === cancelField ? null : cancelField;
+  }
+
+  @Watch("form", { deep: true })
+  handleFormErrors() {
+    if (this.$refs.form) {
+      this.formHasError = Object.values<boolean>(
+        (this.$refs.form as any).errorBag
+      ).some(hasError => hasError);
+    }
   }
 
   updateForm(field: string, value: any, debounceSubmit = true) {

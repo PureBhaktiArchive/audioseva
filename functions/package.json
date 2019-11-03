@@ -30,10 +30,10 @@
   },
   "devDependencies": {
     "@types/glob": "7.1.1",
-    "@types/jest": "24.0.19",
+    "@types/jest": "24.0.20",
     "@types/lodash": "4.14.144",
     "@types/luxon": "1.15.2",
-    "@types/node": "12.11.6",
+    "@types/node": "12.11.7",
     "@types/uuid": "3.4.5",
     "firebase-functions-test": "0.1.6",
     "jest": "24.9.0",
