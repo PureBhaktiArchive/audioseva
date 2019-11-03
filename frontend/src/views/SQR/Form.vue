@@ -90,7 +90,7 @@
               </v-flex>
               <v-flex align-self-center sm6 md6>
                 <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
-                  {{ formStateMessages[draftStatus] }}
+                  {{ formStateMessages[formState] }}
                 </p>
               </v-flex>
             </v-layout>
@@ -130,7 +130,8 @@ enum FormState {
   UNSAVED_CHANGES = 1,
   INITIAL_LOAD = 2,
   SAVED = 3,
-  ERROR = 4
+  ERROR = 4,
+  SUBMITTING = 5
 }
 
 enum SubmissionsBranch {
@@ -290,16 +291,17 @@ export default class Form extends Vue {
   cancelComplete = false;
   formStateMessages = {
     [FormState.SAVING]: "Saving...",
+    [FormState.SUBMITTING]: "Submitting...",
     [FormState.UNSAVED_CHANGES]: "Unsaved changes",
     [FormState.INITIAL_LOAD]: "",
     [FormState.SAVED]: "All changes saved",
-    [FormState.ERROR]: ""
+    [FormState.ERROR]: "Permission denied"
   };
   formStateMessagesColor: { [key: string]: string } = {
     [FormState.UNSAVED_CHANGES]: "red",
     [FormState.ERROR]: "red"
   };
-  draftStatus = FormState.INITIAL_LOAD;
+  formState = FormState.INITIAL_LOAD;
   initialData!: {
     [key: string]: any;
     created?: number;
@@ -333,14 +335,14 @@ export default class Form extends Vue {
 
     if (debounceSubmit) {
       if (_.isEqual(this.initialData, this.form)) {
-        this.draftStatus = FormState.INITIAL_LOAD;
+        this.formState = FormState.INITIAL_LOAD;
         if (!this.form.completed) {
           this.debounceSubmitDraft.cancel();
         }
       } else if (this.form.completed) {
-        this.draftStatus = FormState.UNSAVED_CHANGES;
+        this.formState = FormState.UNSAVED_CHANGES;
       } else {
-        this.draftStatus = FormState.SAVING;
+        this.formState = FormState.SAVING;
         this.debounceSubmitDraft();
       }
     }
@@ -352,9 +354,9 @@ export default class Form extends Vue {
     removeObjectKey(this.form, getPathAndKey(field));
 
     if (_.isEqual(this.initialData, this.form)) {
-      this.draftStatus = FormState.INITIAL_LOAD;
+      this.formState = FormState.INITIAL_LOAD;
     } else if (this.form.completed) {
-      this.draftStatus = FormState.UNSAVED_CHANGES;
+      this.formState = FormState.UNSAVED_CHANGES;
       return;
     }
 
@@ -384,7 +386,7 @@ export default class Form extends Vue {
     this.canSubmit = true;
     this.getSavedData();
     window.onbeforeunload = () => {
-      if (this.draftStatus === FormState.UNSAVED_CHANGES) {
+      if (this.formState === FormState.UNSAVED_CHANGES) {
         return "Changes are not saved!";
       }
       return;
@@ -501,80 +503,58 @@ export default class Form extends Vue {
     this.debounceSubmitDraft.cancel();
   }
 
-  async submitForm(save = false) {
-    const sqrSubmissionBranch = save
+  async submitForm(submit = false) {
+    if (submit && !(this.$refs as any).form.validate()) return;
+
+    const sqrSubmissionBranch = submit
       ? SubmissionsBranch.COMPLETED
       : SubmissionsBranch.DRAFTS;
-    if (!save) {
-      this.draftStatus = FormState.SAVING;
+    const {
+      created,
+      changed,
+      completed,
+      soundIssues = [],
+      unwantedParts = [],
+      ...form
+    } = this.form;
+    const data: any = {
+      ...form,
+      soundIssues: this.removeId(soundIssues),
+      unwantedParts: this.removeId(unwantedParts),
+      changed: firebase.database.ServerValue.TIMESTAMP
+    };
+    if (submit) {
+      this.cancelAutoSave();
+      this.formState = FormState.SUBMITTING;
+      data.completed = completed || firebase.database.ServerValue.TIMESTAMP;
+    } else {
+      this.formState = FormState.SAVING;
     }
-    if (!save || (this.$refs as any).form.validate()) {
-      if (save) {
-        this.cancelAutoSave();
-        this.draftStatus = FormState.SAVING;
-      }
-      const {
-        created,
-        changed,
-        completed,
-        soundIssues = [],
-        unwantedParts = [],
-        ...form
-      } = this.form;
-      const data: any = {
-        ...form,
-        soundIssues: this.removeId(soundIssues),
-        unwantedParts: this.removeId(unwantedParts),
-        changed: firebase.database.ServerValue.TIMESTAMP
-      };
-      if (save) {
-        data.completed = completed || firebase.database.ServerValue.TIMESTAMP;
-      }
-      if (!created) {
-        data.created = firebase.database.ServerValue.TIMESTAMP;
-      }
-      const updated = await firebase
+    if (!created) {
+      data.created = firebase.database.ServerValue.TIMESTAMP;
+    }
+    const updated = await firebase
+      .database()
+      .ref(this.submissionPath(sqrSubmissionBranch))
+      .update(data)
+      .catch(() => "error");
+
+    if (updated === "error") {
+      this.formState = FormState.ERROR;
+      return;
+    }
+    // first time completed
+    if (!completed && sqrSubmissionBranch === SubmissionsBranch.COMPLETED) {
+      firebase
         .database()
-        .ref(this.submissionPath(sqrSubmissionBranch))
-        .update(data)
-        .catch(() => "error");
+        .ref(this.submissionPath(SubmissionsBranch.DRAFTS))
+        .remove();
+    }
 
-      if (updated === "error") {
-        this.draftStatus = FormState.ERROR;
-        this.formStateMessages[FormState.ERROR] = "Permission denied";
-        return;
-      }
-      // first time completed
-      if (!completed && sqrSubmissionBranch === SubmissionsBranch.COMPLETED) {
-        firebase
-          .database()
-          .ref(this.submissionPath(SubmissionsBranch.DRAFTS))
-          .remove();
-      }
-
-      this.draftStatus = FormState.SAVED;
-
-      const response = (await firebase
-        .database()
-        .ref(`${this.submissionPath(sqrSubmissionBranch)}`)
-        .once("value")).val();
-
-      const formUpdate: any = {};
-
-      if (response.changed) formUpdate.changed = response.changed;
-
-      if (!created) {
-        if (response.created) formUpdate.created = response.created;
-      }
-
-      if (save) {
-        this.submitSuccess = true;
-        if (!completed) {
-          if (response.completed) formUpdate.completed = response.completed;
-        }
-      }
-      this.form = _.merge(this.form, formUpdate);
-      this.initialData = _.cloneDeep(this.form);
+    this.formState = FormState.SAVED;
+    this.getSavedData(sqrSubmissionBranch);
+    if (submit) {
+      this.submitSuccess = true;
     }
   }
 
@@ -586,7 +566,7 @@ export default class Form extends Vue {
   }
 
   get formStateMessageColor() {
-    const color = this.formStateMessagesColor[this.draftStatus];
+    const color = this.formStateMessagesColor[this.formState];
     return color ? color : "#000";
   }
 
