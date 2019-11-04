@@ -5,13 +5,17 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
-import { URL } from 'url';
 import { AllotmentStatus } from '../Allotment';
 import { Assignee } from '../Assignee';
 import { formatAudioAnnotations } from '../AudioAnnotation';
 import { abortCall } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { frontendUrl } from '../helpers';
+import {
+  listeningPageLink,
+  sqrAllotmentLink,
+  sqrSelfTrackingLink,
+  sqrSubmissionLink,
+} from '../Frontend';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import { TasksRepository } from './TasksRepository';
@@ -27,37 +31,6 @@ export class SQRWorkflow {
     `completed`
   );
   static finalSubmissionsRef = SQRWorkflow.submissionsRef.child(`final`);
-
-  static createSubmissionLink(fileName: string, token: string): string {
-    return new URL(
-      `form/sound-quality-report/${encodeURIComponent(
-        fileName
-      )}/${encodeURIComponent(token)}`,
-      frontendUrl
-    ).toString();
-  }
-
-  static createListenLink(fileName: string): string {
-    const url = new URL(
-      `listen/${encodeURIComponent(fileName)}.mp3`,
-      frontendUrl
-    );
-    return url.toString();
-  }
-
-  static createAllotmentLink(emailAddress: string): string {
-    const url = new URL('/sqr/allot', frontendUrl);
-    url.searchParams.set('emailAddress', emailAddress);
-    return url.toString();
-  }
-
-  static createSelfTrackingLink(emailAddress: string): string {
-    const url = new URL(
-      'https://hook.integromat.com/swlpnplbb3dilsmdxyc7vixjvenvh65a'
-    );
-    url.searchParams.set('email_address', emailAddress);
-    return url.toString();
-  }
 
   static async allotmentsSheet() {
     return await Spreadsheet.open(
@@ -124,8 +97,8 @@ export class SQRWorkflow {
           files: updatedTasks.map(({ fileName, token }) => ({
             name: fileName,
             links: {
-              listen: SQRWorkflow.createListenLink(fileName),
-              submission: SQRWorkflow.createSubmissionLink(fileName, token),
+              listen: listeningPageLink(fileName),
+              submission: sqrSubmissionLink(fileName, token),
             },
           })),
           assignee,
@@ -134,9 +107,7 @@ export class SQRWorkflow {
             (await repository.getUserAllotments(assignee.emailAddress)).length >
             fileNames.length,
           links: {
-            selfTracking: SQRWorkflow.createSelfTrackingLink(
-              assignee.emailAddress
-            ),
+            selfTracking: sqrSelfTrackingLink(assignee.emailAddress),
           },
         },
       });
@@ -190,7 +161,7 @@ export class SQRWorkflow {
           Updated: DateTimeConverter.toSerialDate(
             DateTime.fromMillis(submission.changed)
           ),
-          'Update Link': this.createSubmissionLink(fileName, token),
+          'Update Link': sqrSubmissionLink(fileName, token),
           'Audio File Name': fileName,
           'Unwanted Parts': submission.unwantedParts
             ? formatAudioAnnotations(...submission.unwantedParts)
@@ -241,10 +212,8 @@ export class SQRWorkflow {
             ...submission,
           },
           warnings,
-          allotmentLink: SQRWorkflow.createAllotmentLink(
-            task.assignee.emailAddress
-          ),
-          updateLink: SQRWorkflow.createSubmissionLink(fileName, token),
+          allotmentLink: sqrAllotmentLink(task.assignee.emailAddress),
+          updateLink: sqrSubmissionLink(fileName, token),
         },
       });
   }
@@ -306,7 +275,7 @@ export class SQRWorkflow {
           comments,
           reason,
           assignee: task.assignee,
-          allotmentLink: this.createAllotmentLink(task.assignee.emailAddress),
+          allotmentLink: sqrAllotmentLink(task.assignee.emailAddress),
           currentSet,
           warnings,
         },
