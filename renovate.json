@@ -7,12 +7,14 @@
   "packageRules": [
     {
       "paths": ["frontend"],
-      "timezone": "America/New_York",
-      "assignees": ["DadImScared"],
-      "extends": ["schedule:daily"],
-      "packagePatterns": ["*"],
-      "groupName": ["all dependencies"],
-      "groupSlug": "all"
+      "extends": [
+        ":timezone(America/New_York)",
+        ":assignAndReview(DadImScared)",
+        "group:vue-cliMonorepo",
+        "group:allNonMajor"
+      ],
+      "managerBranchPrefix": "frontend/",
+      "commitMessagePrefix": "Frontend:"
     },
     {
       "paths": ["functions"],
@@ -21,7 +23,9 @@
         "group:allNonMajor",
         ":assignAndReview(anantakrishna)",
         ":timezone(Asia/Novokuznetsk)"
-      ]
+      ],
+      "managerBranchPrefix": "functions/",
+      "commitMessagePrefix": "Functions:"
     },
     {
       "depTypeList": ["devDependencies"],
