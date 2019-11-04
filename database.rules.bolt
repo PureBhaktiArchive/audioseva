@@ -99,9 +99,10 @@ type ReportingAllotment extends Allotment {
 }
 
 type Submission {
+  author: Assignee | Null,
   created: Number | Null,
   changed: CurrentTimestamp,
-  completed: InitialTimestamp,
+  completed: Number,
   comments: String | Null,
 }
 
@@ -122,7 +123,7 @@ type AudioAnnotation {
 }
 
 type SQRSubmission extends Submission {
-  duration: TimingInterval<String>,
+  duration: TimingInterval<String> | Null,
   soundQualityRating: String,
   soundIssues: AudioAnnotation[],
   unwantedParts: AudioAnnotation[],
@@ -162,7 +163,10 @@ path /SQR {
     }
     
     // Cold storage for the submission, writable only by the function.
-    path /final/{fileName} is SQRSubmission;
+    path /final {
+      index() { ["author/emailAddress"] }
+      path /{fileName} is SQRSubmission;
+    }
   }
 }
 
