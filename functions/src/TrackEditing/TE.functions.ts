@@ -25,7 +25,7 @@ export const cancelAllotment = functions.https.onCall(
 );
 
 export const processUpload = functions.storage
-  .bucket(StorageManager.trackEditedUploadsBucket)
+  .bucket(StorageManager.getFullBucketName('te.uploads'))
   .object()
   .onFinalize(async (object, context) => {
     // `context.auth` is not populated here. See https://stackoverflow.com/a/49723193/3082178
