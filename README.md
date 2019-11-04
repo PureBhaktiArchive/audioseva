@@ -37,6 +37,8 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 1. [Create a user with coordinator role in the database](https://console.firebase.google.com/project/_/database/_/data/users). See https://trello.com/c/6Y8W4LsR/51-authorization for details.
 1. [Create storage buckets](https://console.firebase.google.com/project/_/storage/_/files): `original`, `te.uploads`, `edited`, `restored`.
 1. [Enable Sheets API for the project](https://console.developers.google.com/apis/api/sheets.googleapis.com/overview).
+1. [Enable Identity and Access Management (IAM) API for the project](https://console.developers.google.com/apis/api/iam.googleapis.com/overview).
+1. Add “Service Account Token Creator” (needed for signing storage URLs according to https://stackoverflow.com/a/53354122/3082178) and “Storage Object Viewer” roles to the “App Engine default service account” in [IAM console](https://console.cloud.google.com/iam-admin/iam).
 1. Add [App Engine default service account](https://console.developers.google.com/apis/api/sheets.googleapis.com/credentials) as editor to all the Google spreadsheets and allow it to edit protected ranges.
 1. Deploy the project using the guidelies [below](#deployment).
 
@@ -52,7 +54,6 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 | Key                               | Description                                        |
 | --------------------------------- | -------------------------------------------------- |
 | `project.domain`                  | Root domain used for hosting and storage           |
-| `website.old.base_url`            | Base url of the old website                        |
 | `send_in_blue.key`                | SendInBlue secret Key                              |
 | `coordinator.email_address`       | Coordinator email address                          |
 | `coordinator.timezone`            | Coordinator timezone. For example, `Asia/Calcutta` |

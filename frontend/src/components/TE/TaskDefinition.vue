@@ -28,8 +28,6 @@
 import { Component, Prop, Mixins } from "vue-property-decorator";
 import FormatTime from "@/mixins/FormatTime";
 
-import { getListId } from "@/utility";
-
 @Component({
   name: "TaskDefinition"
 })
@@ -60,10 +58,9 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   layout!: { [key: string]: any };
 
   getLink(fileName: string) {
-    const listId = getListId(fileName);
-    return `http://${this.item.isRestored ? "restored" : "original"}.${
-      process.env.VUE_APP_PROJECT_DOMAIN
-    }/${listId}/${fileName}.flac`;
+    return `/download/${
+      this.item.isRestored ? "restored" : "original"
+    }/${fileName}.flac`;
   }
 }
 </script>
