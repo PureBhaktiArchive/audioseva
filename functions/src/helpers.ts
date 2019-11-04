@@ -2,13 +2,6 @@
  * sri sri guru gauranga jayatah
  */
 
-import * as functions from 'firebase-functions';
-import { URL } from 'url';
-
-export const frontendUrl = new URL(
-  `https://app.${functions.config().project.domain}`
-);
-
 /**
  * Extract list from filename supplied as argument
  */
