@@ -14,7 +14,10 @@
         <p class="pa-4 title submitSuccessText">Thank you! We have received your submission.</p>
       </div>
     </v-container>
-    <v-form v-else-if="canSubmit" ref="form" @submit.prevent="handleSubmit">
+    <p class="d-flex justify-center red--text font-weight-bold" v-else-if="allotmentError">
+      {{ allotmentError }}
+    </p>
+    <v-form v-else ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
           <template v-for="(item, index) in cancelFields" >
@@ -98,15 +101,13 @@
         </v-layout>
       </v-container>
     </v-form>
-    <p class="d-flex justify-center red--text font-weight-bold" v-else>
-      This allotment is not valid, please contact coordinator.
-    </p>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Watch, Vue } from "vue-property-decorator";
 import _ from "lodash";
+import { mapActions } from "vuex";
 import moment from "moment";
 import "moment-timezone/builds/moment-timezone-with-data-10-year-range.min.js";
 import firebase from "firebase/app";
@@ -117,12 +118,7 @@ import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
 import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
 import Duration from "@/components/SQRForm/Duration.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
-import {
-  updateObject,
-  getListId,
-  removeObjectKey,
-  getPathAndKey
-} from "@/utility";
+import { updateObject, removeObjectKey, getPathAndKey } from "@/utility";
 import { required } from "@/validation";
 
 enum FormState {
@@ -142,7 +138,10 @@ enum SubmissionsBranch {
 
 @Component({
   name: "Form",
-  components: { SQRField, UnwantedParts, SoundIssues, Duration, TextArea }
+  components: { SQRField, UnwantedParts, SoundIssues, Duration, TextArea },
+  methods: {
+    ...mapActions("user", ["getUserClaims"])
+  }
 })
 export default class Form extends Vue {
   fields = [
@@ -287,7 +286,6 @@ export default class Form extends Vue {
   form: { [key: string]: any } = {};
   guidelines: any = {};
   isLoadingForm = true;
-  canSubmit = false;
   cancelComplete = false;
   formStateMessages = {
     [FormState.SAVING]: "Saving...",
@@ -312,6 +310,8 @@ export default class Form extends Vue {
   };
   submitSuccess = false;
   formHasError = false;
+  isCoordinator = false;
+  allotmentError = "";
 
   rules = [required];
 
@@ -319,6 +319,14 @@ export default class Form extends Vue {
     this.cancelCheck = {};
     this.cancelComment = "";
     this.cancel = this.cancel === cancelField ? null : cancelField;
+  }
+
+  async checkIsCoordinator() {
+    this.isCoordinator = _.get(
+      await this.getUserClaims(),
+      "coordinator",
+      false
+    );
   }
 
   @Watch("form", { deep: true })
@@ -354,19 +362,20 @@ export default class Form extends Vue {
     const {
       params: { fileName, token }
     } = this.$route;
-    const listId = getListId(fileName);
     const response = (await firebase
       .database()
-      .ref(`/allotments/SQR`)
+      .ref(`SQR/allotments`)
       .orderByChild("token")
       .equalTo(token)
       .once("value")).val();
-    const sqrStatus = _.get(response, "status", "");
-    if (!sqrStatus || (sqrStatus as string).toLowerCase() === "done") {
-      this.isLoadingForm = false;
-    } else {
-      this.canSubmit = true;
+    const sqrStatus = _.get<string>(response, `${fileName}.status`, "");
+    if (!sqrStatus) {
+      this.allotmentError =
+        "This allotment is not valid, please contact coordinator.";
+    } else if (!this.isCoordinator && sqrStatus.toLowerCase() === "done") {
+      this.allotmentError = "Allotment is marked as done.";
     }
+    if (this.allotmentError) this.isLoadingForm = false;
   }
 
   async removeField(field: string) {
@@ -402,8 +411,11 @@ export default class Form extends Vue {
   }
 
   async mounted() {
+    await this.checkIsCoordinator();
     await this.canSubmitForm();
-    this.getSavedData();
+    if (!this.allotmentError) {
+      this.getSavedData();
+    }
     window.onbeforeunload = () => {
       if (this.formState === FormState.UNSAVED_CHANGES) {
         return "Changes are not saved!";
@@ -418,7 +430,7 @@ export default class Form extends Vue {
       firebase.database().ref(this.submissionPath(branch)),
       () => {
         this.isLoadingForm = false;
-        this.canSubmit = false;
+        this.allotmentError = "Error loading form data.";
       },
       () => {
         if (
@@ -501,7 +513,7 @@ export default class Form extends Vue {
         })
         .catch(e => {
           showSuccess = false;
-          this.canSubmit = false;
+          this.allotmentError = e.message || "Error cancelling form.";
         });
       if (!showSuccess) return;
       this.cancelComplete = true;
