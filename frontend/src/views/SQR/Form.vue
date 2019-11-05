@@ -530,9 +530,7 @@ export default class Form extends Vue {
     } else {
       this.formState = FormState.SAVING;
     }
-    if (!created) {
-      data.created = firebase.database.ServerValue.TIMESTAMP;
-    }
+    data.created = created || firebase.database.ServerValue.TIMESTAMP;
     const updated = await firebase
       .database()
       .ref(this.submissionPath(sqrSubmissionBranch))
