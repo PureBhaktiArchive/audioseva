@@ -51,7 +51,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           },
           fieldProps: {
             label: "Beginning",
-            outline: true,
+            outlined: true,
             placeholder: "(h:)mm:ss",
             rules: [required, validateDuration]
           }
@@ -67,7 +67,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           },
           fieldProps: {
             label: "Ending",
-            outline: true,
+            outlined: true,
             placeholder: "(h:)mm:ss",
             rules: [required, validateDuration]
           }
@@ -87,7 +87,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           fieldProps: {
             filled: true,
             label: "Description",
-            outline: true
+            outlined: true
           }
         },
         style: this.style

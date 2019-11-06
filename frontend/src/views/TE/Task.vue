@@ -71,7 +71,7 @@
                 </v-avatar>
               </template>
               <v-form ref="form">
-                <v-textarea v-model="form.feedback" outline :rules="fieldRules" label="Feed back"></v-textarea>
+                <v-textarea v-model="form.feedback" outlined :rules="fieldRules" label="Feed back"></v-textarea>
                 <v-btn color="success" @click="handleSubmitForm(true, key)">Approve</v-btn>
                 <v-btn color="error" @click="handleSubmitForm(false, key)">Disapprove</v-btn>
               </v-form>

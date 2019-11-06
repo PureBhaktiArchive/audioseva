@@ -7,7 +7,7 @@
         <v-expand-transition>
           <div v-show="otherField === 0">
             <v-text-field
-              outline
+              outlined
               @input="handleTextInput"
               :value="otherTextField"
               placeholder="Other"
