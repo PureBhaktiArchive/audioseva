@@ -56,7 +56,7 @@
       <p v-else>No tasks</p>
 
       <!-- Comment -->
-      <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
+      <v-textarea v-model="allotment.comment" filled label="Comment" rows="3"></v-textarea>
       <!-- Buttons -->
       <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
     </v-form>

@@ -46,7 +46,7 @@
                         class="pa-2"
                         :rules="rules"
                         v-model="cancelComment"
-                        box
+                        filled
                       >
                       </v-textarea>
                       <v-btn type="submit">Confirm</v-btn>
@@ -242,7 +242,7 @@ export default class Form extends Vue {
       props: {
         pathOverride: "comments",
         fieldProps: {
-          box: true,
+          filled: true,
           outline: true,
           required: true
         }
