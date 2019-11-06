@@ -73,15 +73,15 @@
                   :is="field.component"
                 ></component>
               </template>
-              <v-expansion-panel>
-                <v-expansion-panel-content>
-                  <div :style="{ flex: '0' }" class="pr-2" slot="header">Guidelines</div>
-                  <v-card>
-                    <v-card-text v-html="field.guidelines">
-                    </v-card-text>
-                  </v-card>
-                </v-expansion-panel-content>
-              </v-expansion-panel>
+              <v-expansion-panels>
+                <v-expansion-panel>
+                  <v-expansion-panel-header>Guidelines</v-expansion-panel-header>
+                  <v-expansion-panel-content>
+                    <p v-html="field.guidelines">
+                    </p>
+                  </v-expansion-panel-content>
+                </v-expansion-panel>
+              </v-expansion-panels>
             </v-col>
             <v-row class="sticky" >
               <v-col cols="12" sm="6" :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
