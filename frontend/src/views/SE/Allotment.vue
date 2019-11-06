@@ -28,7 +28,7 @@
       <v-row class="py-2">
         <div v-if="lists">
           <v-btn-toggle v-model="selectedList" mandatory v-if="lists && lists.length">
-            <v-btn flat v-for="list in lists" :key="list" :value="list">{{ list }}</v-btn>
+            <v-btn text v-for="list in lists" :key="list" :value="list">{{ list }}</v-btn>
           </v-btn-toggle>
           <p v-else-if="lists == null">Loading lists…</p>
           <p v-else-if="lists.length == 0">There is no spare file.</p>

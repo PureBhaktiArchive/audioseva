@@ -32,13 +32,13 @@
       <!-- Language -->
       <v-row  class="py-2">
         <v-btn-toggle v-model="filter.language">
-          <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
+          <v-btn text v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
         </v-btn-toggle>
       </v-row>
       <!-- List -->
       <v-row  class="py-2">
         <v-btn-toggle v-model="filter.list" v-if="lists && lists.length">
-          <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
+          <v-btn text v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
         </v-btn-toggle>
         <p v-else-if="lists == null">Loading lists…</p>
         <p v-else-if="lists.length == 0">There is no spare file.</p>
