@@ -31,14 +31,14 @@
       <!-- Language -->
       <v-row  class="py-2">
         <v-btn-toggle v-model="filter.languages" multiple>
-          <v-btn flat v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
+          <v-btn text v-for="language in languages" :key="language" :value="language">{{language}}</v-btn>
         </v-btn-toggle>
       </v-row>
       <!-- List -->
       <v-row  class="py-2">
         <div class="red--text" v-if="errors.getLists">Error getting lists: {{ errors.getLists }}</div>
         <v-btn-toggle v-model="filter.list" v-else-if="lists">
-          <v-btn flat v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
+          <v-btn text v-for="list in lists" :key="list" :value="list">{{list}}</v-btn>
         </v-btn-toggle>
         <p v-else>Loading lists…</p>
       </v-row>
