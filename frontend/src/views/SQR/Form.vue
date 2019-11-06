@@ -373,7 +373,8 @@ export default class Form extends Vue {
       this.allotmentError =
         "This allotment is not valid, please contact coordinator.";
     } else if (!this.isCoordinator && sqrStatus.toLowerCase() === "done") {
-      this.allotmentError = "Allotment is marked as done.";
+      this.allotmentError =
+        "This submission is finalized and cannot be updated, please contact the coordinator.";
     }
     if (this.allotmentError) this.isLoadingForm = false;
   }
