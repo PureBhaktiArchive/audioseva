@@ -16,7 +16,7 @@
     "@types/moment-timezone": "0.5.12",
     "@types/node": "10.14.19",
     "firebase": "7.2.2",
-    "firebaseui": "3.6.1",
+    "firebaseui": "4.2.0",
     "lodash": "4.17.15",
     "moment": "2.24.0",
     "moment-timezone": "0.5.26",
