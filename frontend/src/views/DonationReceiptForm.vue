@@ -8,7 +8,7 @@
         <v-col cols="12" sm="5" class="d-flex pa-1" :style="{ flexDirection: 'column', flexWrap: 'wrap' }">
           <v-col cols="12">
             <v-text-field
-              outline
+              outlined
               @click:prepend-inner="menu = !menu"
               prepend-inner-icon="$vuetify.icons.event"
               v-model="form.date"
@@ -37,23 +37,23 @@
           <v-col cols="4" sm="4" md="3" lg="2" class="py-1 pl-1">
             <v-combobox
               class="currency"
-              outline
+              outlined
               label="Currency"
               v-model="form.sum.currency"
               :items="currencies"
             />
           </v-col>
           <v-col cols="8" sm="8" md="9" lg="10" class="py-1 pr-1">
-            <v-text-field class="amount" :rules="amountRules" outline label="Amount" v-model="form.sum.amount" />
+            <v-text-field class="amount" :rules="amountRules" outlined label="Amount" v-model="form.sum.amount" />
           </v-col>
         </v-col>
         <v-col cols="12" sm="6" lg="3" class="pa-1">
-          <v-text-field :rules="rules" outline label="Name" v-model="form.donor.name" />
+          <v-text-field :rules="rules" outlined label="Name" v-model="form.donor.name" />
         </v-col>
         <v-col cols="12" sm="6" lg="4" class="pa-1">
           <v-text-field
             :rules="emailRules"
-            outline
+            outlined
             label="Email Address"
             v-model="form.donor.emailAddress"
           />
@@ -62,7 +62,7 @@
           <v-col cols="5" sm="4" md="3" lg="4" class="py-1 pl-1">
             <v-text-field
               class="currency country-code"
-              outline
+              outlined
               label="Country code"
               v-model="phoneData.countryCode"
             />
@@ -70,17 +70,17 @@
           <v-col cols="7" sm="8" md="9" lg="8" class="py-1 pr-1">
             <v-text-field
               class="amount"
-              outline
+              outlined
               label="Phone number"
               v-model="phoneData.phoneNumber"
             />
           </v-col>
         </v-col>
         <v-col cols="12" class="pa-1">
-          <v-text-field :rules="rules" outline label="Collected By" v-model="form.collectedBy" />
+          <v-text-field :rules="rules" outlined label="Collected By" v-model="form.collectedBy" />
         </v-col>
         <v-col cols="12" class="pa-1">
-          <v-textarea outline label="Comment" v-model="form.comment" />
+          <v-textarea outlined label="Comment" v-model="form.comment" />
         </v-col>
         <v-btn :loading="isSubmitting" :disabled="isSubmitting" type="submit" color="success">Submit</v-btn>
         <span

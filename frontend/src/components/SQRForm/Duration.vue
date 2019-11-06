@@ -2,7 +2,7 @@
   <v-row >
     <v-col cols="6" class="pa-1" v-for="field in fields" :key="field">
       <v-text-field
-        outline
+        outlined
         placeholder="(h:)mm:ss"
         :label="field"
         @input="handleInput(field.toLowerCase(), $event)"

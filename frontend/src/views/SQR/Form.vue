@@ -42,7 +42,7 @@
                       <v-textarea
                         :placeholder="item.placeholder"
                         label="Comment"
-                        outline
+                        outlined
                         class="pa-2"
                         :rules="rules"
                         v-model="cancelComment"
@@ -243,7 +243,7 @@ export default class Form extends Vue {
         pathOverride: "comments",
         fieldProps: {
           filled: true,
-          outline: true,
+          outlined: true,
           required: true
         }
       }
