@@ -71,7 +71,7 @@
       </template>
       <p v-else-if="!errors.getLists">Choose list and language to select files.</p>
       <!-- Comment -->
-      <v-textarea v-model="allotment.comment" box label="Comment" rows="3"></v-textarea>
+      <v-textarea v-model="allotment.comment" filled label="Comment" rows="3"></v-textarea>
       <!-- Buttons -->
       <div>
         <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
