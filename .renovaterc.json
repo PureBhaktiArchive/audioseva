@@ -5,6 +5,7 @@
     "group:definitelyTyped",
     ":maintainLockFilesMonthly"
   ],
+  "rebaseStalePrs": false,
   "packageRules": [
     {
       "paths": ["frontend"],
