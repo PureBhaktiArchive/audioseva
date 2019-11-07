@@ -37,15 +37,15 @@ export class TrackEditingWorkflow {
 
   static async allotmentsSheet() {
     return await Spreadsheet.open(
-      functions.config().te.allotments.spreadsheet.id,
+      functions.config().te.spreadsheet.id,
       'Allotments'
     );
   }
 
-  static async tasksCreationSheet() {
+  static async tasksSheet() {
     return await Spreadsheet.open(
-      functions.config().te.tasks.spreadsheet.id,
-      'Master List'
+      functions.config().te.spreadsheet.id,
+      'Tasks'
     );
   }
 
@@ -240,11 +240,11 @@ export class TrackEditingWorkflow {
   }
 
   static async importTasks() {
-    const tasksCreationSheet = await this.tasksCreationSheet();
+    const tasksSheet = await this.tasksSheet();
     const allotmentsSheet = await this.allotmentsSheet();
 
     const tasks = new TasksImporter().import(
-      await tasksCreationSheet.getRows(chunkRowSchema),
+      await tasksSheet.getRows(chunkRowSchema),
       await allotmentsSheet.getRows(allotmentRowSchema)
     );
 
