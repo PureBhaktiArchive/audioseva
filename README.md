@@ -66,6 +66,7 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 | `donations.cash.spreadsheet.name` | Donations sheet name                               |
 | `donations.contact.email_address` | Email address used in donations communication      |
 | `te.spreadsheet.id`               | Track Editing spreadsheet id                       |
+| `te.coordinator.email_address`    | Track Editing coordinator mailbox                  |
 
 ## Frontend environment variables
 
