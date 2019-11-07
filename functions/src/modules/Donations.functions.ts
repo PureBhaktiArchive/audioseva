@@ -37,8 +37,8 @@ export const processDonations = functions.database
         .ref(`/email/notifications`)
         .push({
           to: donation.donor.emailAddress,
-          replyTo: functions.config().donations.contact.email_address,
           bcc: functions.config().donations.contact.email_address,
+          replyTo: functions.config().donations.contact.email_address,
           template: 'donations-acknowledgement',
           params: {
             donation,
