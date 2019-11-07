@@ -146,10 +146,6 @@ export const sendNotificationEmail = functions.database
       `Sending an email to ${data.to} with template "${data.template}"`
     );
 
-    const coordinatorEmailAddress = functions.config().coordinator
-      .email_address;
-    data.to = data.to || coordinatorEmailAddress;
-
     const email: any = {
       to: [{ email: data.to }],
       templateId: await getTemplateId(data.template),
@@ -163,11 +159,6 @@ export const sendNotificationEmail = functions.database
         ...data.params,
       },
     };
-
-    if (data.to !== coordinatorEmailAddress) {
-      if (!data.bcc) data.bcc = coordinatorEmailAddress;
-      if (!data.replyTo) data.replyTo = coordinatorEmailAddress;
-    }
 
     if (data.bcc) email.bcc = [{ email: data.bcc }];
 

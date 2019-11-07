@@ -93,6 +93,8 @@ export class SQRWorkflow {
       .push({
         template: 'sqr-allotment',
         to: assignee.emailAddress,
+        bcc: functions.config().coordinator.email_address,
+        replyTo: functions.config().coordinator.email_address,
         params: {
           files: updatedTasks.map(({ fileName, token }) => ({
             name: fileName,
@@ -203,6 +205,7 @@ export class SQRWorkflow {
       .ref(`/email/notifications`)
       .push({
         template: 'sqr-submission',
+        to: functions.config().coordinator.email_address,
         replyTo: task.assignee.emailAddress,
         params: {
           currentSet,
@@ -268,8 +271,8 @@ export class SQRWorkflow {
       .ref(`/email/notifications`)
       .push({
         template: 'sqr-cancellation',
-        replyTo: task.assignee.emailAddress,
         to: functions.config().coordinator.email_address,
+        replyTo: task.assignee.emailAddress,
         params: {
           fileName,
           comments,
