@@ -5,10 +5,6 @@
     "group:definitelyTyped",
     ":maintainLockFilesMonthly"
   ],
-  "automerge": true,
-  "major": {
-    "automerge": false
-  },
   "packageRules": [
     {
       "paths": ["frontend"],
