@@ -16,12 +16,12 @@
   },
   "dependencies": {
     "express": "4.17.1",
-    "firebase-admin": "8.6.1",
+    "firebase-admin": "8.7.0",
     "firebase-functions": "3.3.0",
-    "glob": "7.1.5",
-    "googleapis": "44.0.0",
+    "glob": "7.1.6",
+    "googleapis": "45.0.0",
     "lodash": "4.17.15",
-    "luxon": "1.19.3",
+    "luxon": "1.21.1",
     "morphism": "1.12.1",
     "sib-api-v3-sdk": "7.1.4",
     "uuid": "3.3.3"
@@ -31,17 +31,17 @@
   },
   "devDependencies": {
     "@types/glob": "7.1.1",
-    "@types/jest": "24.0.20",
-    "@types/lodash": "4.14.144",
+    "@types/jest": "24.0.22",
+    "@types/lodash": "4.14.145",
     "@types/luxon": "1.15.2",
-    "@types/node": "12.11.7",
-    "@types/uuid": "3.4.5",
-    "firebase-functions-test": "0.1.6",
+    "@types/node": "12.12.6",
+    "@types/uuid": "3.4.6",
+    "firebase-functions-test": "0.1.7",
     "jest": "24.9.0",
     "prettier": "1.18.2",
     "ts-jest": "24.1.0",
-    "tslint": "5.20.0",
-    "typescript": "3.6.4"
+    "tslint": "5.20.1",
+    "typescript": "3.7.2"
   },
   "private": true
 }

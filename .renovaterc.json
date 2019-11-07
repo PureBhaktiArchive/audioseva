@@ -1,5 +1,10 @@
 {
-  "extends": ["config:base"],
+  "extends": [
+    "config:base",
+    "group:test",
+    "group:definitelyTyped",
+    ":maintainLockFilesMonthly"
+  ],
   "automerge": true,
   "major": {
     "automerge": false
@@ -10,8 +15,8 @@
       "extends": [
         ":timezone(America/New_York)",
         ":assignAndReview(DadImScared)",
-        "group:vue-cliMonorepo",
-        "group:allNonMajor"
+        "group:all",
+        ":followTag(vuetify, stable)"
       ],
       "managerBranchPrefix": "frontend/",
       "commitMessagePrefix": "Frontend:"
@@ -19,10 +24,9 @@
     {
       "paths": ["functions"],
       "extends": [
-        "schedule:earlyMondays",
-        "group:allNonMajor",
+        ":timezone(Asia/Novokuznetsk)",
         ":assignAndReview(anantakrishna)",
-        ":timezone(Asia/Novokuznetsk)"
+        "group:all"
       ],
       "managerBranchPrefix": "functions/",
       "commitMessagePrefix": "Functions:"
