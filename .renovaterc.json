@@ -1,16 +1,39 @@
 {
-  "extends": ["config:base"],
+  "extends": [
+    "config:base",
+    "group:test",
+    "group:definitelyTyped",
+    ":maintainLockFilesMonthly"
+  ],
   "automerge": true,
   "major": {
     "automerge": false
   },
   "packageRules": [
     {
+      "sourceUrlPrefixes": ["https://github.com/vuejs/"],
+      "packagePatterns": "^vue-",
+      "packageNames": ["vue2-dropzone"],
+      "groupName": "vue"
+    },
+    {
+      "packagePatterns": ["^moment-"],
+      "packageNames": ["moment"],
+      "groupName": "moment"
+    },
+    {
+      "packageNames": ["firebase", "firebaseui"],
+      "groupName": "firebase"
+    },
+    {
+      "packageNames": ["vuetify"],
+      "major": { "groupName": null }
+    },
+    {
       "paths": ["frontend"],
       "extends": [
         ":timezone(America/New_York)",
         ":assignAndReview(DadImScared)",
-        "group:vue-cliMonorepo",
         "group:allNonMajor"
       ],
       "managerBranchPrefix": "frontend/",
@@ -19,10 +42,9 @@
     {
       "paths": ["functions"],
       "extends": [
-        "schedule:earlyMondays",
-        "group:allNonMajor",
+        ":timezone(Asia/Novokuznetsk)",
         ":assignAndReview(anantakrishna)",
-        ":timezone(Asia/Novokuznetsk)"
+        "group:all"
       ],
       "managerBranchPrefix": "functions/",
       "commitMessagePrefix": "Functions:"
