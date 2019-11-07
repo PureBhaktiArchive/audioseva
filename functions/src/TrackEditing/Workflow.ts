@@ -94,6 +94,8 @@ export class TrackEditingWorkflow {
       .push({
         template: 'track-editing-allotment',
         to: assignee.emailAddress,
+        bcc: functions.config().te.coordinator.email_address,
+        replyTo: functions.config().te.coordinator.email_address,
         params: {
           tasks,
           assignee,
@@ -173,12 +175,14 @@ export class TrackEditingWorkflow {
     if (task.status === AllotmentStatus.Done)
       warnings.push('Task is already Done.');
 
-    // Notify the user
+    // Notify the coordinator
     await admin
       .database()
       .ref(`/email/notifications`)
       .push({
         template: 'track-editing-upload',
+        to: functions.config().te.coordinator.email_address,
+        replyTo: task.assignee.emailAddress,
         params: {
           task,
           lastVersion: task.lastVersion,
@@ -230,8 +234,10 @@ export class TrackEditingWorkflow {
         .database()
         .ref(`/email/notifications`)
         .push({
-          to: task.assignee.emailAddress,
           template: 'track-editing-feedback',
+          to: task.assignee.emailAddress,
+          bcc: functions.config().te.coordinator.email_address,
+          replyTo: functions.config().te.coordinator.email_address,
           params: {
             task,
             resolution,
