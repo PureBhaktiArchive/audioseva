@@ -11,30 +11,12 @@
   },
   "packageRules": [
     {
-      "sourceUrlPrefixes": ["https://github.com/vuejs/"],
-      "packagePatterns": "^vue-",
-      "packageNames": ["vue2-dropzone"],
-      "groupName": "vue"
-    },
-    {
-      "packagePatterns": ["^moment-"],
-      "packageNames": ["moment"],
-      "groupName": "moment"
-    },
-    {
-      "packageNames": ["firebase", "firebaseui"],
-      "groupName": "firebase"
-    },
-    {
-      "packageNames": ["vuetify"],
-      "major": { "groupName": null }
-    },
-    {
       "paths": ["frontend"],
       "extends": [
         ":timezone(America/New_York)",
         ":assignAndReview(DadImScared)",
-        "group:allNonMajor"
+        "group:all",
+        ":followTag(vuetify, stable)"
       ],
       "managerBranchPrefix": "frontend/",
       "commitMessagePrefix": "Frontend:"
