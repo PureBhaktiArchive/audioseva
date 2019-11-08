@@ -9,15 +9,26 @@
       </v-col>
     </v-row>
     <data-table
-      :componentData="componentData"
-      :datatableProps="datatableProps"
+      v-bind="datatableProps"
       :headers="headers"
       :tableRowStyle="getTaskStyle"
       :items="tasks"
-      :styles="styles"
-      :computedComponent="computedComponent"
-      :pagination.sync="pagination"
+      :classes="classes"
     >
+      <template v-slot:.key="{ item, value }">
+        <router-link :to="getTaskLink(item)">
+          {{ item[".key"] }}
+        </router-link>
+      </template>
+      <template v-slot:timestampGiven="{ item, value }">
+        <timestamp-given :item="item" :value="value"></timestamp-given>
+      </template>
+      <template v-slot:output="{ item, value }">
+        <task-output :item="item" :value="value"></task-output>
+      </template>
+      <template v-slot:resolution="{ item, value }">
+        <resolution :item="item" :value="value" :showReviewButton="false"></resolution>
+      </template>
     </data-table>
   </div>
 </template>
@@ -32,9 +43,8 @@ import "@/styles/subtext.css";
 
 import DataTable from "@/components/DataTable.vue";
 import TimestampGiven from "@/components/DataTable/TimestampGiven.vue";
-import Output from "@/components/TE/Output.vue";
+import TaskOutput from "@/components/TE/Output.vue";
 import Resolution from "@/components/TE/Resolution.vue";
-import Link from "@/components/DataTable/Link.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 
 const ranks: any = {
@@ -50,10 +60,9 @@ const ranks: any = {
   },
   components: {
     DataTable,
-    Link,
     TimestampGiven,
     Resolution,
-    Output
+    TaskOutput
   }
 })
 export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
@@ -68,7 +77,9 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
   ];
 
   datatableProps = {
-    rowsPerPageItems: [50, 100, 200],
+    footerProps: {
+      itemsPerPageOptions: [50, 100, 200]
+    },
     customSort: (items: any[]) => {
       return _.orderBy(
         items,
@@ -79,37 +90,10 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
     loading: true
   };
 
-  pagination = {
-    rowsPerPage: 50,
-    page: 1,
-    descending: true
-  };
-
-  styles = {
+  classes = {
     ".key": {
       "font-weight-bold": true,
       "text-no-wrap": true
-    }
-  };
-
-  computedComponent = {
-    ".key": Link,
-    timestampGiven: TimestampGiven,
-    resolution: Resolution,
-    output: Output
-  };
-
-  componentData = {
-    resolution: {
-      props: {
-        showReviewButton: false
-      }
-    },
-    ".key": {
-      props: {
-        to: (item: any) => `/te/tasks/${item[".key"]}`,
-        linkText: (item: any) => item[".key"]
-      }
     }
   };
 

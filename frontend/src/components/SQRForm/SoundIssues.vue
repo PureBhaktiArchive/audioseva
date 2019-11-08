@@ -59,7 +59,6 @@
 
 <script lang="ts">
 import { Component, Mixins } from "vue-property-decorator";
-import DataTable from "@/components/DataTable.vue";
 import TextField from "@/components/Inputs/TextField.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
 import DeleteButton from "@/components/SQRForm/DeleteButton.vue";
@@ -75,8 +74,7 @@ import _ from "lodash";
     Checkbox,
     TextArea,
     SoundTypeRadioGroup,
-    TextField,
-    DataTable
+    TextField
   }
 })
 export default class SoundIssues extends Mixins<SoundIssuesMixin>(
