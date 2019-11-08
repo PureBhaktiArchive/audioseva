@@ -14,6 +14,10 @@ export default class TaskMixin extends Vue {
     };
   }
 
+  getTaskLink(task: any) {
+    return `/te/tasks/${task[".key"]}`;
+  }
+
   getTaskStyle(task: any) {
     let backgroundColor = "inherit";
     const resolution =
