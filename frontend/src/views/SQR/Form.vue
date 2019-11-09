@@ -321,14 +321,6 @@ export default class Form extends Vue {
     this.cancel = this.cancel === cancelField ? null : cancelField;
   }
 
-  async checkIsCoordinator() {
-    this.isCoordinator = _.get(
-      await this.getUserClaims(),
-      "coordinator",
-      false
-    );
-  }
-
   @Watch("form", { deep: true })
   handleFormErrors() {
     if (this.$refs.form) {
@@ -358,21 +350,26 @@ export default class Form extends Vue {
 
   debounceUpdateForm = _.debounce(this.updateForm, 150);
 
-  async canSubmitForm() {
+  async validateAllotment() {
     const {
       params: { fileName, token }
     } = this.$route;
+    const isCoordinator = _.get(
+      await this.getUserClaims(),
+      "coordinator",
+      false
+    );
     const response = (await firebase
       .database()
       .ref(`SQR/allotments`)
       .orderByChild("token")
       .equalTo(token)
       .once("value")).val();
-    const sqrStatus = _.get<string>(response, `${fileName}.status`, "");
-    if (!sqrStatus) {
+    const allotmentStatus = _.get<string>(response, `${fileName}.status`, "");
+    if (!allotmentStatus) {
       this.allotmentError =
         "This allotment is not valid, please contact coordinator.";
-    } else if (!this.isCoordinator && sqrStatus.toLowerCase() === "done") {
+    } else if (!isCoordinator && allotmentStatus.toLowerCase() === "done") {
       this.allotmentError =
         "This submission is finalized and cannot be updated, please contact the coordinator.";
     }
@@ -412,8 +409,7 @@ export default class Form extends Vue {
   }
 
   async mounted() {
-    await this.checkIsCoordinator();
-    await this.canSubmitForm();
+    await this.validateAllotment();
     if (!this.allotmentError) {
       this.getSavedData();
     }
