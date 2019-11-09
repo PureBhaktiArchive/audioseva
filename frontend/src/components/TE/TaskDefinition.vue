@@ -36,22 +36,21 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   @Prop({
     default: () => ({
       link: {
-        xs4: true,
-        sm2: true,
-        md2: true,
-        xl1: true
+        cols: "4",
+        sm: "2",
+        md: "2",
+        xl: "1"
       },
       duration: {
-        xs8: true,
-        sm2: true,
-        md2: true,
-        xl1: true
+        cols: "8",
+        sm: "4",
+        md: "2",
+        xl: "1"
       },
       unwantedParts: {
-        sm12: true,
-        md8: true,
-        lg8: true,
-        xl9: true
+        cols: "12",
+        md: "8",
+        xl: "9"
       }
     })
   })
