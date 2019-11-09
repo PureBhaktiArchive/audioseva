@@ -32,13 +32,13 @@
   "devDependencies": {
     "@types/glob": "7.1.1",
     "@types/jest": "24.0.22",
-    "@types/lodash": "4.14.145",
+    "@types/lodash": "4.14.146",
     "@types/luxon": "1.15.2",
-    "@types/node": "12.12.6",
+    "@types/node": "12.12.7",
     "@types/uuid": "3.4.6",
     "firebase-functions-test": "0.1.7",
     "jest": "24.9.0",
-    "prettier": "1.18.2",
+    "prettier": "1.19.0",
     "ts-jest": "24.1.0",
     "tslint": "5.20.1",
     "typescript": "3.7.2"
