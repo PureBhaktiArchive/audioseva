@@ -84,7 +84,7 @@
               <v-flex xs12 sm6 :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
                 <v-btn v-if="!form.completed" @click="saveDraft">Save draft</v-btn>
                 <v-btn type="submit" color="primary">Submit</v-btn>
-                <p :style="{ color: 'red' }" v-if="formHasError && showFormHasError" class="ma-0">
+                <p :style="{ color: 'red' }" v-if="formHasError && showValidationSummary" class="ma-0">
                   Some fields are not filled properly, see above.
                 </p>
               </v-flex>
@@ -312,7 +312,7 @@ export default class Form extends Vue {
   };
   submitSuccess = false;
   formHasError = false;
-  showFormHasError = false;
+  showValidationSummary = false;
 
   rules = [required];
 
@@ -328,7 +328,7 @@ export default class Form extends Vue {
       this.formHasError = Object.values<boolean>(
         (this.$refs.form as any).errorBag
       ).some(hasError => hasError);
-      if (!this.formHasError) this.showFormHasError = false;
+      if (!this.formHasError) this.showValidationSummary = false;
     }
   }
 
@@ -520,7 +520,7 @@ export default class Form extends Vue {
 
   async submitForm() {
     if (!(this.$refs as any).form.validate()) {
-      this.showFormHasError = true;
+      this.showValidationSummary = true;
       return;
     }
     this.cancelAutoSave();
