@@ -7,24 +7,23 @@
         v-model="sidebar"
         app
         v-if="currentUser"
+        width="300px"
       >
-        <v-toolbar flat class="transparent">
-          <v-list class="pa-0">
-            <v-list-item>
-              <v-list-item-avatar>
-                <img :src="currentUser.photoURL">
-              </v-list-item-avatar>
-              <v-list-item-content>
-                <v-list-item-title>{{currentUser.displayName}}</v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-action>
-                <v-btn icon ripple @click="signOut">
-                  <v-icon>fas fa-sign-out-alt</v-icon>
-                </v-btn>
-              </v-list-item-action>
-            </v-list-item>
-          </v-list>
-        </v-toolbar>
+        <v-list class="pa-0">
+          <v-list-item>
+            <v-list-item-avatar>
+              <img :src="currentUser.photoURL">
+            </v-list-item-avatar>
+            <v-list-item-content>
+              <v-list-item-title>{{currentUser.displayName}}</v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-action>
+              <v-btn color="rgba(0, 0, 0, 0.87)" icon ripple @click="signOut">
+                <v-icon>fas fa-sign-out-alt</v-icon>
+              </v-btn>
+            </v-list-item-action>
+          </v-list-item>
+        </v-list>
         <v-list dense expand>
           <v-divider></v-divider>
           <template v-for="(item, index) in menuItems">
