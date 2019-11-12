@@ -503,23 +503,6 @@ export default class Form extends Vue {
     this.debounceSubmitDraft.cancel();
   }
 
-  async updateFormCreatedTimestamp(
-    created: any,
-    sqrSubmissionBranch: SubmissionsBranch
-  ) {
-    const response = (await firebase
-      .database()
-      .ref(`${this.submissionPath(sqrSubmissionBranch)}`)
-      .once("value")).val();
-    const formUpdate: any = {};
-
-    if (!created && response.created) {
-      formUpdate.created = response.created;
-      this.form = _.merge(this.form, formUpdate);
-      this.initialData = _.cloneDeep(this.form);
-    }
-  }
-
   async submitForm(submit = false) {
     if (submit && !(this.$refs as any).form.validate()) return;
 
@@ -568,10 +551,9 @@ export default class Form extends Vue {
 
     if (sqrSubmissionBranch === SubmissionsBranch.COMPLETED) {
       this.submitSuccess = true;
-      return;
+    } else {
+      this.formState = FormState.SAVED;
     }
-    this.formState = FormState.SAVED;
-    await this.updateFormCreatedTimestamp(created, sqrSubmissionBranch);
   }
 
   submissionPath(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
