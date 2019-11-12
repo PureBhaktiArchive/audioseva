@@ -2,7 +2,7 @@
   <v-app>
     <slot name="aboveContent"></slot>
     <v-content>
-      <v-container class="fill-height" fluid >
+      <v-container fluid>
         <v-row>
           <v-col>
             <slot name="aboveRoute"></slot>
