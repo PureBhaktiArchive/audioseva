@@ -82,7 +82,7 @@
             </v-flex>
             <v-layout class="sticky" wrap>
               <v-flex xs12 sm6 :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
-                <v-btn v-if="!form.completed" @click="submitDraft">Save draft</v-btn>
+                <v-btn v-if="!form.completed" @click="saveDraft">Save draft</v-btn>
                 <v-btn type="submit" color="primary">Submit</v-btn>
                 <p :style="{ color: 'red' }" v-if="formHasError" class="ma-0">
                   Some fields are not filled properly, see above.
@@ -337,13 +337,13 @@ export default class Form extends Vue {
       if (_.isEqual(this.initialData, this.form)) {
         this.formState = FormState.INITIAL_LOAD;
         if (!this.form.completed) {
-          this.debounceSubmitDraft.cancel();
+          this.debounceSaveDraft.cancel();
         }
       } else if (this.form.completed) {
         this.formState = FormState.UNSAVED_CHANGES;
       } else {
         this.formState = FormState.SAVING;
-        this.debounceSubmitDraft();
+        this.debounceSaveDraft();
       }
     }
   }
@@ -378,7 +378,7 @@ export default class Form extends Vue {
     if (this.cancel) {
       await this.cancelForm();
     } else {
-      await this.submitForm(true);
+      await this.submitForm();
     }
   }
 
@@ -489,26 +489,69 @@ export default class Form extends Vue {
     }
   }
 
-  async submitDraft() {
-    this.cancelAutoSave();
-    await this.submitForm();
+  async saveFormData(data: any, sqrSubmissionBranch: SubmissionsBranch) {
+    const response = await firebase
+      .database()
+      .ref(this.submissionPath(sqrSubmissionBranch))
+      .update(data)
+      .catch(() => "error");
+    if (response === "error") this.formState = FormState.ERROR;
+    return response;
   }
 
-  debounceSubmitDraft: any = _.debounce(async () => {
+  async saveDraft() {
+    this.cancelAutoSave();
+    const data = this.formData;
+    this.formState = FormState.SAVING;
+    const response = await this.saveFormData(data, SubmissionsBranch.DRAFTS);
+    if (response !== "error") this.formState = FormState.SAVED;
+    // check for first time created
+    if (this.form.created) return;
+    const newFormData = (await firebase
+      .database()
+      .ref(`${this.submissionPath(SubmissionsBranch.DRAFTS)}`)
+      .once("value")).val();
+    if (newFormData.created) {
+      this.$set(this.form, "created", newFormData.created);
+    }
+  }
+
+  async submitForm() {
+    if (!(this.$refs as any).form.validate()) return;
+    this.cancelAutoSave();
+    const data = this.formData;
+    this.formState = FormState.SUBMITTING;
+    data.completed =
+      this.form.completed || firebase.database.ServerValue.TIMESTAMP;
+    const response = await this.saveFormData(data, SubmissionsBranch.COMPLETED);
+    if (response === "error") return;
+    // first time completed
+    if (!this.form.completed) {
+      firebase
+        .database()
+        .ref(this.submissionPath(SubmissionsBranch.DRAFTS))
+        .remove();
+    }
+    this.submitSuccess = true;
+  }
+
+  debounceSaveDraft: any = _.debounce(async () => {
     if (this.form.completed) return;
-    await this.submitForm();
+    await this.saveDraft();
   }, 3000);
 
   cancelAutoSave() {
-    this.debounceSubmitDraft.cancel();
+    this.debounceSaveDraft.cancel();
   }
 
-  async submitForm(submit = false) {
-    if (submit && !(this.$refs as any).form.validate()) return;
+  submissionPath(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
+    const {
+      params: { fileName, token }
+    } = this.$route;
+    return `/SQR/submissions/${branch}/${fileName}/${token}`;
+  }
 
-    const sqrSubmissionBranch = submit
-      ? SubmissionsBranch.COMPLETED
-      : SubmissionsBranch.DRAFTS;
+  get formData() {
     const {
       created,
       changed,
@@ -523,44 +566,8 @@ export default class Form extends Vue {
       unwantedParts: this.removeId(unwantedParts),
       changed: firebase.database.ServerValue.TIMESTAMP
     };
-    if (submit) {
-      this.cancelAutoSave();
-      this.formState = FormState.SUBMITTING;
-      data.completed = completed || firebase.database.ServerValue.TIMESTAMP;
-    } else {
-      this.formState = FormState.SAVING;
-    }
     data.created = created || firebase.database.ServerValue.TIMESTAMP;
-    const updated = await firebase
-      .database()
-      .ref(this.submissionPath(sqrSubmissionBranch))
-      .update(data)
-      .catch(() => "error");
-
-    if (updated === "error") {
-      this.formState = FormState.ERROR;
-      return;
-    }
-    // first time completed
-    if (!completed && sqrSubmissionBranch === SubmissionsBranch.COMPLETED) {
-      firebase
-        .database()
-        .ref(this.submissionPath(SubmissionsBranch.DRAFTS))
-        .remove();
-    }
-
-    this.formState = FormState.SAVED;
-    this.getSavedData(sqrSubmissionBranch);
-    if (submit) {
-      this.submitSuccess = true;
-    }
-  }
-
-  submissionPath(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
-    const {
-      params: { fileName, token }
-    } = this.$route;
-    return `/SQR/submissions/${branch}/${fileName}/${token}`;
+    return data;
   }
 
   get formStateMessageColor() {
