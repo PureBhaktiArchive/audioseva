@@ -14,8 +14,8 @@
         <p class="pa-4 title submitSuccessText">Thank you! We have received your submission.</p>
       </div>
     </v-container>
-    <p class="d-flex justify-center red--text font-weight-bold" v-else-if="allotmentError">
-      {{ allotmentError }}
+    <p class="d-flex justify-center red--text font-weight-bold" v-else-if="errorMessage">
+      {{ errorMessage }}
     </p>
     <v-form v-else ref="form" @submit.prevent="handleSubmit">
       <v-container>
@@ -311,7 +311,7 @@ export default class Form extends Vue {
   submitSuccess = false;
   formHasError = false;
   isCoordinator = false;
-  allotmentError = "";
+  errorMessage = "";
 
   rules = [required];
 
@@ -367,13 +367,13 @@ export default class Form extends Vue {
       .once("value")).val();
     const allotmentStatus = _.get<string>(response, `${fileName}.status`, "");
     if (!allotmentStatus) {
-      this.allotmentError =
+      this.errorMessage =
         "This allotment is not valid, please contact coordinator.";
     } else if (!isCoordinator && allotmentStatus.toLowerCase() === "done") {
-      this.allotmentError =
+      this.errorMessage =
         "This submission is finalized and cannot be updated, please contact the coordinator.";
     }
-    if (this.allotmentError) this.isLoadingForm = false;
+    if (this.errorMessage) this.isLoadingForm = false;
   }
 
   async removeField(field: string) {
@@ -410,7 +410,7 @@ export default class Form extends Vue {
 
   async mounted() {
     await this.validateAllotment();
-    if (!this.allotmentError) {
+    if (!this.errorMessage) {
       this.getSavedData();
     }
     window.onbeforeunload = () => {
@@ -427,7 +427,7 @@ export default class Form extends Vue {
       firebase.database().ref(this.submissionPath(branch)),
       () => {
         this.isLoadingForm = false;
-        this.allotmentError = "Error loading form data.";
+        this.errorMessage = "Error loading form data.";
       },
       () => {
         if (
@@ -510,7 +510,7 @@ export default class Form extends Vue {
         })
         .catch(e => {
           showSuccess = false;
-          this.allotmentError = e.message || "Error cancelling form.";
+          this.errorMessage = e.message || "Error cancelling form.";
         });
       if (!showSuccess) return;
       this.cancelComplete = true;
