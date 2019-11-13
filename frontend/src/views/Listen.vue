@@ -73,12 +73,18 @@ export default class ListenAudio extends Vue {
   mounted() {
     this.fileName = this.$route.params.fileName;
     this.$refs.audioPlayer.addEventListener("error", this.handleFileError);
-    this.$refs.audioPlayer.addEventListener("loadeddata", this.onLoadedData);
+    this.$refs.audioPlayer.addEventListener(
+      "loadedmetadata",
+      this.onLoadedData
+    );
   }
 
   destroyed() {
     this.$refs.audioPlayer.removeEventListener("error", this.handleFileError);
-    this.$refs.audioPlayer.removeEventListener("error", this.onLoadedData);
+    this.$refs.audioPlayer.removeEventListener(
+      "loadedmetadata",
+      this.onLoadedData
+    );
   }
 
   onLoadedData() {
