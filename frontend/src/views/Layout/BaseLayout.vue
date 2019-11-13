@@ -3,12 +3,8 @@
     <slot name="aboveContent"></slot>
     <v-content>
       <v-container fluid>
-        <v-row>
-          <v-col>
-            <slot name="aboveRoute"></slot>
-            <router-view></router-view>
-          </v-col>
-        </v-row>
+        <slot name="aboveRoute"></slot>
+        <router-view></router-view>
       </v-container>
     </v-content>
     <slot name="belowContent"></slot>

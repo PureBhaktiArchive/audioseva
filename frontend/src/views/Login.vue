@@ -39,4 +39,12 @@ export default {
 
 <style>
 @import "../../node_modules/firebaseui/dist/firebaseui.css";
+
+.v-content__wrap .container {
+  height: 100%;
+}
+
+#firebaseui-auth-container ul.firebaseui-idp-list {
+  padding-left: 0;
+}
 </style>
