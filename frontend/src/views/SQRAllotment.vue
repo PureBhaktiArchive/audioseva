@@ -57,17 +57,19 @@
             <template v-for="(file, index) in files">
               <div :key="file.name">
                 <v-divider v-if="index > 0 && files[index - 1].date !== file.date"/>
-                <v-row align="center">
-                  <v-checkbox
-                    :style="{ flex: 'none' }"
-                    v-model="allotment.files"
-                    :value="file"
-                    :loading="!files"
-                    class="mr-2"
-                  >
-                    <code slot="label">{{ file.name }}</code>
-                  </v-checkbox>
-                  <span>{{ file.date || "No date" }} {{ file.language || "No language" }} {{ file.notes }}</span>
+                <v-row>
+                  <v-col :style="{ display: 'flex', alignItems: 'center' }">
+                    <v-checkbox
+                      :style="{ flex: 'none' }"
+                      v-model="allotment.files"
+                      :value="file"
+                      :loading="!files"
+                      class="mr-2"
+                    >
+                      <code slot="label">{{ file.name }}</code>
+                    </v-checkbox>
+                    <span>{{ file.date || "No date" }} {{ file.language || "No language" }} {{ file.notes }}</span>
+                  </v-col>
                 </v-row>
               </div>
             </template>
