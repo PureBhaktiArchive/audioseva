@@ -45,7 +45,7 @@
                   <code slot="label">{{ task[".key"] }}</code>
                 </v-checkbox>
               </v-col>
-              <v-col md="9" lg="10" xl="11">
+              <v-col md="9" lg="10" xl="11" class="pa-0 pl-2">
                 <task-definition class="pr-3" :item="task" />
               </v-col>
             </v-row>
