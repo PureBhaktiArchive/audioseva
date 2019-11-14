@@ -1,6 +1,6 @@
 <template>
   <v-row >
-    <v-col cols="6" class="pa-1" v-for="field in fields" :key="field">
+    <v-col cols="6" v-for="field in fields" :key="field">
       <v-text-field
         outlined
         placeholder="(h:)mm:ss"
