@@ -23,14 +23,16 @@
           <template v-for="(item, index) in cancelFields" >
             <v-col cols="12" :key="item.label">
               <v-list class="cancel-list">
-                <v-list-group @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
-                  <v-list-item :style="item.styles" slot="activator">
-                    <v-list-item-content>
-                      <v-list-item-title :style="{ height: 'auto' }">
-                        {{ item.header }}
-                      </v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
+                <v-list-group @click="handleListClick(index + 1)" no-action>
+                  <template v-slot:activator>
+                    <v-list-item :style="item.styles">
+                      <v-list-item-content>
+                        <v-list-item-title :style="{ height: 'auto' }">
+                          {{ item.header }}
+                        </v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </template>
                   <div v-if="cancel !== null" :style="{ border: item.styles.border }" class="pa-1">
                     <v-checkbox
                       class="pa-2"
@@ -621,6 +623,10 @@ export default class Form extends Vue {
 
 >>> .v-expansion-panel__header {
   padding: 0;
+}
+
+>>> .cancel-list .v-list-group__header {
+  padding-left: 0;
 }
 
 >>> .v-card .v-input {
