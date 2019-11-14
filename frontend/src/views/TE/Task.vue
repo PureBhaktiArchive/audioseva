@@ -4,7 +4,7 @@
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
     <div v-else>
-      <div :style="{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start' }">
+      <div :style="{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }">
         <h1 class="d-inline" :style="{ width: 'auto' }">Track Editing Task {{ $route.params.taskId }}</h1>
         <v-chip :style="getTaskStyle(task)">{{ task.status }}</v-chip>
       </div>
@@ -17,30 +17,30 @@
         <v-timeline dense>
           <v-timeline-item icon="fas fa-paper-plane" fill-dot v-if="task.assignee">
             <v-row justify="space-between" >
-              <v-col cols="8" :style="{ display: 'flex', flexWrap: 'wrap' }">
+              <v-col cols="12" sm="9" :style="{ display: 'flex', flexWrap: 'wrap' }">
                 <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
                 <v-btn @click="onCancelClick" class="mt-0" color="error" small>Cancel</v-btn>
               </v-col>
-              <v-col class="text-right" v-if="task.timestampGiven">
+              <v-col class="text-sm-right text-left" v-if="task.timestampGiven">
                 {{ formatTimestamp(task.timestampGiven) }}
               </v-col>
             </v-row>
           </v-timeline-item>
           <template v-for="(version, key, index) in task.versions">
-            <v-timeline-item :key="`version-${key}`" :icon="$vuetify.icons.upload" fill-dot>
+            <v-timeline-item :key="`version-${key}`" :icon="$vuetify.icons.values.upload" fill-dot>
               <v-row justify="space-between" >
-                <v-col>
+                <v-col cols="12" sm="9">
                   <h4 class="pr-2 d-inline">Version {{ index + 1}} uploaded:</h4>
                   <a :href="version.uploadPath">{{ task[".key"]}}</a>
                 </v-col>
-                <v-col class="text-right" v-if="version.timestamp" >{{ formatTimestamp(version.timestamp)}}</v-col>
+                <v-col class="text-right" sm="3" v-if="version.timestamp" >{{ formatTimestamp(version.timestamp)}}</v-col>
               </v-row>
             </v-timeline-item>
             <v-timeline-item
               :key="`resolution-${index}`"
               :color="version.resolution.isApproved ? 'green' : 'red'"
               v-if="version.resolution"
-              :icon="version.resolution.isApproved ? $vuetify.icons.check : $vuetify.icons.undo"
+              :icon="version.resolution.isApproved ? $vuetify.icons.values.check : $vuetify.icons.values.undo"
               fill-dot
             >
               <v-row justify="space-between" >
@@ -48,6 +48,7 @@
                   <div :style="{ width: '100%' }">
                     <v-chip
                       :style="{ float: 'left' }"
+                      class="ma-1"
                       label
                       :color="version.resolution.isApproved ? 'green' : 'red'"
                       dark
@@ -72,8 +73,10 @@
               </template>
               <v-form ref="form">
                 <v-textarea v-model="form.feedback" outlined :rules="fieldRules" label="Feed back"></v-textarea>
-                <v-btn color="success" @click="handleSubmitForm(true, key)">Approve</v-btn>
-                <v-btn color="error" @click="handleSubmitForm(false, key)">Disapprove</v-btn>
+                <div :style="{ display: 'flex' }">
+                  <v-btn color="success" class="mx-2" @click="handleSubmitForm(true, key)">Approve</v-btn>
+                  <v-btn color="error" @click="handleSubmitForm(false, key)">Disapprove</v-btn>
+                </div>
               </v-form>
             </v-timeline-item>
           </template>
@@ -188,9 +191,20 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
 <style scoped>
 >>> .v-timeline {
   max-width: 825px;
+  left: -22px;
 }
 
 >>> .v-timeline:before {
-  height: 92%;
+  height: 95%;
+}
+
+>>> .v-timeline .v-timeline-item__body {
+  right: 12px;
+}
+
+@media screen and (min-width: 600px) {
+  >>> .v-timeline:before {
+    height: 94%;
+  }
 }
 </style>
