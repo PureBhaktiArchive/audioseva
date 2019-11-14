@@ -668,6 +668,7 @@ export default class Form extends Vue {
   padding: 12px;
   position: sticky;
   width: 100%;
+  z-index: 4;
 }
 
 @media screen and (min-width: 1904px) {
