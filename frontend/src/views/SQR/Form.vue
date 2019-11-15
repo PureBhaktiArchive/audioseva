@@ -20,44 +20,47 @@
     <v-form v-else ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-row >
-          <template v-for="(item, index) in cancelFields" >
-            <v-col cols="12" :key="item.label">
-              <v-list class="cancel-list">
-                <v-list-group @click="handleListClick(index + 1)" no-action>
-                  <template v-slot:activator>
-                    <v-list-item :style="item.styles">
-                      <v-list-item-content>
-                        <v-list-item-title :style="{ height: 'auto' }">
-                          {{ item.header }}
-                        </v-list-item-title>
-                      </v-list-item-content>
-                    </v-list-item>
-                  </template>
-                  <div v-if="cancel !== null" :style="{ border: item.styles.border }" class="pa-1">
-                    <v-checkbox
+          <v-col>
+            <v-list class="cancel-list">
+              <v-list-group
+                v-for="(item, index) in cancelFields" @click="handleListClick(index + 1)"
+                :key="item.label"
+                no-action
+                class="py-1"
+              >
+                <template v-slot:activator>
+                  <v-list-item :style="item.styles">
+                    <v-list-item-content>
+                      <v-list-item-title :style="{ height: 'auto' }">
+                        {{ item.header }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                </template>
+                <div v-if="cancel !== null" :style="{ border: item.styles.border }" class="pa-1">
+                  <v-checkbox
+                    class="pa-2"
+                    v-model="cancelCheck[index + 1]"
+                    :label="item.label"
+                  >
+                  </v-checkbox>
+                  <div v-if="cancelCheck[index + 1]">
+                    <v-textarea
+                      :placeholder="item.placeholder"
+                      label="Comment"
+                      outlined
                       class="pa-2"
-                      v-model="cancelCheck[index + 1]"
-                      :label="item.label"
+                      :rules="rules"
+                      v-model="cancelComment"
+                      filled
                     >
-                    </v-checkbox>
-                    <div v-if="cancelCheck[index + 1]">
-                      <v-textarea
-                        :placeholder="item.placeholder"
-                        label="Comment"
-                        outlined
-                        class="pa-2"
-                        :rules="rules"
-                        v-model="cancelComment"
-                        filled
-                      >
-                      </v-textarea>
-                      <v-btn type="submit">Confirm</v-btn>
-                    </div>
+                    </v-textarea>
+                    <v-btn type="submit">Confirm</v-btn>
                   </div>
-                </v-list-group>
-              </v-list>
-            </v-col>
-          </template>
+                </div>
+              </v-list-group>
+            </v-list>
+          </v-col>
           <template v-if="!isCancelChecked && Object.keys(form).length">
             <v-col cols="12">
               <h3>A. Audio File Name</h3>
@@ -631,6 +634,7 @@ export default class Form extends Vue {
 
 >>> .cancel-list .v-list-group__header {
   padding-left: 0;
+  padding-right: 0;
 }
 
 >>> .v-card .v-input {
@@ -654,7 +658,7 @@ export default class Form extends Vue {
   padding: 0;
 }
 
->>> .cancel-list .v-list__group__header__append-icon {
+>>> .cancel-list .v-list-group__header__append-icon {
   display: none;
 }
 
