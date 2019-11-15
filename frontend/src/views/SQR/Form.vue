@@ -88,7 +88,7 @@
             <v-row class="sticky" >
               <v-col cols="12" sm="6" :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
                 <v-btn v-if="!form.completed" @click="submitDraft">Save draft</v-btn>
-                <v-btn type="submit" color="primary">Submit</v-btn>
+                <v-btn type="submit" color="primary" class=" mx-2">Submit</v-btn>
                 <p :style="{ color: 'red' }" v-if="formHasError && showValidationSummary" class="ma-0">
                   Some fields are not filled properly, see above.
                 </p>
