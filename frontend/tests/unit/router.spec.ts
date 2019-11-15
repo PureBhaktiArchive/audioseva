@@ -45,6 +45,22 @@ describe("checkAuth", () => {
     next = jest.fn();
   });
 
+  it("should redirect to login when requireClaims and no current user", async () => {
+    (firebase.auth as any).mockImplementationOnce(() => ({
+      currentUser: null
+    }));
+    to = {
+      fullPath: "/te/tasks",
+      matched: [{}, { meta: { auth: { requireClaims: { SQR: true } } } }]
+    };
+    await checkAuth(to, from, next);
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(next).toHaveBeenCalledWith({
+      path: "/login",
+      query: { redirect: to.fullPath }
+    });
+  });
+
   it("should redirect to / if guestOnly and currentUser", async () => {
     to = {
       matched: [{ meta: { auth: { guestOnly: true } } }]
