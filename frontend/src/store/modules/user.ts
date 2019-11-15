@@ -18,10 +18,14 @@ export default {
     setCurrentUser: (state: any, user: any) => {
       state.currentUser = user;
       if (!user) {
-        router.push({
-          path: "/login",
-          query: { redirect: router.currentRoute.fullPath }
-        });
+        router
+          .push({
+            path: "/login",
+            query: { redirect: router.currentRoute.fullPath }
+          })
+          .catch(() => {
+            // prevent uncaught promise error
+          });
       }
     }
   },
