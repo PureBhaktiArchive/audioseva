@@ -2,7 +2,7 @@
   <div>
     <v-card class="my-3" v-for="(item, index) in items" :key="form.unwantedParts[item].id">
       <v-card-title>
-        <v-row class="justify-xl-evenly" justify="space-between" >
+        <v-row class="justify-xl-evenly" justify="space-between">
 
           <v-col align-self="center" cols="12" class="d-flex justify-space-between pb-2" lg="12">
             <v-col cols="7" sm="5">
@@ -18,7 +18,7 @@
           </v-col>
 
           <v-col
-            class="d-flex justify-space-between"
+            class="d-flex justify-space-between pa-0"
             :style="{ flexWrap: 'wrap', flexDirection: 'row', height: '50%' }"
             cols="12"
             sm="6"
@@ -26,7 +26,7 @@
             xl="2"
           >
             <v-col
-              class="d-flex justify-space-between"
+              class="d-flex justify-space-between pa-0"
               :style="{ flexWrap: 'wrap' }"
               cols="12">
               <v-col class="pr-1" cols="6">

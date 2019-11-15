@@ -75,9 +75,9 @@
                   :is="field.component"
                 ></component>
               </template>
-              <v-expansion-panels>
+              <v-expansion-panels class="pt-3">
                 <v-expansion-panel>
-                  <v-expansion-panel-header>Guidelines</v-expansion-panel-header>
+                  <v-expansion-panel-header class="pl-0">Guidelines</v-expansion-panel-header>
                   <v-expansion-panel-content>
                     <p v-html="field.guidelines">
                     </p>
@@ -625,6 +625,10 @@ export default class Form extends Vue {
   padding: 0;
 }
 
+>>> .v-expansion-panel-header__icon {
+  margin-left: 8px;
+}
+
 >>> .cancel-list .v-list-group__header {
   padding-left: 0;
 }
@@ -654,7 +658,7 @@ export default class Form extends Vue {
   display: none;
 }
 
->>> .v-expansion-panel {
+>>> .v-expansion-panel:before {
   box-shadow: none;
 }
 
@@ -673,7 +677,7 @@ export default class Form extends Vue {
 
 @media screen and (min-width: 1904px) {
   >>> .justify-xl-evenly {
-    justify-content: space-evenly;
+    justify-content: space-evenly !important;
   }
 }
 

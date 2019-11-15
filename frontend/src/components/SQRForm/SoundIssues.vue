@@ -18,17 +18,19 @@
           </v-col>
 
           <v-col
-            class="d-flex justify-space-between"
+            class="d-flex justify-space-between pa-0"
             :style="{ flexWrap: 'wrap', flexDirection: 'row', height: '100%' }"
             cols="12"
             sm="6"
             md="3"
             xl="2"
           >
-            <checkbox v-bind="getFieldProps('entireFile', item)"></checkbox>
+            <v-col cols="6">
+              <checkbox v-bind="getFieldProps('entireFile', item)"></checkbox>
+            </v-col>
             <v-col
               v-if="!hideField('beginning', item)"
-              class="d-flex justify-space-between"
+              class="d-flex justify-space-between pa-0"
               :style="{ flexWrap: 'wrap' }"
               cols="12">
               <v-col class="pr-1" cols="6">
