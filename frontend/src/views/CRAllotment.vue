@@ -206,4 +206,7 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
 </script>
 
 <style scoped>
+>>> .v-item-group {
+  flex-wrap: wrap;
+}
 </style>

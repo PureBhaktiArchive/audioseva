@@ -106,10 +106,14 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 #files pre {
   background-color: #f9f2f4;
   color: #c7254e;
+}
+
+>>> .v-item-group {
+  flex-wrap: wrap;
 }
 </style>
 
