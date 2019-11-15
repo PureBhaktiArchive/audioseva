@@ -19,7 +19,7 @@
             <v-row justify="space-between" >
               <v-col cols="12" sm="9" :style="{ display: 'flex', flexWrap: 'wrap' }">
                 <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
-                <v-btn @click="onCancelClick" class="mt-0" color="error" small>Cancel</v-btn>
+                <v-btn @click="onCancelClick" class="mt-0 ml-1" color="error" small>Cancel</v-btn>
               </v-col>
               <v-col class="text-sm-right text-left" v-if="task.timestampGiven">
                 {{ formatTimestamp(task.timestampGiven) }}
