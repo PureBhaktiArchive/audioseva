@@ -37,7 +37,7 @@
                     </v-list-item-content>
                   </v-list-item>
                 </template>
-                <div v-if="cancel !== null" :style="{ border: item.styles.border }" class="pa-1">
+                <div :style="{ border: item.styles.border }" class="pa-1">
                   <v-checkbox
                     class="pa-2"
                     v-model="cancelCheck[index + 1]"
