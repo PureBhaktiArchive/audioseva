@@ -1,5 +1,10 @@
 name: Continuous Integration
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches:
+      - release
+      - staging
 jobs:
   build:
     name: Build and test
