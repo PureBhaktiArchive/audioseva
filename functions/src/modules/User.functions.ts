@@ -7,8 +7,6 @@ import { authorizeCoordinator } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 
-const db = admin.database();
-
 enum RegistrationColumns {
   Details = 'Details',
   Status = 'Status',
@@ -89,7 +87,7 @@ export const importUserRegistrationData = functions.https.onCall(
 
     await Promise.all(
       readyForDatabaseUpdate.map(async (spreadsheetRecord: any) => {
-        const usersRef = db.ref('/users');
+        const usersRef = admin.database().ref('/users');
         const snapshot = await usersRef
           .orderByChild('emailAddress')
           .equalTo(spreadsheetRecord['emailAddress'])
@@ -115,7 +113,8 @@ export const restructureRegistrationData = functions.database
   .onCreate(async (snapshot, context) => {
     const webform = snapshot.val();
 
-    const oldUser = await db
+    const oldUser = await admin
+      .database()
       .ref('/users/')
       .orderByChild('/emailAddress')
       .equalTo(webform.email_address)
@@ -160,7 +159,10 @@ export const restructureRegistrationData = functions.database
       }, {}),
     };
 
-    db.ref(`/users/`).push(newUser);
+    admin
+      .database()
+      .ref(`/users/`)
+      .push(newUser);
 
     return true;
   });
@@ -184,7 +186,8 @@ export const setClaimsForNewUser = functions.auth
   .user()
   .onCreate(async event => {
     console.info(`User ${event.displayName} (${event.email}) is created.`);
-    const metadataSnapshot = await db
+    const metadataSnapshot = await admin
+      .database()
       .ref(`/users`)
       .orderByChild('emailAddress')
       .equalTo(event.email)
