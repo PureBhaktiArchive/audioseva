@@ -53,6 +53,7 @@ describe('Duration conversion', () => {
     ${'7:130'}
     ${null}
     ${''}
+    ${0.002777777777777778}
   `('returns invalid Duration for “$input”', ({ input }) => {
     const duration = DateTimeConverter.durationFromHuman(input);
     expect(duration.isValid).toBeFalsy();
