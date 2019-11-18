@@ -58,7 +58,7 @@
               <div :key="file.name">
                 <v-divider v-if="index > 0 && files[index - 1].date !== file.date"/>
                 <v-row>
-                  <v-col :style="{ display: 'flex', alignItems: 'center' }">
+                  <v-col :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
                     <v-checkbox
                       :style="{ flex: 'none' }"
                       v-model="allotment.files"
