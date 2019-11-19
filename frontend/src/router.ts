@@ -283,7 +283,7 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
     }
   } = restrictedRoute;
 
-  if (requireAuth && !currentUser)
+  if ((requireAuth || requireClaims) && !currentUser)
     return next({
       path: "/login",
       query: { redirect: to.fullPath }

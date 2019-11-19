@@ -14,7 +14,10 @@
         <p class="pa-4 title submitSuccessText">Thank you! We have received your submission.</p>
       </div>
     </v-container>
-    <v-form v-else-if="canSubmit" ref="form" @submit.prevent="handleSubmit">
+    <p class="d-flex justify-center red--text font-weight-bold" v-else-if="errorMessage">
+      {{ errorMessage }}
+    </p>
+    <v-form v-else ref="form" @submit.prevent="handleSubmit">
       <v-container>
         <v-layout wrap>
           <template v-for="(item, index) in cancelFields" >
@@ -84,7 +87,7 @@
               <v-flex xs12 sm6 :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
                 <v-btn v-if="!form.completed" @click="saveDraft">Save draft</v-btn>
                 <v-btn type="submit" color="primary">Submit</v-btn>
-                <p :style="{ color: 'red' }" v-if="formHasError" class="ma-0">
+                <p :style="{ color: 'red' }" v-if="formHasError && showValidationSummary" class="ma-0">
                   Some fields are not filled properly, see above.
                 </p>
               </v-flex>
@@ -98,15 +101,13 @@
         </v-layout>
       </v-container>
     </v-form>
-    <p class="d-flex justify-center red--text font-weight-bold" v-else>
-      This allotment is not valid, please contact coordinator.
-    </p>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Watch, Vue } from "vue-property-decorator";
 import _ from "lodash";
+import { mapActions } from "vuex";
 import moment from "moment";
 import "moment-timezone/builds/moment-timezone-with-data-10-year-range.min.js";
 import firebase from "firebase/app";
@@ -117,12 +118,7 @@ import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
 import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
 import Duration from "@/components/SQRForm/Duration.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
-import {
-  updateObject,
-  getListId,
-  removeObjectKey,
-  getPathAndKey
-} from "@/utility";
+import { updateObject, removeObjectKey, getPathAndKey } from "@/utility";
 import { required } from "@/validation";
 
 enum FormState {
@@ -142,7 +138,10 @@ enum SubmissionsBranch {
 
 @Component({
   name: "Form",
-  components: { SQRField, UnwantedParts, SoundIssues, Duration, TextArea }
+  components: { SQRField, UnwantedParts, SoundIssues, Duration, TextArea },
+  methods: {
+    ...mapActions("user", ["getUserClaims"])
+  }
 })
 export default class Form extends Vue {
   fields = [
@@ -287,7 +286,6 @@ export default class Form extends Vue {
   form: { [key: string]: any } = {};
   guidelines: any = {};
   isLoadingForm = true;
-  canSubmit = false;
   cancelComplete = false;
   formStateMessages = {
     [FormState.SAVING]: "Saving...",
@@ -312,6 +310,8 @@ export default class Form extends Vue {
   };
   submitSuccess = false;
   formHasError = false;
+  isCoordinator = false;
+  showValidationSummary = false;
 
   rules = [required];
 
@@ -327,6 +327,7 @@ export default class Form extends Vue {
       this.formHasError = Object.values<boolean>(
         (this.$refs.form as any).errorBag
       ).some(hasError => hasError);
+      if (!this.formHasError) this.showValidationSummary = false;
     }
   }
 
@@ -349,6 +350,32 @@ export default class Form extends Vue {
   }
 
   debounceUpdateForm = _.debounce(this.updateForm, 150);
+
+  async validateAllotment() {
+    const {
+      params: { fileName, token }
+    } = this.$route;
+    const isCoordinator = _.get(
+      await this.getUserClaims(),
+      "coordinator",
+      false
+    );
+    const response = (await firebase
+      .database()
+      .ref(`SQR/allotments`)
+      .orderByChild("token")
+      .equalTo(token)
+      .once("value")).val();
+    const allotmentStatus = _.get<string>(response, `${fileName}.status`, "");
+    if (!allotmentStatus) {
+      this.errorMessage =
+        "This allotment is not valid, please contact coordinator.";
+    } else if (!isCoordinator && allotmentStatus.toLowerCase() === "done") {
+      this.errorMessage =
+        "This submission is finalized and cannot be updated, please contact the coordinator.";
+    }
+    if (this.errorMessage) this.isLoadingForm = false;
+  }
 
   async removeField(field: string) {
     removeObjectKey(this.form, getPathAndKey(field));
@@ -383,8 +410,10 @@ export default class Form extends Vue {
   }
 
   async mounted() {
-    this.canSubmit = true;
-    this.getSavedData();
+    await this.validateAllotment();
+    if (!this.errorMessage) {
+      this.getSavedData();
+    }
     window.onbeforeunload = () => {
       if (this.formState === FormState.UNSAVED_CHANGES) {
         return "Changes are not saved!";
@@ -399,7 +428,7 @@ export default class Form extends Vue {
       firebase.database().ref(this.submissionPath(branch)),
       () => {
         this.isLoadingForm = false;
-        this.canSubmit = false;
+        this.errorMessage = "Error loading form data.";
       },
       () => {
         if (
@@ -482,7 +511,7 @@ export default class Form extends Vue {
         })
         .catch(e => {
           showSuccess = false;
-          this.canSubmit = false;
+          this.errorMessage = e.message || "Error cancelling form.";
         });
       if (!showSuccess) return;
       this.cancelComplete = true;
@@ -517,7 +546,10 @@ export default class Form extends Vue {
   }
 
   async submitForm() {
-    if (!(this.$refs as any).form.validate()) return;
+    if (!(this.$refs as any).form.validate()) {
+      this.showValidationSummary = true;
+      return;
+    }
     this.cancelAutoSave();
     const data = this.formData;
     this.formState = FormState.SUBMITTING;
