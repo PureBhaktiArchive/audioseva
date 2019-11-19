@@ -65,16 +65,6 @@ export const router = new Router({
           component: () => import("@/views/Home.vue")
         },
         {
-          path: "users",
-          component: () => import("@/views/Users/List.vue"),
-          meta: {
-            menuItem: true,
-            menuName: "People",
-            menuIcon: "fas fa-users",
-            auth: { requireClaims: { coordinator: true } }
-          }
-        },
-        {
           path: "sqr/",
           component: () => import("@/views/SQR/SQR.vue"),
           meta: {
