@@ -85,14 +85,6 @@ export const router = new Router({
           },
           children: [
             {
-              path: "",
-              component: () => import("@/views/SQR/Files.vue"),
-              meta: {
-                menuItem: true,
-                homePageLink: { text: "SQR" }
-              }
-            },
-            {
               path: "allot",
               component: () => import("@/views/SQRAllotment.vue"),
               meta: { menuItem: true }
