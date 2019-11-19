@@ -11,11 +11,8 @@ import { functions } from 'firebase';
         </router-link>
       </v-toolbar-title>
     </v-toolbar>
-    <v-progress-circular :style="{ display: 'flex', margin: '0 auto' }" indeterminate v-if="isLoading"></v-progress-circular>
-    <v-alert type="warning" v-if="errorMessage" :value="true">
-      {{ errorMessage }}
-    </v-alert>
-    <v-card v-else v-show="shouldShowPlayer" color="#d9edf7">
+
+    <v-card color="#d9edf7">
       <v-card-title primary-title>
         <div>
           <h3 class="headline mb-0">Audio Player</h3>
@@ -48,6 +45,9 @@ import { functions } from 'firebase';
         </v-card-title>
       </v-card>
     </v-card>
+    <v-alert type="warning" v-if="errorMessage" :value="true">
+      {{ errorMessage }}
+    </v-alert>
   </div>
 </template>
 
@@ -63,8 +63,6 @@ import { Component, Vue } from "vue-property-decorator";
 export default class ListenAudio extends Vue {
   fileName: string = "";
   errorMessage = "";
-  isLoading = true;
-  shouldShowPlayer = false;
 
   $refs!: {
     audioPlayer: HTMLMediaElement;
@@ -73,29 +71,32 @@ export default class ListenAudio extends Vue {
   mounted() {
     this.fileName = this.$route.params.fileName;
     this.$refs.audioPlayer.addEventListener("error", this.handleFileError);
-    this.$refs.audioPlayer.addEventListener(
-      "loadedmetadata",
-      this.onLoadedData
-    );
   }
 
   destroyed() {
     this.$refs.audioPlayer.removeEventListener("error", this.handleFileError);
-    this.$refs.audioPlayer.removeEventListener(
-      "loadedmetadata",
-      this.onLoadedData
-    );
-  }
-
-  onLoadedData() {
-    this.isLoading = false;
-    this.shouldShowPlayer = true;
   }
 
   handleFileError(e: any) {
-    this.isLoading = false;
-    if (e.target.error.code === 4) {
-      this.errorMessage = `${this.fileName} does not exist.`;
+    switch (e.target.error.code) {
+      case e.target.error.MEDIA_ERR_ABORTED:
+        this.errorMessage = "You aborted the media playback.";
+        break;
+      case e.target.error.MEDIA_ERR_NETWORK:
+        this.errorMessage =
+          "A network error caused the media download to fail.";
+        break;
+      case e.target.error.MEDIA_ERR_DECODE:
+        this.errorMessage =
+          "The media playback was aborted due to a corruption problem or because the media " +
+          "used features your browser did not support.";
+        break;
+      case e.target.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+        this.errorMessage =
+          "The media could not be loaded, either because the server or network failed or because the format is not supported.";
+        break;
+      default:
+        this.errorMessage = "An unknown media error occurred";
     }
   }
 
