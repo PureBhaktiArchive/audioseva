@@ -10,12 +10,7 @@ import { Assignee } from '../Assignee';
 import { formatAudioAnnotations } from '../AudioAnnotation';
 import { abortCall } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
-import {
-  listeningPageLink,
-  sqrAllotmentLink,
-  sqrSelfTrackingLink,
-  sqrSubmissionLink,
-} from '../Frontend';
+import { listeningPageLink, sqrAllotmentLink, sqrSelfTrackingLink, sqrSubmissionLink } from '../Frontend';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import { TasksRepository } from './TasksRepository';
@@ -61,9 +56,8 @@ export class SQRWorkflow {
     const dirtyTasks = _(tasks)
       .filter()
       .filter(
-        ({ status, token, assignee: currentAssignee, timestampGiven }) =>
+        ({ status, token, timestampGiven }) =>
           !!token ||
-          !!currentAssignee ||
           !!timestampGiven ||
           status !== AllotmentStatus.Spare
       )
