@@ -7,10 +7,6 @@ import { authorizeCoordinator } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 
-const db = admin.database();
-const userRoles = functions.database.ref('/users/{userId}/roles');
-const userRole = functions.database.ref('/users/{userId}/roles/{role}');
-
 enum RegistrationColumns {
   Details = 'Details',
   Status = 'Status',
@@ -91,7 +87,7 @@ export const importUserRegistrationData = functions.https.onCall(
 
     await Promise.all(
       readyForDatabaseUpdate.map(async (spreadsheetRecord: any) => {
-        const usersRef = db.ref('/users');
+        const usersRef = admin.database().ref('/users');
         const snapshot = await usersRef
           .orderByChild('emailAddress')
           .equalTo(spreadsheetRecord['emailAddress'])
@@ -117,7 +113,8 @@ export const restructureRegistrationData = functions.database
   .onCreate(async (snapshot, context) => {
     const webform = snapshot.val();
 
-    const oldUser = await db
+    const oldUser = await admin
+      .database()
       .ref('/users/')
       .orderByChild('/emailAddress')
       .equalTo(webform.email_address)
@@ -162,70 +159,45 @@ export const restructureRegistrationData = functions.database
       }, {}),
     };
 
-    db.ref(`/users/`).push(newUser);
+    admin
+      .database()
+      .ref(`/users/`)
+      .push(newUser);
 
     return true;
   });
 
-const setClaims = async (roles, { params: { userId } }: any, email: string) => {
-  const user = await admin
-    .auth()
-    .getUserByEmail(email)
-    .catch(() => null);
-  if (user) {
-    return admin.auth().setCustomUserClaims(user.uid, roles);
-  }
-  return null;
-};
+export const updateUserClaims = functions.database
+  .ref('/users/{userId}/roles')
+  .onWrite(async (change, context) => {
+    const emailAddress = await change.after.ref.parent
+      .child('emailAddress')
+      .once('value');
+    if (!emailAddress.exists()) return;
 
-export const onCreateUserRole = userRole.onCreate(async (snapshot, context) => {
-  const role = snapshot.key;
-  const roles = (await snapshot.ref.parent.once('value')).val();
-  const userEmail = await snapshot.ref.parent.parent
-    .child('emailAddress')
-    .once('value');
-  roles[role] = true;
-  return setClaims(roles, context, userEmail.val());
-});
+    const user = await admin.auth().getUserByEmail(emailAddress.val());
+    if (!user) return;
 
-export const onDeleteUserRole = userRole.onDelete(async (snapshot, context) => {
-  const role = snapshot.key;
-  const roles = (await snapshot.ref.parent.once('value')).val();
-  const userEmail = await snapshot.ref.parent.parent
-    .child('emailAddress')
-    .once('value');
-  if (roles) {
-    delete roles[role];
-    return setClaims(roles, context, userEmail.val());
-  } else {
-    return true;
-  }
-});
+    console.info(`Setting claims for ${user.email}:`, change.after.val());
+    await admin.auth().setCustomUserClaims(user.uid, change.after.val());
+  });
 
-export const onDeleteCustomClaimRoles = userRoles.onDelete(
-  async (snapshot, context) => {
-    const email = await snapshot.ref.parent.child('emailAddress').once('value');
-    return setClaims({}, context, email.val());
-  }
-);
-
-export const onCreateUserCustomClaimRoles = functions.auth
+export const setClaimsForNewUser = functions.auth
   .user()
   .onCreate(async event => {
-    const user = await db
+    console.info(`User ${event.displayName} (${event.email}) is created.`);
+    const metadataSnapshot = await admin
+      .database()
       .ref(`/users`)
       .orderByChild('emailAddress')
       .equalTo(event.email)
-      .once('value')
-      .catch(() => null);
-    const userData = user && user.val();
-    if (userData && userData.roles) {
-      return admin
-        .auth()
-        .setCustomUserClaims(event.uid, userData.roles)
-        .catch(() => null);
-    }
-    return null;
+      .once('value');
+    if (!metadataSnapshot.exists()) return;
+
+    const roles = metadataSnapshot.val().roles;
+    console.info(`Setting claims for ${event.email}:`, roles);
+    await admin.auth().setCustomUserClaims(event.uid, roles);
+    await metadataSnapshot.ref.update({ uid: event.uid });
   });
 
 export const getAssignees = functions.https.onCall(
