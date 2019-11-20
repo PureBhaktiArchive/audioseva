@@ -109,7 +109,7 @@ export default class MenuLinks extends Vue {
                 : "inherit"
           }
         },
-        "fas fa-cut"
+        this.parentRoute.meta.menuIcon
       ),
       this.renderNestedChildren(
         createElement,
