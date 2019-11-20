@@ -89,28 +89,28 @@ export default class MenuLinks extends Vue {
     });
   }
 
+  renderMenuIcon(createElement: any) {
+    return createElement(
+      "v-icon",
+      {
+        slot: "prependIcon",
+        props: {
+          color:
+            this.activeClass === "inactive-menu" ? "rgba(0,0,0,.54)" : "inherit"
+        }
+      },
+      this.parentRoute.meta.menuIcon
+    );
+  }
+
   renderTopLevelActivators(createElement: any) {
     return [
       createElement(
         "v-list-item-title",
-        {
-          slot: "activator"
-        },
+        { slot: "activator" },
         this.parentRoute.meta.activatorName
       ),
-      createElement(
-        "v-icon",
-        {
-          slot: "prependIcon",
-          props: {
-            color:
-              this.activeClass === "inactive-menu"
-                ? "rgba(0,0,0,.54)"
-                : "inherit"
-          }
-        },
-        this.parentRoute.meta.menuIcon
-      ),
+      this.renderMenuIcon(createElement),
       this.renderNestedChildren(
         createElement,
         this.parentRoute.children,
