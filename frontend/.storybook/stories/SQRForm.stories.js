@@ -4,14 +4,14 @@ import { storyFactory } from "../util/helpers";
 import SoundIssues from "../../src/components/SQRForm/SoundIssues";
 import UnwantedParts from "../../src/components/SQRForm/UnwantedParts";
 
-export default { title: "SQRForm" }
+export default { title: "SQRForm" };
 
 const story = storyFactory({
   SoundIssues,
   UnwantedParts
 });
 
-const formData = (path) => ({
+const formData = path => ({
   props: {
     form: {
       default: {
@@ -28,24 +28,26 @@ const formData = (path) => ({
   }
 });
 
-export const soundIssues = () => story({
-  ...formData("soundIssues"),
-  template: `
+export const soundIssues = () =>
+  story({
+    ...formData("soundIssues"),
+    template: `
     <sound-issues
       :form="form"
       :updateForm="updateForm"
       :removeField="removeField"
     ></sound-issues>
 `
-});
+  });
 
-export const unwantedParts = () => story({
-  ...formData("unwantedParts"),
-  template: `
+export const unwantedParts = () =>
+  story({
+    ...formData("unwantedParts"),
+    template: `
     <unwanted-parts 
       :form="form" 
       :updateForm="updateForm" 
       :removeField="removeField"
     ></unwanted-parts>
   `
-});
+  });

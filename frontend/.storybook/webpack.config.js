@@ -1,9 +1,9 @@
-const path = require('path');
+const path = require("path");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
 module.exports = async ({ config }) => {
-  config.resolve.alias['~storybook'] = path.resolve(__dirname);
-  config.resolve.alias['@'] = path.resolve(__dirname, "../src");
+  config.resolve.alias["~storybook"] = path.resolve(__dirname);
+  config.resolve.alias["@"] = path.resolve(__dirname, "../src");
 
   config.resolve.extensions.push(
     ".ts",
@@ -18,7 +18,7 @@ module.exports = async ({ config }) => {
 
   config.module.rules.push({
     resourceQuery: /blockType=story/,
-    loader: 'vue-storybook'
+    loader: "vue-storybook"
   });
 
   config.module.rules.push({
@@ -29,19 +29,19 @@ module.exports = async ({ config }) => {
         loader: "ts-loader",
         options: {
           appendTsSuffixTo: [/\.vue$/],
-          transpileOnly: true,
-        },
+          transpileOnly: true
+        }
       }
-    ],
+    ]
   });
 
   config.module.rules.push({
     test: /\.s(a|c)ss$/,
-    use: ['style-loader', 'css-loader', 'sass-loader'],
-    include: path.resolve(__dirname, '../'),
+    use: ["style-loader", "css-loader", "sass-loader"],
+    include: path.resolve(__dirname, "../")
   });
 
   config.plugins.push(new ForkTsCheckerWebpackPlugin());
 
-  return config
+  return config;
 };

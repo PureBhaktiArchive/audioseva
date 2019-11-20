@@ -5,7 +5,7 @@ import DataTable from "../../src/components/DataTable";
 import Assignee from "../../src/components/Assignee";
 import InlineTextEdit from "../../src/components/InlineTextEdit";
 
-export default { title: "DataTable" }
+export default { title: "DataTable" };
 
 const story = storyFactory({
   DataTable,
@@ -16,7 +16,10 @@ const story = storyFactory({
 const getItems = () => {
   const assignees = [];
   for (let i = 0; i < 20; i++) {
-    assignees.push({ assignee: { name: `name-${i}`, emailAddress: `email-${i}` }, description: `description-${i}` })
+    assignees.push({
+      assignee: { name: `name-${i}`, emailAddress: `email-${i}` },
+      description: `description-${i}`
+    });
   }
   return assignees;
 };
@@ -26,26 +29,30 @@ const baseProps = (headers = []) => ({
     default: object("items", getItems())
   },
   headers: {
-    default: object("headers", [...headers, { text: "Description", value: "description" }])
+    default: object("headers", [
+      ...headers,
+      { text: "Description", value: "description" }
+    ])
   }
 });
 
 const assigneeHeaders = [{ text: "Assignee", value: "assignee" }];
 
-export const asDefault = () => story({
-  props: baseProps(assigneeHeaders),
-  data() {
-    return {
-      datatableProps: {
-        page: 1,
-        itemsPerPage: 3
-      }
-    };
-  },
-  methods: {
-    action: action("clicked row")
-  },
-  template: `
+export const asDefault = () =>
+  story({
+    props: baseProps(assigneeHeaders),
+    data() {
+      return {
+        datatableProps: {
+          page: 1,
+          itemsPerPage: 3
+        }
+      };
+    },
+    methods: {
+      action: action("clicked row")
+    },
+    template: `
     <div>
       <p>page: {{ datatableProps.page }}</p>
       <data-table 
@@ -60,15 +67,16 @@ export const asDefault = () => story({
       </data-table>
     </div>
   `
-});
+  });
 
-export const withInlineEditDescription = () => story({
-  props: baseProps(assigneeHeaders),
-  methods: {
-    save: action("save"),
-    cancel: action("cancel")
-  },
-  template: `
+export const withInlineEditDescription = () =>
+  story({
+    props: baseProps(assigneeHeaders),
+    methods: {
+      save: action("save"),
+      cancel: action("cancel")
+    },
+    template: `
     <data-table :items="items" :headers="headers">
       <template v-slot:assignee="{ item, value }">
         <assignee :item="item" :value="value"></assignee>
@@ -78,25 +86,32 @@ export const withInlineEditDescription = () => story({
       </template>
     </data-table>
   `
-});
+  });
 
-export const withTableRowStyle = () => story({
-  props: baseProps(),
-  methods: {
-    tableRowStyle: () => ({ backgroundColor: "rgba(0, 0, 0, 0.8)", color: "white" })
-  },
-  template: `
+export const withTableRowStyle = () =>
+  story({
+    props: baseProps(),
+    methods: {
+      tableRowStyle: () => ({
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        color: "white"
+      })
+    },
+    template: `
     <data-table :items="items" :headers="headers" :tableRowStyle="tableRowStyle">
     </data-table>
   `
-});
+  });
 
-export const withTdStyles = () => story({
-  props: {
-    ...baseProps(),
-    classes: {
-      default: object("classes", { "description": { "font-weight-bold": true } })
-    }
-  },
-  template: `<data-table :items="items" :headers="headers" :classes="classes"></data-table>`
-});
+export const withTdStyles = () =>
+  story({
+    props: {
+      ...baseProps(),
+      classes: {
+        default: object("classes", {
+          description: { "font-weight-bold": true }
+        })
+      }
+    },
+    template: `<data-table :items="items" :headers="headers" :classes="classes"></data-table>`
+  });
