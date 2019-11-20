@@ -103,8 +103,10 @@ export default class MenuLinks extends Vue {
         {
           slot: "prependIcon",
           props: {
-            // give no color to active menu because color is inherited
-            color: this.activeClass === "inactive-menu" ? "rgba(0,0,0,.54)" : ""
+            color:
+              this.activeClass === "inactive-menu"
+                ? "rgba(0,0,0,.54)"
+                : "inherit"
           }
         },
         "fas fa-cut"
