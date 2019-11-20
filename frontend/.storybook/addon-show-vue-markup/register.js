@@ -27,6 +27,39 @@ class MarkupPanel extends React.Component {
     this.setState({ markup });
   };
 
+  renderTokens = (tokens, getLineProps, getTokenProps) => {
+    return tokens.map((line, i) =>
+      createElement(
+        "div",
+        {
+          ...getLineProps({ line, key: i })
+        },
+        line.map((token, key) =>
+          createElement("span", {
+            ...getTokenProps({ token, key })
+          })
+        )
+      )
+    );
+  };
+
+  renderChildren = ({
+    className,
+    style,
+    tokens,
+    getLineProps,
+    getTokenProps
+  }) => {
+    return createElement(
+      "pre",
+      {
+        className,
+        style
+      },
+      this.renderTokens(tokens, getLineProps, getTokenProps)
+    );
+  };
+
   render() {
     const { markup } = this.state;
     const { active } = this.props;
@@ -36,34 +69,7 @@ class MarkupPanel extends React.Component {
           ...defaultProps,
           code: markup,
           language: "html",
-          children: ({
-            className,
-            style,
-            tokens,
-            getLineProps,
-            getTokenProps
-          }) => {
-            return createElement(
-              "pre",
-              {
-                className,
-                style
-              },
-              tokens.map((line, i) =>
-                createElement(
-                  "div",
-                  {
-                    ...getLineProps({ line, key: i })
-                  },
-                  line.map((token, key) =>
-                    createElement("span", {
-                      ...getTokenProps({ token, key })
-                    })
-                  )
-                )
-              )
-            );
-          }
+          children: this.renderChildren
         })
       : null;
   }
