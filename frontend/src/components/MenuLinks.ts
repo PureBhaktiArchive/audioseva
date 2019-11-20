@@ -89,6 +89,34 @@ export default class MenuLinks extends Vue {
     });
   }
 
+  renderTopLevelActivators(createElement: any) {
+    return [
+      createElement(
+        "v-list-item-title",
+        {
+          slot: "activator"
+        },
+        this.parentRoute.meta.activatorName
+      ),
+      createElement(
+        "v-icon",
+        {
+          slot: "prependIcon",
+          props: {
+            // give no color to active menu because color is inherited
+            color: this.activeClass === "inactive-menu" ? "rgba(0,0,0,.54)" : ""
+          }
+        },
+        "fas fa-cut"
+      ),
+      this.renderNestedChildren(
+        createElement,
+        this.parentRoute.children,
+        this.parentRoute.path.slice(0, -1)
+      )
+    ];
+  }
+
   render(createElement: any) {
     return createElement(
       "v-list-group",
@@ -100,32 +128,7 @@ export default class MenuLinks extends Vue {
           activeClass: this.activeClass
         }
       },
-      [
-        createElement(
-          "v-list-item-title",
-          {
-            slot: "activator"
-          },
-          this.parentRoute.meta.activatorName
-        ),
-        createElement(
-          "v-icon",
-          {
-            slot: "prependIcon",
-            props: {
-              // give no color to active menu because color is inherited
-              color:
-                this.activeClass === "inactive-menu" ? "rgba(0,0,0,.54)" : ""
-            }
-          },
-          "fas fa-cut"
-        ),
-        this.renderNestedChildren(
-          createElement,
-          this.parentRoute.children,
-          this.parentRoute.path.slice(0, -1)
-        )
-      ]
+      this.renderTopLevelActivators(createElement)
     );
   }
 }
