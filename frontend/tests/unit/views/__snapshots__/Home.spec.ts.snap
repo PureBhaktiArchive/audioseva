@@ -2,26 +2,23 @@
 
 exports[`Home.vue should render 1`] = `
 <v-container-stub
-  fluid=""
+  fluid="true"
   tag="div"
 >
-  <v-layout-stub
-    row=""
+  <v-row-stub
     tag="div"
-    wrap=""
   >
-    <v-flex-stub
-      class="text-xs-center"
-      mt-5=""
+    <v-col-stub
+      class="text-center mt-5"
+      cols="12"
       tag="div"
-      xs12=""
     >
       <h1>
         Welcome to Audio Seva
       </h1>
        
       <home-page-buttons-stub />
-    </v-flex-stub>
-  </v-layout-stub>
+    </v-col-stub>
+  </v-row-stub>
 </v-container-stub>
 `;
