@@ -27,44 +27,17 @@
         <v-row>
           <v-col>
             <v-list class="cancel-list">
-              <v-list-group
-                v-for="(item, index) in cancelFields"
+              <cancel-list-item
+                v-for="(cancelField, index) in cancelFields"
+                :key="cancelField.label"
                 @click="handleListClick(index + 1)"
-                :key="item.label"
                 no-action
                 class="py-1"
-              >
-                <template v-slot:activator>
-                  <v-list-item :style="item.styles">
-                    <v-list-item-content>
-                      <v-list-item-title :style="{ height: 'auto' }">
-                        {{ item.header }}
-                      </v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-                </template>
-                <div :style="{ border: item.styles.border }" class="pa-1">
-                  <v-checkbox
-                    class="pa-2"
-                    v-model="cancelCheck[index + 1]"
-                    :label="item.label"
-                  >
-                  </v-checkbox>
-                  <div v-if="cancelCheck[index + 1]">
-                    <v-textarea
-                      :placeholder="item.placeholder"
-                      label="Comment"
-                      outlined
-                      class="pa-2"
-                      :rules="rules"
-                      v-model="cancelComment"
-                      filled
-                    >
-                    </v-textarea>
-                    <v-btn type="submit">Confirm</v-btn>
-                  </div>
-                </div>
-              </v-list-group>
+                v-bind="getCancelListProps(cancelFields[index])"
+                :selected.sync="cancelCheck[index + 1]"
+                v-model="cancelComment"
+                :rules="rules"
+              ></cancel-list-item>
             </v-list>
           </v-col>
           <template v-if="!isCancelChecked && Object.keys(form).length">
@@ -126,6 +99,7 @@ import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
 import Fields from "@/components/SQRForm/Fields.vue";
+import CancelListItem from "@/components/SQRForm/CancelListItem.vue";
 import { updateObject, removeObjectKey, getPathAndKey } from "@/utility";
 import { required } from "@/validation";
 
@@ -146,7 +120,7 @@ enum SubmissionsBranch {
 
 @Component({
   name: "Form",
-  components: { Fields },
+  components: { Fields, CancelListItem },
   methods: {
     ...mapActions("user", ["getUserClaims"])
   }
@@ -223,6 +197,10 @@ export default class Form extends Vue {
     this.cancelCheck = {};
     this.cancelComment = "";
     this.cancel = this.cancel === cancelField ? null : cancelField;
+  }
+
+  getCancelListProps({ reason, ...props }: { [key: string]: any }) {
+    return props;
   }
 
   @Watch("form", { deep: true })
