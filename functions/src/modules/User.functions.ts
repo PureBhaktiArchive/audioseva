@@ -168,36 +168,33 @@ export const restructureRegistrationData = functions.database
   });
 
 export const updateUserClaims = functions.database
-  .ref('/users/{userId}/roles')
-  .onWrite(async (change, context) => {
-    const emailAddress = await change.after.ref.parent
-      .child('emailAddress')
-      .once('value');
-    if (!emailAddress.exists()) return;
+  .ref('/users/{uid}/roles')
+  .onWrite(async (change, { params: { uid } }) => {
+    const user = await admin
+      .auth()
+      .getUser(uid)
+      .catch(() => null);
 
-    const user = await admin.auth().getUserByEmail(emailAddress.val());
-    if (!user) return;
+    if (!user) {
+      console.warn(`User ${uid} does not exist.`);
+      return;
+    }
 
     console.info(`Setting claims for ${user.email}:`, change.after.val());
     await admin.auth().setCustomUserClaims(user.uid, change.after.val());
   });
 
-export const setClaimsForNewUser = functions.auth
+export const addNewUserToDatabase = functions.auth
   .user()
   .onCreate(async event => {
     console.info(`User ${event.displayName} (${event.email}) is created.`);
-    const metadataSnapshot = await admin
+    await admin
       .database()
       .ref(`/users`)
-      .orderByChild('emailAddress')
-      .equalTo(event.email)
-      .once('value');
-    if (!metadataSnapshot.exists()) return;
-
-    const roles = metadataSnapshot.val().roles;
-    console.info(`Setting claims for ${event.email}:`, roles);
-    await admin.auth().setCustomUserClaims(event.uid, roles);
-    await metadataSnapshot.ref.update({ uid: event.uid });
+      .child(event.uid)
+      .set({
+        emailAddress: event.email,
+      });
   });
 
 export const getAssignees = functions.https.onCall(
