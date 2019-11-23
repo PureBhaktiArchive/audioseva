@@ -41,7 +41,7 @@ path /users is ReadOnlyCoordinator {
     "uploadCode"
   ]}
   
-  path /{userId} {
+  path /{uid} {
     path /timestamp is CurrentTimestamp;
     path /isAvailableOnWhatsApp is Boolean;
     path /notes is WriteOnlyCoordinatorField<String>;
