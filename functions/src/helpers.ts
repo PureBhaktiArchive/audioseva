@@ -14,6 +14,8 @@ export const extractListFromFilename = (fileName: string): string => {
 };
 
 export const standardizeFileName = (fileName: string) => {
+  if (fileName.startsWith('ML2-')) return fileName.replace(/^ML2-/, '');
+
   return fileName
     .replace(/^Hi/i, 'ML1-')
     .replace(

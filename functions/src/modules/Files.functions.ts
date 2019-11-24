@@ -13,7 +13,9 @@ const app = express();
 app.get('/download/:bucket/:fileName', async (req, res) => {
   const file = StorageManager.getFile(
     <any>req.params.bucket,
-    standardizeFileName(req.params.fileName)
+    req.params.bucket === 'original'
+      ? standardizeFileName(req.params.fileName)
+      : req.params.fileName
   );
   if ((await file.exists())[0]) {
     const url = (await file.getSignedUrl({
