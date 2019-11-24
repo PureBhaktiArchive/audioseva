@@ -4,11 +4,8 @@
       <v-row class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
         <v-col v-bind="layout.link">
           <div>
-            <a
-              download
-              :href="getLink(chunk.fileName)"
-            >
-              {{chunk.fileName}}
+            <a :href="getLink(chunk.fileName)">
+              {{ chunk.fileName }}
             </a>
           </div>
         </v-col>
