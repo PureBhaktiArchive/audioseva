@@ -1,8 +1,8 @@
 <template>
   <div>
     <template v-for="(chunk, index) in item.chunks">
-      <v-layout class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
-        <v-flex v-bind="layout.link">
+      <v-row class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
+        <v-col v-bind="layout.link">
           <div>
             <a
               download
@@ -11,14 +11,14 @@
               {{chunk.fileName}}
             </a>
           </div>
-        </v-flex>
-        <v-flex v-bind="layout.duration">
+        </v-col>
+        <v-col v-bind="layout.duration">
           <span>{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{ formatDurationUtc(chunk.ending, "mm:ss") }}</span>
-        </v-flex>
-        <v-flex v-bind="layout.unwantedParts">
+        </v-col>
+        <v-col v-bind="layout.unwantedParts">
           <div :style="{ whiteSpace: 'pre-wrap' }">{{ chunk.unwantedParts }}</div>
-        </v-flex>
-      </v-layout>
+        </v-col>
+      </v-row>
       <v-divider :key="`${item['key']}-${index}-divider`" class="mt-2 mb-2"></v-divider>
     </template>
   </div>
@@ -36,22 +36,21 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   @Prop({
     default: () => ({
       link: {
-        xs4: true,
-        sm2: true,
-        md2: true,
-        xl1: true
+        cols: "4",
+        sm: "2",
+        md: "2",
+        xl: "1"
       },
       duration: {
-        xs8: true,
-        sm2: true,
-        md2: true,
-        xl1: true
+        cols: "8",
+        sm: "4",
+        md: "2",
+        xl: "1"
       },
       unwantedParts: {
-        sm12: true,
-        md8: true,
-        lg8: true,
-        xl9: true
+        cols: "12",
+        md: "8",
+        xl: "9"
       }
     })
   })

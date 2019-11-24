@@ -4,9 +4,8 @@ import { Component, Prop, Vue } from "vue-property-decorator";
   name: "MenuLinks"
 })
 export default class MenuLinks extends Vue {
-  @Prop({ default: () => [] })
-  routes!: any;
   @Prop() parentRoute!: any;
+  @Prop() activeClass!: string;
 
   getMenuLink({ meta, path }: any) {
     if (meta && meta.menuLinkName) return meta.menuLinkName;
@@ -44,13 +43,13 @@ export default class MenuLinks extends Vue {
 
   static renderActivator(createElement: any, item: any) {
     return createElement(
-      "v-list-tile",
+      "v-list-item",
       {
         slot: "activator"
       },
       [
-        createElement("v-list-tile-content", [
-          createElement("v-list-tile-title", item.meta.activatorName)
+        createElement("v-list-item-content", [
+          createElement("v-list-item-title", item.meta.activatorName)
         ])
       ]
     );
@@ -73,31 +72,65 @@ export default class MenuLinks extends Vue {
       }
       if (route.meta.menuItem) {
         return createElement(
-          "v-list-tile",
+          "v-list-item",
           {
             props: {
               to: `/${fullPath}${route.path ? `/${route.path}` : ""}`,
-              exact: true
-            }
+              exact: true,
+              link: true
+            },
+            key: `menu-link-${index}-${fullPath}${
+              route.path ? `/${route.path}` : ""
+            }`
           },
-          [
-            createElement("v-list-tile-content", [
-              createElement("v-list-tile-title", this.getMenuLink(route))
-            ])
-          ]
+          [createElement("v-list-item-title", this.getMenuLink(route))]
         );
       }
     });
   }
 
-  render(createElement: any) {
+  renderMenuIcon(createElement: any) {
     return createElement(
-      "div",
+      "v-icon",
+      {
+        slot: "prependIcon",
+        props: {
+          color:
+            this.activeClass === "inactive-menu" ? "rgba(0,0,0,.54)" : "inherit"
+        }
+      },
+      this.parentRoute.meta.menuIcon
+    );
+  }
+
+  renderTopLevelActivators(createElement: any) {
+    return [
+      createElement(
+        "v-list-item-title",
+        { slot: "activator" },
+        this.parentRoute.meta.activatorName
+      ),
+      this.renderMenuIcon(createElement),
       this.renderNestedChildren(
         createElement,
-        this.routes,
+        this.parentRoute.children,
         this.parentRoute.path.slice(0, -1)
       )
+    ];
+  }
+
+  render(createElement: any) {
+    return createElement(
+      "v-list-group",
+      {
+        props: {
+          noAction: true,
+          prependIcon: this.parentRoute.meta.menuIcon,
+          value: true,
+          activeClass: this.activeClass
+        }
+      },
+      this.renderTopLevelActivators(createElement)
     );
   }
 }

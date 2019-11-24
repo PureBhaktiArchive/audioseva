@@ -2,8 +2,8 @@
   <div>
     <div v-if="lastResolution">
       <v-chip
-        class="ml-0"
-        disabled label
+        class="ma-1 ml-0"
+        label
         :color="lastIsApproved ? 'green' : 'red' "
         text-color="white"
       >

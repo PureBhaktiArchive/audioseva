@@ -19,50 +19,55 @@
     </p>
     <v-form v-else ref="form" @submit.prevent="handleSubmit">
       <v-container>
-        <v-layout wrap>
-          <template v-for="(item, index) in cancelFields" >
-            <v-flex xs12 :key="item.label">
-              <v-list class="cancel-list">
-                <v-list-group @click="handleListClick(index + 1)" :value="cancel === index + 1" no-action>
-                  <v-list-tile :style="item.styles" slot="activator">
-                    <v-list-tile-content>
-                      <v-list-tile-title :style="{ height: 'auto' }">
+        <v-row >
+          <v-col>
+            <v-list class="cancel-list">
+              <v-list-group
+                v-for="(item, index) in cancelFields" @click="handleListClick(index + 1)"
+                :key="item.label"
+                no-action
+                class="py-1"
+              >
+                <template v-slot:activator>
+                  <v-list-item :style="item.styles">
+                    <v-list-item-content>
+                      <v-list-item-title :style="{ height: 'auto' }">
                         {{ item.header }}
-                      </v-list-tile-title>
-                    </v-list-tile-content>
-                  </v-list-tile>
-                  <div v-if="cancel !== null" :style="{ border: item.styles.border }" class="pa-1">
-                    <v-checkbox
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                </template>
+                <div :style="{ border: item.styles.border }" class="pa-1">
+                  <v-checkbox
+                    class="pa-2"
+                    v-model="cancelCheck[index + 1]"
+                    :label="item.label"
+                  >
+                  </v-checkbox>
+                  <div v-if="cancelCheck[index + 1]">
+                    <v-textarea
+                      :placeholder="item.placeholder"
+                      label="Comment"
+                      outlined
                       class="pa-2"
-                      v-model="cancelCheck[index + 1]"
-                      :label="item.label"
+                      :rules="rules"
+                      v-model="cancelComment"
+                      filled
                     >
-                    </v-checkbox>
-                    <div v-if="cancelCheck[index + 1]">
-                      <v-textarea
-                        :placeholder="item.placeholder"
-                        label="Comment"
-                        outline
-                        class="pa-2"
-                        :rules="rules"
-                        v-model="cancelComment"
-                        box
-                      >
-                      </v-textarea>
-                      <v-btn type="submit">Confirm</v-btn>
-                    </div>
+                    </v-textarea>
+                    <v-btn type="submit">Confirm</v-btn>
                   </div>
-                </v-list-group>
-              </v-list>
-            </v-flex>
-          </template>
+                </div>
+              </v-list-group>
+            </v-list>
+          </v-col>
           <template v-if="!isCancelChecked && Object.keys(form).length">
-            <v-flex xs12>
+            <v-col cols="12">
               <h3>A. Audio File Name</h3>
               <v-text-field disabled :value="$route.params.fileName">
               </v-text-field>
-            </v-flex>
-            <v-flex class="my-2" :style="{ backgroundColor: '#fff' }" xs12 v-for="(field, index) of fields" :key="index">
+            </v-col>
+            <v-col class="my-2" :style="{ backgroundColor: '#fff' }" cols="12" v-for="(field, index) of fields" :key="index">
               <h3>{{ field.title }}</h3>
               <template v-if="field.component">
                 <component
@@ -73,32 +78,32 @@
                   :is="field.component"
                 ></component>
               </template>
-              <v-expansion-panel>
-                <v-expansion-panel-content>
-                  <div :style="{ flex: '0' }" class="pr-2" slot="header">Guidelines</div>
-                  <v-card>
-                    <v-card-text v-html="field.guidelines">
-                    </v-card-text>
-                  </v-card>
-                </v-expansion-panel-content>
-              </v-expansion-panel>
-            </v-flex>
-            <v-layout class="sticky" wrap>
-              <v-flex xs12 sm6 :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
+              <v-expansion-panels class="pt-3">
+                <v-expansion-panel>
+                  <v-expansion-panel-header class="pl-0">Guidelines</v-expansion-panel-header>
+                  <v-expansion-panel-content>
+                    <p v-html="field.guidelines">
+                    </p>
+                  </v-expansion-panel-content>
+                </v-expansion-panel>
+              </v-expansion-panels>
+            </v-col>
+            <v-row class="sticky" >
+              <v-col cols="12" sm="6" :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
                 <v-btn v-if="!form.completed" @click="saveDraft">Save draft</v-btn>
-                <v-btn type="submit" color="primary">Submit</v-btn>
+                <v-btn type="submit" color="primary" class=" mx-2">Submit</v-btn>
                 <p :style="{ color: 'red' }" v-if="formHasError && showValidationSummary" class="ma-0">
                   Some fields are not filled properly, see above.
                 </p>
-              </v-flex>
-              <v-flex align-self-center sm6 md6>
+              </v-col>
+              <v-col align-self="center" sm="6" md="6">
                 <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
                   {{ formStateMessages[formState] }}
                 </p>
-              </v-flex>
-            </v-layout>
+              </v-col>
+            </v-row>
           </template>
-        </v-layout>
+        </v-row>
       </v-container>
     </v-form>
   </div>
@@ -242,8 +247,8 @@ export default class Form extends Vue {
       props: {
         pathOverride: "comments",
         fieldProps: {
-          box: true,
-          outline: true,
+          filled: true,
+          outlined: true,
           required: true
         }
       }
@@ -310,6 +315,7 @@ export default class Form extends Vue {
   };
   submitSuccess = false;
   formHasError = false;
+  errorMessage = "";
   isCoordinator = false;
   showValidationSummary = false;
 
@@ -622,6 +628,15 @@ export default class Form extends Vue {
   padding: 0;
 }
 
+>>> .v-expansion-panel-header__icon {
+  margin-left: 8px;
+}
+
+>>> .cancel-list .v-list-group__header {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 >>> .v-card .v-input {
   padding-top: 0;
   margin-top: 0;
@@ -643,11 +658,11 @@ export default class Form extends Vue {
   padding: 0;
 }
 
->>> .cancel-list .v-list__group__header__append-icon {
+>>> .cancel-list .v-list-group__header__append-icon {
   display: none;
 }
 
->>> .v-expansion-panel {
+>>> .v-expansion-panel:before {
   box-shadow: none;
 }
 
@@ -661,11 +676,12 @@ export default class Form extends Vue {
   padding: 12px;
   position: sticky;
   width: 100%;
+  z-index: 4;
 }
 
 @media screen and (min-width: 1904px) {
   >>> .justify-xl-evenly {
-    justify-content: space-evenly;
+    justify-content: space-evenly !important;
   }
 }
 

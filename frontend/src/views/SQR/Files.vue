@@ -3,9 +3,9 @@
     <header>
       <h1>Sound Quality Reporting</h1>
     </header>
-    <v-layout justify-space-between wrap>
-      <v-flex d-flex align-self-center xs12 md12>
-        <v-flex xs12 sm5 md3 align-self-center>
+    <v-row justify="space-between" >
+      <v-col class="d-flex" align-self="center" cols="12" md="12">
+        <v-col cols="12" sm="5" md="3" align-self="center">
           <v-text-field
             v-model="search"
             append-icon="fa-search"
@@ -13,8 +13,8 @@
             single-line
             hide-details
           ></v-text-field>
-        </v-flex>
-        <v-flex md2 xl4 align-self-center :style="{ marginLeft: '20px' }">
+        </v-col>
+        <v-col md="2" xl="4" align-self="center" :style="{ marginLeft: '20px' }">
           <div v-if="isLoadingLists">
             <div>
               <span :style="{ marginRight: '4px' }">loading lists</span>
@@ -24,13 +24,13 @@
           <v-btn-toggle v-model="selectedButton" mandatory v-else>
             <v-btn v-for="(value, key, index) in lists" :key="index">{{ value }}</v-btn>
           </v-btn-toggle>
-        </v-flex>
-        <v-flex align-self-center :style="{ textAlign: 'right' }">
+        </v-col>
+        <v-col align-self="center" :style="{ textAlign: 'right' }">
           <v-btn small to="sqr/statistics">Statistics</v-btn>
           <v-btn small to="sqr/allot">Allot</v-btn>
-        </v-flex>
-      </v-flex>
-    </v-layout>
+        </v-col>
+      </v-col>
+    </v-row>
 
     <!-- Only show table if there's at least one list available -->
     <div v-if="lists && lists.length">
@@ -54,7 +54,7 @@
     </div>
     <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
       {{ snackText }}
-      <v-btn flat @click="snack = false">Close</v-btn>
+      <v-btn text @click="snack = false">Close</v-btn>
     </v-snackbar>
   </div>
 </template>
