@@ -1,0 +1,48 @@
+name: Deployment
+
+on: ["deployment"]
+
+jobs:
+  deployment:
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 8.x
+
+      - name: "Deployment pending"
+        uses: "deliverybot/deployment-status@master"
+        with:
+          state: "pending"
+          token: "${{ github.token }}"
+
+      - name: "Deploy ${{ github.event.deployment.environment }}"
+        env:
+          SERVICE_ACCOUNT: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+          VUE_APP_PROJECT_DOMAIN: ${{ github.event.deployment.payload.domain }}
+        run: |
+          echo $SERVICE_ACCOUNT > service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
+          npm ci --prefix frontend
+          npm ci --prefix functions
+          npm install -g firebase-bolt firebase-tools
+          firebase use ${{ github.event.deployment.payload.project }}
+          firebase target:apply storage uploads te.uploads.${{ github.event.deployment.payload.domain }}
+          firebase deploy --force
+
+      - name: "Deployment success"
+        if: success()
+        uses: "deliverybot/deployment-status@master"
+        with:
+          state: "success"
+          token: "${{ github.token }}"
+
+      - name: "Deployment failure"
+        if: failure()
+        uses: "deliverybot/deployment-status@master"
+        with:
+          state: "failure"
+          token: "${{ github.token }}"

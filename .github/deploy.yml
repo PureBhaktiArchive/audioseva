@@ -1,0 +1,12 @@
+staging:
+  auto_deploy_on: refs/heads/master
+  environment: staging
+  payload:
+    project: audioseva-staging
+    domain: staging.audioseva.com
+production:
+  auto_deploy_on: refs/heads/production
+  environment: production
+  payload:
+    project: audio-seva
+    domain: audioseva.com
