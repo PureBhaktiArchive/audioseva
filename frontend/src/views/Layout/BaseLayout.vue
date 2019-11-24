@@ -21,4 +21,7 @@ export default class BaseLayout extends Vue {}
 </script>
 
 <style scoped>
+>>> .v-content__wrap {
+  display: flex;
+}
 </style>
