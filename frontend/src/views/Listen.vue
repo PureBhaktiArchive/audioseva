@@ -3,14 +3,14 @@ import { functions } from 'firebase';
  * sri sri guru gauranga jayatah
  */
 <template>
-  <div>
-    <v-toolbar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
+  <div class="pa-3">
+    <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
       <v-toolbar-title>
         <router-link to="/" tag="span" style="cursor: pointer">
           <h3>Audio File Name: {{ audioFileName }}</h3>
         </router-link>
       </v-toolbar-title>
-    </v-toolbar>
+    </v-app-bar>
 
     <v-card color="#d9edf7">
       <v-card-title primary-title>

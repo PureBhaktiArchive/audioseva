@@ -3,9 +3,9 @@
  */
 
 <template>
-  <v-layout align-center justify-center fill-height>
+  <v-row class="fill-height" align="center" justify="center" >
     <div id="firebaseui-auth-container"></div>
-  </v-layout>
+  </v-row>
 </template>
 
 <script>
@@ -39,4 +39,12 @@ export default {
 
 <style>
 @import "../../node_modules/firebaseui/dist/firebaseui.css";
+
+.v-content__wrap .container {
+  height: 100%;
+}
+
+#firebaseui-auth-container ul.firebaseui-idp-list {
+  padding-left: 0;
+}
 </style>

@@ -4,92 +4,125 @@
       <h2>Donation Receipt form</h2>
     </div>
     <v-form ref="form" @submit.prevent="submitForm">
-      <v-layout row wrap>
-        <v-flex xs12 sm5 class="d-flex pa-1" :style="{ flexDirection: 'column', flexWrap: 'wrap' }">
-          <v-flex xs12>
-            <v-text-field
-              outline
-              @click:prepend-inner="menu = !menu"
-              prepend-inner-icon="$vuetify.icons.event"
-              v-model="form.date"
-              label="Date"
-            />
-          </v-flex>
-          <v-flex xs7>
-            <v-menu
-              :style="{ height: '100%', width: '100%' }"
-              ref="menu"
-              v-model="menu"
-              :close-on-content-click="false"
-              :return-value.sync="date"
-            >
-              <div slot="activator">
-              </div>
-              <v-date-picker v-model="form.date" no-title scrollable>
-                <v-spacer></v-spacer>
-                <v-btn flat color="primary" @click="menu = false">Cancel</v-btn>
-                <v-btn flat color="primary" @click="$refs.menu.save(form.date)">OK</v-btn>
-              </v-date-picker>
-            </v-menu>
-          </v-flex>
-        </v-flex>
-        <v-flex class="d-flex" xs12 sm7>
-          <v-flex xs4 sm4 md3 lg2 class="py-1 pl-1">
-            <v-combobox
-              class="currency"
-              outline
-              label="Currency"
-              v-model="form.sum.currency"
-              :items="currencies"
-            />
-          </v-flex>
-          <v-flex xs8 sm8 md9 lg10 class="py-1 pr-1">
-            <v-text-field class="amount" :rules="amountRules" outline label="Amount" v-model="form.sum.amount" />
-          </v-flex>
-        </v-flex>
-        <v-flex xs12 sm6 lg3 class="pa-1">
-          <v-text-field :rules="rules" outline label="Name" v-model="form.donor.name" />
-        </v-flex>
-        <v-flex xs12 sm6 lg4 class="pa-1">
-          <v-text-field
-            :rules="emailRules"
-            outline
-            label="Email Address"
-            v-model="form.donor.emailAddress"
-          />
-        </v-flex>
-        <v-flex xs12 sm12 lg5 class="d-flex">
-          <v-flex xs5 sm4 md3 lg4 class="py-1 pl-1">
-            <v-text-field
-              class="currency country-code"
-              outline
-              label="Country code"
-              v-model="phoneData.countryCode"
-            />
-          </v-flex>
-          <v-flex xs7 sm8 md9 lg8 class="py-1 pr-1">
-            <v-text-field
-              class="amount"
-              outline
-              label="Phone number"
-              v-model="phoneData.phoneNumber"
-            />
-          </v-flex>
-        </v-flex>
-        <v-flex xs12 class="pa-1">
-          <v-text-field :rules="rules" outline label="Collected By" v-model="form.collectedBy" />
-        </v-flex>
-        <v-flex xs12 class="pa-1">
-          <v-textarea outline label="Comment" v-model="form.comment" />
-        </v-flex>
-        <v-btn :loading="isSubmitting" :disabled="isSubmitting" type="submit" color="success">Submit</v-btn>
+      <v-row>
+        <!-- Date -->
+        <v-col cols="12" sm="5" class="d-flex pa-1 pl-0" :style="{ flexDirection: 'column', flexWrap: 'wrap' }">
+          <v-row no-gutters>
+            <v-col cols="12" class="pa-0">
+              <v-text-field
+                outlined
+                @click:prepend-inner="menu = !menu"
+                prepend-inner-icon="$vuetify.icons.event"
+                v-model="form.date"
+                label="Date"
+              />
+            </v-col>
+            <v-col cols="7" class="pa-0">
+              <v-menu
+                :style="{ height: '100%', width: '100%' }"
+                ref="menu"
+                v-model="menu"
+                :close-on-content-click="false"
+                :return-value.sync="date"
+              >
+                <v-date-picker v-model="form.date" no-title scrollable>
+                  <v-spacer></v-spacer>
+                  <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
+                  <v-btn text color="primary" @click="$refs.menu.save(form.date)">OK</v-btn>
+                </v-date-picker>
+              </v-menu>
+            </v-col>
+          </v-row>
+        </v-col>
+        <!-- End Date -->
+
+        <!-- Currency information -->
+        <v-col class="d-flex pa-0" cols="12" sm="7">
+          <v-row no-gutters>
+            <v-col cols="4" sm="4" md="3" lg="2" class="py-1">
+              <v-combobox
+                class="currency"
+                outlined
+                label="Currency"
+                v-model="form.sum.currency"
+                :items="currencies"
+              />
+            </v-col>
+            <v-col cols="8" sm="8" md="9" lg="10" class="py-1 pr-1">
+              <v-text-field class="amount" :rules="amountRules" outlined label="Amount" v-model="form.sum.amount" />
+            </v-col>
+          </v-row>
+        </v-col>
+        <!-- End Currency information -->
+
+        <v-col cols="12" lg="6" class="pa-0 pr-lg-2">
+          <v-row>
+            <!-- Name -->
+            <v-col cols="12" sm="5" lg="6" class="py-0 pr-lg-1">
+              <v-text-field :rules="rules" outlined label="Name" v-model="form.donor.name" />
+            </v-col>
+            <!-- Email -->
+            <v-col cols="12" sm="7" lg="6" class="py-0 pl-lg-2 pr-lg-2">
+              <v-text-field
+                :rules="emailRules"
+                outlined
+                label="Email Address"
+                v-model="form.donor.emailAddress"
+              />
+            </v-col>
+          </v-row>
+        </v-col>
+
+        <!-- Phone information -->
+        <v-col cols="12" lg="6" class="pa-0">
+          <v-row no-gutters>
+            <v-col cols="5" sm="4" md="3" lg="4" class="pr-sm-0 py-0">
+              <v-text-field
+                class="currency country-code"
+                outlined
+                label="Country code"
+                v-model="phoneData.countryCode"
+              />
+            </v-col>
+            <v-col cols="7" sm="8" md="9" lg="8" class="pl-0 py-0">
+              <v-text-field
+                class="amount"
+                outlined
+                label="Phone number"
+                v-model="phoneData.phoneNumber"
+              />
+            </v-col>
+          </v-row>
+        </v-col>
+        <!-- End Phone information -->
+
+        <!-- Collected by -->
+        <v-col cols="12" class="pa-0">
+          <v-text-field :rules="rules" outlined label="Collected By" v-model="form.collectedBy" />
+        </v-col>
+
+         <!-- Comment -->
+        <v-col cols="12" class="pa-0">
+          <v-textarea outlined label="Comment" v-model="form.comment" />
+        </v-col>
+
+        <v-btn
+          :loading="isSubmitting"
+          :disabled="isSubmitting"
+          type="submit"
+          color="success"
+          class="ml-1"
+        >
+          Submit
+        </v-btn>
+
         <span
           :style="{ color: submissionStatus === 'success' ? '#4caf50' : 'red'}"
-          class="d-flex align-center"
+          class="d-flex align-center ml-1"
         >
           {{ submissionMessage }}
         </span>
-      </v-layout>
+      </v-row>
     </v-form>
   </v-container>
 </template>

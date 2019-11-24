@@ -3,8 +3,8 @@
     <header>
       <h1>People</h1>
     </header>
-    <v-layout justify-space-between wrap>
-      <v-flex xs12 sm5 md3>
+    <v-row justify="space-between" >
+      <v-col cols="12" sm="5" md="3">
         <v-text-field
           v-model="search"
           append-icon="fa-search"
@@ -12,24 +12,24 @@
           single-line
           hide-details
         ></v-text-field>
-      </v-flex>
-      <v-flex d-flex align-self-center xs12 md8>
-        <v-layout justify-end wrap>
-          <v-flex md9 xl4 align-self-center>
+      </v-col>
+      <v-col class="d-flex" align-self="center" cols="12" md="8">
+        <v-row justify="end" >
+          <v-col md="9" xl="4" align-self="center">
             <v-btn-toggle v-model="selectedButton" mandatory>
               <v-btn v-for="(value, key, index) in allRoles" :key="index">{{ value }}</v-btn>
             </v-btn-toggle>
-          </v-flex>
-          <v-flex md3 align-self-center>
+          </v-col>
+          <v-col md="3" align-self="center">
             <v-switch
               :style="{ justifyContent: 'flex-end' }"
               v-model="filterActiveUsers"
               label="Only active"
             ></v-switch>
-          </v-flex>
-        </v-layout>
-      </v-flex>
-    </v-layout>
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
     <data-table
       :items="items"
       :headers="headers"
@@ -41,7 +41,7 @@
     ></data-table>
     <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
       {{ snackText }}
-      <v-btn flat @click="snack = false">Close</v-btn>
+      <v-btn text @click="snack = false">Close</v-btn>
     </v-snackbar>
   </div>
 </template>

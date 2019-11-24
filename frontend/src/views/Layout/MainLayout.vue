@@ -7,71 +7,63 @@
         v-model="sidebar"
         app
         v-if="currentUser"
+        width="300px"
       >
-        <v-toolbar flat class="transparent">
-          <v-list class="pa-0">
-            <v-list-tile avatar>
-              <v-list-tile-avatar>
-                <img :src="currentUser.photoURL">
-              </v-list-tile-avatar>
-              <v-list-tile-content>
-                <v-list-tile-title>{{currentUser.displayName}}</v-list-tile-title>
-              </v-list-tile-content>
-              <v-list-tile-action>
-                <v-btn icon ripple @click="signOut">
-                  <v-icon>fas fa-sign-out-alt</v-icon>
-                </v-btn>
-              </v-list-tile-action>
-            </v-list-tile>
-          </v-list>
-        </v-toolbar>
+        <v-list class="pa-0">
+          <v-list-item>
+            <v-list-item-avatar>
+              <img :src="currentUser.photoURL">
+            </v-list-item-avatar>
+            <v-list-item-content>
+              <v-list-item-title>{{currentUser.displayName}}</v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-action>
+              <v-btn color="rgba(0, 0, 0, 0.87)" icon ripple @click="signOut">
+                <v-icon>fas fa-sign-out-alt</v-icon>
+              </v-btn>
+            </v-list-item-action>
+          </v-list-item>
+        </v-list>
         <v-list dense expand>
           <v-divider></v-divider>
           <template v-for="(item, index) in menuItems">
-            <v-list-group
+            <menu-links
+              :parentRoute="item"
               :key="index"
               v-if="item.meta && item.meta.activator"
-              no-action
-              :prepend-icon="item.meta.menuIcon"
-              :value="true"
-              :active-class="getActiveClass(item.path)"
+              :activeClass="getActiveClass(item.path)"
             >
-              <v-list-tile slot="activator">
-                <v-list-tile-content>
-                  <v-list-tile-title>{{ item.meta.activatorName }}</v-list-tile-title>
-                </v-list-tile-content>
-              </v-list-tile>
-              <menu-links :parentRoute="item" :routes="item.children"></menu-links>
-            </v-list-group>
-            <v-list-tile
+            </menu-links>
+            <v-list-item
               :to="`/${item.path}`"
               v-else-if="item.meta.menuItem"
               :key="`no-nested-${index}`"
+              :active-class="getActiveClass(item.path)"
             >
-              <v-list-tile-action>
-                <v-icon>{{ item.meta.menuIcon }}</v-icon>
-              </v-list-tile-action>
-              <v-list-tile-content>
-                <v-list-tile-title>{{ item.meta.menuName }}</v-list-tile-title>
-              </v-list-tile-content>
-            </v-list-tile>
+              <v-list-item-icon>
+                <v-icon v-text="item.meta.menuIcon"></v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>{{ item.meta.menuName }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
           </template>
           <v-divider></v-divider>
-          <v-list-tile @click="signOut" v-if="currentUser">
-            <v-list-tile-action>
+          <v-list-item @click="signOut" v-if="currentUser">
+            <v-list-item-action>
               <v-icon left>fas fa-sign-out-alt</v-icon>
-            </v-list-tile-action>
-            <v-list-tile-content>SignOut</v-list-tile-content>
-          </v-list-tile>
+            </v-list-item-action>
+            <v-list-item-content>SignOut</v-list-item-content>
+          </v-list-item>
         </v-list>
       </v-navigation-drawer>
 
-      <v-toolbar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
-        <v-toolbar-side-icon @click="sidebar = !sidebar" v-if="currentUser"></v-toolbar-side-icon>
+      <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
+        <v-app-bar-nav-icon @click="sidebar = !sidebar" v-if="currentUser"></v-app-bar-nav-icon>
         <v-toolbar-title>
           <router-link to="/" tag="span" style="cursor: pointer">{{ appTitle }}</router-link>
         </v-toolbar-title>
-      </v-toolbar>
+      </v-app-bar>
     </template>
     <template slot="aboveRoute">
       <slot name="aboveRoute"></slot>
@@ -112,10 +104,13 @@ export default class MainLayout extends Vue {
   getActiveClass(path: string) {
     return this.$route.path.includes(path.substring(0, path.length - 1))
       ? "primary--text"
-      : "";
+      : "inactive-menu";
   }
 }
 </script>
 
 <style scoped>
+>>> .inactive-menu {
+  color: rgba(0, 0, 0, 0.87);
+}
 </style>
