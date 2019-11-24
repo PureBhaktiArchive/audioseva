@@ -6,14 +6,14 @@
     ":maintainLockFilesMonthly"
   ],
   "rebaseStalePrs": false,
+  "rebaseConflictedPrs": false,
   "packageRules": [
     {
       "paths": ["frontend"],
       "extends": [
         ":timezone(America/New_York)",
         ":assignAndReview(DadImScared)",
-        "group:all",
-        ":followTag(vuetify, stable)"
+        "group:all"
       ],
       "managerBranchPrefix": "frontend/",
       "commitMessagePrefix": "Frontend:"
@@ -27,10 +27,6 @@
       ],
       "managerBranchPrefix": "functions/",
       "commitMessagePrefix": "Functions:"
-    },
-    {
-      "depTypeList": ["devDependencies"],
-      "automerge": true
     }
   ]
 }
