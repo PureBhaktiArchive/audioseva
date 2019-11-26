@@ -72,7 +72,6 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 
 | Variable                 | Description                                         |
 | ------------------------ | --------------------------------------------------- |
-| `VUE_APP_PROJECT_DOMAIN` | Project root domain name                            |
 | `VUE_APP_ASSIGNEES_URL`  | URL for getting assignees in legacy allotment forms |
 | `VUE_APP_CR_LISTS_URL`   | URL for getting CR lists                            |
 | `VUE_APP_CR_FILES_URL`   | URL for getting CR files                            |
