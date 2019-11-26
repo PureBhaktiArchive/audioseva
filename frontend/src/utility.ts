@@ -10,8 +10,6 @@ export const getProjectDomain = () => {
     .join(".");
 };
 
-export const trackEditingUploadsBucket = `te.uploads.${getProjectDomain()}`;
-
 export function getDayDifference(date: number) {
   return moment().diff(date, "days");
 }
