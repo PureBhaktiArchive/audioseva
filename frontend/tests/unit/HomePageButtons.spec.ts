@@ -4,13 +4,7 @@ import VueRouter from "vue-router";
 import flushPromises from "flush-promises";
 import HomePageButtons from "@/components/HomePageButtons.vue";
 import { router } from "@/router";
-import { store } from "@/store";
-
-export const mockClaims = async (claims: { [key: string]: any }) => {
-  await store.commit("user/setCurrentUser", {
-    getIdTokenResult: () => ({ claims })
-  });
-};
+import { mockClaims } from "./helpers";
 
 describe("HomePageButtons", () => {
   let localVue: typeof Vue;
@@ -31,6 +25,6 @@ describe("HomePageButtons", () => {
       router
     });
     await flushPromises();
-    expect(wrapper.vm.routeButtons).toMatchSnapshot();
+    expect((wrapper.vm as any).routeButtons).toMatchSnapshot();
   });
 });
