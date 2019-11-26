@@ -1,5 +1,11 @@
 <template>
-  <radio-group :fieldProps="fieldProps" :form="form" :fields="ratings" updatePath="soundQualityRating" :updateForm="updateForm"></radio-group>
+  <radio-group
+    :fieldProps="fieldProps"
+    :form="form"
+    :fields="ratings"
+    updatePath="soundQualityRating"
+    :updateForm="updateForm"
+  ></radio-group>
 </template>
 
 <script lang="ts">
@@ -47,5 +53,4 @@ export default class SQRField extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

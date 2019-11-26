@@ -6,10 +6,21 @@
       :style="{ width: '60px', flex: 'none' }"
       :items="[50, 100, 200]"
       @change="handlePageSizeChange"
-      :value="value">
+      :value="value"
+    >
     </v-select>
-    <v-btn class="mx-2 my-1" :disabled="pagination.page === 1" @click="handlePreviousPage">Previous</v-btn>
-    <v-btn class="mr-0 mx-2 my-1" :disabled="pagination.page === lastPageNumber" @click="handleNextPage">Next</v-btn>
+    <v-btn
+      class="mx-2 my-1"
+      :disabled="pagination.page === 1"
+      @click="handlePreviousPage"
+      >Previous</v-btn
+    >
+    <v-btn
+      class="mr-0 mx-2 my-1"
+      :disabled="pagination.page === lastPageNumber"
+      @click="handleNextPage"
+      >Next</v-btn
+    >
   </div>
 </template>
 

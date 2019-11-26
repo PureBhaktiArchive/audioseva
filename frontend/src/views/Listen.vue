@@ -1,7 +1,4 @@
-/*
-import { functions } from 'firebase';
- * sri sri guru gauranga jayatah
- */
+/* import { functions } from 'firebase'; * sri sri guru gauranga jayatah */
 <template>
   <div class="pa-3">
     <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
@@ -19,7 +16,12 @@ import { functions } from 'firebase';
         </div>
       </v-card-title>
       <v-card-title primary-title>
-        <audio ref="audioPlayer" controls="controls" :src="audioUrl" style="display: block; width: 100%;">
+        <audio
+          ref="audioPlayer"
+          controls="controls"
+          :src="audioUrl"
+          style="display: block; width: 100%;"
+        >
           Your browser does not support embedding audio. Please click
           <a :href="audioUrl">this link</a>.
         </audio>
@@ -27,10 +29,12 @@ import { functions } from 'firebase';
       <v-card-title primary-title>
         <div>
           <small>
-            * To download the file, please click on the three dots on the right of the player above and choose ‘Download’. Please note that your browser may display the download option with the download icon instead or disallow downloading. Alternatively, you can long-tap the following link:
-            <a
-              :href="audioUrl"
-            >Download</a>.
+            * To download the file, please click on the three dots on the right
+            of the player above and choose ‘Download’. Please note that your
+            browser may display the download option with the download icon
+            instead or disallow downloading. Alternatively, you can long-tap the
+            following link:
+            <a :href="audioUrl">Download</a>.
           </small>
         </div>
       </v-card-title>
@@ -38,8 +42,13 @@ import { functions } from 'firebase';
         <v-card-title primary-title>
           <div>
             <p class="text-justify">
-              When you fill the Online Submission Form, please provide as many details as you can especially about sound quality because we are depending entirely on your feedback to process these files in the sound editing stage. Please
-              mention if there is any background noise, abrupt sounds, blank spaces, low sound volume, etc. If you miss to provide some input, chances are, the issue will be part of the final archive.
+              When you fill the Online Submission Form, please provide as many
+              details as you can especially about sound quality because we are
+              depending entirely on your feedback to process these files in the
+              sound editing stage. Please mention if there is any background
+              noise, abrupt sounds, blank spaces, low sound volume, etc. If you
+              miss to provide some input, chances are, the issue will be part of
+              the final archive.
             </p>
           </div>
         </v-card-title>
@@ -51,8 +60,7 @@ import { functions } from 'firebase';
   </div>
 </template>
 
-<style>
-</style>
+<style></style>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";

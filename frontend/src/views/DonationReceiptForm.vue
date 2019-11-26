@@ -6,7 +6,12 @@
     <v-form ref="form" @submit.prevent="submitForm">
       <v-row>
         <!-- Date -->
-        <v-col cols="12" sm="5" class="d-flex pa-1 pl-0" :style="{ flexDirection: 'column', flexWrap: 'wrap' }">
+        <v-col
+          cols="12"
+          sm="5"
+          class="d-flex pa-1 pl-0"
+          :style="{ flexDirection: 'column', flexWrap: 'wrap' }"
+        >
           <v-row no-gutters>
             <v-col cols="12" class="pa-0">
               <v-text-field
@@ -27,8 +32,15 @@
               >
                 <v-date-picker v-model="form.date" no-title scrollable>
                   <v-spacer></v-spacer>
-                  <v-btn text color="primary" @click="menu = false">Cancel</v-btn>
-                  <v-btn text color="primary" @click="$refs.menu.save(form.date)">OK</v-btn>
+                  <v-btn text color="primary" @click="menu = false"
+                    >Cancel</v-btn
+                  >
+                  <v-btn
+                    text
+                    color="primary"
+                    @click="$refs.menu.save(form.date)"
+                    >OK</v-btn
+                  >
                 </v-date-picker>
               </v-menu>
             </v-col>
@@ -49,7 +61,13 @@
               />
             </v-col>
             <v-col cols="8" sm="8" md="9" lg="10" class="py-1 pr-1">
-              <v-text-field class="amount" :rules="amountRules" outlined label="Amount" v-model="form.sum.amount" />
+              <v-text-field
+                class="amount"
+                :rules="amountRules"
+                outlined
+                label="Amount"
+                v-model="form.sum.amount"
+              />
             </v-col>
           </v-row>
         </v-col>
@@ -59,7 +77,12 @@
           <v-row>
             <!-- Name -->
             <v-col cols="12" sm="5" lg="6" class="py-0 pr-lg-1">
-              <v-text-field :rules="rules" outlined label="Name" v-model="form.donor.name" />
+              <v-text-field
+                :rules="rules"
+                outlined
+                label="Name"
+                v-model="form.donor.name"
+              />
             </v-col>
             <!-- Email -->
             <v-col cols="12" sm="7" lg="6" class="py-0 pl-lg-2 pr-lg-2">
@@ -98,10 +121,15 @@
 
         <!-- Collected by -->
         <v-col cols="12" class="pa-0">
-          <v-text-field :rules="rules" outlined label="Collected By" v-model="form.collectedBy" />
+          <v-text-field
+            :rules="rules"
+            outlined
+            label="Collected By"
+            v-model="form.collectedBy"
+          />
         </v-col>
 
-         <!-- Comment -->
+        <!-- Comment -->
         <v-col cols="12" class="pa-0">
           <v-textarea outlined label="Comment" v-model="form.comment" />
         </v-col>
@@ -117,7 +145,7 @@
         </v-btn>
 
         <span
-          :style="{ color: submissionStatus === 'success' ? '#4caf50' : 'red'}"
+          :style="{ color: submissionStatus === 'success' ? '#4caf50' : 'red' }"
           class="d-flex align-center ml-1"
         >
           {{ submissionMessage }}

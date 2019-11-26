@@ -1,14 +1,25 @@
 <template>
   <div>
-    <v-card class="my-3" v-for="(item, index) in items" :key="form.unwantedParts[item].id">
+    <v-card
+      class="my-3"
+      v-for="(item, index) in items"
+      :key="form.unwantedParts[item].id"
+    >
       <v-card-title>
         <v-row class="justify-xl-evenly" justify="space-between">
-
-          <v-col align-self="center" cols="12" class="d-flex justify-space-between pb-2" lg="12">
+          <v-col
+            align-self="center"
+            cols="12"
+            class="d-flex justify-space-between pb-2"
+            lg="12"
+          >
             <v-col cols="7" sm="5">
-              <h3>Unwanted part #{{ index + 1}}</h3>
+              <h3>Unwanted part #{{ index + 1 }}</h3>
             </v-col>
-            <v-col :style="{ display: 'flex', justifyContent: 'flex-end' }" cols="5">
+            <v-col
+              :style="{ display: 'flex', justifyContent: 'flex-end' }"
+              cols="5"
+            >
               <delete-button v-bind="getFieldProps('actions', item)" />
             </v-col>
           </v-col>
@@ -28,9 +39,12 @@
             <v-col
               class="d-flex justify-space-between pa-0"
               :style="{ flexWrap: 'wrap' }"
-              cols="12">
+              cols="12"
+            >
               <v-col class="pr-1" cols="6">
-                <text-field v-bind="getFieldProps('beginning', item)"></text-field>
+                <text-field
+                  v-bind="getFieldProps('beginning', item)"
+                ></text-field>
               </v-col>
               <v-col class="pl-1" cols="6">
                 <text-field v-bind="getFieldProps('ending', item)"></text-field>
@@ -39,7 +53,9 @@
           </v-col>
 
           <v-col cols="12" sm="5" md="3" xl="2">
-            <sound-type-radio-group v-bind="getFieldProps('type', item)"></sound-type-radio-group>
+            <sound-type-radio-group
+              v-bind="getFieldProps('type', item)"
+            ></sound-type-radio-group>
           </v-col>
 
           <v-col cols="12" md="5" lg="4" xl="4">
@@ -49,8 +65,7 @@
       </v-card-title>
     </v-card>
     <v-btn class="ma-0" color="success" @click="addField">
-      Add
-      Unwanted Part
+      Add Unwanted Part
     </v-btn>
   </div>
 </template>
@@ -106,5 +121,4 @@ export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

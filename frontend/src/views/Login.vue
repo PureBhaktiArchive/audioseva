@@ -1,9 +1,7 @@
-/*
- * sri sri guru gauranga jayatah
- */
+/* * sri sri guru gauranga jayatah */
 
 <template>
-  <v-row class="fill-height" align="center" justify="center" >
+  <v-row class="fill-height" align="center" justify="center">
     <div id="firebaseui-auth-container"></div>
   </v-row>
 </template>

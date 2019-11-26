@@ -15,7 +15,8 @@
       :items="tasks"
       :classes="classes"
     >
-      <template v-slot:.key="{ item, value }">
+      <!-- eslint-disable vue/no-parsing-error -->
+      <template v-slot:.key="{ item }">
         <router-link :to="getTaskLink(item)">
           {{ item[".key"] }}
         </router-link>
@@ -27,7 +28,11 @@
         <task-output :item="item" :value="value"></task-output>
       </template>
       <template v-slot:resolution="{ item, value }">
-        <resolution :item="item" :value="value" :showReviewButton="false"></resolution>
+        <resolution
+          :item="item"
+          :value="value"
+          :showReviewButton="false"
+        ></resolution>
       </template>
     </data-table>
   </div>
@@ -118,5 +123,4 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

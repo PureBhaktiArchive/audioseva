@@ -1,10 +1,10 @@
 <template>
   <p class="ma-0 text-no-wrap" v-if="item.assignee">
-    <span>{{item.assignee.name}}</span>
-    <br>
-    <span
-      :style="{ fontSize: 'smaller',color: '#A9A9A9' }"
-    >{{item.assignee.emailAddress}}</span>
+    <span>{{ item.assignee.name }}</span>
+    <br />
+    <span :style="{ fontSize: 'smaller', color: '#A9A9A9' }">{{
+      item.assignee.emailAddress
+    }}</span>
   </p>
 </template>
 
@@ -20,5 +20,4 @@ export default class Assignee extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
