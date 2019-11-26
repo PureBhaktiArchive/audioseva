@@ -352,7 +352,7 @@ export default class Form extends Vue {
   errorMessage = "";
   isCoordinator = false;
   showValidationSummary = false;
-
+  getUserClaims!: any;
   rules = [required];
 
   handleListClick(cancelField: number) {
@@ -464,29 +464,28 @@ export default class Form extends Vue {
     };
   }
 
-  getSavedData(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
-    this.$bindAsObject(
-      "initialData",
-      firebase.database().ref(this.submissionPath(branch)),
-      () => {
-        this.isLoadingForm = false;
-        this.errorMessage = "Error loading form data.";
-      },
-      () => {
-        if (
-          this.initialData[".value"] !== null ||
-          branch === SubmissionsBranch.DRAFTS
-        ) {
-          return this.populateForm();
-        }
-
-        if (branch === SubmissionsBranch.COMPLETED) {
-          this.getSavedData(SubmissionsBranch.MIGRATED);
-        } else if (branch === SubmissionsBranch.MIGRATED) {
-          this.getSavedData(SubmissionsBranch.DRAFTS);
-        }
+  async getSavedData(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
+    try {
+      await this.$rtdbBind(
+        "initialData",
+        firebase.database().ref(this.submissionPath(branch))
+      );
+      if (
+        this.initialData[".value"] !== null ||
+        branch === SubmissionsBranch.DRAFTS
+      ) {
+        return this.populateForm();
       }
-    );
+
+      if (branch === SubmissionsBranch.COMPLETED) {
+        this.getSavedData(SubmissionsBranch.MIGRATED);
+      } else if (branch === SubmissionsBranch.MIGRATED) {
+        this.getSavedData(SubmissionsBranch.DRAFTS);
+      }
+    } catch (e) {
+      this.isLoadingForm = false;
+      this.errorMessage = "Error loading form data.";
+    }
   }
 
   addId(soundIssuesOrUnwantedParts: Array<any>) {

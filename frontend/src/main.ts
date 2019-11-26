@@ -18,7 +18,7 @@ import Vuetify from "vuetify";
 import vuetifyOptions from "@/vuetifyOptions";
 import "vuetify/dist/vuetify.min.css";
 
-import VueFire from "vuefire";
+import { rtdbPlugin as VueFire } from "vuefire";
 
 import "@babel/polyfill";
 
