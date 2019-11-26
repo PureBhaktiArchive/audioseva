@@ -72,6 +72,7 @@ const ranks: any = {
 })
 export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
   tasks: any[] = [];
+  currentUser!: firebase.User;
   isLoadingTasks = false;
   headers = [
     { text: "Task ID", value: ".key", sortable: false },
@@ -106,19 +107,16 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
     this.getTasks();
   }
 
-  getTasks() {
-    this.$bindAsArray(
+  async getTasks() {
+    await this.$rtdbBind(
       "tasks",
       firebase
         .database()
         .ref("/TE/tasks")
         .orderByChild("assignee/emailAddress")
-        .equalTo(this.currentUser.email),
-      null,
-      () => {
-        this.datatableProps.loading = false;
-      }
+        .equalTo(this.currentUser.email)
     );
+    this.datatableProps.loading = false;
   }
 }
 </script>

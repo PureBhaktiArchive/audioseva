@@ -182,20 +182,19 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     feedback: ""
   };
 
+  getUserClaims!: any;
+
   mounted() {
     this.getTask();
     this.checkUserClaims();
   }
 
-  getTask() {
-    this.$bindAsObject(
+  async getTask() {
+    await this.$rtdbBind(
       "task",
-      firebase.database().ref(`/TE/tasks/${this.$route.params.taskId}`),
-      null,
-      () => {
-        this.isFetchingTask = false;
-      }
+      firebase.database().ref(`/TE/tasks/${this.$route.params.taskId}`)
     );
+    this.isFetchingTask = false;
   }
 
   async checkUserClaims() {

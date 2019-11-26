@@ -181,7 +181,7 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
     }
   }
 
-  loadNewPage(page: number) {
+  async loadNewPage(page: number) {
     let query: any = firebase
       .database()
       .ref("/TE/tasks")
@@ -191,15 +191,12 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
       query = query.endAt(_.last(pageKeys));
     }
     this.$set(this.datatableProps, "loading", true);
-    this.$bindAsArray(
+    await this.$rtdbBind(
       "currentPage",
-      query.limitToLast(this.pagination.itemsPerPage + 1),
-      null,
-      () => {
-        this.pagination.page = page;
-        this.paginationHandler();
-      }
+      query.limitToLast(this.pagination.itemsPerPage + 1)
     );
+    this.pagination.page = page;
+    this.paginationHandler();
   }
 
   get items() {

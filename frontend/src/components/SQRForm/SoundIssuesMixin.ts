@@ -22,6 +22,10 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
     return Object.values(part).some(fieldValue => !!fieldValue);
   }
 
+  get customData(): { [key: string]: any } {
+    return {};
+  }
+
   getFieldProps(value: string, item: any) {
     const hasRules = this.shouldValidateField(value, item);
     const props = this.customData[value].props;

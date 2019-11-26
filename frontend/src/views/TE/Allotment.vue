@@ -139,18 +139,17 @@ export default class Allotment extends Vue {
     }
   }
 
-  getTasks() {
-    this.$bindAsArray(
+  async getTasks() {
+    await this.$rtdbBind(
       "tasks",
       firebase
         .database()
         .ref("/TE/tasks")
         .orderByChild("status")
         .equalTo("Spare")
-        .limitToFirst(50),
-      null,
-      () => (this.isLoadingTasks = false)
+        .limitToFirst(50)
     );
+    this.isLoadingTasks = false;
   }
 
   async allot() {

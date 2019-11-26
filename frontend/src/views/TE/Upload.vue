@@ -116,6 +116,7 @@ interface IFileStatus {
 })
 export default class Upload extends Vue {
   user: any = null;
+  currentUser!: firebase.User;
   files: Map<File, IFileStatus> = new Map();
   totalUploadCount: number = 0;
   completedFileUploads: number = 0;
