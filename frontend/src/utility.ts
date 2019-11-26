@@ -3,9 +3,12 @@ import _ from "lodash";
 import moment from "moment";
 import { ICount } from "@/types/DataTable";
 
-export const trackEditingUploadsBucket = `te.uploads.${
-  process.env.VUE_APP_PROJECT_DOMAIN
-}`;
+export const getProjectDomain = () => {
+  return window.location.host
+    .split(".")
+    .slice(1)
+    .join(".");
+};
 
 export function getDayDifference(date: number) {
   return moment().diff(date, "days");
