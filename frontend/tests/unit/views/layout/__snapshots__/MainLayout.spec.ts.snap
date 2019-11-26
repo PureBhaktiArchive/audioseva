@@ -1,36 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`HomePageButtons should render buttons that match claims {"TE": true} 1`] = `
-Array [
-  Object {
-    "props": Object {
-      "color": "primary",
-      "to": "/te/upload",
-    },
-    "text": "Upload",
-  },
-]
-`;
-
-exports[`HomePageButtons should render buttons that match claims {"coordinator": true} 1`] = `
-Array [
-  Object {
-    "props": Object {
-      "color": "primary",
-      "to": "/sqr/",
-    },
-    "text": "SQR",
-  },
-  Object {
-    "props": Object {
-      "color": "primary",
-      "to": "/te/tasks",
-    },
-    "text": "TE",
-  },
-]
-`;
-
 exports[`MainLayout should render menu items that match claims {"TE": true} 1`] = `
 Array [
   Object {
@@ -96,31 +65,7 @@ Array [
 exports[`MainLayout should render menu items that match claims {"coordinator": true} 1`] = `
 Array [
   Object {
-    "component": [Function],
-    "meta": Object {
-      "auth": Object {
-        "requireClaims": Object {
-          "coordinator": true,
-        },
-      },
-      "menuIcon": "fas fa-users",
-      "menuItem": true,
-      "menuName": "People",
-    },
-    "path": "users",
-  },
-  Object {
     "children": Array [
-      Object {
-        "component": [Function],
-        "meta": Object {
-          "homePageLink": Object {
-            "text": "SQR",
-          },
-          "menuItem": true,
-        },
-        "path": "",
-      },
       Object {
         "component": [Function],
         "meta": Object {
