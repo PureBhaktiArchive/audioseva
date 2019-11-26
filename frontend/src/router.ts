@@ -165,25 +165,22 @@ export const filterRoutesByClaims = (
   requireParentClaims: boolean | { [key: string]: any } = false,
   ...args: any[]
 ): RouteConfig[] => {
-  return routes.reduce(
-    (filteredRoutes, route) => {
-      const requireClaims = _.get(
-        route,
-        "meta.auth.requireClaims",
-        requireParentClaims
-      );
+  return routes.reduce((filteredRoutes, route) => {
+    const requireClaims = _.get(
+      route,
+      "meta.auth.requireClaims",
+      requireParentClaims
+    );
 
-      const filteredRoute = filterCb<RouteConfig>(
-        route,
-        userClaims,
-        requireClaims,
-        ...args
-      );
-      filteredRoute && filteredRoutes.push(filteredRoute);
-      return filteredRoutes;
-    },
-    [] as RouteConfig[]
-  );
+    const filteredRoute = filterCb<RouteConfig>(
+      route,
+      userClaims,
+      requireClaims,
+      ...args
+    );
+    filteredRoute && filteredRoutes.push(filteredRoute);
+    return filteredRoutes;
+  }, [] as RouteConfig[]);
 };
 
 const filterHomePageRoutes = filterRoutesByClaims(

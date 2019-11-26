@@ -4,7 +4,7 @@
       <v-chip
         class="ma-1 ml-0"
         label
-        :color="lastIsApproved ? 'green' : 'red' "
+        :color="lastIsApproved ? 'green' : 'red'"
         text-color="white"
       >
         {{ lastIsApproved ? "Approved" : "Disapproved" }}
@@ -55,5 +55,4 @@ export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

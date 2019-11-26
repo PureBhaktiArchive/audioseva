@@ -1,5 +1,5 @@
 <template>
-  <v-row >
+  <v-row>
     <v-col cols="6" v-for="field in fields" :key="field">
       <v-text-field
         outlined
@@ -41,5 +41,4 @@ export default class Duration extends Mixins<FormField>(FormField) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

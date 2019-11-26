@@ -15,5 +15,4 @@ import BaseLayout from "./BaseLayout.vue";
 export default class AnonymousLayout extends Vue {}
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

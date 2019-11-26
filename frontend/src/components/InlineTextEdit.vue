@@ -4,12 +4,17 @@
       :return-value.sync="textAreaValue"
       lazy
       large
-      @save="$listeners.save(item, editPath, textAreaValue, { itemPath: value, newValue: textAreaValue })"
+      @save="
+        $listeners.save(item, editPath, textAreaValue, {
+          itemPath: value,
+          newValue: textAreaValue
+        })
+      "
       @cancel="$listeners.cancel"
       @open="open"
     >
       <slot>
-        <span :style="{padding: '4px'}">{{ textArea }}</span>
+        <span :style="{ padding: '4px' }">{{ textArea }}</span>
       </slot>
       <v-textarea
         v-if="isShowTextArea == true"
@@ -69,5 +74,4 @@ export default class InlineTextEdit extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -12,10 +12,12 @@
         <v-list class="pa-0">
           <v-list-item>
             <v-list-item-avatar>
-              <img :src="currentUser.photoURL">
+              <img :src="currentUser.photoURL" />
             </v-list-item-avatar>
             <v-list-item-content>
-              <v-list-item-title>{{currentUser.displayName}}</v-list-item-title>
+              <v-list-item-title>{{
+                currentUser.displayName
+              }}</v-list-item-title>
             </v-list-item-content>
             <v-list-item-action>
               <v-btn color="rgba(0, 0, 0, 0.87)" icon ripple @click="signOut">
@@ -59,9 +61,14 @@
       </v-navigation-drawer>
 
       <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
-        <v-app-bar-nav-icon @click="sidebar = !sidebar" v-if="currentUser"></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon
+          @click="sidebar = !sidebar"
+          v-if="currentUser"
+        ></v-app-bar-nav-icon>
         <v-toolbar-title>
-          <router-link to="/" tag="span" style="cursor: pointer">{{ appTitle }}</router-link>
+          <router-link to="/" tag="span" style="cursor: pointer">{{
+            appTitle
+          }}</router-link>
         </v-toolbar-title>
       </v-app-bar>
     </template>
