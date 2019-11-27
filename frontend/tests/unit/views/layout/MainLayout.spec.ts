@@ -5,8 +5,8 @@ import Vuetify from "vuetify";
 import flushPromises from "flush-promises";
 import MainLayout from "@/views/Layout/MainLayout.vue";
 import { router } from "@/router";
-import { mockClaims } from "../../HomePageButtons.spec";
 import vuetifyOptions from "@/vuetifyOptions";
+import { mockClaims } from "../../helpers";
 
 describe("MainLayout", () => {
   let localVue: typeof Vue;
@@ -40,7 +40,7 @@ describe("MainLayout", () => {
         }
       });
       await flushPromises();
-      expect(wrapper.vm.menuItems).toMatchSnapshot();
+      expect((wrapper.vm as any).menuItems).toMatchSnapshot();
     }
   );
 });

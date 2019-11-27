@@ -30,5 +30,4 @@ export default class TimestampGiven extends Mixins<FormatTime>(FormatTime) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

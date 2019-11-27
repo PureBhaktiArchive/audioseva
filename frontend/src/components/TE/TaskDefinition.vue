@@ -10,13 +10,22 @@
           </div>
         </v-col>
         <v-col v-bind="layout.duration">
-          <span>{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{ formatDurationUtc(chunk.ending, "mm:ss") }}</span>
+          <span
+            >{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{
+              formatDurationUtc(chunk.ending, "mm:ss")
+            }}</span
+          >
         </v-col>
         <v-col v-bind="layout.unwantedParts">
-          <div :style="{ whiteSpace: 'pre-wrap' }">{{ chunk.unwantedParts }}</div>
+          <div :style="{ whiteSpace: 'pre-wrap' }">
+            {{ chunk.unwantedParts }}
+          </div>
         </v-col>
       </v-row>
-      <v-divider :key="`${item['key']}-${index}-divider`" class="mt-2 mb-2"></v-divider>
+      <v-divider
+        :key="`${item['key']}-${index}-divider`"
+        class="mt-2 mb-2"
+      ></v-divider>
     </template>
   </div>
 </template>
@@ -61,5 +70,4 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -1,5 +1,9 @@
 <template>
-  <v-text-field :value="getValue()" v-bind="fieldProps" @input="handleInput"></v-text-field>
+  <v-text-field
+    :value="getValue()"
+    v-bind="fieldProps"
+    @input="handleInput"
+  ></v-text-field>
 </template>
 
 <script lang="ts">
@@ -20,5 +24,4 @@ export default class TextField extends Mixins<ItemPath>(ItemPath) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

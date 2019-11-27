@@ -15,7 +15,8 @@
       :items="tasks"
       :classes="classes"
     >
-      <template v-slot:.key="{ item, value }">
+      <!-- eslint-disable vue/no-parsing-error -->
+      <template v-slot:.key="{ item }">
         <router-link :to="getTaskLink(item)">
           {{ item[".key"] }}
         </router-link>
@@ -27,7 +28,11 @@
         <task-output :item="item" :value="value"></task-output>
       </template>
       <template v-slot:resolution="{ item, value }">
-        <resolution :item="item" :value="value" :showReviewButton="false"></resolution>
+        <resolution
+          :item="item"
+          :value="value"
+          :showReviewButton="false"
+        ></resolution>
       </template>
     </data-table>
   </div>
@@ -67,6 +72,7 @@ const ranks: any = {
 })
 export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
   tasks: any[] = [];
+  currentUser!: firebase.User;
   isLoadingTasks = false;
   headers = [
     { text: "Task ID", value: ".key", sortable: false },
@@ -101,22 +107,18 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
     this.getTasks();
   }
 
-  getTasks() {
-    this.$bindAsArray(
+  async getTasks() {
+    await this.$rtdbBind(
       "tasks",
       firebase
         .database()
         .ref("/TE/tasks")
         .orderByChild("assignee/emailAddress")
-        .equalTo(this.currentUser.email),
-      null,
-      () => {
-        this.datatableProps.loading = false;
-      }
+        .equalTo(this.currentUser.email)
     );
+    this.datatableProps.loading = false;
   }
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

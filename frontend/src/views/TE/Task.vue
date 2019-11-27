@@ -5,7 +5,9 @@
     </div>
     <div v-else>
       <div :style="{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }">
-        <h1 class="d-inline" :style="{ width: 'auto' }">Track Editing Task {{ $route.params.taskId }}</h1>
+        <h1 class="d-inline" :style="{ width: 'auto' }">
+          Track Editing Task {{ $route.params.taskId }}
+        </h1>
         <v-chip :style="getTaskStyle(task)">{{ task.status }}</v-chip>
       </div>
       <article>
@@ -15,11 +17,29 @@
       <article>
         <h3>History</h3>
         <v-timeline dense>
-          <v-timeline-item icon="fas fa-paper-plane" fill-dot v-if="task.assignee">
-            <v-row justify="space-between" >
-              <v-col cols="12" sm="9" :style="{ display: 'flex', flexWrap: 'wrap' }">
-                <p class="mb-0">Allotted to {{ task.assignee.name }} ({{ task.assignee.emailAddress }}).</p>
-                <v-btn @click="onCancelClick" class="mt-0 ml-1" color="error" small>Cancel</v-btn>
+          <v-timeline-item
+            icon="fas fa-paper-plane"
+            fill-dot
+            v-if="task.assignee"
+          >
+            <v-row justify="space-between">
+              <v-col
+                cols="12"
+                sm="9"
+                :style="{ display: 'flex', flexWrap: 'wrap' }"
+              >
+                <p class="mb-0">
+                  Allotted to {{ task.assignee.name }} ({{
+                    task.assignee.emailAddress
+                  }}).
+                </p>
+                <v-btn
+                  @click="onCancelClick"
+                  class="mt-0 ml-1"
+                  color="error"
+                  small
+                  >Cancel</v-btn
+                >
               </v-col>
               <v-col class="text-sm-right text-left" v-if="task.timestampGiven">
                 {{ formatTimestamp(task.timestampGiven) }}
@@ -27,24 +47,40 @@
             </v-row>
           </v-timeline-item>
           <template v-for="(version, key, index) in task.versions">
-            <v-timeline-item :key="`version-${key}`" :icon="$vuetify.icons.values.upload" fill-dot>
-              <v-row justify="space-between" >
+            <v-timeline-item
+              :key="`version-${key}`"
+              :icon="$vuetify.icons.values.upload"
+              fill-dot
+            >
+              <v-row justify="space-between">
                 <v-col cols="12" sm="9">
-                  <h4 class="pr-2 d-inline">Version {{ index + 1}} uploaded:</h4>
-                  <a :href="version.uploadPath">{{ task[".key"]}}</a>
+                  <h4 class="pr-2 d-inline">
+                    Version {{ index + 1 }} uploaded:
+                  </h4>
+                  <a :href="version.uploadPath">{{ task[".key"] }}</a>
                 </v-col>
-                <v-col class="text-right" sm="3" v-if="version.timestamp" >{{ formatTimestamp(version.timestamp)}}</v-col>
+                <v-col class="text-right" sm="3" v-if="version.timestamp">{{
+                  formatTimestamp(version.timestamp)
+                }}</v-col>
               </v-row>
             </v-timeline-item>
             <v-timeline-item
               :key="`resolution-${index}`"
               :color="version.resolution.isApproved ? 'green' : 'red'"
               v-if="version.resolution"
-              :icon="version.resolution.isApproved ? $vuetify.icons.values.check : $vuetify.icons.values.undo"
+              :icon="
+                version.resolution.isApproved
+                  ? $vuetify.icons.values.check
+                  : $vuetify.icons.values.undo
+              "
               fill-dot
             >
-              <v-row justify="space-between" >
-                <v-col cols="9" sm="9" :style="{ display: 'flex', alignItems: 'center' }">
+              <v-row justify="space-between">
+                <v-col
+                  cols="9"
+                  sm="9"
+                  :style="{ display: 'flex', alignItems: 'center' }"
+                >
                   <div :style="{ width: '100%' }">
                     <v-chip
                       :style="{ float: 'left' }"
@@ -53,29 +89,55 @@
                       :color="version.resolution.isApproved ? 'green' : 'red'"
                       dark
                     >
-                      <span>{{ version.resolution.isApproved ? 'Approved' : 'Disapproved' }}</span>
+                      <span>{{
+                        version.resolution.isApproved
+                          ? "Approved"
+                          : "Disapproved"
+                      }}</span>
                     </v-chip>
-                    <p class="mb-0" v-if="version.resolution.feedback">{{ version.resolution.feedback }}</p>
+                    <p class="mb-0" v-if="version.resolution.feedback">
+                      {{ version.resolution.feedback }}
+                    </p>
                   </div>
                 </v-col>
-                <v-col class="text-right" cols="3" sm="3" v-if="version.resolution.timestamp">
+                <v-col
+                  class="text-right"
+                  cols="3"
+                  sm="3"
+                  v-if="version.resolution.timestamp"
+                >
                   <p class="mb-0">
-                    {{ formatTimestamp(version.resolution.timestamp)}}
+                    {{ formatTimestamp(version.resolution.timestamp) }}
                   </p>
                 </v-col>
               </v-row>
             </v-timeline-item>
-            <v-timeline-item v-else-if="index === versionsCount - 1 && isCoordinator" :key="`resolution-${key}`">
+            <v-timeline-item
+              v-else-if="index === versionsCount - 1 && isCoordinator"
+              :key="`resolution-${key}`"
+            >
               <template v-slot:icon>
                 <v-avatar>
                   <img :src="currentUser.photoURL" alt="user avatar" />
                 </v-avatar>
               </template>
               <v-form ref="form">
-                <v-textarea v-model="form.feedback" outlined :rules="fieldRules" label="Feed back"></v-textarea>
+                <v-textarea
+                  v-model="form.feedback"
+                  outlined
+                  :rules="fieldRules"
+                  label="Feed back"
+                ></v-textarea>
                 <div :style="{ display: 'flex' }">
-                  <v-btn color="success" class="mx-2" @click="handleSubmitForm(true, key)">Approve</v-btn>
-                  <v-btn color="error" @click="handleSubmitForm(false, key)">Disapprove</v-btn>
+                  <v-btn
+                    color="success"
+                    class="mx-2"
+                    @click="handleSubmitForm(true, key)"
+                    >Approve</v-btn
+                  >
+                  <v-btn color="error" @click="handleSubmitForm(false, key)"
+                    >Disapprove</v-btn
+                  >
                 </div>
               </v-form>
             </v-timeline-item>
@@ -120,20 +182,19 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     feedback: ""
   };
 
+  getUserClaims!: any;
+
   mounted() {
     this.getTask();
     this.checkUserClaims();
   }
 
-  getTask() {
-    this.$bindAsObject(
+  async getTask() {
+    await this.$rtdbBind(
       "task",
-      firebase.database().ref(`/TE/tasks/${this.$route.params.taskId}`),
-      null,
-      () => {
-        this.isFetchingTask = false;
-      }
+      firebase.database().ref(`/TE/tasks/${this.$route.params.taskId}`)
     );
+    this.isFetchingTask = false;
   }
 
   async checkUserClaims() {
@@ -157,9 +218,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     this.form.isApproved = isApproved;
     this.$nextTick(async () => {
       if ((this.$refs as any).form[0].validate()) {
-        const versionToUpdate = `/TE/tasks/${
-          this.$route.params.taskId
-        }/versions/${versionKey}/resolution`;
+        const versionToUpdate = `/TE/tasks/${this.$route.params.taskId}/versions/${versionKey}/resolution`;
         await firebase
           .database()
           .ref(versionToUpdate)

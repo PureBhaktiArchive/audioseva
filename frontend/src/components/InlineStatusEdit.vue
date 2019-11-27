@@ -1,13 +1,22 @@
 <template>
-  <v-menu offset-y :style="{ height: '100%', width: '100%', display: 'inherit' }">
+  <v-menu
+    offset-y
+    :style="{ height: '100%', width: '100%', display: 'inherit' }"
+  >
     <p
       class="ma-0 text-no-wrap"
       slot="activator"
       :style="{ height: '25px', width: '40px' }"
-    >{{ status }}</p>
+    >
+      {{ status }}
+    </p>
     <div>
       <v-list>
-        <v-list-item @click="handleChange(item)" v-for="(item, index) in statusItems" :key="index">
+        <v-list-item
+          @click="handleChange(item)"
+          v-for="(item, index) in statusItems"
+          :key="index"
+        >
           <v-list-item-title>{{ item }}</v-list-item-title>
         </v-list-item>
       </v-list>

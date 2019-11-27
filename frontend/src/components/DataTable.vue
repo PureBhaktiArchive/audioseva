@@ -12,8 +12,11 @@
           :key="getKey(item, value.value, index, rest.index)"
           :class="getClasses(value, item)"
         >
-          <slot :name="value.value" v-bind="{ item, value: value.value, ...rest }">
-            {{ getDefaultItem(item, value.value)}}
+          <slot
+            :name="value.value"
+            v-bind="{ item, value: value.value, ...rest }"
+          >
+            {{ getDefaultItem(item, value.value) }}
           </slot>
         </td>
       </tr>

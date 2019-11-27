@@ -65,16 +65,6 @@ export const router = new Router({
           component: () => import("@/views/Home.vue")
         },
         {
-          path: "users",
-          component: () => import("@/views/Users/List.vue"),
-          meta: {
-            menuItem: true,
-            menuName: "People",
-            menuIcon: "fas fa-users",
-            auth: { requireClaims: { coordinator: true } }
-          }
-        },
-        {
           path: "sqr/",
           component: () => import("@/views/SQR/SQR.vue"),
           meta: {
@@ -84,14 +74,6 @@ export const router = new Router({
             auth: { requireClaims: { coordinator: true } }
           },
           children: [
-            {
-              path: "",
-              component: () => import("@/views/SQR/Files.vue"),
-              meta: {
-                menuItem: true,
-                homePageLink: { text: "SQR" }
-              }
-            },
             {
               path: "allot",
               component: () => import("@/views/SQRAllotment.vue"),
@@ -183,25 +165,22 @@ export const filterRoutesByClaims = (
   requireParentClaims: boolean | { [key: string]: any } = false,
   ...args: any[]
 ): RouteConfig[] => {
-  return routes.reduce(
-    (filteredRoutes, route) => {
-      const requireClaims = _.get(
-        route,
-        "meta.auth.requireClaims",
-        requireParentClaims
-      );
+  return routes.reduce((filteredRoutes, route) => {
+    const requireClaims = _.get(
+      route,
+      "meta.auth.requireClaims",
+      requireParentClaims
+    );
 
-      const filteredRoute = filterCb<RouteConfig>(
-        route,
-        userClaims,
-        requireClaims,
-        ...args
-      );
-      filteredRoute && filteredRoutes.push(filteredRoute);
-      return filteredRoutes;
-    },
-    [] as RouteConfig[]
-  );
+    const filteredRoute = filterCb<RouteConfig>(
+      route,
+      userClaims,
+      requireClaims,
+      ...args
+    );
+    filteredRoute && filteredRoutes.push(filteredRoute);
+    return filteredRoutes;
+  }, [] as RouteConfig[]);
 };
 
 const filterHomePageRoutes = filterRoutesByClaims(

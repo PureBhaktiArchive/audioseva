@@ -13,5 +13,4 @@ import { Component, Vue } from "vue-property-decorator";
 export default class TE extends Vue {}
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -1,5 +1,9 @@
 <template>
-  <v-textarea :value="getValue()" v-bind="fieldProps" @input="handleInput"></v-textarea>
+  <v-textarea
+    :value="getValue()"
+    v-bind="fieldProps"
+    @input="handleInput"
+  ></v-textarea>
 </template>
 
 <script lang="ts">
@@ -20,5 +24,4 @@ export default class TextArea extends Mixins<ItemPath>(ItemPath) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
