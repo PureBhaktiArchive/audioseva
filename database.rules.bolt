@@ -136,6 +136,7 @@ function tokenIsValid(token, fileName, phase) {
 path /SQR {
   path /allotments is Map<OriginalFileName, ReportingAllotment> {
     index() { ["status", "assignee/emailAddress", "token"] }
+    read() { query.orderByChild == "token" }
   }
 
   path /submissions {
