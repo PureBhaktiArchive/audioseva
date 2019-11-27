@@ -3,7 +3,7 @@
     <header>
       <h1>Track Editing Tasks</h1>
     </header>
-    <v-row align="end" >
+    <v-row align="end">
       <v-col><v-btn class="ml-0" to="allot">Allot</v-btn></v-col>
       <v-col>
         <pagination-controls
@@ -26,7 +26,8 @@
       v-bind="datatableProps"
       @click:row="onRowClicked"
     >
-      <template v-slot:.key="{ item, value }">
+      <!-- eslint-disable vue/no-parsing-error -->
+      <template v-slot:.key="{ item }">
         <router-link :to="getTaskLink(item)">
           {{ item[".key"] }}
         </router-link>
@@ -180,7 +181,7 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
     }
   }
 
-  loadNewPage(page: number) {
+  async loadNewPage(page: number) {
     let query: any = firebase
       .database()
       .ref("/TE/tasks")
@@ -190,15 +191,12 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
       query = query.endAt(_.last(pageKeys));
     }
     this.$set(this.datatableProps, "loading", true);
-    this.$bindAsArray(
+    await this.$rtdbBind(
       "currentPage",
-      query.limitToLast(this.pagination.itemsPerPage + 1),
-      null,
-      () => {
-        this.pagination.page = page;
-        this.paginationHandler();
-      }
+      query.limitToLast(this.pagination.itemsPerPage + 1)
     );
+    this.pagination.page = page;
+    this.paginationHandler();
   }
 
   get items() {

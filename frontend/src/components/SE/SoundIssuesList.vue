@@ -4,7 +4,13 @@
       :style="{ whiteSpace: 'nowrap' }"
       v-for="(value, key, index) in item.soundIssues"
       :key="index"
-    >{{ `${formatSeconds(value.beginning)}-${formatSeconds(value.ending)} ${value.type}, ${value.description || ""}` }}</li>
+    >
+      {{
+        `${formatSeconds(value.beginning)}-${formatSeconds(value.ending)} ${
+          value.type
+        }, ${value.description || ""}`
+      }}
+    </li>
   </ul>
 </template>
 
@@ -27,5 +33,4 @@ export default class SoundIssuesList extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

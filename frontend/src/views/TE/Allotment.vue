@@ -13,14 +13,16 @@
         clearable
         dense
       >
-        <template slot="item" slot-scope="{item}">
+        <template slot="item" slot-scope="{ item }">
           <template v-if="typeof item !== 'object'">
             <v-list-item-content v-text="item"></v-list-item-content>
           </template>
           <template v-else>
             <v-list-item-content>
               <v-list-item-title v-html="item.name"></v-list-item-title>
-              <v-list-item-subtitle v-html="item.emailAddress"></v-list-item-subtitle>
+              <v-list-item-subtitle
+                v-html="item.emailAddress"
+              ></v-list-item-subtitle>
             </v-list-item-content>
           </template>
         </template>
@@ -32,8 +34,15 @@
       <template v-else-if="tasks.length">
         <template v-for="task in tasks">
           <div :key="task['.key']">
-            <v-row align="start" >
-              <v-col cols="12" md="2" lg="2" xl="1" :style="{ alignItems: 'center', flexWrap: 'wrap' }" class="d-flex shrink">
+            <v-row align="start">
+              <v-col
+                cols="12"
+                md="2"
+                lg="2"
+                xl="1"
+                :style="{ alignItems: 'center', flexWrap: 'wrap' }"
+                class="d-flex shrink"
+              >
                 <v-checkbox
                   :style="{ flex: 'none' }"
                   v-model="allotment.tasks"
@@ -49,16 +58,26 @@
                 <task-definition class="pr-3" :item="task" />
               </v-col>
             </v-row>
-            <v-divider :style="{ borderColor: '#9a9a9a' }" class="my-1 py-1"></v-divider>
+            <v-divider
+              :style="{ borderColor: '#9a9a9a' }"
+              class="my-1 py-1"
+            ></v-divider>
           </div>
         </template>
       </template>
       <p v-else>No tasks</p>
 
       <!-- Comment -->
-      <v-textarea v-model="allotment.comment" filled label="Comment" rows="3"></v-textarea>
+      <v-textarea
+        v-model="allotment.comment"
+        filled
+        label="Comment"
+        rows="3"
+      ></v-textarea>
       <!-- Buttons -->
-      <v-btn @click="allot" :loading="submissionStatus === 'inProgress'">Allot</v-btn>
+      <v-btn @click="allot" :loading="submissionStatus === 'inProgress'"
+        >Allot</v-btn
+      >
     </v-form>
     <v-alert
       v-else
@@ -120,18 +139,17 @@ export default class Allotment extends Vue {
     }
   }
 
-  getTasks() {
-    this.$bindAsArray(
+  async getTasks() {
+    await this.$rtdbBind(
       "tasks",
       firebase
         .database()
         .ref("/TE/tasks")
         .orderByChild("status")
         .equalTo("Spare")
-        .limitToFirst(50),
-      null,
-      () => (this.isLoadingTasks = false)
+        .limitToFirst(50)
     );
+    this.isLoadingTasks = false;
   }
 
   async allot() {
@@ -154,5 +172,4 @@ export default class Allotment extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

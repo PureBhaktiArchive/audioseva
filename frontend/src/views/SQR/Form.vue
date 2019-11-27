@@ -11,19 +11,25 @@
     </v-container>
     <v-container v-else-if="submitSuccess">
       <div class="submitSuccessBackground">
-        <p class="pa-4 title submitSuccessText">Thank you! We have received your submission.</p>
+        <p class="pa-4 title submitSuccessText">
+          Thank you! We have received your submission.
+        </p>
       </div>
     </v-container>
-    <p class="d-flex justify-center red--text font-weight-bold" v-else-if="errorMessage">
+    <p
+      class="d-flex justify-center red--text font-weight-bold"
+      v-else-if="errorMessage"
+    >
       {{ errorMessage }}
     </p>
     <v-form v-else ref="form" @submit.prevent="handleSubmit">
       <v-container>
-        <v-row >
+        <v-row>
           <v-col>
             <v-list class="cancel-list">
               <v-list-group
-                v-for="(item, index) in cancelFields" @click="handleListClick(index + 1)"
+                v-for="(item, index) in cancelFields"
+                @click="handleListClick(index + 1)"
                 :key="item.label"
                 no-action
                 class="py-1"
@@ -67,7 +73,13 @@
               <v-text-field disabled :value="$route.params.fileName">
               </v-text-field>
             </v-col>
-            <v-col class="my-2" :style="{ backgroundColor: '#fff' }" cols="12" v-for="(field, index) of fields" :key="index">
+            <v-col
+              class="my-2"
+              :style="{ backgroundColor: '#fff' }"
+              cols="12"
+              v-for="(field, index) of fields"
+              :key="index"
+            >
               <h3>{{ field.title }}</h3>
               <template v-if="field.component">
                 <component
@@ -80,24 +92,46 @@
               </template>
               <v-expansion-panels class="pt-3">
                 <v-expansion-panel>
-                  <v-expansion-panel-header class="pl-0">Guidelines</v-expansion-panel-header>
+                  <v-expansion-panel-header class="pl-0"
+                    >Guidelines</v-expansion-panel-header
+                  >
                   <v-expansion-panel-content>
-                    <p v-html="field.guidelines">
-                    </p>
+                    <p v-html="field.guidelines"></p>
                   </v-expansion-panel-content>
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-col>
-            <v-row class="sticky" >
-              <v-col cols="12" sm="6" :style="{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }">
-                <v-btn v-if="!form.completed" @click="saveDraft">Save draft</v-btn>
-                <v-btn type="submit" color="primary" class=" mx-2">Submit</v-btn>
-                <p :style="{ color: 'red' }" v-if="formHasError && showValidationSummary" class="ma-0">
+            <v-row class="sticky">
+              <v-col
+                cols="12"
+                sm="6"
+                :style="{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap'
+                }"
+              >
+                <v-btn v-if="!form.completed" @click="saveDraft"
+                  >Save draft</v-btn
+                >
+                <v-btn type="submit" color="primary" class=" mx-2"
+                  >Submit</v-btn
+                >
+                <p
+                  :style="{ color: 'red' }"
+                  v-if="formHasError && showValidationSummary"
+                  class="ma-0"
+                >
                   Some fields are not filled properly, see above.
                 </p>
               </v-col>
               <v-col align-self="center" sm="6" md="6">
-                <p :style="{margin: '6px 0 6px 8px', color: formStateMessageColor }">
+                <p
+                  :style="{
+                    margin: '6px 0 6px 8px',
+                    color: formStateMessageColor
+                  }"
+                >
                   {{ formStateMessages[formState] }}
                 </p>
               </v-col>
@@ -318,7 +352,7 @@ export default class Form extends Vue {
   errorMessage = "";
   isCoordinator = false;
   showValidationSummary = false;
-
+  getUserClaims!: any;
   rules = [required];
 
   handleListClick(cancelField: number) {
@@ -366,12 +400,14 @@ export default class Form extends Vue {
       "coordinator",
       false
     );
-    const response = (await firebase
-      .database()
-      .ref(`SQR/allotments`)
-      .orderByChild("token")
-      .equalTo(token)
-      .once("value")).val();
+    const response = (
+      await firebase
+        .database()
+        .ref(`SQR/allotments`)
+        .orderByChild("token")
+        .equalTo(token)
+        .once("value")
+    ).val();
     const allotmentStatus = _.get<string>(response, `${fileName}.status`, "");
     if (!allotmentStatus) {
       this.errorMessage =
@@ -428,29 +464,28 @@ export default class Form extends Vue {
     };
   }
 
-  getSavedData(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
-    this.$bindAsObject(
-      "initialData",
-      firebase.database().ref(this.submissionPath(branch)),
-      () => {
-        this.isLoadingForm = false;
-        this.errorMessage = "Error loading form data.";
-      },
-      () => {
-        if (
-          this.initialData[".value"] !== null ||
-          branch === SubmissionsBranch.DRAFTS
-        ) {
-          return this.populateForm();
-        }
-
-        if (branch === SubmissionsBranch.COMPLETED) {
-          this.getSavedData(SubmissionsBranch.MIGRATED);
-        } else if (branch === SubmissionsBranch.MIGRATED) {
-          this.getSavedData(SubmissionsBranch.DRAFTS);
-        }
+  async getSavedData(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
+    try {
+      await this.$rtdbBind(
+        "initialData",
+        firebase.database().ref(this.submissionPath(branch))
+      );
+      if (
+        this.initialData[".value"] !== null ||
+        branch === SubmissionsBranch.DRAFTS
+      ) {
+        return this.populateForm();
       }
-    );
+
+      if (branch === SubmissionsBranch.COMPLETED) {
+        this.getSavedData(SubmissionsBranch.MIGRATED);
+      } else if (branch === SubmissionsBranch.MIGRATED) {
+        this.getSavedData(SubmissionsBranch.DRAFTS);
+      }
+    } catch (e) {
+      this.isLoadingForm = false;
+      this.errorMessage = "Error loading form data.";
+    }
   }
 
   addId(soundIssuesOrUnwantedParts: Array<any>) {
@@ -542,10 +577,12 @@ export default class Form extends Vue {
     if (response !== "error") this.formState = FormState.SAVED;
     // check for first time created
     if (this.form.created) return;
-    const newFormData = (await firebase
-      .database()
-      .ref(`${this.submissionPath(SubmissionsBranch.DRAFTS)}`)
-      .once("value")).val();
+    const newFormData = (
+      await firebase
+        .database()
+        .ref(`${this.submissionPath(SubmissionsBranch.DRAFTS)}`)
+        .once("value")
+    ).val();
     if (newFormData.created) {
       this.$set(this.form, "created", newFormData.created);
     }

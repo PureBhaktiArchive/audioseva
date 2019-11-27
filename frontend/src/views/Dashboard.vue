@@ -1,6 +1,4 @@
-/*
- * sri sri guru gauranga jayatah
- */
+/* * sri sri guru gauranga jayatah */
 
 <template>
   <main-layout>

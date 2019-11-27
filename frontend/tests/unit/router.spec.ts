@@ -1,6 +1,6 @@
 import firebase from "firebase/app";
 import { checkAuth, redirectSections } from "@/router";
-import { mockClaims } from "./HomePageButtons.spec";
+import { mockClaims } from "./helpers";
 
 describe("redirectSections", () => {
   let to: any;

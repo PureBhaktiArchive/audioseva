@@ -17,12 +17,9 @@ export default class FileLink extends Vue {
   fileLink: any = null;
 
   mounted() {
-    this.fileLink = `http://${this.subDomain}.${
-      process.env.VUE_APP_STORAGE_ROOT_DOMAIN
-    }/${this.filePath}.flac`;
+    this.fileLink = `http://${this.subDomain}.${process.env.VUE_APP_STORAGE_ROOT_DOMAIN}/${this.filePath}.flac`;
   }
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

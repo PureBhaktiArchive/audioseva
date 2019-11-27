@@ -1,6 +1,14 @@
 <template>
-  <v-radio-group :value="formData()" v-bind="fieldProps" @change="handleRadioSelect">
-    <v-radio v-for="(field, index) in fields" :key="index" :value="getValue(field)">
+  <v-radio-group
+    :value="formData()"
+    v-bind="fieldProps"
+    @change="handleRadioSelect"
+  >
+    <v-radio
+      v-for="(field, index) in fields"
+      :key="index"
+      :value="getValue(field)"
+    >
       <div v-html="getLabel(field)" slot="label"></div>
     </v-radio>
   </v-radio-group>
@@ -39,5 +47,4 @@ export default class RadioGroup extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

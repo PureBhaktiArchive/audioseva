@@ -1,7 +1,11 @@
 <template>
   <div>
     <span class=".font-weight-medium">Done statistics:</span>
-    <data-table :datatableProps="{ hideHeaders: true }" :items="statistics" :headers="headers"></data-table>
+    <data-table
+      :datatableProps="{ hideHeaders: true }"
+      :items="statistics"
+      :headers="headers"
+    ></data-table>
   </div>
 </template>
 
@@ -36,5 +40,4 @@ export default class DoneStatistics extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -17,13 +17,6 @@ Array [
   Object {
     "props": Object {
       "color": "primary",
-      "to": "/sqr/",
-    },
-    "text": "SQR",
-  },
-  Object {
-    "props": Object {
-      "color": "primary",
       "to": "/te/tasks",
     },
     "text": "TE",

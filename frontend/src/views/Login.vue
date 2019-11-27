@@ -1,16 +1,14 @@
-/*
- * sri sri guru gauranga jayatah
- */
+/* * sri sri guru gauranga jayatah */
 
 <template>
-  <v-row class="fill-height" align="center" justify="center" >
+  <v-row class="fill-height" align="center" justify="center">
     <div id="firebaseui-auth-container"></div>
   </v-row>
 </template>
 
 <script>
 import firebase from "firebase/app";
-import firebaseui from "firebaseui";
+import * as firebaseui from "firebaseui";
 
 export default {
   name: "auth",
