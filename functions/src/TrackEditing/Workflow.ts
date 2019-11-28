@@ -151,13 +151,23 @@ export class TrackEditingWorkflow {
       );
 
     // Update the task status if it is not in Done status
-    await this.getTaskRef(taskId)
-      .child('status')
-      .transaction((current: string) => {
-        return current !== AllotmentStatus.Done
-          ? AllotmentStatus.WIP
-          : undefined;
+    if (task.status !== AllotmentStatus.Done) {
+      // Updating the database
+      await this.getTaskRef(taskId).update({
+        status: AllotmentStatus.WIP,
       });
+
+      // Updating the spreadsheet
+      const sheet = await this.allotmentsSheet();
+
+      const rowNumber = await sheet.findDataRowNumber('Task ID', taskId);
+      if (!rowNumber)
+        throw new Error(`Task ${taskId} is not found in the allotments sheet.`);
+
+      await sheet.updateRow(rowNumber, {
+        Status: AllotmentStatus.WIP,
+      });
+    }
 
     const version = new FileVersion({
       timestamp: DateTime.fromISO(object.timeCreated).toMillis(),
