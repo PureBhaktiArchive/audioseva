@@ -2,6 +2,8 @@
  * sri sri guru gauranga jayatah
  */
 
+// tslint:disable-next-line: no-implicit-dependencies
+import { File } from '@google-cloud/storage';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { ObjectMetadata } from 'firebase-functions/lib/providers/storage';
@@ -217,8 +219,8 @@ export class TrackEditingWorkflow {
 
     if (resolution.isApproved) {
       // Saving the approved file to the final storage bucket
-      await StorageManager.getFile(
-        'te.uploads',
+      await new File(
+        StorageManager.getBucket('te.uploads'),
         task.versions[versionKey].uploadPath
       ).copy(StorageManager.getEditedFile(taskId));
 
