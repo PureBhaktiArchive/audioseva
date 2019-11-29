@@ -1,14 +1,9 @@
 /* import { functions } from 'firebase'; * sri sri guru gauranga jayatah */
 <template>
   <div class="pa-3">
-    <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
-      <v-toolbar-title>
-        <router-link to="/" tag="span" style="cursor: pointer">
-          <h3>{{ $title }}</h3>
-        </router-link>
-      </v-toolbar-title>
-    </v-app-bar>
-
+    <div class="pb-3">
+      <h3>{{ $title }}</h3>
+    </div>
     <v-card color="#d9edf7">
       <v-card-title primary-title>
         <div>
