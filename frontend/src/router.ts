@@ -62,6 +62,7 @@ export const router = new Router({
       children: [
         {
           path: "",
+          meta: { auth: { requireAuth: false } },
           component: () => import("@/views/Home.vue")
         },
         {
