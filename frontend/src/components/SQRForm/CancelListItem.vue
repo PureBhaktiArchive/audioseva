@@ -1,8 +1,5 @@
 <template>
-  <v-list-group
-    v-bind="$attrs"
-    @click="$emit('click')"
-  >
+  <v-list-group v-bind="$attrs" @click="$emit('click')">
     <template v-slot:activator>
       <v-list-item :style="styles">
         <v-list-item-content>
@@ -64,5 +61,4 @@ export default class CancelListItem extends Vue {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

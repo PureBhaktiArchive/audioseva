@@ -1,7 +1,9 @@
 <template>
   <v-expansion-panels class="pt-3">
     <v-expansion-panel>
-      <v-expansion-panel-header class="pl-0">Guidelines</v-expansion-panel-header>
+      <v-expansion-panel-header class="pl-0"
+        >Guidelines</v-expansion-panel-header
+      >
       <v-expansion-panel-content>
         <slot></slot>
       </v-expansion-panel-content>
@@ -18,5 +20,4 @@ import { Component, Vue } from "vue-property-decorator";
 export default class GuideLines extends Vue {}
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

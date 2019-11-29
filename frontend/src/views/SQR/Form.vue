@@ -46,7 +46,11 @@
               <v-text-field disabled :value="$route.params.fileName">
               </v-text-field>
             </v-col>
-            <fields :form="form" :updateForm="debounceUpdateForm" :removeField="removeField"></fields>
+            <fields
+              :form="form"
+              :updateForm="debounceUpdateForm"
+              :removeField="removeField"
+            ></fields>
             <v-row class="sticky">
               <v-col
                 cols="12"
