@@ -6,12 +6,20 @@ import {
   formatTimestamp,
   validateFlacFile,
   removeObjectKey,
-  getPathAndKey
+  getPathAndKey,
+  getProjectDomain
 } from "@/utility";
 
 describe("utility", function() {
   beforeEach(() => {
     moment.now = () => +new Date();
+  });
+
+  test("getProjectDomain", () => {
+    delete (global as any).window.location;
+    (global as any).window = Object.create(window);
+    (global as any).window.location = { host: "app.dev.audioseva.com" };
+    expect(getProjectDomain()).toEqual("dev.audioseva.com");
   });
 
   test("getDayDifference", () => {
