@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SQRFormCancelListItem should render 1`] = `
+<div class="v-list-group">
+  <div tabindex="0" aria-expanded="false" role="button" class="v-list-group__header v-list-item v-list-item--link theme--light">
+    <div tabindex="-1" class="v-list-item theme--light" style="background-color: rgb(252, 248, 227); color: rgb(138, 109, 59); white-space: none; width: 100%; border: .2rem solid #faebcc;">
+      <div class="v-list-item__content">
+        <div class="v-list-item__title" style="height: auto;">
+          CLICK HERE if you are unable to play or download the audio
+        </div>
+      </div>
+    </div>
+    <div class="v-list-item__icon v-list-group__header__append-icon"><i aria-hidden="true" class="v-icon notranslate fas fa-chevron-down theme--light"></i></div>
+  </div>
+  <div class="v-list-group__items" style="display: none;"></div>
+</div>
+`;
