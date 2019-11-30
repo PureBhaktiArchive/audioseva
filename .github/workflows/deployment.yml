@@ -28,16 +28,16 @@ jobs:
       - name: Set environment variables for Staging
         if: github.event.deployment.environment == 'staging'
         run: |
-          echo ::set-output name=SERVICE_ACCOUNT::"${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}"
-          echo ::set-output name=FIREBASE_PROJECT::"${{ secrets.STAGING_FIREBASE_PROJECT }}"
-          echo ::set-output name=PROJECT_DOMAIN::"${{ secrets.STAGING_PROJECT_DOMAIN }}"
+          echo ::set-env name=SERVICE_ACCOUNT::"${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}"
+          echo ::set-env name=FIREBASE_PROJECT::"${{ secrets.STAGING_FIREBASE_PROJECT }}"
+          echo ::set-env name=PROJECT_DOMAIN::"${{ secrets.STAGING_PROJECT_DOMAIN }}"
 
       - name: "Deploy to ${{ github.event.deployment.environment }}"
         run: |
-          echo ${{ steps.vars.outputs.SERVICE_ACCOUNT }} > service-account.json
+          echo ${{ env.SERVICE_ACCOUNT }} > service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
-          firebase use ${{ steps.vars.outputs.FIREBASE_PROJECT }}
-          firebase target:apply storage uploads te.uploads.${{ steps.vars.outputs.PROJECT_DOMAIN }}
+          firebase use ${{ env.FIREBASE_PROJECT }}
+          firebase target:apply storage uploads te.uploads.${{ env.PROJECT_DOMAIN }}
           firebase deploy --force
 
       - name: "Deployment success"
