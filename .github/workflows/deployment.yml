@@ -33,11 +33,13 @@ jobs:
 
       - name: "Deploy to ${{ github.event.deployment.environment }}"
         run: |
-          echo ${{ secrets.FIREBASE_SERVICE_ACCOUNT }} > service-account.json
+          echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
-          firebase use ${{ env.FIREBASE_PROJECT }}
-          firebase target:apply storage uploads te.uploads.${{ env.PROJECT_DOMAIN }}
+          firebase use $FIREBASE_PROJECT
+          firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN
           firebase deploy --force
+        env:
+          FIREBASE_SERVICE_ACCOUNT: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
 
       - name: "Deployment success"
         if: success()
