@@ -15,55 +15,34 @@ export const router = new Router({
   routes: [
     { path: "*", redirect: "/" },
     {
-      path: "/login",
-      meta: { auth: { guestOnly: true } },
-      component: () => import("@/views/Layout/MainLayout.vue"),
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/Login.vue")
-        }
-      ]
-    },
-    {
-      path: "/form/donation/cash/:token",
-      component: () => import("@/views/Layout/AnonymousLayout.vue"),
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/DonationReceiptForm.vue")
-        }
-      ]
-    },
-    {
-      path: "/listen/:fileName",
-      component: () => import("@/views/Layout/AnonymousLayout.vue"),
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/Listen.vue")
-        }
-      ]
-    },
-    {
-      path: "/form/sound-quality-report/:fileName/:token",
-      component: () => import("@/views/Layout/AnonymousLayout.vue"),
-      children: [
-        {
-          path: "",
-          component: () => import("@/views/SQR/Form.vue")
-        }
-      ]
-    },
-    {
       path: "/",
       meta: { auth: { requireAuth: true } },
-      component: () => import("@/views/Dashboard.vue"),
+      component: () => import("@/views/Layout/MainLayout.vue"),
       children: [
         {
           path: "",
           meta: { auth: { requireAuth: false } },
           component: () => import("@/views/Home.vue")
+        },
+        {
+          path: "login",
+          component: () => import("@/views/Login.vue"),
+          meta: { auth: { guestOnly: true } }
+        },
+        {
+          path: "listen/:fileName",
+          component: () => import("@/views/Listen.vue"),
+          meta: { auth: { requireAuth: false } }
+        },
+        {
+          path: "form/sound-quality-report/:fileName/:token",
+          component: () => import("@/views/SQR/Form.vue"),
+          meta: { auth: { requireAuth: false } }
+        },
+        {
+          path: "form/donation/cash/:token",
+          component: () => import("@/views/DonationReceiptForm.vue"),
+          meta: { auth: { requireAuth: false } }
         },
         {
           path: "sqr/",
