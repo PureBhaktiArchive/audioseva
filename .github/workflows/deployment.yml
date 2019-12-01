@@ -19,36 +19,35 @@ jobs:
           state: "pending"
           token: "${{ github.token }}"
 
-      - name: "Install dependencies"
+      - name: Install dependencies
         run: |
           npm ci --prefix frontend
           npm ci --prefix functions
           npm install -g firebase-bolt firebase-tools
 
-      - name: Set environment variables for Staging
+      - name: Configure Firebase for ${{ github.event.deployment.environment }}
         if: github.event.deployment.environment == 'staging'
         run: |
-          echo ::set-env name=FIREBASE_PROJECT::"${{ secrets.STAGING_FIREBASE_PROJECT }}"
-          echo ::set-env name=PROJECT_DOMAIN::"${{ secrets.STAGING_PROJECT_DOMAIN }}"
-
-      - name: "Deploy to ${{ github.event.deployment.environment }}"
-        run: |
-          echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
-          export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
           firebase use $FIREBASE_PROJECT
           firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN
-          firebase deploy --force
+          echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
         env:
-          FIREBASE_SERVICE_ACCOUNT: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
+          FIREBASE_PROJECT: ${{ secrets.STAGING_FIREBASE_PROJECT }}
+          PROJECT_DOMAIN: ${{ secrets.STAGING_PROJECT_DOMAIN }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
 
-      - name: "Deployment success"
+      - name: Deploy to ${{ github.event.deployment.environment }}
+        run: firebase deploy --force
+
+      - name: Deployment success
         if: success()
         uses: "deliverybot/deployment-status@master"
         with:
           state: "success"
           token: "${{ github.token }}"
 
-      - name: "Deployment failure"
+      - name: Deployment failure
         if: failure()
         uses: "deliverybot/deployment-status@master"
         with:
