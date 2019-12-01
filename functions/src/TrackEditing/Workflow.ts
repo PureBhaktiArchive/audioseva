@@ -2,6 +2,8 @@
  * sri sri guru gauranga jayatah
  */
 
+// tslint:disable-next-line: no-implicit-dependencies
+import { File } from '@google-cloud/storage';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { ObjectMetadata } from 'firebase-functions/lib/providers/storage';
@@ -9,46 +11,14 @@ import { DateTime } from 'luxon';
 import * as path from 'path';
 import { AllotmentStatus } from '../Allotment';
 import { Assignee } from '../Assignee';
-import { DateTimeConverter } from '../DateTimeConverter';
+import { abortCall } from '../auth';
 import { FileResolution } from '../FileResolution';
 import { FileVersion } from '../FileVersion';
-import { Spreadsheet } from '../Spreadsheet';
 import { StorageManager } from '../StorageManager';
-import { schema as allotmentRowSchema } from './AllotmentRow';
-import { schema as chunkRowSchema } from './ChunkRow';
-import { TasksImporter } from './TasksImporter';
-import { TrackEditingTask } from './TrackEditingTask';
+import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
 
 export class TrackEditingWorkflow {
-  static baseRef = admin.database().ref(`/TE`);
-  static tasksRef = TrackEditingWorkflow.baseRef.child(`tasks`);
-
-  static getTaskRef(taskId: string) {
-    return this.tasksRef.child(taskId);
-  }
-
-  private static async getTask(taskId: string) {
-    const snapshot = await this.getTaskRef(taskId).once('value');
-    if (!snapshot.exists()) throw new Error(`Task ${taskId} does not exist.`);
-
-    return new TrackEditingTask(taskId, snapshot.val());
-  }
-
-  static async allotmentsSheet() {
-    return await Spreadsheet.open(
-      functions.config().te.spreadsheet.id,
-      'Allotments'
-    );
-  }
-
-  static async tasksSheet() {
-    return await Spreadsheet.open(
-      functions.config().te.spreadsheet.id,
-      'Tasks'
-    );
-  }
-
   static async processAllotment(
     assignee: Assignee,
     taskIds: string[],
@@ -56,34 +26,30 @@ export class TrackEditingWorkflow {
   ) {
     console.info(`Allotting ${taskIds.join(', ')} to ${assignee.emailAddress}`);
 
-    const updates = _(taskIds)
-      .flatMap(taskId => [
-        [`${taskId}/status`, AllotmentStatus.Given],
-        [`${taskId}/assignee`, assignee],
-        [`${taskId}/timestampGiven`, admin.database.ServerValue.TIMESTAMP],
-      ])
-      .fromPairs()
-      .value();
+    const repository = await TasksRepository.open();
+    const tasks = await repository.getTasks(taskIds);
 
-    await this.tasksRef.update(updates);
+    const dirtyTasks = _(tasks)
+      .filter()
+      .filter(
+        ({ status, token, timestampGiven }) =>
+          !!token || !!timestampGiven || status !== AllotmentStatus.Spare
+      )
+      .map(({ id }) => id)
+      .join();
 
-    const tasks = await Promise.all(
-      taskIds.map(async (taskId: string) => this.getTask(taskId))
-    );
+    if (dirtyTasks.length)
+      abortCall(
+        'aborted',
+        `Files ${dirtyTasks} seem to be already allotted in the database. Please 🔨 the administrator.`
+      );
 
-    const sheet = await this.allotmentsSheet();
-
-    await sheet.updateOrAppendRows(
-      'Task ID',
-      tasks.map(task => ({
-        'SEd?': false,
-        'Task ID': task.id,
-        Status: task.status,
-        'Date Given': DateTimeConverter.toSerialDate(
-          DateTime.fromMillis(task.timestampGiven)
-        ),
-        Devotee: task.assignee.name,
-        Email: task.assignee.emailAddress,
+    const updatedTasks = await repository.save(
+      ...taskIds.map(id => ({
+        id,
+        assignee,
+        status: AllotmentStatus.Given,
+        timestampGiven: admin.database.ServerValue.TIMESTAMP,
       }))
     );
 
@@ -97,7 +63,7 @@ export class TrackEditingWorkflow {
         bcc: functions.config().te.coordinator.email_address,
         replyTo: functions.config().te.coordinator.email_address,
         params: {
-          tasks,
+          tasks: updatedTasks,
           assignee,
           comment,
         },
@@ -105,33 +71,21 @@ export class TrackEditingWorkflow {
   }
 
   static async cancelAllotment(taskId: string) {
-    const task = await this.getTask(taskId);
+    const repository = await TasksRepository.open();
+    const task = await repository.getTask(taskId);
+
     if (task.status === AllotmentStatus.Done)
-      throw new Error('Task is already Done, cannot cancel.');
+      abortCall('aborted', `Task ${taskId} is already Done, cannot cancel.`);
 
     console.info(
       `Cancelling task ${taskId} currently assigned to ${task.assignee.emailAddress}`
     );
 
-    const updates = {
+    await repository.save({
+      id: taskId,
       status: AllotmentStatus.Spare,
       assignee: null,
       timestampGiven: null,
-    };
-
-    await this.getTaskRef(taskId).update(updates);
-
-    const sheet = await this.allotmentsSheet();
-
-    const rowNumber = await sheet.findDataRowNumber('Task ID', taskId);
-    if (!rowNumber)
-      throw new Error(`Task ${taskId} is not found in the allotments sheet.`);
-
-    await sheet.updateRow(rowNumber, {
-      Status: null,
-      'Date Given': null,
-      Devotee: null,
-      Email: null,
     });
   }
 
@@ -142,21 +96,26 @@ export class TrackEditingWorkflow {
     const user = await admin.auth().getUser(uid);
     console.info(`Processing upload of ${taskId} by ${user.email}.`);
 
-    let task = await TrackEditingWorkflow.getTask(taskId);
-    if (!task.assignee) throw new Error(`Task is not assigned.`);
+    const repository = await TasksRepository.open();
+    let task = await repository.getTask(taskId);
 
-    if (task.assignee.emailAddress !== user.email)
-      throw new Error(
+    if (!task.assignee) {
+      console.error(`Task ${taskId} is not assigned, aborting.`);
+      return;
+    }
+
+    if (task.assignee.emailAddress !== user.email) {
+      console.error(
         `Task is assigned to ${task.assignee.emailAddress}, uploaded by ${user.email}.`
       );
+      return;
+    }
 
     // Update the task status if it is not in Done status
-    await this.getTaskRef(taskId)
-      .child('status')
-      .transaction((current: string) => {
-        return current !== AllotmentStatus.Done
-          ? AllotmentStatus.WIP
-          : undefined;
+    if (task.status !== AllotmentStatus.Done)
+      await repository.save({
+        id: taskId,
+        status: AllotmentStatus.WIP,
       });
 
     const version = new FileVersion({
@@ -164,11 +123,9 @@ export class TrackEditingWorkflow {
       uploadPath: object.name,
     });
 
-    await this.getTaskRef(taskId)
-      .child('versions')
-      .push(version);
+    await repository.saveNewVersion(taskId, version);
 
-    task = await TrackEditingWorkflow.getTask(taskId);
+    task = await repository.getTask(taskId);
 
     const warnings = [];
 
@@ -196,7 +153,9 @@ export class TrackEditingWorkflow {
     versionKey: string,
     resolution: FileResolution
   ) {
-    const task = await this.getTask(taskId);
+    const repository = await TasksRepository.open();
+    const task = await repository.getTask(taskId);
+
     console.info(
       `Processing resolution of ${taskId} (version ${versionKey}): ${
         resolution.isApproved
@@ -207,27 +166,15 @@ export class TrackEditingWorkflow {
 
     if (resolution.isApproved) {
       // Saving the approved file to the final storage bucket
-      await StorageManager.getFile(
-        'te.uploads',
+      await new File(
+        StorageManager.getBucket('te.uploads'),
         task.versions[versionKey].uploadPath
       ).copy(StorageManager.getEditedFile(taskId));
 
-      // Updating the database
-      await this.getTaskRef(taskId).update({
+      await repository.save({
+        id: taskId,
         status: AllotmentStatus.Done,
         timestampDone: admin.database.ServerValue.TIMESTAMP,
-      });
-
-      // Updating the spreadsheet
-      const sheet = await this.allotmentsSheet();
-
-      const rowNumber = await sheet.findDataRowNumber('Task ID', taskId);
-      if (!rowNumber)
-        throw new Error(`Task ${taskId} is not found in the allotments sheet.`);
-
-      await sheet.updateRow(rowNumber, {
-        Status: AllotmentStatus.Done,
-        'Date Done': DateTimeConverter.toSerialDate(DateTime.local()),
       });
     } else
       await admin
@@ -246,33 +193,8 @@ export class TrackEditingWorkflow {
   }
 
   static async importTasks() {
-    const tasksSheet = await this.tasksSheet();
-    const allotmentsSheet = await this.allotmentsSheet();
-
-    const tasks = new TasksImporter().import(
-      await tasksSheet.getRows(chunkRowSchema),
-      await allotmentsSheet.getRows(allotmentRowSchema)
-    );
-
-    const newTasks = await Promise.all(
-      // Map tasks to null if the Task ID exists in the database
-      tasks.map(async task =>
-        (await this.getTaskRef(task.id)
-          .child('status')
-          .once('value')).exists()
-          ? null
-          : task
-      )
-    );
-
-    const updates = _(newTasks)
-      // Filter out nulls.
-      .filter()
-      .keyBy(({ id }) => id)
-      .mapValues(({ id, ...task }) => task)
-      .value();
-
-    await this.tasksRef.update(updates);
-    console.info(`Imported ${_.keys(updates).length} tasks.`);
+    const repository = await TasksRepository.open();
+    const count = repository.importTasks();
+    console.info(`Imported ${count} tasks.`);
   }
 }
