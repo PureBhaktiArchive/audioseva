@@ -14,6 +14,7 @@
 import HomePageButtons from "../components/HomePageButtons";
 export default {
   name: "Home",
+  title: "Home",
   components: { HomePageButtons }
 };
 </script>

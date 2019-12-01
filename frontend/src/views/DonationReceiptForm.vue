@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <div class="px-1 pb-3">
-      <h2>Donation Receipt form</h2>
+      <h2>{{ $title }}</h2>
     </div>
     <v-form ref="form" @submit.prevent="submitForm">
       <v-row>
@@ -161,7 +161,8 @@ import firebase from "firebase/app";
 import "firebase/database";
 
 @Component({
-  name: "DonationReceiptForm"
+  name: "DonationReceiptForm",
+  title: "Donation Receipt Form"
 })
 export default class DonationForm extends Vue {
   date = new Date().toISOString().substr(0, 10);

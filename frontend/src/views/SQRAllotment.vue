@@ -1,7 +1,7 @@
 /* * sri sri guru gauranga jayatah */
 <template>
   <div>
-    <h1>Sound Quality Reporting</h1>
+    <h1>{{ $title }}</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
       <v-autocomplete
         v-model="allotment.assignee"
@@ -168,6 +168,7 @@ import ErrorMessages from "../mixins/ErrorMessages";
 export default {
   mixins: [ErrorMessages],
   name: "SQRAllotment",
+  title: "SQR Allotment",
   data: () => ({
     assignees: null,
     languages: ["English", "Hindi", "Bengali", "None"],
