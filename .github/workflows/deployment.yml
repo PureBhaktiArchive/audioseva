@@ -25,10 +25,8 @@ jobs:
           npm ci --prefix functions
           npm install -g firebase-bolt firebase-tools
 
-      - name: Authenticate Firebase
-        run: |
-          echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
-          export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
+      - name: Save service account
+        run: echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
 
@@ -40,9 +38,12 @@ jobs:
         env:
           FIREBASE_PROJECT: ${{ secrets.STAGING_FIREBASE_PROJECT }}
           PROJECT_DOMAIN: ${{ secrets.STAGING_PROJECT_DOMAIN }}
+          GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
 
       - name: Deploy to ${{ github.event.deployment.environment }}
         run: firebase deploy --force
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
 
       - name: Deployment success
         if: success()
