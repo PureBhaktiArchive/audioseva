@@ -1,7 +1,7 @@
 <template>
   <div>
     <header>
-      <h1>My Tasks</h1>
+      <h1>{{ $title }}</h1>
     </header>
     <v-row>
       <v-col>
@@ -68,7 +68,8 @@ const ranks: any = {
     TimestampGiven,
     Resolution,
     TaskOutput
-  }
+  },
+  title: "My Tasks"
 })
 export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
   tasks: any[] = [];

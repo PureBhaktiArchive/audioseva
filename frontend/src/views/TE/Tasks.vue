@@ -1,7 +1,7 @@
 <template>
   <div>
     <header>
-      <h1>Track Editing Tasks</h1>
+      <h1>{{ $title }}</h1>
     </header>
     <v-row align="end">
       <v-col><v-btn class="ml-0" to="allot">Allot</v-btn></v-col>
@@ -97,7 +97,8 @@ import "firebase/functions";
     DateGiven,
     Resolution,
     Assignee
-  }
+  },
+  title: "Track Editing Tasks"
 })
 export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   headers = [

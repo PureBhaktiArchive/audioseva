@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-container>
-      <h2>Sound Quality Report for {{ $route.params.fileName }}</h2>
+      <h2>{{ $title }}</h2>
     </v-container>
     <div v-if="isLoadingForm" class="d-flex justify-center">
       <v-progress-circular indeterminate />
@@ -127,7 +127,8 @@ enum SubmissionsBranch {
   components: { Fields, CancelListItem },
   methods: {
     ...mapActions("user", ["getUserClaims"])
-  }
+  },
+  title: ({ $route }) => `Sound Quality Report for ${$route.params.fileName}`
 })
 export default class Form extends Vue {
   cancelFields = [

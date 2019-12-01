@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>Track Editing Upload</h2>
+    <h2>{{ $title }}</h2>
     <div>
       <vue-dropzone
         ref="myDropzone"
@@ -108,7 +108,8 @@ interface IFileStatus {
   },
   computed: {
     ...mapState("user", ["currentUser"])
-  }
+  },
+  title: "Track Editing Upload"
 })
 export default class Upload extends Vue {
   user: any = null;

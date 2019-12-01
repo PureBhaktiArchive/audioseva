@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Content Reporting</h1>
+    <h1>{{ $title }}</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
       <v-autocomplete
         v-model="allotment.assignee"
@@ -144,7 +144,8 @@ import ErrorMessages from "@/mixins/ErrorMessages";
 import { initialAllotment, initialAllotmentFilter } from "@/utility";
 
 @Component({
-  name: "CRAllotment"
+  name: "CRAllotment",
+  title: "Content Reporting"
 })
 export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
   assignees: any = null;
