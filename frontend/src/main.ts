@@ -19,9 +19,20 @@ import vuetifyOptions from "@/vuetifyOptions";
 import "vuetify/dist/vuetify.min.css";
 
 import { rtdbPlugin as VueFire } from "vuefire";
+import VuePageTitle from "vue-page-title";
 
 import "@babel/polyfill";
 
+Vue.use(VuePageTitle, {
+  suffix: "| Audio Seva",
+  setTitleMethod: (title: string) => {
+    if (title.includes("Home |")) {
+      document.title = "Audio Seva";
+    } else {
+      document.title = title;
+    }
+  }
+});
 Vue.use(VueResource);
 Vue.use(VueFire);
 Vue.use(Vuetify);

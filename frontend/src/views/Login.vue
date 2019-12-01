@@ -12,6 +12,7 @@ import * as firebaseui from "firebaseui";
 
 export default {
   name: "auth",
+  title: "Login",
   data: () => ({
     ui: new firebaseui.auth.AuthUI(firebase.auth())
   }),

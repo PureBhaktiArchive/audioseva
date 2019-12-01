@@ -4,7 +4,7 @@
     <v-app-bar :clipped-left="$vuetify.breakpoint.lgAndUp" fixed app>
       <v-toolbar-title>
         <router-link to="/" tag="span" style="cursor: pointer">
-          <h3>Audio File Name: {{ audioFileName }}</h3>
+          <h3>{{ $title }}</h3>
         </router-link>
       </v-toolbar-title>
     </v-app-bar>
@@ -66,7 +66,9 @@
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "Listen"
+  name: "Listen",
+  title: ({ $route }) =>
+    `Audio File Name: ${$route.params.fileName.split(".")[0]}`
 })
 export default class ListenAudio extends Vue {
   fileName: string = "";

@@ -6,7 +6,7 @@
     <div v-else>
       <div :style="{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }">
         <h1 class="d-inline" :style="{ width: 'auto' }">
-          Track Editing Task {{ $route.params.taskId }}
+          {{ $title }}
         </h1>
         <v-chip :style="getTaskStyle(task)">{{ task.status }}</v-chip>
       </div>
@@ -168,7 +168,8 @@ import FormatTime from "@/mixins/FormatTime";
   },
   methods: {
     ...mapActions("user", ["getUserClaims"])
-  }
+  },
+  title: ({ $route }) => `Track Editing Task ${$route.params.taskId}`
 })
 export default class Task extends Mixins<TaskMixin, FormatTime>(
   TaskMixin,

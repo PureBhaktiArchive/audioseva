@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Track Editing Allotment</h1>
+    <h1>{{ $title }}</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus !== 'complete'">
       <v-autocomplete
         v-model="allotment.assignee"
@@ -103,7 +103,8 @@ import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 
 @Component({
   name: "Allotment",
-  components: { TaskDefinition }
+  components: { TaskDefinition },
+  title: "Track Editing Allotment"
 })
 export default class Allotment extends Vue {
   allotment = Allotment.initialAllotment();
