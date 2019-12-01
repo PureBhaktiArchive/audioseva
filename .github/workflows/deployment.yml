@@ -1,10 +1,10 @@
 name: Deployment
 
-on: ["deployment"]
+on: [deployment]
 
 jobs:
   deployment:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v1
@@ -13,11 +13,11 @@ jobs:
         with:
           node-version: 8.x
 
-      - name: "Deployment pending"
-        uses: "deliverybot/deployment-status@master"
+      - name: Deployment pending
+        uses: deliverybot/deployment-status@master
         with:
-          state: "pending"
-          token: "${{ github.token }}"
+          state: pending
+          token: ${{ github.token }}
 
       - name: Install dependencies
         run: |
@@ -25,31 +25,35 @@ jobs:
           npm ci --prefix functions
           npm install -g firebase-bolt firebase-tools
 
+      - name: Authenticate Firebase
+        run: |
+          echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
+
       - name: Configure Firebase for ${{ github.event.deployment.environment }}
         if: github.event.deployment.environment == 'staging'
         run: |
           firebase use $FIREBASE_PROJECT
           firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN
-          echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
-          export GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
         env:
           FIREBASE_PROJECT: ${{ secrets.STAGING_FIREBASE_PROJECT }}
           PROJECT_DOMAIN: ${{ secrets.STAGING_PROJECT_DOMAIN }}
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Deploy to ${{ github.event.deployment.environment }}
         run: firebase deploy --force
 
       - name: Deployment success
         if: success()
-        uses: "deliverybot/deployment-status@master"
+        uses: deliverybot/deployment-status@master
         with:
-          state: "success"
-          token: "${{ github.token }}"
+          state: success
+          token: ${{ github.token }}
 
       - name: Deployment failure
         if: failure()
-        uses: "deliverybot/deployment-status@master"
+        uses: deliverybot/deployment-status@master
         with:
-          state: "failure"
-          token: "${{ github.token }}"
+          state: failure
+          token: ${{ github.token }}
