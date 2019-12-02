@@ -125,20 +125,13 @@ export default class MainLayout extends Vue {
   }
 
   @Watch("$route", { immediate: true, deep: true })
-  getBreadcrumbs({ path, params, meta }: any) {
+  getBreadcrumbs({ path, params, matched }: any) {
     const breadcrumbs: any[] = [];
-    /*
-     * Disable breadcrumbs for anonymous routes
-     * Check explicitly for false because children of authenticated routes might not contain information about authentication
-     */
-    if (
-      _.get(meta, "auth.requireAuth") === false ||
-      _.get(meta, "auth.guestOnly")
-    ) {
-      this.breadcrumbs = breadcrumbs;
-      return;
-    }
-    if (path !== "/") {
+    const auth = _.get(
+      [...matched].reverse().find(({ meta }) => meta.auth),
+      "meta.auth"
+    );
+    if (path !== "/" && auth && (auth.requireClaims || auth.requireAuth)) {
       const paths = path.split("/");
       const pathsLength = paths.length - 1;
       paths.forEach((item: string, index: number) => {

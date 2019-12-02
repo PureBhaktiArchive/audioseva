@@ -16,12 +16,10 @@ export const router = new Router({
     { path: "*", redirect: "/" },
     {
       path: "/",
-      meta: { auth: { requireAuth: true } },
       component: () => import("@/views/Layout/MainLayout.vue"),
       children: [
         {
           path: "",
-          meta: { auth: { requireAuth: false } },
           component: () => import("@/views/Home.vue")
         },
         {
@@ -31,18 +29,15 @@ export const router = new Router({
         },
         {
           path: "listen/:fileName",
-          component: () => import("@/views/Listen.vue"),
-          meta: { auth: { requireAuth: false } }
+          component: () => import("@/views/Listen.vue")
         },
         {
           path: "form/sound-quality-report/:fileName/:token",
-          component: () => import("@/views/SQR/Form.vue"),
-          meta: { auth: { requireAuth: false } }
+          component: () => import("@/views/SQR/Form.vue")
         },
         {
           path: "form/donation/cash/:token",
-          component: () => import("@/views/DonationReceiptForm.vue"),
-          meta: { auth: { requireAuth: false } }
+          component: () => import("@/views/DonationReceiptForm.vue")
         },
         {
           path: "sqr/",
