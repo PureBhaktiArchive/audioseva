@@ -1,4 +1,4 @@
-import { extractListFromFilename, standardizeFileName } from './helpers';
+import { StorageManager } from './StorageManager';
 
 describe('List extraction', () => {
   test.each`
@@ -8,7 +8,7 @@ describe('List extraction', () => {
     ${'SER-88A'}               | ${'SER'}
     ${'19960528LEICESTER_T36'} | ${null}
   `('extracts $list from $fileName', ({ fileName, list }) => {
-    expect(extractListFromFilename(fileName)).toEqual(list);
+    expect(StorageManager.extractListFromFilename(fileName)).toEqual(list);
   });
 });
 
@@ -21,6 +21,8 @@ describe('File name standardization', () => {
     ${'SER-88A'}  | ${'SER-088A'}
     ${'ML2-71 A'} | ${'71 A'}
   `('$input → $standard', ({ input, standard }) => {
-    expect(standardizeFileName(`${input}.mp3`)).toEqual(`${standard}.mp3`);
+    expect(StorageManager.standardizeFileName(`${input}.mp3`)).toEqual(
+      `${standard}.mp3`
+    );
   });
 });
