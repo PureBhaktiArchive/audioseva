@@ -69,6 +69,15 @@ export class StorageManager {
     );
   }
 
+  /**
+   * The method will detect the file name format
+   * and find the file in one of the 3 buckets: original, restored, edited.
+   * @param fileName File name to find. Can be original or edited file name
+   */
+  static findFile(fileName: string): File {
+    return this.getFile('original', fileName);
+  }
+
   static getEditedFile(taskId: string) {
     return this.getFile('edited', `${taskId}.flac`);
   }

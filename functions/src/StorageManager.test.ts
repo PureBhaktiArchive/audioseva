@@ -1,4 +1,30 @@
+/*!
+ * sri sri guru gauranga jayatah
+ */
+
 import { StorageManager } from './StorageManager';
+const testEnv = require('firebase-functions-test')();
+
+testEnv.mockConfig({ project: { domain: 'test' } });
+
+/**
+ * mock setup
+ */
+const mockSet = jest.fn();
+
+mockSet.mockReturnValue(true);
+
+jest.mock('firebase-admin', () => ({
+  initializeApp: jest.fn(),
+  storage: () => ({
+    bucket: jest.fn(name => ({})),
+  }),
+  database: () => ({
+    ref: jest.fn(path => ({
+      set: mockSet,
+    })),
+  }),
+}));
 
 describe('List extraction', () => {
   test.each`
@@ -24,5 +50,15 @@ describe('File name standardization', () => {
     expect(StorageManager.standardizeFileName(`${input}.mp3`)).toEqual(
       `${standard}.mp3`
     );
+  });
+});
+
+describe('File', () => {
+  test.each`
+    fileName   | path
+    ${'DK-1A'} | ${'DK/DK-001A'}
+  `(`$fileName is found`, ({ fileName, path }) => {
+    const file = StorageManager.findFile(fileName);
+    expect(file.name).toEqual(path);
   });
 });
