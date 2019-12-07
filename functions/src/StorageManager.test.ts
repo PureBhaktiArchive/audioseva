@@ -3,26 +3,15 @@
  */
 
 import { StorageManager } from './StorageManager';
-const testEnv = require('firebase-functions-test')();
 
-testEnv.mockConfig({ project: { domain: 'test' } });
-
-/**
- * mock setup
- */
-const mockSet = jest.fn();
-
-mockSet.mockReturnValue(true);
+jest.mock('firebase-functions', () => ({
+  config: () => ({ project: { domain: 'test' } }),
+}));
 
 jest.mock('firebase-admin', () => ({
   initializeApp: jest.fn(),
   storage: () => ({
-    bucket: jest.fn(name => ({})),
-  }),
-  database: () => ({
-    ref: jest.fn(path => ({
-      set: mockSet,
-    })),
+    bucket: jest.fn(name => ({ name })),
   }),
 }));
 
@@ -54,11 +43,18 @@ describe('File name standardization', () => {
 });
 
 describe('File', () => {
+  beforeAll(() => {});
+
   test.each`
-    fileName   | path
-    ${'DK-1A'} | ${'DK/DK-001A'}
-  `(`$fileName is found`, ({ fileName, path }) => {
-    const file = StorageManager.findFile(fileName);
-    expect(file.name).toEqual(path);
-  });
+    baseName   | bucket             | path
+    ${'DK-1A'} | ${'original.test'} | ${'DK/DK-001A'}
+  `(
+    `$baseName is found in the '$bucket' bucket`,
+    ({ baseName, bucket, path }) => {
+      const fileName = `${baseName}.flac`;
+      const file = StorageManager.findFile(fileName);
+      expect(file.bucket.name).toEqual(bucket);
+      expect(file.name).toEqual(path);
+    }
+  );
 });

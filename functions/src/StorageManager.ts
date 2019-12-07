@@ -75,8 +75,9 @@ export class StorageManager {
    * @param fileName File name to find. Can be original or edited file name
    */
   static findFile(fileName: string): File {
-    return this.getFile('original', fileName);
-  }
+    return this.getFile('original', this.standardizeFileName(fileName));
+    if ((await file.exists())[0]) {
+    }
 
   static getEditedFile(taskId: string) {
     return this.getFile('edited', `${taskId}.flac`);
