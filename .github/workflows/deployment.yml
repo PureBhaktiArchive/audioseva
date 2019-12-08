@@ -25,7 +25,8 @@ jobs:
           npm ci --prefix functions
           npm install -g firebase-bolt firebase-tools
 
-      - name: Save service account
+      - name: Save ${{ github.event.deployment.environment }} service account
+        if: github.event.deployment.environment == 'staging'
         run: echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
