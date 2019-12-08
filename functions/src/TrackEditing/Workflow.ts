@@ -3,7 +3,6 @@
  */
 
 // tslint:disable-next-line: no-implicit-dependencies
-import { File } from '@google-cloud/storage';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { ObjectMetadata } from 'firebase-functions/lib/providers/storage';
@@ -166,10 +165,9 @@ export class TrackEditingWorkflow {
 
     if (resolution.isApproved) {
       // Saving the approved file to the final storage bucket
-      await new File(
-        StorageManager.getBucket('te.uploads'),
-        task.versions[versionKey].uploadPath
-      ).copy(StorageManager.getEditedFile(taskId));
+      await StorageManager.getBucket('te.uploads')
+        .file(task.versions[versionKey].uploadPath)
+        .copy(StorageManager.getFile('edited', `${taskId}.flac`));
 
       await repository.save({
         id: taskId,

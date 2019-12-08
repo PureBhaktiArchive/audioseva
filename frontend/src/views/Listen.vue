@@ -104,7 +104,7 @@ export default class ListenAudio extends Vue {
   }
 
   get audioUrl() {
-    return `/download/original/${this.fileName}`;
+    return `/download/${this.fileName}`;
   }
 
   get audioFileName() {
