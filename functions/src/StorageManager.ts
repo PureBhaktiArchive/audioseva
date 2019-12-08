@@ -8,9 +8,7 @@ import * as functions from 'firebase-functions';
 import { URL } from 'url';
 import admin = require('firebase-admin');
 
-export type BucketName = 'original' | 'edited' | 'te.uploads';
-
-export const taskIdRegex = '^[a-zA-Z]+-\\d+';
+export type BucketName = 'original' | 'edited' | 'restored' | 'te.uploads';
 
 export class StorageManager {
   static extractListFromFilename = (fileName: string): string => {
@@ -62,24 +60,42 @@ export class StorageManager {
     ).toString();
   }
 
+  /**
+   * Transforms the file name into the object path and returns a File instance.
+   *
+   * Prepends the list name.
+   * Standardizes the file name for the `original` bucket.
+   *
+   * @param bucketName The short name of the bucket
+   * @param fileName The file name in the bucket, without path.
+   */
   static getFile(bucketName: BucketName, fileName: string) {
-    return new File(
-      this.getBucket(bucketName),
-      `${this.extractListFromFilename(fileName)}/${fileName}`
+    return this.getBucket(bucketName).file(
+      `${this.extractListFromFilename(fileName)}/${
+        bucketName === 'restored'
+          ? fileName
+          : this.standardizeFileName(fileName)
+      }`
     );
   }
 
   /**
-   * The method will detect the file name format
-   * and find the file in one of the 3 buckets: original, restored, edited.
+   * The method will find the requested file in the storage.
+   *
+   * Original file names are sought in the `edited` bucket first (SE before CR cases)
+   * and then in the `original` bucket.
+   *
    * @param fileName File name to find. Can be original or edited file name
    */
-  static findFile(fileName: string): File {
-    return this.getFile('original', this.standardizeFileName(fileName));
-    if ((await file.exists())[0]) {
-    }
+  static async findFile(fileName: string) {
+    return this.findExistingFile(
+      this.getFile('restored', fileName),
+      this.getFile('original', fileName)
+    );
+  }
 
-  static getEditedFile(taskId: string) {
-    return this.getFile('edited', `${taskId}.flac`);
+  static async findExistingFile(...files: File[]) {
+    for (const file of files) if ((await file.exists())[0]) return file;
+    return null;
   }
 }
