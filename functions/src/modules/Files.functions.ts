@@ -28,7 +28,9 @@ app.get(
       res.redirect(307, url);
     } else {
       console.warn(
-        `File ${file.name} is not found in ${file.bucket.name} bucket.`
+        `File ${req.params.fileName} is not found${
+          req.params.bucket ? ` in the ${req.params.bucket} bucket` : ''
+        }.`
       );
       res
         .status(404)
