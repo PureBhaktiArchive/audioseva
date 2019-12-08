@@ -1,0 +1,6 @@
+staging:
+  auto_deploy_on: refs/heads/deployment
+  environment: staging
+production:
+  auto_deploy_on: refs/heads/production
+  environment: production
