@@ -1,3 +1,4 @@
+import Vue from "vue";
 import { mount, createLocalVue } from "@vue/test-utils";
 import Vuetify from "vuetify";
 import vuetifyOptions from "@/vuetifyOptions";
@@ -17,8 +18,10 @@ describe("SQRFormCancelListItem", () => {
       ...props
     });
 
-  const clickListItem = (wrapper: any) =>
+  const clickListItem = (wrapper: any) => {
     wrapper.find("[role='button']").trigger("click");
+    return Vue.nextTick();
+  };
 
   beforeEach(() => {
     vuetify = new Vuetify(vuetifyOptions);
@@ -49,27 +52,29 @@ describe("SQRFormCancelListItem", () => {
     expect(wrapper.emitted().click).toBeTruthy();
   });
 
-  it("should emit update:selected on checkbox selected", () => {
+  it("should emit update:selected on checkbox selected", async () => {
     const wrapper = getWrapper();
-    clickListItem(wrapper);
+    await clickListItem(wrapper);
     wrapper.find("input[type='checkbox']").setChecked();
     expect(wrapper.emitted()["update:selected"]).toBeTruthy();
   });
 
-  it("should show cancel inputs when checkbox is selected", () => {
+  it("should show cancel inputs when checkbox is selected", async () => {
     const wrapper = getWrapper();
-    clickListItem(wrapper);
+    await clickListItem(wrapper);
     expect(wrapper.find("textarea").exists()).toBe(false);
     expect(wrapper.find("button").exists()).toBe(false);
     wrapper.setProps({ selected: true });
+    await Vue.nextTick();
     expect(wrapper.find("textarea").exists()).toBe(true);
     expect(wrapper.find("button").exists()).toBe(true);
   });
 
-  it("should emit input event on textarea input", () => {
+  it("should emit input event on textarea input", async () => {
     const wrapper = getWrapper();
-    clickListItem(wrapper);
+    await clickListItem(wrapper);
     wrapper.setProps({ selected: true });
+    await Vue.nextTick();
     wrapper.find("textarea").setValue("new text");
     expect(wrapper.emitted().input[0][0]).toEqual("new text");
   });
