@@ -197,7 +197,7 @@ export default class Form extends Vue {
   showValidationSummary = false;
   getUserClaims!: any;
   rules = [required];
-  branch: SubmissionsBranch | "" = "";
+  branch: SubmissionsBranch | null = null;
 
   handleListClick(cancelField: number) {
     this.cancelCheck = {};
