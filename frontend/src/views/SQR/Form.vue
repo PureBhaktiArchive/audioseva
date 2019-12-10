@@ -61,7 +61,7 @@
                   flexWrap: 'wrap'
                 }"
               >
-                <v-btn v-if="!isSubmission" @click="saveDraft">
+                <v-btn v-if="!isCompleted" @click="saveDraft">
                   Save draft
                 </v-btn>
                 <v-btn type="submit" color="primary" class=" mx-2"
@@ -226,10 +226,10 @@ export default class Form extends Vue {
 
     if (_.isEqual(this.initialData, this.form)) {
       this.formState = FormState.INITIAL_LOAD;
-      if (!this.isSubmission) {
+      if (!this.isCompleted) {
         this.debounceSaveDraft.cancel();
       }
-    } else if (this.isSubmission) {
+    } else if (this.isCompleted) {
       this.formState = FormState.UNSAVED_CHANGES;
     } else {
       this.formState = FormState.SAVING;
@@ -272,7 +272,7 @@ export default class Form extends Vue {
 
     if (_.isEqual(this.initialData, this.form)) {
       this.formState = FormState.INITIAL_LOAD;
-    } else if (this.isSubmission) {
+    } else if (this.isCompleted) {
       this.formState = FormState.UNSAVED_CHANGES;
       return;
     }
@@ -455,7 +455,7 @@ export default class Form extends Vue {
   }
 
   debounceSaveDraft: any = _.debounce(async () => {
-    if (this.isSubmission) return;
+    if (this.isCompleted) return;
     await this.saveDraft();
   }, 3000);
 
@@ -498,7 +498,7 @@ export default class Form extends Vue {
     return Object.values(this.cancelCheck).includes(true);
   }
 
-  get isSubmission() {
+  get isCompleted() {
     return (
       this.branch === SubmissionsBranch.COMPLETED ||
       this.branch === SubmissionsBranch.MIGRATED
