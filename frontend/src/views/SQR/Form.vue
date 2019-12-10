@@ -211,10 +211,12 @@ export default class Form extends Vue {
   @Watch("form", { deep: true })
   handleFormErrors() {
     if (this.$refs.form) {
-      this.formHasError = Object.values<boolean>(
-        (this.$refs.form as any).errorBag
-      ).some(hasError => hasError);
-      if (!this.formHasError) this.showValidationSummary = false;
+      this.$nextTick(() => {
+        this.formHasError = Object.values<boolean>(
+          (this.$refs.form as any).errorBag
+        ).some(hasError => hasError);
+        if (!this.formHasError) this.showValidationSummary = false;
+      });
     }
   }
 
