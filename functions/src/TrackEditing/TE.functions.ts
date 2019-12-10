@@ -1,6 +1,13 @@
+/*!
+ * sri sri guru gauranga jayatah
+ */
+
+import express = require('express');
 import * as functions from 'firebase-functions';
+import { DateTime } from 'luxon';
 import { abortCall, authorizeCoordinator } from '../auth';
 import { StorageManager } from '../StorageManager';
+import { TasksRepository } from './TasksRepository';
 import { TrackEditingWorkflow } from './Workflow';
 
 export const processAllotment = functions.https.onCall(
@@ -48,3 +55,52 @@ export const importTasks = functions.pubsub
   .onRun(async () => {
     await TrackEditingWorkflow.importTasks();
   });
+
+export const download = functions.https.onRequest(
+  express().get(
+    '/te/tasks/:taskId/versions/:versionId/file',
+    async ({ params: { taskId, versionId } }, res) => {
+      const repository = await TasksRepository.open();
+      const task = await repository.getTask(taskId);
+
+      if (!task) {
+        res
+          .status(404)
+          .send('Task is not found, please contact the coordinator.');
+        return;
+      }
+
+      const version = task.versions[versionId];
+      if (!version) {
+        res
+          .status(404)
+          .send('Version is not found, please contact the coordinator.');
+        return;
+      }
+
+      const file = StorageManager.getBucket('te.uploads').file(
+        version.uploadPath
+      );
+
+      if (!(await file.exists()).shift()) {
+        res
+          .status(404)
+          .send('File does not exist, please contact the coordinator.');
+        return;
+      }
+
+      const url = (
+        await file.getSignedUrl({
+          action: 'read',
+          expires: DateTime.local()
+            .plus({ days: 3 })
+            .toJSDate(),
+          promptSaveAs: `${taskId}.v${versionId}.flac`,
+        })
+      ).shift();
+
+      console.log(`Redirecting ${taskId}.${versionId} to ${url}`);
+      res.redirect(307, url);
+    }
+  )
+);
