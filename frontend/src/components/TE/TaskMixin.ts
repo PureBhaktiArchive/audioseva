@@ -18,8 +18,7 @@ export default class TaskMixin extends Vue {
   getTaskStyle(task: any) {
     let backgroundColor = "inherit";
     const resolution =
-      task.versions &&
-      _.get(task, `versions[${task.versions.length - 1}].resolution`, false);
+      task.versions && (Object.values(task.versions).pop() as any).resolution;
     switch (task.status) {
       case "Given":
         backgroundColor = "#D9E9FF";
