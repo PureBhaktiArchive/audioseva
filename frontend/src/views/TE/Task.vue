@@ -35,6 +35,7 @@
                 </p>
                 <v-btn
                   @click="onCancelClick"
+                  v-if="isCoordinator"
                   class="mt-0 ml-1"
                   color="error"
                   small
