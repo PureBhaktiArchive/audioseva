@@ -23,24 +23,26 @@
             v-if="task.assignee"
           >
             <v-row justify="space-between">
-              <v-col
-                cols="12"
-                sm="9"
-                :style="{ display: 'flex', flexWrap: 'wrap' }"
-              >
-                <p class="mb-0">
-                  Allotted to {{ task.assignee.name }} ({{
-                    task.assignee.emailAddress
-                  }}).
-                </p>
-                <v-btn
-                  @click="onCancelClick"
-                  v-if="isCoordinator"
-                  class="mt-0 ml-1"
-                  color="error"
-                  small
-                  >Cancel</v-btn
-                >
+              <v-col cols="12" sm="9">
+                <v-row no-gutters>
+                  <v-col cols="12" sm="9" class="pt-0">
+                    <p class="mb-0" :style="{ wordBreak: 'break-all' }">
+                      Allotted to {{ task.assignee.name }} ({{
+                        task.assignee.emailAddress
+                      }}).
+                    </p>
+                  </v-col>
+                  <v-col cols="12" sm="3" class="pt-0">
+                    <v-btn
+                      @click="onCancelClick"
+                      v-if="isCoordinator"
+                      class="mt-0 ml-1"
+                      color="error"
+                      small
+                      >Cancel</v-btn
+                    >
+                  </v-col>
+                </v-row>
               </v-col>
               <v-col class="text-sm-right text-left" v-if="task.timestampGiven">
                 {{ formatTimestamp(task.timestampGiven) }}
