@@ -57,9 +57,12 @@
                   <h4 class="pr-2 d-inline">
                     Version {{ index + 1 }} uploaded:
                   </h4>
-                  <version-download-link :path="version.uploadPath">{{
-                    task[".key"]
-                  }}</version-download-link>
+                  <version-download-link
+                    :versionId="key"
+                    :taskId="$route.params.taskId"
+                  >
+                    {{ task[".key"] }}
+                  </version-download-link>
                 </v-col>
                 <v-col class="text-right" sm="3" v-if="version.timestamp">{{
                   formatTimestamp(version.timestamp)

@@ -2,7 +2,7 @@
   <div v-if="item.versions">
     <span
       >Version {{ versionNumber }}:
-      <version-download-link :path="lastVersion.uploadPath">
+      <version-download-link :taskId="item['.key']" :versionId="versionId">
         {{ item[".key"] }}
       </version-download-link>
     </span>
@@ -29,6 +29,10 @@ export default class Output extends Mixins<LastVersionMixin, FormatTime>(
 
   get timestamp() {
     return this.formatTimestamp(this.lastVersion.timestamp);
+  }
+
+  get versionId() {
+    return Object.keys(this.item.versions).pop();
   }
 
   get versionNumber() {
