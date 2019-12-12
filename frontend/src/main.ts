@@ -1,6 +1,8 @@
 /*
  * sri sri guru gauranga jayatah
  */
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 import "whatwg-fetch";
 
 import firebase from "firebase/app";
@@ -20,8 +22,6 @@ import "vuetify/dist/vuetify.min.css";
 
 import { rtdbPlugin as VueFire } from "vuefire";
 import VuePageTitle from "vue-page-title";
-
-import "@babel/polyfill";
 
 Vue.use(VuePageTitle, {
   suffix: "| Audio Seva",
