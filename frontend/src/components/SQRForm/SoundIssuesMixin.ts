@@ -57,7 +57,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
             label: "Beginning",
             outlined: true,
             placeholder: "(h:)mm:ss",
-            rules: [required, validateDuration]
+            rules: this.getValidators([required, validateDuration])
           }
         },
         style: this.style
@@ -73,7 +73,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
             label: "Ending",
             outlined: true,
             placeholder: "(h:)mm:ss",
-            rules: [required, validateDuration]
+            rules: this.getValidators([required, validateDuration])
           }
         },
         style: this.style
@@ -101,7 +101,7 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           ...this.formProps,
           form: this.form,
           fieldProps: {
-            rules: [required]
+            rules: this.getValidators([required])
           }
         }
       }
@@ -140,6 +140,22 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
 
   get items(): any {
     return [];
+  }
+
+  get validateFields() {
+    const data = _.get(this.form, this.updatePath);
+    if (!data) return false;
+
+    if (data.length <= 1) {
+      const { id, ...field } = _.get(data, "0", {});
+      const fieldValues = Object.values(field);
+      return fieldValues.length;
+    }
+    return true;
+  }
+
+  getValidators(validators: any[]) {
+    return this.validateFields ? validators : [];
   }
 
   addField() {
