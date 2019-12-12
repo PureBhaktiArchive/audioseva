@@ -2,8 +2,10 @@
   <div v-if="item.versions">
     <span
       >Version {{ versionNumber }}:
-      <a :href="lastVersionLink">{{ item[".key"] }}</a></span
-    >
+      <version-download-link :taskId="item['.key']" :versionId="versionId">
+        {{ item[".key"] }}
+      </version-download-link>
+    </span>
     <p class="subtext">{{ timestamp }}</p>
   </div>
 </template>
@@ -12,9 +14,11 @@
 import { Component, Mixins, Prop } from "vue-property-decorator";
 import LastVersionMixin from "@/components/TE/LastVersionMixin";
 import FormatTime from "@/mixins/FormatTime";
+import VersionDownloadLink from "@/components/TE/VersionDownloadLink.vue";
 
 @Component({
-  name: "Output"
+  name: "Output",
+  components: { VersionDownloadLink }
 })
 export default class Output extends Mixins<LastVersionMixin, FormatTime>(
   LastVersionMixin,
@@ -27,8 +31,8 @@ export default class Output extends Mixins<LastVersionMixin, FormatTime>(
     return this.formatTimestamp(this.lastVersion.timestamp);
   }
 
-  get lastVersionLink() {
-    return `/download/te.uploads/${this.lastVersion.uploadPath}`;
+  get versionId() {
+    return Object.keys(this.item.versions).pop();
   }
 
   get versionNumber() {

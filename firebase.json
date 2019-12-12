@@ -17,6 +17,10 @@
         "function": "Files-download"
       },
       {
+        "source": "/te/tasks/*/versions/*/file",
+        "function": "TE-download"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
