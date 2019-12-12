@@ -61,9 +61,9 @@
                   flexWrap: 'wrap'
                 }"
               >
-                <v-btn v-if="!form.completed" @click="saveDraft"
-                  >Save draft</v-btn
-                >
+                <v-btn v-if="!isCompleted" @click="saveDraft">
+                  Save draft
+                </v-btn>
                 <v-btn type="submit" color="primary" class=" mx-2"
                   >Submit</v-btn
                 >
@@ -198,6 +198,7 @@ export default class Form extends Vue {
   getUserClaims!: any;
   rules = [required];
   destroyFormErrorWatch!: any;
+  branch: SubmissionsBranch | null = null;
 
   handleListClick(cancelField: number) {
     this.cancelCheck = {};
@@ -225,18 +226,18 @@ export default class Form extends Vue {
   updateForm(field: string, value: any, debounceSubmit = true) {
     updateObject(this.form, { ...getPathAndKey(field), value: value || null });
 
-    if (debounceSubmit) {
-      if (_.isEqual(this.initialData, this.form)) {
-        this.formState = FormState.INITIAL_LOAD;
-        if (!this.form.completed) {
-          this.debounceSaveDraft.cancel();
-        }
-      } else if (this.form.completed) {
-        this.formState = FormState.UNSAVED_CHANGES;
-      } else {
-        this.formState = FormState.SAVING;
-        this.debounceSaveDraft();
+    if (!debounceSubmit) return;
+
+    if (_.isEqual(this.initialData, this.form)) {
+      this.formState = FormState.INITIAL_LOAD;
+      if (!this.isCompleted) {
+        this.debounceSaveDraft.cancel();
       }
+    } else if (this.isCompleted) {
+      this.formState = FormState.UNSAVED_CHANGES;
+    } else {
+      this.formState = FormState.SAVING;
+      this.debounceSaveDraft();
     }
   }
 
@@ -275,7 +276,7 @@ export default class Form extends Vue {
 
     if (_.isEqual(this.initialData, this.form)) {
       this.formState = FormState.INITIAL_LOAD;
-    } else if (this.form.completed) {
+    } else if (this.isCompleted) {
       this.formState = FormState.UNSAVED_CHANGES;
       return;
     }
@@ -284,11 +285,7 @@ export default class Form extends Vue {
     await firebase
       .database()
       .ref(
-        `${this.submissionPath(
-          this.form.completed
-            ? SubmissionsBranch.COMPLETED
-            : SubmissionsBranch.DRAFTS
-        )}/${updateFieldPath}`
+        `${this.submissionPath(SubmissionsBranch.DRAFTS)}/${updateFieldPath}`
       )
       .set(this.removeId(this.form[updateFieldPath]));
   }
@@ -325,6 +322,7 @@ export default class Form extends Vue {
         this.initialData[".value"] !== null ||
         branch === SubmissionsBranch.DRAFTS
       ) {
+        this.branch = branch;
         return this.populateForm();
       }
 
@@ -452,11 +450,10 @@ export default class Form extends Vue {
       this.form.completed || firebase.database.ServerValue.TIMESTAMP;
     const response = await this.saveFormData(data, SubmissionsBranch.COMPLETED);
     if (response === "error") return;
-    // first time completed
-    if (!this.form.completed) {
+    if (this.branch === SubmissionsBranch.DRAFTS) {
       firebase
         .database()
-        .ref(this.submissionPath(SubmissionsBranch.DRAFTS))
+        .ref(this.submissionPath(this.branch))
         .remove();
     }
     this.destroyFormErrorWatch();
@@ -464,7 +461,7 @@ export default class Form extends Vue {
   }
 
   debounceSaveDraft: any = _.debounce(async () => {
-    if (this.form.completed) return;
+    if (this.isCompleted) return;
     await this.saveDraft();
   }, 3000);
 
@@ -505,6 +502,13 @@ export default class Form extends Vue {
 
   get isCancelChecked() {
     return Object.values(this.cancelCheck).includes(true);
+  }
+
+  get isCompleted() {
+    return (
+      this.branch === SubmissionsBranch.COMPLETED ||
+      this.branch === SubmissionsBranch.MIGRATED
+    );
   }
 }
 </script>
