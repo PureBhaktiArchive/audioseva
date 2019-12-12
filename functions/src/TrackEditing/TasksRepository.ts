@@ -8,7 +8,7 @@ import { createSchema, morphism } from 'morphism';
 import { AllotmentStatus } from '../Allotment';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
-import { RequireOnly } from '../helpers';
+import { RequireOnly } from '../RequireOnly';
 import { Spreadsheet } from '../Spreadsheet';
 import { ChunkRow, schema as chunkRowSchema } from './ChunkRow';
 import { TaskValidator } from './TaskValidator';
@@ -174,9 +174,11 @@ export class TasksRepository {
     // Remove tasks which already exist in the database
     const newTasks = await Promise.all(
       tasks.map(async task =>
-        (await this.getTaskRef(task.id)
-          .child('status')
-          .once('value')).exists()
+        (
+          await this.getTaskRef(task.id)
+            .child('status')
+            .once('value')
+        ).exists()
           ? null
           : task
       )

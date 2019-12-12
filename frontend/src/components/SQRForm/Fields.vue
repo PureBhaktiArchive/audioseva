@@ -1,5 +1,5 @@
 <template>
-  <v-col>
+  <v-col :style="{ minWidth: '100%' }">
     <v-row>
       <v-col class="my-2" cols="12">
         <h3>B. Sound Quality Rating</h3>

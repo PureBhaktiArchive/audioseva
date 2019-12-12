@@ -197,6 +197,7 @@ export default class Form extends Vue {
   showValidationSummary = false;
   getUserClaims!: any;
   rules = [required];
+  destroyFormErrorWatch!: any;
   branch: SubmissionsBranch | null = null;
 
   handleListClick(cancelField: number) {
@@ -209,14 +210,17 @@ export default class Form extends Vue {
     return props;
   }
 
-  @Watch("form", { deep: true })
   handleFormErrors() {
-    if (this.$refs.form) {
-      this.formHasError = Object.values<boolean>(
-        (this.$refs.form as any).errorBag
-      ).some(hasError => hasError);
-      if (!this.formHasError) this.showValidationSummary = false;
-    }
+    this.destroyFormErrorWatch = this.$watch(
+      () => (this.$refs.form as any).errorBag,
+      (newFormErrors: { [key: string]: boolean }) => {
+        this.formHasError = Object.values(newFormErrors).some(
+          hasError => hasError
+        );
+        if (!this.formHasError) this.showValidationSummary = false;
+      },
+      { deep: true, immediate: true }
+    );
   }
 
   updateForm(field: string, value: any, debounceSubmit = true) {
@@ -378,6 +382,7 @@ export default class Form extends Vue {
       this.form = defaultData;
     }
     this.initialData = _.cloneDeep(this.form);
+    this.$nextTick(this.handleFormErrors);
   }
 
   async cancelForm() {
@@ -451,6 +456,7 @@ export default class Form extends Vue {
         .ref(this.submissionPath(this.branch))
         .remove();
     }
+    this.destroyFormErrorWatch();
     this.submitSuccess = true;
   }
 

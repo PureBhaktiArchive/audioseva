@@ -9,7 +9,7 @@
         item-text="name"
         label="Select an assignee"
         persistent-hint
-        return-object
+        :item-value="getAllotmentAssignee"
         clearable
         dense
       >
@@ -107,7 +107,7 @@ import TaskDefinition from "@/components/TE/TaskDefinition.vue";
   title: "Track Editing Allotment"
 })
 export default class Allotment extends Vue {
-  allotment = Allotment.initialAllotment();
+  allotment: any = Allotment.initialAllotment();
   trackEditors: any = null;
   tasks: any[] | null = [];
   submissionStatus: string | null = null;
@@ -134,8 +134,11 @@ export default class Allotment extends Vue {
     });
     this.trackEditors = editors.data;
     if (this.$route.query.emailAddress) {
-      this.allotment.assignee = this.trackEditors.find(
-        (editor: any) => editor.emailAddress === this.$route.query.emailAddress
+      this.allotment.assignee = this.getAllotmentAssignee(
+        this.trackEditors.find(
+          (editor: any) =>
+            editor.emailAddress === this.$route.query.emailAddress
+        )
       );
     }
   }
@@ -164,6 +167,10 @@ export default class Allotment extends Vue {
       alert(error.message);
       this.submissionStatus = "error";
     }
+  }
+
+  getAllotmentAssignee({ emailAddress, name }: any) {
+    return { emailAddress, name };
   }
 
   reset() {
