@@ -17,7 +17,7 @@ const chunks = [
   {
     fileName: "file-1",
     unwantedParts:
-      "7-81: irrelevant - unwanted description" +
+      "\n7-81: irrelevant - unwanted description" +
       "\n4-56: blank space - \n61-107: irrelevant - unwanted description",
     beginning: 56,
     ending: 72
@@ -54,19 +54,6 @@ const versions = [
     }
   }
 ];
-
-export const output = () =>
-  story({
-    props: {
-      item: {
-        default: {
-          ".key": "item-1",
-          versions: object("versions", versions)
-        }
-      }
-    },
-    template: `<task-output :item="item"></task-output>`
-  });
 
 export const resolution = () =>
   story({

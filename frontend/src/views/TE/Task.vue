@@ -60,7 +60,12 @@
                   <h4 class="pr-2 d-inline">
                     Version {{ index + 1 }} uploaded:
                   </h4>
-                  <a :href="version.uploadPath">{{ task[".key"] }}</a>
+                  <version-download-link
+                    :versionId="key"
+                    :taskId="$route.params.taskId"
+                  >
+                    {{ task[".key"] }}
+                  </version-download-link>
                 </v-col>
                 <v-col class="text-right" sm="3" v-if="version.timestamp">{{
                   formatTimestamp(version.timestamp)
@@ -162,10 +167,11 @@ import _ from "lodash";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import FormatTime from "@/mixins/FormatTime";
+import VersionDownloadLink from "@/components/TE/VersionDownloadLink.vue";
 
 @Component({
   name: "Task",
-  components: { TaskDefinition },
+  components: { TaskDefinition, VersionDownloadLink },
   computed: {
     ...mapState("user", ["currentUser"])
   },
