@@ -7,10 +7,7 @@ export default class TaskMixin extends Vue {
     return {
       status: "Spare",
       timestampGiven: "",
-      assignee: {
-        emailAddress: "",
-        name: ""
-      }
+      assignee: null
     };
   }
 
