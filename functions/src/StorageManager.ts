@@ -49,15 +49,20 @@ export class StorageManager {
    * The method will find the requested file in the storage.
    *
    * Original file names are sought in the `edited` bucket first (SE before CR cases)
-   * and then in the `original` bucket.
+   * and then in the `original` bucket. Exact bucket name can be specified.
    *
-   * @param fileName File name to find. Can be original or edited file name
+   * Returns `null` if no file is found.
+   *
+   * @param fileName File name to find.
+   * @param bucket Optional bucket name to find file exactly in that bucket.
    */
-  static async findFile(fileName: string) {
-    return this.findExistingFile(
-      this.getFile('restored', fileName),
-      this.getFile('original', fileName)
-    );
+  static async findFile(fileName: string, bucket?: BucketName) {
+    return bucket
+      ? this.findExistingFile(this.getFile(bucket, fileName))
+      : this.findExistingFile(
+          this.getFile('restored', fileName),
+          this.getFile('original', fileName)
+        );
   }
 
   static async findExistingFile(...files: File[]) {
