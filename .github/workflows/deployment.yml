@@ -6,6 +6,9 @@ jobs:
   deployment:
     runs-on: ubuntu-latest
 
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
+
     steps:
       - uses: actions/checkout@v1
 
@@ -25,13 +28,19 @@ jobs:
           npm ci --prefix functions
           npm install -g firebase-bolt firebase-tools
 
-      - name: Save ${{ github.event.deployment.environment }} service account
+      - name: Save staging service account
         if: github.event.deployment.environment == 'staging'
         run: echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
 
-      - name: Configure Firebase for ${{ github.event.deployment.environment }}
+      - name: Save production service account
+        if: github.event.deployment.environment == 'production'
+        run: echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.PRODUCTION_FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Configure Firebase for staging
         if: github.event.deployment.environment == 'staging'
         run: |
           firebase use $FIREBASE_PROJECT
@@ -39,12 +48,18 @@ jobs:
         env:
           FIREBASE_PROJECT: ${{ secrets.STAGING_FIREBASE_PROJECT }}
           PROJECT_DOMAIN: ${{ secrets.STAGING_PROJECT_DOMAIN }}
-          GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
+
+      - name: Configure Firebase for production
+        if: github.event.deployment.environment == 'production'
+        run: |
+          firebase use $FIREBASE_PROJECT
+          firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN
+        env:
+          FIREBASE_PROJECT: ${{ secrets.PRODUCTION_FIREBASE_PROJECT }}
+          PROJECT_DOMAIN: ${{ secrets.PRODUCTION_PROJECT_DOMAIN }}
 
       - name: Deploy to ${{ github.event.deployment.environment }}
         run: firebase deploy --force
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
 
       - name: Deployment success
         if: success()
