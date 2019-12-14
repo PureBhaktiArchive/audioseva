@@ -12,18 +12,21 @@ const app = express();
 app.get(
   ['/download/:bucket/:fileName', '/download/:fileName'],
   async (req, res) => {
-    const file = req.params.bucket
-      ? StorageManager.getFile(<any>req.params.bucket, req.params.fileName)
-      : await StorageManager.findFile(req.params.fileName);
+    const file = await StorageManager.findFile(
+      req.params.fileName,
+      <any>req.params.bucket
+    );
 
     if (file) {
-      const url = (await file.getSignedUrl({
-        action: 'read',
-        expires: DateTime.local()
-          .plus({ days: 3 })
-          .toJSDate(),
-        promptSaveAs: req.params.fileName,
-      }))[0];
+      const url = (
+        await file.getSignedUrl({
+          action: 'read',
+          expires: DateTime.local()
+            .plus({ days: 3 })
+            .toJSDate(),
+          promptSaveAs: req.params.fileName,
+        })
+      ).shift();
       console.log(`Redirecting ${req.params.fileName} to ${url}`);
       res.redirect(307, url);
     } else {
