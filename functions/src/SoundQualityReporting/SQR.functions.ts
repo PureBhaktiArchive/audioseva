@@ -59,8 +59,11 @@ export const getLists = functions.https.onCall(async (data, context) => {
 export const getSpareFiles = functions.https.onCall(
   async ({ list, language, languages, count }, context) => {
     authorizeCoordinator(context);
-    const repository = await TasksRepository.open();
-    return await repository.getSpareFiles(list, languages, language, count);
+    return await SQRWorkflow.getSpareFiles(
+      list,
+      languages || [language],
+      count
+    );
   }
 );
 
