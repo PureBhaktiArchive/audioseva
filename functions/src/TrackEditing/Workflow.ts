@@ -192,7 +192,8 @@ export class TrackEditingWorkflow {
 
   static async importTasks() {
     const repository = await TasksRepository.open();
-    const count = repository.importTasks();
+    const count = await repository.importTasks();
     console.info(`Imported ${count} tasks.`);
+    return count;
   }
 }
