@@ -245,7 +245,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   }
 
   get versionsCount() {
-    return this.task.versions ? Object.keys(this.task.versions).length : 0;
+    return this.getVersionsCount(this.task);
   }
 
   @Watch("form.feedback")
