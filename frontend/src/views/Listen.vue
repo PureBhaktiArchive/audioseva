@@ -10,29 +10,35 @@
           <h3 class="headline mb-0">Audio Player</h3>
         </div>
       </v-card-title>
-      <v-card-title primary-title>
-        <audio
-          ref="audioPlayer"
-          controls="controls"
-          :src="audioUrl"
-          style="display: block; width: 100%;"
-        >
-          Your browser does not support embedding audio. Please click
-          <a :href="audioUrl">this link</a>.
-        </audio>
-      </v-card-title>
-      <v-card-title primary-title>
-        <div>
-          <small>
-            * To download the file, please click on the three dots on the right
-            of the player above and choose ‘Download’. Please note that your
-            browser may display the download option with the download icon
-            instead or disallow downloading. Alternatively, you can long-tap the
-            following link:
-            <a :href="audioUrl">Download</a>.
-          </small>
-        </div>
-      </v-card-title>
+      <v-alert v-if="isInternetExplorer" :value="true">
+        Flac file not supported in Internet Explorer. Please download
+        <a :href="audioUrl">here</a>
+      </v-alert>
+      <template v-else>
+        <v-card-title primary-title>
+          <audio
+            ref="audioPlayer"
+            controls="controls"
+            :src="audioUrl"
+            style="display: block; width: 100%;"
+          >
+            Your browser does not support embedding audio. Please click
+            <a :href="audioUrl">this link</a>.
+          </audio>
+        </v-card-title>
+        <v-card-title primary-title>
+          <div>
+            <small>
+              * To download the file, please click on the three dots on the
+              right of the player above and choose ‘Download’. Please note that
+              your browser may display the download option with the download
+              icon instead or disallow downloading. Alternatively, you can
+              long-tap the following link:
+              <a :href="audioUrl">Download</a>.
+            </small>
+          </div>
+        </v-card-title>
+      </template>
       <v-card>
         <v-card-title primary-title>
           <div>
@@ -115,6 +121,10 @@ export default class ListenAudio extends Vue {
 
   get audioFileName() {
     return this.nameAndExtension[0];
+  }
+
+  get isInternetExplorer() {
+    return (window.document as any).documentMode;
   }
 }
 </script>
