@@ -1,14 +1,14 @@
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Mixins } from "vue-property-decorator";
+import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
 
 @Component
-export default class LastVersionMixin extends Vue {
+export default class LastVersionMixin extends Mixins<BaseTaskMixin>(
+  BaseTaskMixin
+) {
   @Prop() item!: { [key: string]: any };
 
   get lastVersion() {
-    return (
-      this.item.versions &&
-      (Object.values(this.item.versions).pop() as { [key: string]: any })
-    );
+    return this.getLastVersion(this.item);
   }
 
   get lastResolution() {

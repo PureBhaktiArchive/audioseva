@@ -1,8 +1,8 @@
-import { Component, Vue } from "vue-property-decorator";
-import _ from "lodash";
+import { Component, Mixins } from "vue-property-decorator";
+import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
 
 @Component
-export default class TaskMixin extends Vue {
+export default class TaskMixin extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   cancelData() {
     return {
       status: "Spare",
@@ -17,9 +17,8 @@ export default class TaskMixin extends Vue {
 
   getTaskStyle(task: any) {
     let backgroundColor = "inherit";
-    const resolution =
-      task.versions &&
-      _.get(task, `versions[${task.versions.length - 1}].resolution`, false);
+    const lastVersion = this.getLastVersion(task);
+    const resolution = lastVersion && lastVersion.resolution;
     switch (task.status) {
       case "Given":
         backgroundColor = "#D9E9FF";
