@@ -89,18 +89,13 @@ export class TasksRepository {
       .value();
   }
 
-  public async getSpareFiles(
-    list: string,
-    languages: string[],
-    language: string,
-    count: number
-  ) {
+  public async getSpareFiles(list: string, languages: string[], count: number) {
     return _(await this.sheet.getRows())
       .filter(
         item =>
           !item['Status'] &&
           item['List'] === list &&
-          (languages || [language]).includes(item['Language'] || 'None')
+          languages.includes(item['Language'] || 'None')
       )
       .map(item => ({
         name: item['File Name'],
@@ -145,7 +140,7 @@ export class TasksRepository {
     return updatedTasks;
   }
 
-  private async saveToDatabase(tasks: IdentifyableTask[]) {
+  public async saveToDatabase(tasks: IdentifyableTask[]) {
     await allotmentsRef.update(
       _.chain(tasks)
         .flatMap(task =>

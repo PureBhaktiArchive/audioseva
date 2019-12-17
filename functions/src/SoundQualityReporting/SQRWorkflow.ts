@@ -10,7 +10,12 @@ import { Assignee } from '../Assignee';
 import { formatAudioAnnotations } from '../AudioAnnotation';
 import { abortCall } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { listeningPageLink, sqrAllotmentLink, sqrSelfTrackingLink, sqrSubmissionLink } from '../Frontend';
+import {
+  listeningPageLink,
+  sqrAllotmentLink,
+  sqrSelfTrackingLink,
+  sqrSubmissionLink,
+} from '../Frontend';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import { TasksRepository } from './TasksRepository';
@@ -27,18 +32,32 @@ export class SQRWorkflow {
   );
   static finalSubmissionsRef = SQRWorkflow.submissionsRef.child(`final`);
 
-  static async allotmentsSheet() {
-    return await Spreadsheet.open(
-      functions.config().sqr.spreadsheet_id,
-      'Allotments'
-    );
-  }
-
   static async submissionsSheet() {
     return await Spreadsheet.open(
       functions.config().sqr.spreadsheet_id,
       'Submissions'
     );
+  }
+
+  static async getSpareFiles(list: string, languages: string[], count: number) {
+    const repository = await TasksRepository.open();
+    const files = await repository.getSpareFiles(list, languages, count);
+
+    /**
+     * When the coordinator clears the status in the database
+     * these files will be spared in the database during allotment
+     */
+    console.info(`Making spare`, files);
+    await repository.saveToDatabase(
+      files.map(({ name: fileName }) => ({
+        fileName,
+        status: AllotmentStatus.Spare,
+        token: null,
+        timestampGiven: null,
+      }))
+    );
+
+    return files;
   }
 
   static async processAllotment(
@@ -57,9 +76,7 @@ export class SQRWorkflow {
       .filter()
       .filter(
         ({ status, token, timestampGiven }) =>
-          !!token ||
-          !!timestampGiven ||
-          status !== AllotmentStatus.Spare
+          !!token || !!timestampGiven || status !== AllotmentStatus.Spare
       )
       .map(({ fileName }) => fileName)
       .join();
@@ -177,9 +194,9 @@ export class SQRWorkflow {
 
     // Sending email notification for the coordinator
 
-    const currentSet = (await repository.getUserAllotments(
-      task.assignee.emailAddress
-    )).filter(item => item.isActive);
+    const currentSet = (
+      await repository.getUserAllotments(task.assignee.emailAddress)
+    ).filter(item => item.isActive);
 
     const warnings = [];
     if (updated) warnings.push('This is an updated submission!');
@@ -252,9 +269,9 @@ export class SQRWorkflow {
       assignee: null,
     });
 
-    const currentSet = (await repository.getUserAllotments(
-      task.assignee.emailAddress
-    )).filter(item => item.isActive);
+    const currentSet = (
+      await repository.getUserAllotments(task.assignee.emailAddress)
+    ).filter(item => item.isActive);
 
     const warnings = [];
     if (_(currentSet).every(item => item.status !== AllotmentStatus.Given))
