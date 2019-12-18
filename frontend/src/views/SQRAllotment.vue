@@ -3,7 +3,7 @@
   <div>
     <h1>{{ $title }}</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
-      <v-autocomplete
+      <autocomplete
         v-model="allotment.assignee"
         :hint="
           allotment.assignee
@@ -38,7 +38,8 @@
             </v-list-item-content>
           </template>
         </template>
-      </v-autocomplete>
+        <template v-slot:loading-text>Loading assignees</template>
+      </autocomplete>
       <v-row class="py-2">
         <!-- Language -->
         <v-col cols="12">
@@ -164,8 +165,10 @@ import * as _ from "lodash";
 
 import { initialAllotment, initialAllotmentFilter } from "../utility";
 import ErrorMessages from "../mixins/ErrorMessages";
+import Autocomplete from "../components/Autocomplete";
 
 export default {
+  components: { Autocomplete },
   mixins: [ErrorMessages],
   name: "SQRAllotment",
   title: "SQR Allotment",
