@@ -2,7 +2,7 @@
   <div>
     <h1>{{ $title }}</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus !== 'complete'">
-      <v-autocomplete
+      <autocomplete
         v-model="allotment.assignee"
         :items="trackEditors || []"
         :loading="trackEditors === null"
@@ -26,7 +26,11 @@
             </v-list-item-content>
           </template>
         </template>
-      </v-autocomplete>
+
+        <template v-slot:loading-text>
+          Loading track editors
+        </template>
+      </autocomplete>
 
       <template v-if="isLoadingTasks">
         <p>Loading tasks…</p>
@@ -100,10 +104,11 @@ import "firebase/database";
 import "firebase/functions";
 
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
+import Autocomplete from "@/components/Autocomplete.vue";
 
 @Component({
   name: "Allotment",
-  components: { TaskDefinition },
+  components: { TaskDefinition, Autocomplete },
   title: "Track Editing Allotment"
 })
 export default class Allotment extends Vue {
