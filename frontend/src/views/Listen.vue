@@ -11,34 +11,26 @@
         </div>
       </v-card-title>
       <v-alert v-if="isInternetExplorer" :value="true">
-        Flac file not supported in Internet Explorer. Please download
-        <a :href="audioUrl">here</a>
+        FLAC files are not supported in Internet Explorer. Please download the
+        file.
       </v-alert>
-      <template v-else>
-        <v-card-title primary-title>
-          <audio
-            ref="audioPlayer"
-            controls="controls"
-            :src="audioUrl"
-            style="display: block; width: 100%;"
-          >
-            Your browser does not support embedding audio. Please click
-            <a :href="audioUrl">this link</a>.
-          </audio>
-        </v-card-title>
-        <v-card-title primary-title>
-          <div>
-            <small>
-              * To download the file, please click on the three dots on the
-              right of the player above and choose ‘Download’. Please note that
-              your browser may display the download option with the download
-              icon instead or disallow downloading. Alternatively, you can
-              long-tap the following link:
-              <a :href="audioUrl">Download</a>.
-            </small>
-          </div>
-        </v-card-title>
-      </template>
+      <v-card-title primary-title v-else>
+        <audio
+          ref="audioPlayer"
+          controls="controls"
+          :src="audioUrl"
+          style="display: block; width: 100%;"
+        >
+          Your browser does not support embedding audio. Please click
+          <a :href="audioUrl">this link</a>.
+        </audio>
+      </v-card-title>
+      <v-card-title primary-title>
+        <small>
+          To download the file, please click the following link:
+          <a :href="audioUrl">Download.</a>
+        </small>
+      </v-card-title>
       <v-card>
         <v-card-title primary-title>
           <div>
