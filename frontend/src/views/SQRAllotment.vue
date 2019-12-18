@@ -3,7 +3,7 @@
   <div>
     <h1>{{ $title }}</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus != 'complete'">
-      <autocomplete
+      <assignee-selector
         v-model="allotment.assignee"
         :hint="
           allotment.assignee
@@ -14,32 +14,14 @@
         :loading="assignees === null && !errors.getAssignees"
         item-text="name"
         item-value="id"
-        label="Select an assignee"
         :error-messages="
           errors.getAssignees
             ? `Error getting assignees: ${errors.getAssignees}`
             : ''
         "
-        persistent-hint
         return-object
-        clearable
-        dense
       >
-        <template slot="item" slot-scope="{ item }">
-          <template v-if="typeof item !== 'object'">
-            <v-list-item-content v-text="item"></v-list-item-content>
-          </template>
-          <template v-else>
-            <v-list-item-content>
-              <v-list-item-title v-html="item.name"></v-list-item-title>
-              <v-list-item-subtitle
-                v-html="item.emailAddress"
-              ></v-list-item-subtitle>
-            </v-list-item-content>
-          </template>
-        </template>
-        <template v-slot:loading-text>Loading assignees</template>
-      </autocomplete>
+      </assignee-selector>
       <v-row class="py-2">
         <!-- Language -->
         <v-col cols="12">
@@ -165,10 +147,10 @@ import * as _ from "lodash";
 
 import { initialAllotment, initialAllotmentFilter } from "../utility";
 import ErrorMessages from "../mixins/ErrorMessages";
-import Autocomplete from "../components/Autocomplete";
+import AssigneeSelector from "../components/AssigneeSelector";
 
 export default {
-  components: { Autocomplete },
+  components: { AssigneeSelector },
   mixins: [ErrorMessages],
   name: "SQRAllotment",
   title: "SQR Allotment",
