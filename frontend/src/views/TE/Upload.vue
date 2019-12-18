@@ -24,7 +24,10 @@
           {{ `${totalUploadCount} item${totalUploadCount > 1 ? "s" : ""}` }} |
           {{ getTotalUploadTime() }}
         </span>
-        <div :style="{ justifyContent: 'flex-end', display: 'flex' }">
+        <div
+          :style="{ justifyContent: 'flex-end', display: 'flex' }"
+          class="pl-2"
+        >
           <v-btn
             v-if="completedFileUploads"
             @click="clearCompletedFiles"
