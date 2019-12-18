@@ -8,21 +8,22 @@ const story = storyFactory({
   Autocomplete
 });
 
+const baseProps = (customProps = {}) => ({
+  loading: {
+    default: boolean("loading", true)
+  },
+  ...customProps
+});
+
 export const withDefaultText = () =>
   story({
-    props: {
-      loading: {
-        default: boolean("loading", true)
-      }
-    },
+    props: baseProps(),
     template: `<autocomplete label="Assignees" :loading="loading"></autocomplete>`
   });
 
 export const withCustomText = () =>
   story({
-    props: {
-      loading: { default: boolean("loading", true) }
-    },
+    props: baseProps(),
     template: `
       <autocomplete label="Assignees" :loading="loading">
         <template v-slot:loading-text>Custom load text</template>
