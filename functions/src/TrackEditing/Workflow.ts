@@ -76,9 +76,7 @@ export class TrackEditingWorkflow {
     if (task.status === AllotmentStatus.Done)
       abortCall('aborted', `Task ${taskId} is already Done, cannot cancel.`);
 
-    console.info(
-      `Cancelling task ${taskId} currently assigned to ${task.assignee.emailAddress}`
-    );
+    console.info(`Cancelling task ${taskId}`, task);
 
     await repository.save({
       id: taskId,
@@ -98,7 +96,7 @@ export class TrackEditingWorkflow {
     const repository = await TasksRepository.open();
     let task = await repository.getTask(taskId);
 
-    if (!task.assignee) {
+    if (!task || !task.assignee) {
       console.error(`Task ${taskId} is not assigned, aborting.`);
       return;
     }
