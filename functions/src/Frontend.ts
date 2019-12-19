@@ -33,3 +33,14 @@ export const sqrSelfTrackingLink = (emailAddress: string) => {
   url.searchParams.set('email_address', emailAddress);
   return url.toString();
 };
+
+export const trackEditingVersionOutputLink = (
+  taskId: string,
+  versionId: string
+) =>
+  new URL(
+    `te/tasks/${encodeURIComponent(taskId)}/versions/${encodeURIComponent(
+      versionId
+    )}/file`,
+    frontendUrl
+  ).toString();

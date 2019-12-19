@@ -120,9 +120,7 @@ export class TrackEditingWorkflow {
       uploadPath: object.name,
     });
 
-    await repository.saveNewVersion(taskId, version);
-
-    task = await repository.getTask(taskId);
+    task = await repository.saveNewVersion(taskId, version);
 
     const warnings = [];
 
@@ -172,7 +170,8 @@ export class TrackEditingWorkflow {
         status: AllotmentStatus.Done,
         timestampDone: admin.database.ServerValue.TIMESTAMP,
       });
-    } else
+    } else {
+      await repository.saveToSpreadsheet([task]);
       await admin
         .database()
         .ref(`/email/notifications`)
@@ -186,6 +185,7 @@ export class TrackEditingWorkflow {
             resolution,
           },
         });
+    }
   }
 
   static async importTasks() {
