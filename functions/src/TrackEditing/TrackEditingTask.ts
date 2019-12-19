@@ -24,9 +24,11 @@ export class TrackEditingTask extends Allotment {
     this.id = id;
   }
 
-  public get lastVersion(): FileVersion {
+  public get lastVersion() {
     const lastVersionKey = _.findLastKey(this.versions);
-    return this.versions[lastVersionKey];
+    return lastVersionKey
+      ? { id: lastVersionKey, ...this.versions[lastVersionKey] }
+      : null;
   }
 
   public toString(): string {
