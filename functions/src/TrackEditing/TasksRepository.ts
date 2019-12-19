@@ -8,6 +8,7 @@ import { createSchema, morphism } from 'morphism';
 import { AllotmentStatus } from '../Allotment';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
+import { trackEditingVersionOutputLink } from '../Frontend';
 import { RequireOnly } from '../RequireOnly';
 import { Spreadsheet } from '../Spreadsheet';
 import { ChunkRow, schema as chunkRowSchema } from './ChunkRow';
@@ -65,6 +66,26 @@ export class TasksRepository {
         : null,
     Devotee: 'assignee.name',
     Email: 'assignee.emailAddress',
+    'Upload Link': ({ id, lastVersion }) =>
+      lastVersion ? trackEditingVersionOutputLink(id, lastVersion.id) : null,
+    'Upload Date': ({ lastVersion }) =>
+      lastVersion
+        ? DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(lastVersion.timestamp)
+          )
+        : null,
+    'Latest Resolution': ({ lastVersion }) =>
+      lastVersion && lastVersion.resolution
+        ? lastVersion.resolution.isApproved
+          ? 'Approved'
+          : `Disapproved: ${lastVersion.resolution.feedback}`
+        : null,
+    'Resolution Date': ({ lastVersion }) =>
+      lastVersion && lastVersion.resolution
+        ? DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(lastVersion.resolution.timestamp)
+          )
+        : null,
   });
 
   private getTaskRef(taskId: string) {
@@ -95,6 +116,11 @@ export class TasksRepository {
     await this.getTaskRef(taskId)
       .child('versions')
       .push(version);
+
+    const updatedTask = await this.getTask(taskId);
+
+    await this.saveToSpreadsheet([updatedTask]);
+    return updatedTask;
   }
 
   private async saveToDatabase(tasks: IdentifyableTask[]) {
@@ -111,7 +137,7 @@ export class TasksRepository {
     );
   }
 
-  private async saveToSpreadsheet(tasks: TrackEditingTask[]) {
+  public async saveToSpreadsheet(tasks: TrackEditingTask[]) {
     const rows = morphism(this.objectToRowSchema, tasks);
     await this.allotmentsSheet.updateOrAppendRows(
       <string>this.rowToObjectSchema.id,
