@@ -18,6 +18,7 @@
       rel="stylesheet"
     />
     <link href="<%= BASE_URL %>loading.css" rel="stylesheet" />
+    <link href="<%= BASE_URL %>quotes.css" rel="stylesheet" />
   </head>
 
   <body>
@@ -32,9 +33,24 @@
         <div class="overlay">
           <div class="loadingWrapper">
             <div class="loader">Loading...</div>
-            <h2>Loading</h2>
+            <div class="quote-wrapper"><q class="quote"></q></div>
           </div>
         </div>
+        <script>
+        function getRandomQuote(quotes) {
+          return quotes[Math.floor(Math.random() * quotes.length)];
+        }
+
+        function showQuote(quote) {
+          document.querySelector(".quote").appendChild(document.createTextNode(quote))
+        }
+        const quotes = localStorage.getItem("quotes");
+        if (quotes) {
+          showQuote(getRandomQuote(JSON.parse(quotes)));
+        } else {
+          showQuote("I am closer to you than the air you breathe.");
+        }
+        </script>
       </div>
     </div>
   </body>
