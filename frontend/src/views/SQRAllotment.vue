@@ -223,10 +223,15 @@ export default {
   methods: {
     async allot() {
       this.submissionStatus = "inProgress";
+      const {
+        assignee: { emailAddress, name },
+        ...allotment
+      } = this.allotment;
       try {
-        await firebase.functions().httpsCallable("SQR-processAllotment")(
-          this.allotment
-        );
+        await firebase.functions().httpsCallable("SQR-processAllotment")({
+          ...allotment,
+          assignee: { emailAddress, name }
+        });
         this.errors = {};
         this.submissionStatus = "complete";
       } catch (error) {
