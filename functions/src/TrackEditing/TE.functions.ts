@@ -104,7 +104,7 @@ export const processUpload = functions.storage
   .object()
   .onFinalize(async (object, context) => {
     // `context.auth` is not populated here. See https://stackoverflow.com/a/49723193/3082178
-    const uid = object.name.match(/^([^/]+)/)[0];
+    const uid = object.name.split('/').shift();
     const taskId = path.basename(object.name, '.flac');
 
     const user = await admin.auth().getUser(uid);
@@ -118,9 +118,12 @@ export const processUpload = functions.storage
       return;
     }
 
-    if (task.assignee.emailAddress !== user.email) {
+    if (
+      !user.customClaims['coordinator'] &&
+      task.assignee.emailAddress !== user.email
+    ) {
       console.error(
-        `Task is assigned to ${task.assignee.emailAddress}, uploaded by ${user.email}.`
+        `Task is assigned to ${task.assignee.emailAddress}, aborting.`
       );
       return;
     }
