@@ -2,22 +2,77 @@
  * sri sri guru gauranga jayatah
  */
 
-import express = require('express');
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
+import * as path from 'path';
+import { AllotmentStatus } from '../Allotment';
+import { Assignee } from '../Assignee';
 import { abortCall, authorizeCoordinator } from '../auth';
+import { FileVersion } from '../FileVersion';
 import { StorageManager } from '../StorageManager';
 import { TasksRepository } from './TasksRepository';
-import { TrackEditingWorkflow } from './Workflow';
+import express = require('express');
+import _ = require('lodash');
+import admin = require('firebase-admin');
 
 export const processAllotment = functions.https.onCall(
-  async ({ assignee, tasks, comment }, context) => {
+  async (
+    {
+      assignee,
+      tasks: taskIds,
+      comment,
+    }: { assignee: Assignee; tasks: string[]; comment: string },
+    context
+  ) => {
     authorizeCoordinator(context);
 
-    if (!assignee || !tasks || tasks.length === 0)
+    if (!assignee || !taskIds || taskIds.length === 0)
       abortCall('invalid-argument', 'Assignee and Tasks are required.');
 
-    await TrackEditingWorkflow.processAllotment(assignee, tasks, comment);
+    console.info(`Allotting ${taskIds.join(', ')} to ${assignee.emailAddress}`);
+
+    const repository = await TasksRepository.open();
+    const tasks = await repository.getTasks(taskIds);
+
+    const dirtyTasks = _(tasks)
+      .filter()
+      .filter(
+        ({ status, token, timestampGiven }) =>
+          !!token || !!timestampGiven || status !== AllotmentStatus.Spare
+      )
+      .map(({ id }) => id)
+      .join();
+
+    if (dirtyTasks.length)
+      abortCall(
+        'aborted',
+        `Files ${dirtyTasks} seem to be already allotted in the database. Please 🔨 the administrator.`
+      );
+
+    const updatedTasks = await repository.save(
+      ...taskIds.map(id => ({
+        id,
+        assignee,
+        status: AllotmentStatus.Given,
+        timestampGiven: admin.database.ServerValue.TIMESTAMP,
+      }))
+    );
+
+    // Notify the assignee
+    await admin
+      .database()
+      .ref(`/email/notifications`)
+      .push({
+        template: 'track-editing-allotment',
+        to: assignee.emailAddress,
+        bcc: functions.config().te.coordinator.email_address,
+        replyTo: functions.config().te.coordinator.email_address,
+        params: {
+          tasks: updatedTasks,
+          assignee,
+          comment,
+        },
+      });
   }
 );
 
@@ -27,7 +82,20 @@ export const cancelAllotment = functions.https.onCall(
 
     if (!taskId) abortCall('invalid-argument', 'Task ID is required.');
 
-    await TrackEditingWorkflow.cancelAllotment(taskId);
+    const repository = await TasksRepository.open();
+    const task = await repository.getTask(taskId);
+
+    if (task.status === AllotmentStatus.Done)
+      abortCall('aborted', `Task ${taskId} is already Done, cannot cancel.`);
+
+    console.info(`Cancelling task ${taskId}`, task);
+
+    await repository.save({
+      id: taskId,
+      status: AllotmentStatus.Spare,
+      assignee: null,
+      timestampGiven: null,
+    });
   }
 );
 
@@ -36,24 +104,112 @@ export const processUpload = functions.storage
   .object()
   .onFinalize(async (object, context) => {
     // `context.auth` is not populated here. See https://stackoverflow.com/a/49723193/3082178
-    await TrackEditingWorkflow.processUpload(object);
+    const uid = object.name.match(/^([^/]+)/)[0];
+    const taskId = path.basename(object.name, '.flac');
+
+    const user = await admin.auth().getUser(uid);
+    console.info(`Processing upload of ${taskId} by ${user.email}.`);
+
+    const repository = await TasksRepository.open();
+    let task = await repository.getTask(taskId);
+
+    if (!task || !task.assignee) {
+      console.error(`Task ${taskId} is not assigned, aborting.`);
+      return;
+    }
+
+    if (task.assignee.emailAddress !== user.email) {
+      console.error(
+        `Task is assigned to ${task.assignee.emailAddress}, uploaded by ${user.email}.`
+      );
+      return;
+    }
+
+    // Update the task status if it is not in Done status
+    if (task.status !== AllotmentStatus.Done)
+      await repository.save({
+        id: taskId,
+        status: AllotmentStatus.WIP,
+      });
+
+    const version = new FileVersion({
+      timestamp: DateTime.fromISO(object.timeCreated).toMillis(),
+      uploadPath: object.name,
+    });
+
+    task = await repository.saveNewVersion(taskId, version);
+
+    const warnings = [];
+
+    if (task.status === AllotmentStatus.Done)
+      warnings.push('Task is already Done.');
+
+    // Notify the coordinator
+    await admin
+      .database()
+      .ref(`/email/notifications`)
+      .push({
+        template: 'track-editing-upload',
+        to: functions.config().te.coordinator.email_address,
+        replyTo: task.assignee.emailAddress,
+        params: {
+          task,
+          lastVersion: task.lastVersion,
+          warnings,
+        },
+      });
   });
 
 export const processResolution = functions.database
   .ref('/TE/tasks/{taskId}/versions/{versionKey}/resolution')
   .onCreate(async (resolution, { params: { taskId, versionKey } }) => {
-    await TrackEditingWorkflow.processResolution(
-      taskId,
-      versionKey,
-      resolution.val()
+    const repository = await TasksRepository.open();
+    const task = await repository.getTask(taskId);
+
+    console.info(
+      `Processing resolution of ${taskId} (version ${versionKey}): ${
+        resolution.val().isApproved
+          ? 'approved'
+          : `disapproved with feedback “${resolution.val().feedback}”`
+      }.`
     );
+
+    if (resolution.val().isApproved) {
+      // Saving the approved file to the final storage bucket
+      await StorageManager.getBucket('te.uploads')
+        .file(task.versions[versionKey].uploadPath)
+        .copy(StorageManager.getFile('edited', `${taskId}.flac`));
+
+      await repository.save({
+        id: taskId,
+        status: AllotmentStatus.Done,
+        timestampDone: admin.database.ServerValue.TIMESTAMP,
+      });
+    } else {
+      await repository.saveToSpreadsheet([task]);
+      await admin
+        .database()
+        .ref(`/email/notifications`)
+        .push({
+          template: 'track-editing-feedback',
+          to: task.assignee.emailAddress,
+          bcc: functions.config().te.coordinator.email_address,
+          replyTo: functions.config().te.coordinator.email_address,
+          params: {
+            task,
+            resolution,
+          },
+        });
+    }
   });
 
 export const importTasks = functions.pubsub
   .schedule('every day 00:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
-    await TrackEditingWorkflow.importTasks();
+    const repository = await TasksRepository.open();
+    const count: number = await repository.importTasks();
+    console.info(`Imported ${count} tasks.`);
   });
 
 export const download = functions.https.onRequest(
