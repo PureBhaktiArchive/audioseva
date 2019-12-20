@@ -19,10 +19,7 @@ export default {
       await this.$rtdbBind("quotes", firebase.database().ref("quotes"));
       localStorage.setItem(
         "quotes",
-        JSON.stringify([
-          "I am closer to you than the air you breathe.",
-          ...this.quotes.map(quote => quote.text)
-        ])
+        JSON.stringify(this.quotes.map(quote => quote.text))
       );
     }
   }
