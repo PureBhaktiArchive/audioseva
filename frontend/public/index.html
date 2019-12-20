@@ -48,12 +48,7 @@
         if (quotes) {
           showQuote(getRandomQuote(JSON.parse(quotes)));
         } else {
-          let defaultQuote = localStorage.getItem("defaultQuote");
-          if (!defaultQuote) {
-            localStorage.setItem("defaultQuote", "I am closer to you than the air you breathe.");
-            defaultQuote = "I am closer to you than the air you breathe.";
-          }
-          showQuote(defaultQuote);
+          showQuote("I am closer to you than the air you breathe.");
         }
         </script>
       </div>
