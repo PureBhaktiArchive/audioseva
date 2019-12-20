@@ -3,6 +3,11 @@
     <div v-if="isFetchingTask">
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
+    <div v-else-if="fetchTaskError">
+      <v-alert color="warning" :value="true">
+        This task is not available to you. Please contact your coordinator.
+      </v-alert>
+    </div>
     <div v-else>
       <div :style="{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }">
         <h1 class="d-inline" :style="{ width: 'auto' }">
@@ -187,6 +192,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   task: any = {};
   isFetchingTask = true;
   isCoordinator = false;
+  fetchTaskError = false;
   form = {
     isApproved: false,
     feedback: ""
@@ -200,10 +206,14 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   }
 
   async getTask() {
-    await this.$rtdbBind(
-      "task",
-      firebase.database().ref(`/TE/tasks/${this.$route.params.taskId}`)
-    );
+    try {
+      await this.$rtdbBind(
+        "task",
+        firebase.database().ref(`/TE/tasks/${this.$route.params.taskId}`)
+      );
+    } catch (e) {
+      this.fetchTaskError = true;
+    }
     this.isFetchingTask = false;
   }
 
