@@ -2,31 +2,14 @@
   <div>
     <h1>{{ $title }}</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus !== 'complete'">
-      <v-autocomplete
+      <assignee-selector
         v-model="allotment.assignee"
         :items="trackEditors || []"
         :loading="trackEditors === null"
         item-text="name"
-        label="Select an assignee"
-        persistent-hint
         :item-value="getAllotmentAssignee"
-        clearable
-        dense
       >
-        <template slot="item" slot-scope="{ item }">
-          <template v-if="typeof item !== 'object'">
-            <v-list-item-content v-text="item"></v-list-item-content>
-          </template>
-          <template v-else>
-            <v-list-item-content>
-              <v-list-item-title v-html="item.name"></v-list-item-title>
-              <v-list-item-subtitle
-                v-html="item.emailAddress"
-              ></v-list-item-subtitle>
-            </v-list-item-content>
-          </template>
-        </template>
-      </v-autocomplete>
+      </assignee-selector>
 
       <template v-if="isLoadingTasks">
         <p>Loading tasks…</p>
@@ -100,10 +83,11 @@ import "firebase/database";
 import "firebase/functions";
 
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
+import AssigneeSelector from "@/components/AssigneeSelector.vue";
 
 @Component({
   name: "Allotment",
-  components: { TaskDefinition },
+  components: { AssigneeSelector, TaskDefinition },
   title: "Track Editing Allotment"
 })
 export default class Allotment extends Vue {
