@@ -4,7 +4,7 @@
     <div class="pb-3">
       <h3>{{ $title }}</h3>
     </div>
-    <v-card color="#d9edf7" :max-width="isInternetExplorer ? '90vw' : '100%'">
+    <v-card color="#d9edf7">
       <v-card-title primary-title>
         <div>
           <h3 class="headline mb-0">Audio Player</h3>
@@ -53,7 +53,13 @@
   </div>
 </template>
 
-<style></style>
+<style>
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .v-card {
+    max-width: 90vw;
+  }
+}
+</style>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
