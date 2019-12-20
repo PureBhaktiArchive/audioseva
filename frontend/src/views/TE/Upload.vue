@@ -18,20 +18,26 @@
       </vue-dropzone>
     </div>
     <div>
-      <div :style="{ alignItems: 'center' }" class="d-flex pa-1">
+      <div
+        :style="{ alignItems: 'center', justifyContent: 'space-between' }"
+        class="d-flex pa-1"
+      >
         <span v-if="totalUploadCount" class="pl-2">
           Uploading
           {{ `${totalUploadCount} item${totalUploadCount > 1 ? "s" : ""}` }} |
           {{ getTotalUploadTime() }}
         </span>
-        <div :style="{ justifyContent: 'flex-end', display: 'flex' }">
+        <div
+          :style="{ justifyContent: 'flex-end', display: 'flex' }"
+          class="pl-2"
+        >
           <v-btn
             v-if="completedFileUploads"
             @click="clearCompletedFiles"
             color="green"
             >Clear completed</v-btn
           >
-          <v-btn v-if="totalUploadCount" @click="cancelAllFiles" color="red"
+          <v-btn v-if="totalUploadCount" @click="cancelAllFiles"
             >Cancel all</v-btn
           >
         </div>
@@ -50,7 +56,7 @@
                 <v-list-item-title>{{ file.name }}</v-list-item-title>
               </v-list-item-content>
               <v-list-item-action :style="{ flexDirection: 'row' }">
-                <v-btn v-if="status.error" color="red" @click="deleteFile(file)"
+                <v-btn v-if="status.error" @click="deleteFile(file)"
                   >remove</v-btn
                 >
                 <v-icon color="green" v-else-if="status.complete"
@@ -62,11 +68,9 @@
                     color="green"
                     :style="{ marginRight: '16px' }"
                   ></v-progress-circular>
-                  <v-btn
-                    color="red"
-                    @click="cancelFile(status)"
-                    v-if="status.uploading"
-                    >Cancel</v-btn
+                  <v-btn @click="cancelFile(status)" v-if="status.uploading">
+                    Cancel
+                  </v-btn
                   >
                 </div>
               </v-list-item-action>
