@@ -18,7 +18,10 @@
       </vue-dropzone>
     </div>
     <div>
-      <div :style="{ alignItems: 'center' }" class="d-flex pa-1">
+      <div
+        :style="{ alignItems: 'center', justifyContent: 'space-between' }"
+        class="d-flex pa-1"
+      >
         <span v-if="totalUploadCount" class="pl-2">
           Uploading
           {{ `${totalUploadCount} item${totalUploadCount > 1 ? "s" : ""}` }} |
