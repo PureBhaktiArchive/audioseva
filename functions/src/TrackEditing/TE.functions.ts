@@ -258,17 +258,25 @@ export const download = functions.https.onRequest(
         return;
       }
 
+      /**
+       * Version keys are added in the lexographical order
+       * So the requested version number is just a length of this filtered array
+       */
+      const versionNumber = _.keys(task.versions).filter(
+        key => key <= versionId
+      ).length;
+
       const url = (
         await file.getSignedUrl({
           action: 'read',
           expires: DateTime.local()
             .plus({ days: 3 })
             .toJSDate(),
-          promptSaveAs: `${taskId}.v${versionId}.flac`,
+          promptSaveAs: `${taskId}.v${versionNumber}.flac`,
         })
       ).shift();
 
-      console.log(`Redirecting ${taskId}.${versionId} to ${url}`);
+      console.log(`Redirecting ${taskId}/${versionId} to ${url}`);
       res.redirect(307, url);
     }
   )
