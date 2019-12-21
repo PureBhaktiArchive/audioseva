@@ -74,14 +74,17 @@ type Status extends String {
   validate() { this.test(/^Spare|Given|WIP|Done|\w+(\s\w+)*]+$/) }
 }
 
-type Assignee {
-  emailAddress: String,
+type Person {
+  uid: String | Null;
+  emailAddress: String | Null,
   name: String,
+
+  validate() { this.uid != null || this.emailAddress != null }
 }
 
 type Allotment {
   status: Status,
-  assignee: Assignee | Null,
+  assignee: Person | Null,
   notes: String | Null,
   timestampGiven: InitialTimestamp | Null,
   timestampDone: InitialTimestamp | Null,
@@ -99,7 +102,7 @@ type ReportingAllotment extends Allotment {
 }
 
 type Submission {
-  author: Assignee | Null,
+  author: Person | Null,
   created: Number | Null,
   changed: CurrentTimestamp,
   completed: Number,
@@ -177,6 +180,7 @@ type AudioChunk extends TimingInterval<Number> {
 }
 
 type FileResolution {
+  author: Person,
   timestamp: InitialTimestamp,
   isApproved: Boolean,
   feedback: String,
