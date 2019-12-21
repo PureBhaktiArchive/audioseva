@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { Assignee } from './Assignee';
+import { Person } from './Person';
 
 /*
  * sri sri guru gauranga jayatah
@@ -14,7 +14,7 @@ export enum AllotmentStatus {
 }
 
 export class Allotment {
-  assignee?: Assignee;
+  assignee?: Person;
   status: AllotmentStatus;
   notes?: string;
   timestampGiven?: number;

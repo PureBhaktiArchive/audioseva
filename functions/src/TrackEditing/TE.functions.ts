@@ -6,9 +6,9 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import * as path from 'path';
 import { AllotmentStatus } from '../Allotment';
-import { Assignee } from '../Assignee';
 import { abortCall, authorizeCoordinator } from '../auth';
 import { FileVersion } from '../FileVersion';
+import { Person } from '../Person';
 import { StorageManager } from '../StorageManager';
 import { TasksRepository } from './TasksRepository';
 import express = require('express');
@@ -21,7 +21,7 @@ export const processAllotment = functions.https.onCall(
       assignee,
       tasks: taskIds,
       comment,
-    }: { assignee: Assignee; tasks: string[]; comment: string },
+    }: { assignee: Person; tasks: string[]; comment: string },
     context
   ) => {
     authorizeCoordinator(context);
