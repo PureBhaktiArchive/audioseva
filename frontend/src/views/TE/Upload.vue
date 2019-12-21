@@ -227,7 +227,7 @@ export default class Upload extends Vue {
     const uploadTask = this.uploadsBucket
       .ref()
       .child(path)
-      .put(file, { contentDisposition: "" });
+      .put(file);
     this.updateFileFields(file, {
       uploading: true,
       uploadTask: uploadTask,

@@ -103,6 +103,19 @@ export const processUpload = functions.storage
   .bucket(StorageManager.getFullBucketName('te.uploads'))
   .object()
   .onFinalize(async (object, context) => {
+    // tslint:disable-next-line: triple-equals
+    if (object.contentDisposition != null) {
+      console.info(
+        `Unsetting content disposition. Current value: `,
+        object.contentDisposition
+      );
+      await admin
+        .storage()
+        .bucket(object.bucket)
+        .file(object.name)
+        .setMetadata({ contentDisposition: null });
+    }
+
     // `context.auth` is not populated here. See https://stackoverflow.com/a/49723193/3082178
     const uid = object.name.match(/^([^/]+)/)[0];
     const taskId = path.basename(object.name, '.flac');
