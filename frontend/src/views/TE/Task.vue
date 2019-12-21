@@ -133,7 +133,7 @@
                 <v-textarea
                   v-model="form.feedback"
                   outlined
-                  :rules="fieldRules"
+                  :rules="rules"
                   label="Feed back"
                 ></v-textarea>
                 <div :style="{ display: 'flex' }">
@@ -191,6 +191,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     isApproved: false,
     feedback: ""
   };
+  rules: any[] = [];
 
   getUserClaims!: any;
 
@@ -224,8 +225,22 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     }
   }
 
+  @Watch("form.feedback")
+  resetRules() {
+    this.rules = [];
+  }
+
+  activateRules() {
+    this.rules = this.fieldRules;
+  }
+
   async handleSubmitForm(isApproved = false, versionKey: string) {
     this.form.isApproved = isApproved;
+    if (isApproved) {
+      this.resetRules();
+    } else {
+      this.activateRules();
+    }
     this.$nextTick(async () => {
       if ((this.$refs as any).form[0].validate()) {
         const versionToUpdate = `/TE/tasks/${this.$route.params.taskId}/versions/${versionKey}/resolution`;
