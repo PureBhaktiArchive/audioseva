@@ -103,6 +103,19 @@ export const processUpload = functions.storage
   .bucket(StorageManager.getFullBucketName('te.uploads'))
   .object()
   .onFinalize(async (object, context) => {
+    // tslint:disable-next-line: triple-equals
+    if (object.contentDisposition != null) {
+      console.info(
+        `Unsetting content disposition. Current value: `,
+        object.contentDisposition
+      );
+      await admin
+        .storage()
+        .bucket(object.bucket)
+        .file(object.name)
+        .setMetadata({ contentDisposition: null });
+    }
+
     // `context.auth` is not populated here. See https://stackoverflow.com/a/49723193/3082178
     const uid = object.name.match(/^([^/]+)/)[0];
     const taskId = path.basename(object.name, '.flac');
@@ -245,17 +258,25 @@ export const download = functions.https.onRequest(
         return;
       }
 
+      /**
+       * Version keys are added in the lexographical order
+       * So the requested version number is just a length of this filtered array
+       */
+      const versionNumber = _.keys(task.versions).filter(
+        key => key <= versionId
+      ).length;
+
       const url = (
         await file.getSignedUrl({
           action: 'read',
           expires: DateTime.local()
             .plus({ days: 3 })
             .toJSDate(),
-          promptSaveAs: `${taskId}.v${versionId}.flac`,
+          promptSaveAs: `${taskId}.v${versionNumber}.flac`,
         })
       ).shift();
 
-      console.log(`Redirecting ${taskId}.${versionId} to ${url}`);
+      console.log(`Redirecting ${taskId}/${versionId} to ${url}`);
       res.redirect(307, url);
     }
   )
