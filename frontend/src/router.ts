@@ -93,7 +93,7 @@ export const router = new Router({
               component: () => import("@/views/TE/Upload.vue"),
               meta: {
                 menuItem: true,
-                auth: { requireClaims: { TE: true } },
+                auth: { requireClaims: { TE: true, coordinator: true } },
                 homePageLink: { text: "Upload" }
               }
             },
