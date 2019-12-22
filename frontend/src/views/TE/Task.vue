@@ -6,9 +6,9 @@
     <div v-else>
       <div>
         <h1>
-          Track Editing Task
+          Track Editing Task <br />
+          {{ $route.params.taskId }} =
         </h1>
-        <h1>{{ $route.params.taskId }} =</h1>
       </div>
       <article>
         <h3>Task Definition</h3>
