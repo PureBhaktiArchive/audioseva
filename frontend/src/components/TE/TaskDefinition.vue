@@ -29,6 +29,7 @@
       <div
         :key="`${item['key']}-${index}-plus`"
         v-if="item.chunks.length !== index + 1"
+        :style="{ fontSize: '2em', fontWeight: 'bold' }"
       >
         +
       </div>
