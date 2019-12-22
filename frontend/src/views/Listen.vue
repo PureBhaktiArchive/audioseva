@@ -4,15 +4,11 @@
     <div class="pb-3">
       <h3>{{ $title }}</h3>
     </div>
-    <v-card color="#d9edf7">
-      <v-card-title primary-title>
-        <div>
-          <h3 class="headline mb-0">Audio Player</h3>
-        </div>
-      </v-card-title>
-      <v-alert v-if="isInternetExplorer" :value="true">
-        {{ fileTypeError }}
-      </v-alert>
+    <h3 class="headline mb-0">Audio Player</h3>
+    <v-alert v-if="isInternetExplorer" :value="true">
+      {{ fileTypeError }}
+    </v-alert>
+    <v-card color="#d9edf7" class="my-2">
       <v-card-title primary-title>
         <audio
           ref="audioPlayer"
@@ -30,25 +26,25 @@
           <a :href="audioUrl">Download.</a>
         </small>
       </v-card-title>
-      <v-card>
-        <v-card-title primary-title>
-          <div>
-            <p class="text-justify">
-              When you fill the Online Submission Form, please provide as many
-              details as you can especially about sound quality because we are
-              depending entirely on your feedback to process these files in the
-              sound editing stage. Please mention if there is any background
-              noise, abrupt sounds, blank spaces, low sound volume, etc. If you
-              miss to provide some input, chances are, the issue will be part of
-              the final archive.
-            </p>
-          </div>
-        </v-card-title>
-      </v-card>
     </v-card>
     <v-alert type="warning" v-if="errorMessage" :value="true">
       {{ errorMessage }}
     </v-alert>
+    <v-card>
+      <v-card-title primary-title>
+        <div>
+          <p class="text-justify">
+            When you fill the Online Submission Form, please provide as many
+            details as you can especially about sound quality because we are
+            depending entirely on your feedback to process these files in the
+            sound editing stage. Please mention if there is any background
+            noise, abrupt sounds, blank spaces, low sound volume, etc. If you
+            miss to provide some input, chances are, the issue will be part of
+            the final archive.
+          </p>
+        </div>
+      </v-card-title>
+    </v-card>
   </div>
 </template>
 
