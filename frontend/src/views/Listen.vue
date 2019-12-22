@@ -11,10 +11,9 @@
         </div>
       </v-card-title>
       <v-alert v-if="isInternetExplorer" :value="true">
-        FLAC files are not supported in Internet Explorer. Please download the
-        file.
+        {{ fileTypeError }}
       </v-alert>
-      <v-card-title primary-title v-else>
+      <v-card-title primary-title>
         <audio
           ref="audioPlayer"
           controls="controls"
@@ -72,6 +71,7 @@ import { Component, Vue } from "vue-property-decorator";
 export default class ListenAudio extends Vue {
   fileName: string = "";
   errorMessage = "";
+  fileTypeError = "";
 
   $refs!: {
     audioPlayer: HTMLMediaElement;
@@ -81,6 +81,10 @@ export default class ListenAudio extends Vue {
     this.fileName = this.$route.params.fileName;
     this.$refs.audioPlayer &&
       this.$refs.audioPlayer.addEventListener("error", this.handleFileError);
+    const fileType = this.nameAndExtension[1];
+    if (fileType && !this.$refs.audioPlayer.canPlayType(`audio/${fileType}`)) {
+      this.fileTypeError = `Your browser does not support the audio files of type ${fileType}. Please download the file.`;
+    }
   }
 
   destroyed() {
