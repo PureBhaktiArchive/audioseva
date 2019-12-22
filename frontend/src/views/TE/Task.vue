@@ -90,22 +90,15 @@
                   :style="{ display: 'flex', alignItems: 'center' }"
                 >
                   <div :style="{ width: '100%' }">
-                    <v-chip
-                      :style="{ float: 'left' }"
-                      class="ma-1"
-                      label
-                      :color="version.resolution.isApproved ? 'green' : 'red'"
-                      dark
-                    >
-                      <span>{{
-                        version.resolution.isApproved
-                          ? "Approved"
-                          : "Disapproved"
-                      }}</span>
-                    </v-chip>
-                    <p class="mb-0" v-if="version.resolution.feedback">
-                      {{ version.resolution.feedback }}
-                    </p>
+                    <template v-if="version.resolution.isApproved">
+                      Approved by {{ currentUser.displayName }}
+                    </template>
+                    <template v-else>
+                      Disapproved by {{ currentUser.displayName }}:
+                      <span class="mb-0" v-if="version.resolution.feedback">
+                        {{ version.resolution.feedback }}
+                      </span>
+                    </template>
                   </div>
                 </v-col>
                 <v-col
