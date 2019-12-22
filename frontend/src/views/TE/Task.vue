@@ -11,7 +11,6 @@
         </h1>
       </div>
       <article>
-        <h3>Task Definition</h3>
         <task-definition :item="task"></task-definition>
         <div :style="{ display: 'flex' }">
           <h3>Status:</h3>
