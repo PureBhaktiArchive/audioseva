@@ -192,6 +192,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     feedback: ""
   };
 
+  currentUser!: firebase.User;
   getUserClaims!: any;
 
   mounted() {
@@ -234,6 +235,11 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
           .ref(versionToUpdate)
           .update({
             ...this.form,
+            author: {
+              uid: this.currentUser.uid,
+              name: this.currentUser.displayName,
+              emailAddress: this.currentUser.email
+            },
             timestamp: firebase.database.ServerValue.TIMESTAMP
           });
       }
