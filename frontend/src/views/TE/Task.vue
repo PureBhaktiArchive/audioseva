@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div v-if="isFetchingTask">
+    <div v-if="taskState === TaskState.LOADING">
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
-    <div v-else-if="fetchTaskError">
+    <div v-else-if="taskState === TaskState.ERROR">
       <v-alert color="warning" :value="true">
         This task is not available to you. Please contact your coordinator.
       </v-alert>
@@ -174,6 +174,12 @@ import TaskMixin from "@/components/TE/TaskMixin";
 import FormatTime from "@/mixins/FormatTime";
 import VersionDownloadLink from "@/components/TE/VersionDownloadLink.vue";
 
+enum TaskState {
+  LOADING = 0,
+  ERROR = 1,
+  LOADED = 2
+}
+
 @Component({
   name: "Task",
   components: { TaskDefinition, VersionDownloadLink },
@@ -190,9 +196,9 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   FormatTime
 ) {
   task: any = {};
-  isFetchingTask = true;
+  TaskState = TaskState;
+  taskState: TaskState = TaskState.LOADING;
   isCoordinator = false;
-  fetchTaskError = false;
   form = {
     isApproved: false,
     feedback: ""
@@ -211,10 +217,10 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
         "task",
         firebase.database().ref(`/TE/tasks/${this.$route.params.taskId}`)
       );
+      this.taskState = TaskState.LOADED;
     } catch (e) {
-      this.fetchTaskError = true;
+      this.taskState = TaskState.ERROR;
     }
-    this.isFetchingTask = false;
   }
 
   async checkUserClaims() {
