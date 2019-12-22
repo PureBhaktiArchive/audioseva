@@ -1,6 +1,6 @@
 /* import { functions } from 'firebase'; * sri sri guru gauranga jayatah */
 <template>
-  <div class="pa-3">
+  <div class="pa-3 listening-page">
     <div class="pb-3">
       <h3>{{ $title }}</h3>
     </div>
@@ -54,7 +54,7 @@
 
 <style>
 @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-  .v-card {
+  .listening-page {
     max-width: 90vw;
   }
 }
