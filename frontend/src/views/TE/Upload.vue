@@ -20,7 +20,7 @@
     <div>
       <div
         :style="{ alignItems: 'center', justifyContent: 'space-between' }"
-        class="d-flex pa-1"
+        class="d-flex pa-2"
       >
         <span v-if="totalUploadCount" class="pl-2">
           Uploading
@@ -28,16 +28,17 @@
           {{ getTotalUploadTime() }}
         </span>
         <div
-          :style="{ justifyContent: 'flex-end', display: 'flex' }"
+          :style="{
+            justifyContent: 'flex-end',
+            display: 'flex',
+            width: '100%'
+          }"
           class="pl-2"
         >
-          <v-btn
-            v-if="completedFileUploads"
-            @click="clearCompletedFiles"
-            color="green"
-            >Clear completed</v-btn
-          >
-          <v-btn v-if="totalUploadCount" @click="cancelAllFiles"
+          <v-btn v-if="completedFileUploads" @click="clearCompletedFiles">
+            Clear completed
+          </v-btn>
+          <v-btn class="ml-2" v-if="totalUploadCount" @click="cancelAllFiles"
             >Cancel all</v-btn
           >
         </div>
@@ -70,8 +71,7 @@
                   ></v-progress-circular>
                   <v-btn @click="cancelFile(status)" v-if="status.uploading">
                     Cancel
-                  </v-btn
-                  >
+                  </v-btn>
                 </div>
               </v-list-item-action>
             </v-list-item>
