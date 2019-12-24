@@ -568,7 +568,7 @@ export default class Form extends Vue {
   background-color: #fafafa;
   bottom: 0;
   padding: 12px;
-  position: sticky;
+  position: relative;
   width: 100%;
   z-index: 4;
 }
@@ -576,6 +576,12 @@ export default class Form extends Vue {
 @media screen and (min-width: 1904px) {
   >>> .justify-xl-evenly {
     justify-content: space-evenly !important;
+  }
+}
+
+@media only screen and (min-width: 900px) {
+  .sticky {
+    position: sticky;
   }
 }
 
