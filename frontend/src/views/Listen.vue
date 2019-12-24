@@ -1,15 +1,11 @@
 /* import { functions } from 'firebase'; * sri sri guru gauranga jayatah */
 <template>
-  <div class="pa-3">
+  <div class="pa-3 listening-page">
     <div class="pb-3">
       <h3>{{ $title }}</h3>
     </div>
-    <v-card color="#d9edf7">
-      <v-card-title primary-title>
-        <div>
-          <h3 class="headline mb-0">Audio Player</h3>
-        </div>
-      </v-card-title>
+    <h3 class="headline mb-0">Audio Player</h3>
+    <v-card color="#d9edf7" class="my-2">
       <v-card-title primary-title>
         <audio
           ref="audioPlayer"
@@ -22,40 +18,40 @@
         </audio>
       </v-card-title>
       <v-card-title primary-title>
-        <div>
-          <small>
-            * To download the file, please click on the three dots on the right
-            of the player above and choose ‘Download’. Please note that your
-            browser may display the download option with the download icon
-            instead or disallow downloading. Alternatively, you can long-tap the
-            following link:
-            <a :href="audioUrl">Download</a>.
-          </small>
-        </div>
+        <small>
+          To download the file, please click the following link:
+          <a :href="audioUrl">Download.</a>
+        </small>
       </v-card-title>
-      <v-card>
-        <v-card-title primary-title>
-          <div>
-            <p class="text-justify">
-              When you fill the Online Submission Form, please provide as many
-              details as you can especially about sound quality because we are
-              depending entirely on your feedback to process these files in the
-              sound editing stage. Please mention if there is any background
-              noise, abrupt sounds, blank spaces, low sound volume, etc. If you
-              miss to provide some input, chances are, the issue will be part of
-              the final archive.
-            </p>
-          </div>
-        </v-card-title>
-      </v-card>
     </v-card>
     <v-alert type="warning" v-if="errorMessage" :value="true">
       {{ errorMessage }}
     </v-alert>
+    <v-card>
+      <v-card-title primary-title>
+        <div>
+          <p class="text-justify">
+            When you fill the Online Submission Form, please provide as many
+            details as you can especially about sound quality because we are
+            depending entirely on your feedback to process these files in the
+            sound editing stage. Please mention if there is any background
+            noise, abrupt sounds, blank spaces, low sound volume, etc. If you
+            miss to provide some input, chances are, the issue will be part of
+            the final archive.
+          </p>
+        </div>
+      </v-card-title>
+    </v-card>
   </div>
 </template>
 
-<style></style>
+<style>
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .listening-page {
+    max-width: 90vw;
+  }
+}
+</style>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
@@ -75,14 +71,23 @@ export default class ListenAudio extends Vue {
 
   mounted() {
     this.fileName = this.$route.params.fileName;
-    this.$refs.audioPlayer.addEventListener("error", this.handleFileError);
+    this.$refs.audioPlayer &&
+      this.$refs.audioPlayer.addEventListener("error", this.handleFileError);
+    const fileType = this.nameAndExtension[1];
+    if (!this.canPlayType) {
+      this.errorMessage = `Your browser does not support the audio files of type ${fileType}. Please download the file.`;
+    }
   }
 
   destroyed() {
-    this.$refs.audioPlayer.removeEventListener("error", this.handleFileError);
+    this.$refs.audioPlayer &&
+      this.$refs.audioPlayer.removeEventListener("error", this.handleFileError);
   }
 
   handleFileError(e: any) {
+    if (!this.canPlayType) {
+      return;
+    }
     switch (e.target.error.code) {
       case e.target.error.MEDIA_ERR_ABORTED:
         this.errorMessage = "You aborted the media playback.";
@@ -115,6 +120,11 @@ export default class ListenAudio extends Vue {
 
   get audioFileName() {
     return this.nameAndExtension[0];
+  }
+
+  get canPlayType() {
+    const fileType = this.nameAndExtension[1];
+    return fileType && this.$refs.audioPlayer.canPlayType(`audio/${fileType}`);
   }
 }
 </script>
