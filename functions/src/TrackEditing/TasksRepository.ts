@@ -86,6 +86,7 @@ export class TasksRepository {
             DateTime.fromMillis(lastVersion.resolution.timestamp)
           )
         : null,
+    'Checked By': ({ lastVersion }) => lastVersion?.resolution?.author?.name,
   });
 
   private getTaskRef(taskId: string) {

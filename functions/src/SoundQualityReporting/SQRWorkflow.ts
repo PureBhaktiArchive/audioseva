@@ -6,7 +6,6 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { AllotmentStatus } from '../Allotment';
-import { Assignee } from '../Assignee';
 import { formatAudioAnnotations } from '../AudioAnnotation';
 import { abortCall } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
@@ -16,6 +15,7 @@ import {
   sqrSelfTrackingLink,
   sqrSubmissionLink,
 } from '../Frontend';
+import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import { TasksRepository } from './TasksRepository';
@@ -62,7 +62,7 @@ export class SQRWorkflow {
 
   static async processAllotment(
     fileNames: string[],
-    assignee: Assignee,
+    assignee: Person,
     comment: string
   ) {
     console.info(

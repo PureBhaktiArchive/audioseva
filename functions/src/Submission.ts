@@ -2,10 +2,10 @@
  * sri sri guru gauranga jayatah
  */
 
-import { Assignee } from './Assignee';
+import { Person } from './Person';
 
 export interface Submission {
-  author?: Assignee;
+  author?: Person;
   created: number;
   changed: number;
   completed?: number;
