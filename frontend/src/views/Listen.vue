@@ -5,9 +5,6 @@
       <h3>{{ $title }}</h3>
     </div>
     <h3 class="headline mb-0">Audio Player</h3>
-    <v-alert v-if="isInternetExplorer" :value="true">
-      {{ fileTypeError }}
-    </v-alert>
     <v-card color="#d9edf7" class="my-2">
       <v-card-title primary-title>
         <audio
@@ -67,7 +64,6 @@ import { Component, Vue } from "vue-property-decorator";
 export default class ListenAudio extends Vue {
   fileName: string = "";
   errorMessage = "";
-  fileTypeError = "";
 
   $refs!: {
     audioPlayer: HTMLMediaElement;
@@ -78,8 +74,8 @@ export default class ListenAudio extends Vue {
     this.$refs.audioPlayer &&
       this.$refs.audioPlayer.addEventListener("error", this.handleFileError);
     const fileType = this.nameAndExtension[1];
-    if (fileType && !this.$refs.audioPlayer.canPlayType(`audio/${fileType}`)) {
-      this.fileTypeError = `Your browser does not support the audio files of type ${fileType}. Please download the file.`;
+    if (!this.canPlayType) {
+      this.errorMessage = `Your browser does not support the audio files of type ${fileType}. Please download the file.`;
     }
   }
 
@@ -89,6 +85,9 @@ export default class ListenAudio extends Vue {
   }
 
   handleFileError(e: any) {
+    if (!this.canPlayType) {
+      return;
+    }
     switch (e.target.error.code) {
       case e.target.error.MEDIA_ERR_ABORTED:
         this.errorMessage = "You aborted the media playback.";
@@ -123,8 +122,9 @@ export default class ListenAudio extends Vue {
     return this.nameAndExtension[0];
   }
 
-  get isInternetExplorer() {
-    return (window.document as any).documentMode;
+  get canPlayType() {
+    const fileType = this.nameAndExtension[1];
+    return fileType && this.$refs.audioPlayer.canPlayType(`audio/${fileType}`);
   }
 }
 </script>
