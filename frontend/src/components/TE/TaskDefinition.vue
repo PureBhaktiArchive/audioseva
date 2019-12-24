@@ -26,6 +26,13 @@
         :key="`${item['key']}-${index}-divider`"
         class="mt-2 mb-2"
       ></v-divider>
+      <div
+        :key="`${item['key']}-${index}-plus`"
+        v-if="item.chunks.length !== index + 1"
+        :style="{ fontSize: '2em', fontWeight: 'bold' }"
+      >
+        +
+      </div>
     </template>
   </div>
 </template>

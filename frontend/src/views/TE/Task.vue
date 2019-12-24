@@ -4,15 +4,20 @@
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
     <div v-else>
-      <div :style="{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }">
-        <h1 class="d-inline" :style="{ width: 'auto' }">
-          {{ $title }}
+      <div>
+        <h1>
+          Track Editing Task <br />
+          {{ $route.params.taskId }} =
         </h1>
-        <v-chip :style="getTaskStyle(task)">{{ task.status }}</v-chip>
       </div>
       <article>
-        <h3>Task Definition</h3>
         <task-definition :item="task"></task-definition>
+        <div :style="{ display: 'flex' }">
+          <h3>Status:</h3>
+          <v-chip :style="getTaskStyle(task)" class="ml-1">
+            {{ task.status }}
+          </v-chip>
+        </div>
       </article>
       <article>
         <h3>History</h3>
