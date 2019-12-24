@@ -2,7 +2,10 @@
  * sri sri guru gauranga jayatah
  */
 
-export class FileResolution {
+import { Person } from './Person';
+
+export interface FileResolution {
+  author: Person;
   timestamp: number;
   isApproved: boolean;
   feedback: string;
