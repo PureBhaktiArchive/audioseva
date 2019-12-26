@@ -1,12 +1,12 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import Email from 'email-templates';
-import nodemailer from 'nodemailer';
 import sendinBlue from 'nodemailer-sendinblue-transport';
+import Email = require('email-templates');
+import nodemailer = require('nodemailer');
 
 const apiKey = functions.config().send_in_blue || '';
 const transport = nodemailer.createTransport(sendinBlue({ apiKey }));
-const email = new Email({ transport });
+const email = new Email({ message: {}, transport });
 
 export const sendNotificationEmail = functions.database
   .ref('/email/notifications/{pushId}')
@@ -18,6 +18,7 @@ export const sendNotificationEmail = functions.database
     console.log(
       `Sending an email to ${data.to} with template "${data.template}"`
     );
+
     try {
       await email.send({
         template: data.template,
@@ -25,13 +26,13 @@ export const sendNotificationEmail = functions.database
           from: data.replyTo,
           to: data.to,
           bcc: data.bcc,
-          replyTo: data.replyTo
+          replyTo: data.replyTo,
         },
-        locals: data.params
+        locals: data.params,
       });
     } catch (e) {
-      console.error(e)
-      return false
+      console.error(e);
+      return false;
     }
 
     await snapshot.ref.update({
