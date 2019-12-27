@@ -1,51 +1,43 @@
-import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
-import sendinBlue from 'nodemailer-sendinblue-transport';
-import EmailEngine = require('email-templates');
-import nodemailer = require('nodemailer');
+import Email = require('email-templates');
+import sendinBlue = require('nodemailer-sendinblue-transport');
+import admin = require('firebase-admin');
 
-const apiKey = functions.config().send_in_blue || '';
-const transport = nodemailer.createTransport(sendinBlue({ apiKey }));
-const engine = new EmailEngine({ message: {}, transport });
+const email = new Email({
+  transport: sendinBlue({ apiKey: functions.config().send_in_blue || '' }),
+});
 
 export const sendNotificationEmail = functions.database
   .ref('/email/notifications/{pushId}')
   .onCreate(async snapshot => {
     const data = snapshot.val();
 
-    if (data.sentTimestamp) return false;
+    if (data.sentTimestamp) return;
 
     console.log(
       `Sending an email to ${data.to} with template "${data.template}"`
     );
 
-    try {
-      await engine.send({
-        template: data.template,
-        message: {
-          to: data.to,
-          bcc: data.bcc,
-          replyTo: data.replyTo,
-        },
-        locals: {
-          settings: {
-            project: {
-              domain: functions.config().project.domain,
-            },
+    await email.send({
+      template: data.template,
+      message: {
+        to: data.to,
+        bcc: data.bcc,
+        replyTo: data.replyTo,
+      },
+      locals: {
+        settings: {
+          project: {
+            domain: functions.config().project.domain,
           },
-          date: DateTime.local().toFormat('dd.MM'),
-          ...data.params,
         },
-      });
-    } catch (e) {
-      console.error(e);
-      return Promise.reject(e);
-    }
+        date: DateTime.local().toFormat('dd.MM'),
+        ...data.params,
+      },
+    });
 
     await snapshot.ref.update({
       sentTimestamp: admin.database.ServerValue.TIMESTAMP,
     });
-
-    return true;
   });
