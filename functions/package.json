@@ -3,6 +3,7 @@
   "scripts": {
     "lint": "tslint --project tsconfig.json",
     "build": "tsc",
+    "postbuild": "cp -r emails lib/",
     "build:watch": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",
