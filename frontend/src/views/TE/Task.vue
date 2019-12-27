@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div v-if="taskState === TaskState.LOADING">
+    <div v-if="state === State.LOADING">
       <v-progress-circular indeterminate></v-progress-circular>
     </div>
-    <div v-else-if="taskState === TaskState.ERROR">
+    <div v-else-if="state === State.ERROR">
       <v-alert color="warning" :value="true">
         This task is not available to you. Please contact your coordinator.
       </v-alert>
@@ -174,7 +174,7 @@ import TaskMixin from "@/components/TE/TaskMixin";
 import FormatTime from "@/mixins/FormatTime";
 import VersionDownloadLink from "@/components/TE/VersionDownloadLink.vue";
 
-enum TaskState {
+enum State {
   LOADING = 0,
   ERROR = 1,
   LOADED = 2
@@ -196,8 +196,8 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   FormatTime
 ) {
   task: any = {};
-  TaskState = TaskState;
-  taskState: TaskState = TaskState.LOADING;
+  State = State;
+  state: State = State.LOADING;
   isCoordinator = false;
   form = {
     isApproved: false,
@@ -217,9 +217,9 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
         "task",
         firebase.database().ref(`/TE/tasks/${this.$route.params.taskId}`)
       );
-      this.taskState = TaskState.LOADED;
+      this.state = State.LOADED;
     } catch (e) {
-      this.taskState = TaskState.ERROR;
+      this.state = State.ERROR;
     }
   }
 
