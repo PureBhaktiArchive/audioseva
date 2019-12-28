@@ -1,0 +1,50 @@
+mixin dandavat
+  p Hare Krsna! Dandavat Pranams!
+
+mixin warnings(warnings)
+  if warnings
+    .warnings(style='color:red; font-weight:bold;')
+      for warning in warnings
+        p= warning
+
+mixin signature
+  p Please feel free to clarify any doubts with us.
+  p Join us on Facebook - https://www.facebook.com/audiosevateam/
+  p Thank you!
+  p
+    | --
+    br
+    | Your Servants,
+    br
+    | Pure Bhakti Audio Seva Team.
+
+mixin interval(interval)
+  | #{interval.beginning}&ndash;#{interval.ending}
+
+mixin annotation(item)
+  li
+    if item.entireFile
+      | Entire file
+    else 
+      +interval(item)
+    |
+    | - #{ item.type }
+    if item.description
+      |
+      | - #{ item.description }
+
+mixin currentSet(allotments, currentFileName)
+  p Current set:
+  ul(style='font-family: Courier,serif')
+    for allotment in allotments || []
+      li
+        | #{ allotment.fileName }
+        | #{ allotment.dateGiven }
+        | #{ allotment.status }
+        | #{ allotment.daysPassed }
+        if currentFileName && allotment.fileName == currentFileName
+          strong
+            |
+            | -- CURRENT SUBMISSION
+  p
+    a(href=allotmentLink) Allot the next set

@@ -1,0 +1,27 @@
+include ../../mixins
++dandavat
+p
+  | Thank you for your interest in the&nbsp;Sound Quality Reporting&nbsp;service.
+  | Please read through #[a(href='https://docs.google.com/document/d/e/2PACX-1vTw1LVkABfm4WapO7-5b8wFc6oUeqFFtIXtPnSc-iTKqSrUZ002KjbKGTgJerChfwKx3MmO3Gc5WpsN/pub') the&nbsp;guidelines].
+p The following lectures comprise the current set allotted to you:
+ul
+  for file in files
+    li.
+      #[strong= file.name]
+      &ensp;
+      #[a(href=file.links.listen) Listen]
+      &ensp;|&ensp;
+      #[a(href=file.links.submission) Submit using Online Submission Form]
+if comment
+  p= comment
+p
+  strong
+    | Please submit the details using the online submission form, which is
+    | pre-populated with the audio file name, your name and email address. It is
+    | available in the link &lsquo;Submit using Online Submission Form&rsquo;
+    | above, next to each lecture. For each new lecture, please use the Online
+    | Submission Form corresponding to that lecture from the link provided
+    | above.
+p(style='color:red; font-weight:bold;')
+  | You can track your submissions by clicking #[a(href=links.selfTracking) here].
++signature

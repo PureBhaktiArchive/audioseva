@@ -54,7 +54,9 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 | Key                               | Description                                        |
 | --------------------------------- | -------------------------------------------------- |
 | `project.domain`                  | Root domain used for hosting and storage           |
-| `send_in_blue.key`                | SendInBlue secret Key                              |
+| `email.connection`                | SMTP connection string                             |
+| `email.sender.address`            | Email sender address                               |
+| `email.sender.name`               | Email sender name                                  |
 | `coordinator.email_address`       | Coordinator email address                          |
 | `coordinator.timezone`            | Coordinator timezone. For example, `Asia/Calcutta` |
 | `sqr.spreadsheet_id`              | Sound Quality Reporting spreadsheet id             |
@@ -70,12 +72,12 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 
 ## Frontend environment variables
 
-| Variable                 | Description                                         |
-| ------------------------ | --------------------------------------------------- |
-| `VUE_APP_ASSIGNEES_URL`  | URL for getting assignees in legacy allotment forms |
-| `VUE_APP_CR_LISTS_URL`   | URL for getting CR lists                            |
-| `VUE_APP_CR_FILES_URL`   | URL for getting CR files                            |
-| `VUE_APP_CR_ALLOT_URL`   | URL for processing CR allotment                     |
+| Variable                | Description                                         |
+| ----------------------- | --------------------------------------------------- |
+| `VUE_APP_ASSIGNEES_URL` | URL for getting assignees in legacy allotment forms |
+| `VUE_APP_CR_LISTS_URL`  | URL for getting CR lists                            |
+| `VUE_APP_CR_FILES_URL`  | URL for getting CR files                            |
+| `VUE_APP_CR_ALLOT_URL`  | URL for processing CR allotment                     |
 
 ## Maintenance mode
 

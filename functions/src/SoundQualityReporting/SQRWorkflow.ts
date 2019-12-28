@@ -102,7 +102,7 @@ export class SQRWorkflow {
       .database()
       .ref(`/email/notifications`)
       .push({
-        template: 'sqr-allotment',
+        template: 'sqr/allotment',
         to: assignee.emailAddress,
         bcc: functions.config().coordinator.email_address,
         replyTo: functions.config().coordinator.email_address,
@@ -215,7 +215,7 @@ export class SQRWorkflow {
       .database()
       .ref(`/email/notifications`)
       .push({
-        template: 'sqr-submission',
+        template: 'sqr/submission',
         to: functions.config().coordinator.email_address,
         replyTo: task.assignee.emailAddress,
         params: {
@@ -281,7 +281,7 @@ export class SQRWorkflow {
       .database()
       .ref(`/email/notifications`)
       .push({
-        template: 'sqr-cancellation',
+        template: 'sqr/cancellation',
         to: functions.config().coordinator.email_address,
         replyTo: task.assignee.emailAddress,
         params: {
