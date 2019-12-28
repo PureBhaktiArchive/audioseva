@@ -55,7 +55,8 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 | --------------------------------- | -------------------------------------------------- |
 | `project.domain`                  | Root domain used for hosting and storage           |
 | `email.connection`                | SMTP connection string                             |
-| `email.sender`                    | Email sender address                               |
+| `email.sender.address`            | Email sender address                               |
+| `email.sender.name`               | Email sender name                                  |
 | `coordinator.email_address`       | Coordinator email address                          |
 | `coordinator.timezone`            | Coordinator timezone. For example, `Asia/Calcutta` |
 | `sqr.spreadsheet_id`              | Sound Quality Reporting spreadsheet id             |
