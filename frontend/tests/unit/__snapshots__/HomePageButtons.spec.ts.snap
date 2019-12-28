@@ -21,5 +21,12 @@ Array [
     },
     "text": "TE",
   },
+  Object {
+    "props": Object {
+      "color": "primary",
+      "to": "/te/upload",
+    },
+    "text": "Upload",
+  },
 ]
 `;
