@@ -13,12 +13,12 @@ p
 p
   b B. Unwanted parts to be cut:
 ul
-  for item in submission.unwantedParts
+  for item in submission.unwantedParts || []
     +annotation(item)
 p
   b C. Sound Issues:
 ul
-  for item in submission.soundIssues
+  for item in submission.soundIssues || []
     +annotation(item)
 p
   b D. Sound Quality Rating:

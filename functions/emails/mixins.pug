@@ -36,7 +36,7 @@ mixin annotation(item)
 mixin currentSet(allotments, currentFileName)
   p Current set:
   ul(style='font-family: Courier,serif')
-    for allotment in allotments
+    for allotment in allotments || []
       li
         | #{ allotment.fileName }
         | #{ allotment.dateGiven }
