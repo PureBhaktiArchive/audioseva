@@ -102,7 +102,7 @@ export class SQRWorkflow {
       .database()
       .ref(`/email/notifications`)
       .push({
-        template: 'sqr-allotment',
+        template: 'sqr/allotment',
         to: assignee.emailAddress,
         bcc: functions.config().coordinator.email_address,
         replyTo: functions.config().coordinator.email_address,
