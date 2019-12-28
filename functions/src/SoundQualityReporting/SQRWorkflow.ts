@@ -215,7 +215,7 @@ export class SQRWorkflow {
       .database()
       .ref(`/email/notifications`)
       .push({
-        template: 'sqr-submission',
+        template: 'sqr/submission',
         to: functions.config().coordinator.email_address,
         replyTo: task.assignee.emailAddress,
         params: {
