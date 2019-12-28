@@ -23,6 +23,7 @@ Array [
           "auth": Object {
             "requireClaims": Object {
               "TE": true,
+              "coordinator": true,
             },
           },
           "homePageLink": Object {
@@ -105,6 +106,22 @@ Array [
           "menuItem": true,
         },
         "path": "allot",
+      },
+      Object {
+        "component": [Function],
+        "meta": Object {
+          "auth": Object {
+            "requireClaims": Object {
+              "TE": true,
+              "coordinator": true,
+            },
+          },
+          "homePageLink": Object {
+            "text": "Upload",
+          },
+          "menuItem": true,
+        },
+        "path": "upload",
       },
       Object {
         "component": [Function],
