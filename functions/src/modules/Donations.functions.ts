@@ -39,7 +39,7 @@ export const processDonations = functions.database
           to: donation.donor.emailAddress,
           bcc: functions.config().donations.contact.email_address,
           replyTo: functions.config().donations.contact.email_address,
-          template: 'donations-acknowledgement',
+          template: 'donations/acknowledgement',
           params: {
             donation,
           },

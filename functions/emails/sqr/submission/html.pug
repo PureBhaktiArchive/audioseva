@@ -1,0 +1,39 @@
+include ../../mixins
++currentSet(currentSet, submission.fileName)
+p
+  | Please update your previous submission using this update link: #[a(href=updateLink)= updateLink].
+  br
+  | Please note &mdash; do not make a new submission using this link.
+  | For a new submission, use the link in the allotment email.
+  br
+p
+  b A. Audio File Name:
+  |
+  | #{ submission.fileName }
+p
+  b B. Unwanted parts to be cut:
+ul
+  for item in submission.unwantedParts || []
+    +annotation(item)
+p
+  b C. Sound Issues:
+ul
+  for item in submission.soundIssues || []
+    +annotation(item)
+p
+  b D. Sound Quality Rating:
+  |
+  | #{ submission.soundQualityRating }
+p
+  b E. Total Duration of the Recording:
+  |
+  |
+  +interval(submission.duration)
+p
+  b F. Comments:
+  |
+  | #{ submission.comments }
+p
+  b G. Filled By:
+  |
+  | #{ submission.author.name }, #{ submission.author.emailAddress }
