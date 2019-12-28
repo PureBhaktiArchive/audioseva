@@ -281,7 +281,7 @@ export class SQRWorkflow {
       .database()
       .ref(`/email/notifications`)
       .push({
-        template: 'sqr-cancellation',
+        template: 'sqr/cancellation',
         to: functions.config().coordinator.email_address,
         replyTo: task.assignee.emailAddress,
         params: {
