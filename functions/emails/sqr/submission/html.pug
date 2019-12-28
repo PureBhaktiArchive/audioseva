@@ -1,21 +1,5 @@
-if warnings
-  .warnings(style='color:red; font-weight:bold;')
-    for warning in warnings
-      p= warning
-p Current set:
-ul(style='font-family: Courier,serif')
-  for allotment in currentSet
-    li
-      | #{ allotment.fileName }
-      | #{ allotment.dateGiven }
-      | #{ allotment.status }
-      | #{ allotment.daysPassed }
-      if allotment.fileName == submission.fileName
-        strong
-          |
-          | -- CURRENT SUBMISSION
-p
-  a(href=allotmentLink) Allot the next set
+include ../../mixins
++currentSet(currentSet, submission.fileName)
 p
   | Please update your previous submission using this update link: #[a(href=updateLink)= updateLink].
   br
@@ -26,17 +10,6 @@ p
   b A. Audio File Name:
   |
   | #{ submission.fileName }
-mixin annotation(item)
-  li
-    if item.entireFile
-      | Entire file
-    else 
-      | #{ item.beginning }&ndash;#{ item.ending }
-    |
-    | - #{ item.type }
-    if item.description
-      |
-      | - #{ item.description }
 p
   b B. Unwanted parts to be cut:
 ul
@@ -54,7 +27,8 @@ p
 p
   b E. Total Duration of the Recording:
   |
-  | #{ submission.duration.beginning }&ndash;#{ submission.duration.ending }
+  |
+  +interval(submission.duration)
 p
   b F. Comments:
   |
