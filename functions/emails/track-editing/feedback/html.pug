@@ -1,0 +1,9 @@
+include ../../mixins
++dandavat
+p
+  | The output of the task #[strong= task.id] is not approved.
+p(style='text-decoration: underline;') FEEDBACK:
+p(style='color: red;font-weight: bold')= resolution.feedback
+p See details of the task #[+frontendLink(`/te/tasks/${task.id}`) here].
+p Please re-edit the file and upload it again #[+frontendLink('/te/upload') here].
++signature

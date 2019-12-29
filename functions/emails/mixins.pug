@@ -48,3 +48,14 @@ mixin currentSet(allotments, currentFileName)
             | -- CURRENT SUBMISSION
   p
     a(href=allotmentLink) Allot the next set
+
+mixin today
+  = DateTime.local().toFormat('dd.MM')
+
+mixin frontendLink(path)
+  - var href = `https://app.${settings.project.domain}${path}`
+  a(href=href)
+    if block
+      block
+    else
+      = href

@@ -34,7 +34,7 @@ export const sendNotificationEmail = functions.database
             domain: functions.config().project.domain,
           },
         },
-        date: DateTime.local().toFormat('dd.MM'),
+        DateTime,
         ...data.params,
       },
     });
