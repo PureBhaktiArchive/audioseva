@@ -53,5 +53,9 @@ mixin today
   = DateTime.local().toFormat('dd.MM')
 
 mixin frontendLink(path)
-  a(href=`https://app.${settings.project.domain}${path}`)
-    block
+  - var href = `https://app.${settings.project.domain}${path}`
+  a(href=href)
+    if block
+      block
+    else
+      = href
