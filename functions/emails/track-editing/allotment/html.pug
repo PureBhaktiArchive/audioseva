@@ -1,0 +1,18 @@
+include ../../mixins
++dandavat
+p
+  | Thank you for your interest in the&nbsp;Track Editing&nbsp;service.
+  | Please read through #[a(href='https://docs.google.com/document/d/e/2PACX-1vT8C-A4sImsH2GkAWDYqGT8jDn2cUvXKqr1AfSAoFhKJPuSOjL1Z33u0QkzL2m6bpZXXUimG4co4Bdr/pub') the&nbsp;Track&nbsp;Editor&nbsp;Guidelines&nbsp;here].
+p
+  | The following tasks comprise the current set allotted to you.
+  | Click the links to see the tasks details.
+ul
+  for task in tasks
+    li
+      +frontendLink(`/te/tasks/${task.id}`)
+        strong= task.id
+p(style='color:red; font-weight:bold;')
+  | Please upload the edited files #[+frontendLink('/te/upload') here].
+  | You will need to sign in with your Google account.
+p= comment
++signature

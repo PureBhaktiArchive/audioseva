@@ -1,0 +1,8 @@
+include ../../mixins
++warnings(warnings)
+p
+  strong Track Edited File Link:
+  |
+  |
+  +frontendLink(`/te/tasks/${task.id}/versions/${task.versions[task.versions.length-1].id}/file`)
+p See details of the task #[+frontendLink(`/te/tasks/${task.id}`) here].
