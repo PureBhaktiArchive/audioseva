@@ -170,7 +170,6 @@ export const processUpload = functions.storage
         replyTo: task.assignee.emailAddress,
         params: {
           task,
-          lastVersion: task.lastVersion,
           warnings,
         },
       });
