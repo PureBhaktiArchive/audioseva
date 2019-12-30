@@ -63,7 +63,7 @@ export const processAllotment = functions.https.onCall(
       .database()
       .ref(`/email/notifications`)
       .push({
-        template: 'track-editing-allotment',
+        template: 'track-editing/allotment',
         to: assignee.emailAddress,
         bcc: functions.config().te.coordinator.email_address,
         replyTo: functions.config().te.coordinator.email_address,
@@ -165,7 +165,7 @@ export const processUpload = functions.storage
       .database()
       .ref(`/email/notifications`)
       .push({
-        template: 'track-editing-upload',
+        template: 'track-editing/upload',
         to: functions.config().te.coordinator.email_address,
         replyTo: task.assignee.emailAddress,
         params: {
@@ -207,7 +207,7 @@ export const processResolution = functions.database
         .database()
         .ref(`/email/notifications`)
         .push({
-          template: 'track-editing-feedback',
+          template: 'track-editing/feedback',
           to: task.assignee.emailAddress,
           bcc: functions.config().te.coordinator.email_address,
           replyTo: functions.config().te.coordinator.email_address,
