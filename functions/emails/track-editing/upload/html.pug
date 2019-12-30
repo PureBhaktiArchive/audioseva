@@ -4,5 +4,7 @@ p
   strong Track Edited File Link:
   |
   |
-  +frontendLink(`/te/tasks/${task.id}/versions/${task.versions[task.versions.length-1].id}/file`)
+  +frontendLink(`/te/tasks/${task.id}/versions/${Object.keys(task.versions).pop()}/file`)
+    | download
+  | .
 p See details of the task #[+frontendLink(`/te/tasks/${task.id}`) here].

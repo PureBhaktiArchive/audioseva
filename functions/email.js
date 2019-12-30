@@ -153,7 +153,7 @@ const teUpload = {
     task: {
       id: 'TEST-001-1',
       assignee: person,
-      versions: [{ id: '1' }, { id: '2' }],
+      versions: { version1: {}, version2: {} },
     },
     warnings,
   },
