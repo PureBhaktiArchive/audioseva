@@ -18,7 +18,8 @@ export const sendNotificationEmail = functions.database
     if (data.sentTimestamp) return;
 
     console.log(
-      `Sending email ${params.pushId} to ${data.to} with template "${data.template}"`
+      `Sending email ${params.pushId} to ${data.to} with template "${data.template}" and params`,
+      data.params
     );
 
     await email.send({
