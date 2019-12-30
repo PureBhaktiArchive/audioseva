@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Person } from './Person';
+import _ = require('lodash');
 
 /*
  * sri sri guru gauranga jayatah
@@ -22,7 +23,12 @@ export class Allotment {
   token?: string;
 
   constructor(source: Partial<Allotment>) {
-    Object.assign(this, source);
+    Object.assign(
+      this,
+      // Omitting calculated properties as they got into database once
+      // and now are causing issue while loading from db.
+      _.omit(source, 'dateGiven', 'daysPassed')
+    );
   }
 
   public get dateTimeGiven(): DateTime {
