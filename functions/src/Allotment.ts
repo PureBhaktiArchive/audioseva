@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon';
 import { Person } from './Person';
+import _ = require('lodash');
 
 /*
  * sri sri guru gauranga jayatah
@@ -22,7 +23,18 @@ export class Allotment {
   token?: string;
 
   constructor(source: Partial<Allotment>) {
-    Object.assign(this, source);
+    Object.assign(
+      this,
+      _.pick(
+        source,
+        'assignee',
+        'status',
+        'notes',
+        'timestampGiven',
+        'timestampDone',
+        'token'
+      )
+    );
   }
 
   public get dateTimeGiven(): DateTime {

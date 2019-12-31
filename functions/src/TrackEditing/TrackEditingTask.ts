@@ -20,7 +20,10 @@ export class TrackEditingTask extends Allotment {
 
   constructor(id: string, source: Partial<TrackEditingTask>) {
     super(source);
-    Object.assign(this, source);
+    Object.assign(
+      this,
+      _.pick(source, 'isRestored', 'chunks', 'versions', 'timestampImported')
+    );
     this.id = id;
   }
 
