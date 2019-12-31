@@ -25,9 +25,15 @@ export class Allotment {
   constructor(source: Partial<Allotment>) {
     Object.assign(
       this,
-      // Omitting calculated properties as they got into database once
-      // and now are causing issue while loading from db.
-      _.omit(source, 'dateGiven', 'daysPassed')
+      _.pick(
+        source,
+        'assignee',
+        'status',
+        'notes',
+        'timestampGiven',
+        'timestampDone',
+        'token'
+      )
     );
   }
 
