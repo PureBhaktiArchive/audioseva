@@ -72,9 +72,10 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   getLink(fileName: string) {
     return `/download/${
       this.item.isRestored ? "restored" : "original"
-    }/${fileName}.flac`;
+    }/${fileName}.${fileName.startsWith("DIGI") ? "mp3" : "flac"}`;
   }
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+</style>
