@@ -16,8 +16,8 @@ describe("HomePageButtons", () => {
 
   test.each`
     claims
-    ${{ TE: true }}
-    ${{ coordinator: true }}
+    ${{ TE: { editor: true } }}
+    ${{ TE: { coordinator: true } }}
   `("should render buttons that match claims $claims", async ({ claims }) => {
     await mockClaims(claims);
     const wrapper = shallowMount(HomePageButtons, {

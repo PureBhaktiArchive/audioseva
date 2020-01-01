@@ -1,69 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MainLayout should render menu items that match claims {"TE": true} 1`] = `
-Array [
-  Object {
-    "children": Array [
-      Object {
-        "component": [Function],
-        "meta": Object {
-          "auth": Object {
-            "requireClaims": Object {
-              "TE": true,
-            },
-          },
-          "menuItem": true,
-          "menuLinkName": "My Tasks",
-        },
-        "path": "my",
-      },
-      Object {
-        "component": [Function],
-        "meta": Object {
-          "auth": Object {
-            "requireClaims": Object {
-              "TE": true,
-              "coordinator": true,
-            },
-          },
-          "homePageLink": Object {
-            "text": "Upload",
-          },
-          "menuItem": true,
-        },
-        "path": "upload",
-      },
-      Object {
-        "component": [Function],
-        "meta": Object {
-          "auth": Object {
-            "requireClaims": Object {
-              "TE": true,
-              "coordinator": true,
-            },
-          },
-          "menuItem": false,
-        },
-        "path": "tasks/:taskId",
-      },
-    ],
-    "component": [Function],
-    "meta": Object {
-      "activator": true,
-      "activatorName": "Track Editing",
-      "auth": Object {
-        "requireClaims": Object {
-          "coordinator": true,
-        },
-      },
-      "menuIcon": "fas fa-cut",
-    },
-    "path": "te/",
-  },
-]
-`;
-
-exports[`MainLayout should render menu items that match claims {"coordinator": true} 1`] = `
+exports[`MainLayout should render menu items that match claims {"SQR": [Object]} 1`] = `
 Array [
   Object {
     "children": Array [
@@ -80,41 +17,35 @@ Array [
       "activator": true,
       "activatorName": "Sound Quality Reporting",
       "auth": Object {
-        "requireClaims": Object {
-          "coordinator": true,
-        },
+        "requireClaims": "SQR.coordinator",
       },
       "menuIcon": "fas fa-headphones",
     },
     "path": "sqr/",
   },
+]
+`;
+
+exports[`MainLayout should render menu items that match claims {"TE": [Object]} 1`] = `
+Array [
   Object {
     "children": Array [
       Object {
         "component": [Function],
         "meta": Object {
-          "homePageLink": Object {
-            "text": "TE",
+          "auth": Object {
+            "requireClaims": "TE.editor",
           },
           "menuItem": true,
+          "menuLinkName": "My Tasks",
         },
-        "path": "tasks",
-      },
-      Object {
-        "component": [Function],
-        "meta": Object {
-          "menuItem": true,
-        },
-        "path": "allot",
+        "path": "my",
       },
       Object {
         "component": [Function],
         "meta": Object {
           "auth": Object {
-            "requireClaims": Object {
-              "TE": true,
-              "coordinator": true,
-            },
+            "requireClaims": "TE.editor",
           },
           "homePageLink": Object {
             "text": "Upload",
@@ -123,28 +54,13 @@ Array [
         },
         "path": "upload",
       },
-      Object {
-        "component": [Function],
-        "meta": Object {
-          "auth": Object {
-            "requireClaims": Object {
-              "TE": true,
-              "coordinator": true,
-            },
-          },
-          "menuItem": false,
-        },
-        "path": "tasks/:taskId",
-      },
     ],
     "component": [Function],
     "meta": Object {
       "activator": true,
       "activatorName": "Track Editing",
       "auth": Object {
-        "requireClaims": Object {
-          "coordinator": true,
-        },
+        "requireClaims": "TE.coordinator",
       },
       "menuIcon": "fas fa-cut",
     },
