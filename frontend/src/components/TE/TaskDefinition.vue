@@ -11,8 +11,8 @@
         </v-col>
         <v-col v-bind="layout.duration">
           <span
-            >{{ formatDurationUtc(chunk.beginning, "mm:ss") }}&ndash;{{
-              formatDurationUtc(chunk.ending, "mm:ss")
+            >{{ formatDurationUtc(chunk.beginning, "HH:mm:ss") }}&ndash;{{
+              formatDurationUtc(chunk.ending, "HH:mm:ss")
             }}</span
           >
         </v-col>
