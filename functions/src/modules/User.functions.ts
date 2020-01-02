@@ -3,7 +3,7 @@
  */
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { authorizeCoordinator } from '../auth';
+import { authorize } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 
@@ -43,7 +43,7 @@ enum Decision {
  */
 export const importUserRegistrationData = functions.https.onCall(
   async (data, context) => {
-    authorizeCoordinator(context);
+    authorize(context, ['coordinator']);
 
     const sheet = await Spreadsheet.open(
       functions.config().registrations.spreadsheet_id,
@@ -199,7 +199,7 @@ export const addNewUserToDatabase = functions.auth
 
 export const getAssignees = functions.https.onCall(
   async ({ phase }, context) => {
-    authorizeCoordinator(context);
+    authorize(context, ['SQR.coordinator', 'TE.coordinator']);
 
     const registrationsSheet = await Spreadsheet.open(
       functions.config().registrations.spreadsheet_id,

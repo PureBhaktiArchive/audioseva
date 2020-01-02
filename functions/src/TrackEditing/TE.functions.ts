@@ -6,7 +6,7 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import * as path from 'path';
 import { AllotmentStatus } from '../Allotment';
-import { abortCall, authorizeCoordinator } from '../auth';
+import { abortCall, authorize } from '../auth';
 import { FileVersion } from '../FileVersion';
 import { Person } from '../Person';
 import { StorageManager } from '../StorageManager';
@@ -24,7 +24,7 @@ export const processAllotment = functions.https.onCall(
     }: { assignee: Person; tasks: string[]; comment: string },
     context
   ) => {
-    authorizeCoordinator(context);
+    authorize(context, ['TE.coordinator']);
 
     if (!assignee || !taskIds || taskIds.length === 0)
       abortCall('invalid-argument', 'Assignee and Tasks are required.');
@@ -76,7 +76,7 @@ export const processAllotment = functions.https.onCall(
 
 export const cancelAllotment = functions.https.onCall(
   async ({ taskId }, context) => {
-    authorizeCoordinator(context);
+    authorize(context, ['TE.coordinator']);
 
     if (!taskId) abortCall('invalid-argument', 'Task ID is required.');
 
