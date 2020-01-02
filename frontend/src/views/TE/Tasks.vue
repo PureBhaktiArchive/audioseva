@@ -28,7 +28,7 @@
     >
       <!-- eslint-disable vue/no-parsing-error -->
       <template v-slot:.key="{ item }">
-        <router-link :to="getTaskLink(item)">
+        <router-link @click.native.stop :to="getTaskLink(item)">
           {{ item[".key"] }}
         </router-link>
       </template>
