@@ -1,6 +1,5 @@
 function isSignedIn() { auth != null }
-function hasRole(role) { isSignedIn() && auth.token[role] == true }
-function isCoordinator() { hasRole('coordinator') }
+function hasRole(role) { isSignedIn() && auth.token.roles[role] == true }
 
 type CurrentTimestamp extends Number {
   validate() { this == now }
@@ -10,50 +9,12 @@ type InitialTimestamp extends Number {
   validate() { this == (prior(this) == null ? now : prior(this)) }
 }
 
-type ReadOnlyCoordinator {
-  read() { isCoordinator() }
-}
-
-type WriteOnlyCoordinator {
-  write() { isCoordinator() }
-}
-
-type WriteOnlyCoordinatorField<T> extends T {
-  write() { isCoordinator() }
-}
-
 path /donations {
-  path /cash is ReadOnlyCoordinator {
+  path /cash {
     path /{push_id} {
       create() {
-        return root.donations.tokens[this.token].valid == true
+        return this.parent().parent().tokens[this.token].valid == true
       }
-    }
-  }
-}
-
-path /users is ReadOnlyCoordinator {
-  index() {[
-    "emailAddress",
-    "roles/CR",
-    "roles/SQR",
-    "roles/SE",
-    "uploadCode"
-  ]}
-  
-  path /{uid} {
-    path /timestamp is CurrentTimestamp;
-    path /isAvailableOnWhatsApp is Boolean;
-    path /notes is WriteOnlyCoordinatorField<String>;
-    path /emailAddress {
-      create() { true }
-    }
-    path /languages {
-      /{langName} is Boolean;
-    }
-    path /status is WriteOnlyCoordinatorField<String>;
-    path /roles is WriteOnlyCoordinator {
-      /{roleId} is Boolean;
     }
   }
 }
@@ -158,7 +119,7 @@ path /SQR {
       update() {
         tokenIsValid(token, fileName, root.SQR)
         &&
-        (isCoordinator() || root.SQR.allotments[fileName].status != 'Done')
+        (hasRole('SQR.checker') || hasRole('SQR.coordinator') || root.SQR.allotments[fileName].status != 'Done')
       }
     }
 
@@ -185,7 +146,7 @@ type FileResolution {
   isApproved: Boolean,
   feedback: String,
 
-  create() { isCoordinator() }
+  create() { hasRole('TE.checker') }
 }
 
 type FileVersion {
@@ -209,7 +170,8 @@ path /TE {
     read() {
       isSignedIn() && (
         query.orderByChild == 'assignee/emailAddress' && query.equalTo == auth.token.email
-        || isCoordinator()
+        || hasRole('TE.checker')
+        || hasRole('TE.coordinator')
       )
     }
   }
