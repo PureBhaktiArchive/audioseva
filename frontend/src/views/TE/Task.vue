@@ -130,7 +130,7 @@
               </v-row>
             </v-timeline-item>
             <v-timeline-item
-              v-else-if="index === versionsCount - 1 && isCoordinator"
+              v-else-if="index === versionsCount - 1 && canApprove"
               :key="`resolution-${key}`"
             >
               <template v-slot:icon>
@@ -226,7 +226,7 @@
           </template>
         </v-timeline>
       </article>
-      <v-btn v-if="!isCoordinator" to="/te/upload">Upload</v-btn>
+      <v-btn v-if="showUpload" to="/te/upload">Upload</v-btn>
     </div>
   </div>
 </template>
@@ -241,6 +241,7 @@ import _ from "lodash";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import FormatTime from "@/mixins/FormatTime";
+import { hasClaim } from "@/router";
 import VersionDownloadLink from "@/components/TE/VersionDownloadLink.vue";
 
 enum State {
@@ -267,7 +268,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   task: any = {};
   State = State;
   state: State = State.LOADING;
-  isCoordinator = false;
+  claims!: { [key: string]: any };
   form = {
     isApproved: false,
     feedback: ""
@@ -279,9 +280,9 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   currentUser!: firebase.User;
   getUserClaims!: any;
 
-  mounted() {
+  async mounted() {
     this.getTask();
-    this.checkUserClaims();
+    this.claims = await this.getUserClaims();
   }
 
   async getTask() {
@@ -294,11 +295,6 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     } catch (e) {
       this.state = State.ERROR;
     }
-  }
-
-  async checkUserClaims() {
-    const claims = await this.getUserClaims();
-    this.isCoordinator = claims.coordinator;
   }
 
   async onCancelClick() {
@@ -350,6 +346,18 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
 
   getAuthor(version: any) {
     return _.get(version, "resolution.author.name", "");
+  }
+
+  get canApprove() {
+    return hasClaim(["TE.checker"], this.claims);
+  }
+
+  get showUpload() {
+    return hasClaim(["TE.editor"], this.claims);
+  }
+
+  get isCoordinator() {
+    return _.get(this.claims, "TE.coordinator");
   }
 
   get fieldRules() {

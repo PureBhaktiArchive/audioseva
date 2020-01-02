@@ -17,7 +17,9 @@ Array [
       "activator": true,
       "activatorName": "Sound Quality Reporting",
       "auth": Object {
-        "requireClaims": "SQR.coordinator",
+        "requireClaims": Array [
+          "SQR.coordinator",
+        ],
       },
       "menuIcon": "fas fa-headphones",
     },
@@ -34,7 +36,9 @@ Array [
         "component": [Function],
         "meta": Object {
           "auth": Object {
-            "requireClaims": "TE.editor",
+            "requireClaims": Array [
+              "TE.editor",
+            ],
           },
           "menuItem": true,
           "menuLinkName": "My Tasks",
@@ -45,7 +49,9 @@ Array [
         "component": [Function],
         "meta": Object {
           "auth": Object {
-            "requireClaims": "TE.editor",
+            "requireClaims": Array [
+              "TE.editor",
+            ],
           },
           "homePageLink": Object {
             "text": "Upload",
@@ -54,13 +60,28 @@ Array [
         },
         "path": "upload",
       },
+      Object {
+        "component": [Function],
+        "meta": Object {
+          "auth": Object {
+            "requireClaims": Array [
+              "TE.checker",
+              "TE.editor",
+            ],
+          },
+          "menuItem": false,
+        },
+        "path": "tasks/:taskId",
+      },
     ],
     "component": [Function],
     "meta": Object {
       "activator": true,
       "activatorName": "Track Editing",
       "auth": Object {
-        "requireClaims": "TE.coordinator",
+        "requireClaims": Array [
+          "TE.coordinator",
+        ],
       },
       "menuIcon": "fas fa-cut",
     },

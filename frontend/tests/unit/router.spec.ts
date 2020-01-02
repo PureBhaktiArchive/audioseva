@@ -12,15 +12,15 @@ describe("redirectSections", () => {
   });
 
   test.each`
-    claims                           | toProps                                       | expectedPath
-    ${{ TE: { editor: true } }}      | ${{ fullPath: "/te", toClaims: "TE.editor" }} | ${"/te/my"}
-    ${{ TE: { coordinator: true } }} | ${{ fullPath: "/te" }}                        | ${"/te/tasks"}
+    claims                           | toProps                                         | expectedPath
+    ${{ TE: { editor: true } }}      | ${{ fullPath: "/te", toClaims: ["TE.editor"] }} | ${"/te/my"}
+    ${{ TE: { coordinator: true } }} | ${{ fullPath: "/te" }}                          | ${"/te/tasks"}
   `(
     "should redirect to first available child route that matches claims $claims",
     async ({
       claims,
       expectedPath,
-      toProps: { fullPath, toClaims = "TE.coordinator" }
+      toProps: { fullPath, toClaims = ["TE.coordinator"] }
     }) => {
       await mockClaims(claims);
       to = {
@@ -51,7 +51,7 @@ describe("checkAuth", () => {
     }));
     to = {
       fullPath: "/te/tasks",
-      matched: [{}, { meta: { auth: { requireClaims: "TE.coordinator" } } }]
+      matched: [{}, { meta: { auth: { requireClaims: ["TE.coordinator"] } } }]
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
@@ -107,7 +107,7 @@ describe("checkAuth", () => {
     }));
 
     to = {
-      matched: [{ meta: { auth: { requireClaims: "TE.coordinator" } } }]
+      matched: [{ meta: { auth: { requireClaims: ["TE.coordinator"] } } }]
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
@@ -116,7 +116,7 @@ describe("checkAuth", () => {
 
   it("should redirect to / on bad custom claims", async () => {
     to = {
-      matched: [{ meta: { auth: { requireClaims: "SQR.coordinator" } } }]
+      matched: [{ meta: { auth: { requireClaims: ["SQR.coordinator"] } } }]
     };
     const from: any = {};
     const next: any = jest.fn();
