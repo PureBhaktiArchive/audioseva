@@ -36,3 +36,23 @@ describe('File', () => {
     }
   );
 });
+
+describe('Uploaded SE file', () => {
+  test.each`
+    sourceFileName               | destinationFileName
+    ${'folder/ISK-22-2_v2.flac'} | ${'ISK/ISK-22-2.flac'}
+    ${'a/b/c/ML2-1059-1.flac'}   | ${'ML2/ML2-1059-1.flac'}
+    ${'ML2-1113-1_v2-2.flac'}    | ${'ML2/ML2-1113-1.flac'}
+    ${'ML2-97 B_V2.flac'}        | ${'ML2/ML2-97 B.flac'}
+    ${'BR-03B v3.flac'}          | ${'BR/BR-03B.flac'}
+  `(
+    `$sourceFileName should be saved to $destinationFileName`,
+    ({ sourceFileName, destinationFileName }) => {
+      const file = StorageManager.getDestinationFileForRestoredUpload(
+        sourceFileName
+      );
+      expect(file).not.toBeNull();
+      expect(file.name).toEqual(destinationFileName);
+    }
+  );
+});
