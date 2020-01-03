@@ -4,11 +4,17 @@
 
 // tslint:disable-next-line: no-implicit-dependencies
 import { File } from '@google-cloud/storage';
-import * as functions from 'firebase-functions';
 import { URL } from 'url';
+import functions = require('firebase-functions');
 import admin = require('firebase-admin');
+import path = require('path');
 
-export type BucketName = 'original' | 'edited' | 'restored' | 'te.uploads';
+export type BucketName =
+  | 'original'
+  | 'edited'
+  | 'restored'
+  | 'te.uploads'
+  | 'se.uploads';
 
 export class StorageManager {
   static getFullBucketName(bucketName: BucketName) {
@@ -103,4 +109,15 @@ export class StorageManager {
           ].join('')
       );
   };
+
+  static getDestinationFileForRestoredUpload(fileName: string): File {
+    const matches = /^(\w+)-(\d{1,4}.*?)(?:[\s_]+v[-\d\s]+)?$/i.exec(
+      path.basename(fileName, '.flac')
+    );
+
+    if (!matches) return null;
+
+    const [, list, serial] = matches;
+    return this.getBucket('restored').file(`${list}/${list}-${serial}.flac`);
+  }
 }
