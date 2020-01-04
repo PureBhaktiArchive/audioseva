@@ -211,12 +211,12 @@ export const getAssignees = functions.https.onCall(
     return rows
       .filter(item => item[phase || Roles.CR] === Decision.Yes)
       .map(item => ({
-        emailAddress: item['Email Address'],
+        emailAddress: item['Email Address']?.trim(),
         name: item['Name'],
         location: item['Country'],
         languages: item['Languages'] ? item['Languages'].split(/,\s?/) : [],
         phone: item['Phone Number'],
-        id: item['Email Address'],
+        id: item['Email Address']?.trim(),
       }));
   }
 );

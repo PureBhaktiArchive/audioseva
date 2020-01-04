@@ -133,10 +133,10 @@ export const processUpload = functions.storage
 
     if (
       !user.customClaims['coordinator'] &&
-      task.assignee.emailAddress !== user.email
+      task.assignee.emailAddress.trim() !== user.email
     ) {
       console.error(
-        `Task is assigned to ${task.assignee.emailAddress}, aborting.`
+        `Task ${taskId} is assigned to "${task.assignee.emailAddress}" but uploaded by "${user.email}", aborting.`
       );
       return;
     }
