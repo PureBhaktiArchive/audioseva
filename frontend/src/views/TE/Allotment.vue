@@ -135,7 +135,7 @@ export default class Allotment extends Vue {
         .ref("/TE/tasks")
         .orderByChild("status")
         .equalTo("Spare")
-        .limitToFirst(50)
+        .limitToFirst(100)
     );
     this.isLoadingTasks = false;
   }
@@ -164,4 +164,5 @@ export default class Allotment extends Vue {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+</style>
