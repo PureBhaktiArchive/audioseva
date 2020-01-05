@@ -101,10 +101,10 @@
                 >
                   <div :style="{ width: '100%' }">
                     <template v-if="version.resolution.isApproved">
-                      Approved by {{ currentUser.displayName }}
+                      Approved by {{ getAuthor(version) }}
                     </template>
                     <template v-else>
-                      Disapproved by {{ currentUser.displayName }}:
+                      Disapproved by {{ getAuthor(version) }}:
                       <span class="mb-0" v-if="version.resolution.feedback">
                         {{ version.resolution.feedback }}
                       </span>
@@ -273,6 +273,10 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
           });
       }
     });
+  }
+
+  getAuthor(version: any) {
+    return _.get(version, "resolution.author.name", "");
   }
 
   get fieldRules() {
