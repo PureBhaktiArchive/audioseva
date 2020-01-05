@@ -3,7 +3,10 @@
     <template v-for="(chunk, index) in item.chunks">
       <v-row class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
         <v-col v-bind="layout.link">
-          <div>
+          <div :style="{ display: 'flex', flexWrap: 'wrap' }">
+            <v-chip v-if="item.isRestored" class="mr-1" color="primary">
+              SEd
+            </v-chip>
             <a :href="getLink(chunk.fileName)">
               {{ chunk.fileName }}
             </a>
