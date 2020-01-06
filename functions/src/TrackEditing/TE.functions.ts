@@ -219,7 +219,7 @@ export const processResolution = functions.database
   });
 
 export const importTasks = functions.pubsub
-  .schedule('every day 00:00')
+  .schedule('every 1 hour')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = await TasksRepository.open();
