@@ -41,14 +41,14 @@ export class TasksRepository {
   private rowToObjectSchema = createSchema<IdentifyableTask>({
     id: 'Task ID',
     isRestored: ({ 'SEd?': text }) => (text ? !/^non/i.test(text) : undefined),
-    status: ({ Status: status }) => status || AllotmentStatus.Spare,
+    status: ({ Status: status }) => status?.trim() || AllotmentStatus.Spare,
     timestampGiven: ({ 'Date Given': date }) =>
       DateTimeConverter.fromSerialDate(date).toMillis(),
     timestampDone: ({ 'Date Done': date }) =>
       DateTimeConverter.fromSerialDate(date).toMillis(),
     assignee: ({ Devotee: name, Email: emailAddress }) => ({
-      name,
-      emailAddress,
+      name: name?.trim(),
+      emailAddress: emailAddress?.trim(),
     }),
   });
 
@@ -191,27 +191,13 @@ export class TasksRepository {
             chunks: taskRows.map(row =>
               _.pick(row, ['fileName', 'beginning', 'ending', 'unwantedParts'])
             ),
-            timestampImported: admin.database.ServerValue.TIMESTAMP,
           })
       )
       // Mix allotments into the tasks
       .forEach(task => _.assign(task, allotmentsMap[task.id]))
       .value();
 
-    // Remove tasks which already exist in the database
-    const newTasks = await Promise.all(
-      tasks.map(async task =>
-        (
-          await this.getTaskRef(task.id)
-            .child('status')
-            .once('value')
-        ).exists()
-          ? null
-          : task
-      )
-    );
-
-    await this.saveToDatabase(newTasks);
-    return newTasks.length;
+    await this.saveToDatabase(tasks);
+    return tasks.length;
   }
 }
