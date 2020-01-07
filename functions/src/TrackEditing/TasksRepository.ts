@@ -47,8 +47,8 @@ export class TasksRepository {
     timestampDone: ({ 'Date Done': date }) =>
       DateTimeConverter.fromSerialDate(date).toMillis(),
     assignee: ({ Devotee: name, Email: emailAddress }) => ({
-      name: name?.trim(),
-      emailAddress: emailAddress?.trim(),
+      name: name?.trim() || null,
+      emailAddress: emailAddress?.trim() || null,
     }),
   });
 
