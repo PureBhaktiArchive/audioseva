@@ -51,7 +51,7 @@
                   <v-col cols="12" sm="3" class="pt-0">
                     <v-btn
                       @click="onCancelClick"
-                      v-if="isCoordinator"
+                      v-if="$can('delete', 'TE/Task')"
                       class="mt-0 ml-1"
                       color="error"
                       small
@@ -130,7 +130,9 @@
               </v-row>
             </v-timeline-item>
             <v-timeline-item
-              v-else-if="index === versionsCount - 1 && canApprove"
+              v-else-if="
+                index === versionsCount - 1 && $can('update', 'TE/Task')
+              "
               :key="`resolution-${key}`"
             >
               <template v-slot:icon>
@@ -226,14 +228,14 @@
           </template>
         </v-timeline>
       </article>
-      <v-btn v-if="showUpload" to="/te/upload">Upload</v-btn>
+      <v-btn v-if="$can('read', 'TE/Upload')" to="/te/upload">Upload</v-btn>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
@@ -241,7 +243,6 @@ import _ from "lodash";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import FormatTime from "@/mixins/FormatTime";
-import { hasClaim } from "@/router";
 import VersionDownloadLink from "@/components/TE/VersionDownloadLink.vue";
 
 enum State {
@@ -255,9 +256,6 @@ enum State {
   components: { TaskDefinition, VersionDownloadLink },
   computed: {
     ...mapState("user", ["currentUser"])
-  },
-  methods: {
-    ...mapActions("user", ["getUserClaims"])
   },
   title: ({ $route }) => `Track Editing Task ${$route.params.taskId}`
 })
@@ -278,11 +276,9 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   disapproveConfirmation = false;
 
   currentUser!: firebase.User;
-  getUserClaims!: any;
 
   async mounted() {
     this.getTask();
-    this.claims = await this.getUserClaims();
   }
 
   async getTask() {
@@ -346,18 +342,6 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
 
   getAuthor(version: any) {
     return _.get(version, "resolution.author.name", "");
-  }
-
-  get canApprove() {
-    return hasClaim(["TE.checker"], this.claims);
-  }
-
-  get showUpload() {
-    return hasClaim(["TE.editor"], this.claims);
-  }
-
-  get isCoordinator() {
-    return _.get(this.claims, "TE.coordinator");
   }
 
   get fieldRules() {

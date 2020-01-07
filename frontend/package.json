@@ -12,6 +12,8 @@
     "test:unit": "npm run test"
   },
   "dependencies": {
+    "@casl/ability": "3.4.0",
+    "@casl/vue": "0.5.1",
     "bluebird": "3.7.2",
     "core-js": "3.6.4",
     "firebase": "7.9.1",

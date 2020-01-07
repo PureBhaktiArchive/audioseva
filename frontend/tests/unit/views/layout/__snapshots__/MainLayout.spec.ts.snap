@@ -17,7 +17,7 @@ Array [
       "activator": true,
       "activatorName": "Sound Quality Reporting",
       "auth": Object {
-        "requireClaims": Array [
+        "roles": Array [
           "SQR.coordinator",
         ],
       },
@@ -36,8 +36,9 @@ Array [
         "component": [Function],
         "meta": Object {
           "auth": Object {
-            "requireClaims": Array [
+            "roles": Array [
               "TE.editor",
+              "TE.coordinator",
             ],
           },
           "menuItem": true,
@@ -49,8 +50,9 @@ Array [
         "component": [Function],
         "meta": Object {
           "auth": Object {
-            "requireClaims": Array [
+            "roles": Array [
               "TE.editor",
+              "TE.coordinator",
             ],
           },
           "homePageLink": Object {
@@ -64,9 +66,10 @@ Array [
         "component": [Function],
         "meta": Object {
           "auth": Object {
-            "requireClaims": Array [
+            "roles": Array [
               "TE.checker",
               "TE.editor",
+              "TE.coordinator",
             ],
           },
           "menuItem": false,
@@ -78,11 +81,6 @@ Array [
     "meta": Object {
       "activator": true,
       "activatorName": "Track Editing",
-      "auth": Object {
-        "requireClaims": Array [
-          "TE.coordinator",
-        ],
-      },
       "menuIcon": "fas fa-cut",
     },
     "path": "te/",

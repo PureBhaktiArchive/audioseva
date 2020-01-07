@@ -181,7 +181,7 @@ export const updateUserClaims = functions.database
     }
 
     console.info(`Setting claims for ${user.email}:`, change.after.val());
-    await admin.auth().setCustomUserClaims(user.uid, change.after.val());
+    await admin.auth().setCustomUserClaims(user.uid, { roles: change.after.val() });
   });
 
 export const addNewUserToDatabase = functions.auth

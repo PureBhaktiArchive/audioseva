@@ -33,6 +33,9 @@ describe("MainLayout", () => {
         computed: {
           currentUser() {
             return {};
+          },
+          roles() {
+            return claims;
           }
         },
         methods: {

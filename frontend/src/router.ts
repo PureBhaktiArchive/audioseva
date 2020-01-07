@@ -46,7 +46,7 @@ export const router = new Router({
             activator: true,
             activatorName: "Sound Quality Reporting",
             menuIcon: "fas fa-headphones",
-            auth: { requireClaims: ["SQR.coordinator"] }
+            auth: { roles: ["SQR.coordinator"] }
           },
           children: [
             {
@@ -62,8 +62,7 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Track Editing",
-            menuIcon: "fas fa-cut",
-            auth: { requireClaims: ["TE.coordinator"] }
+            menuIcon: "fas fa-cut"
           },
           children: [
             {
@@ -71,14 +70,14 @@ export const router = new Router({
               component: () => import("@/views/TE/Tasks.vue"),
               meta: {
                 menuItem: true,
-                auth: { requireClaims: ["TE.checker"] },
+                auth: { roles: ["TE.checker", "TE.coordinator"] },
                 homePageLink: { text: "TE" }
               }
             },
             {
               path: "allot",
               component: () => import("@/views/TE/Allotment.vue"),
-              meta: { menuItem: true }
+              meta: { menuItem: true, auth: { roles: ["TE.coordinator"] } }
             },
             {
               path: "my",
@@ -86,7 +85,7 @@ export const router = new Router({
               meta: {
                 menuItem: true,
                 menuLinkName: "My Tasks",
-                auth: { requireClaims: ["TE.editor"] }
+                auth: { roles: ["TE.editor", "TE.coordinator"] }
               }
             },
             {
@@ -94,7 +93,7 @@ export const router = new Router({
               component: () => import("@/views/TE/Upload.vue"),
               meta: {
                 menuItem: true,
-                auth: { requireClaims: ["TE.editor"] },
+                auth: { roles: ["TE.editor", "TE.coordinator"] },
                 homePageLink: { text: "Upload" }
               }
             },
@@ -103,7 +102,7 @@ export const router = new Router({
               component: () => import("@/views/TE/Task.vue"),
               meta: {
                 menuItem: false,
-                auth: { requireClaims: ["TE.checker", "TE.editor"] }
+                auth: { roles: ["TE.checker", "TE.editor", "TE.coordinator"] }
               }
             }
           ]
@@ -112,20 +111,6 @@ export const router = new Router({
     }
   ]
 });
-
-export const hasClaim = (
-  roles: string[],
-  userClaims: { [key: string]: any }
-) => {
-  return roles.some(role => {
-    const rootRole = role.split(".")[0];
-    return _.get(
-      userClaims,
-      `${rootRole}.coordinator`,
-      _.get(userClaims, role)
-    );
-  });
-};
 
 const getRootRouteChildren = () => {
   return (router as any).options.routes.find(
@@ -136,51 +121,36 @@ const getRootRouteChildren = () => {
 export const filterRoutesByClaims = (
   filterCb: <T>(
     route: RouteConfig,
-    userClaims: { [key: string]: any },
-    requireParentClaims: string[] | undefined,
+    parentRoles: string[] | undefined,
     ...args: any[]
   ) => any
 ) => (
   routes: RouteConfig[] = [],
-  userClaims: { [key: string]: any },
-  requireParentClaims: string[] | undefined = undefined,
+  parentRoles: string[] | undefined = undefined,
   ...args: any[]
 ): RouteConfig[] => {
   return routes.reduce((filteredRoutes, route) => {
-    const requireClaims = _.get(
-      route,
-      "meta.auth.requireClaims",
-      requireParentClaims
-    );
+    const requiredRoles = _.get(route, "meta.auth.roles", parentRoles);
 
-    const filteredRoute = filterCb<RouteConfig>(
-      route,
-      userClaims,
-      requireClaims,
-      ...args
-    );
+    const filteredRoute = filterCb<RouteConfig>(route, requiredRoles, ...args);
     filteredRoute && filteredRoutes.push(filteredRoute);
     return filteredRoutes;
   }, [] as RouteConfig[]);
 };
 
 const filterHomePageRoutes = filterRoutesByClaims(
-  (route, userClaims, requiredClaims): any => {
+  (route, requiredRoles): any => {
     const homePageButton = _.get(route, "meta.homePageLink", false);
     let filteredRoute: RouteConfig = route;
     if (route.children) {
-      const routeChildren = filterHomePageRoutes(
-        route.children,
-        userClaims,
-        requiredClaims
-      );
+      const routeChildren = filterHomePageRoutes(route.children, requiredRoles);
       filteredRoute = { ...route, children: routeChildren };
     }
 
     if (
       homePageButton &&
-      requiredClaims &&
-      hasClaim(requiredClaims, userClaims)
+      requiredRoles &&
+      store.getters["user/hasRole"](requiredRoles)
     ) {
       return filteredRoute;
     } else if (filteredRoute.children && filteredRoute.children.length) {
@@ -195,36 +165,28 @@ const filterHomePageRoutes = filterRoutesByClaims(
   }
 );
 
-export const getHomePageRoutes = async () => {
-  return filterHomePageRoutes(
-    getRootRouteChildren(),
-    (await store.dispatch("user/getUserClaims")) || {}
-  );
+export const getHomePageRoutes = () => {
+  return filterHomePageRoutes(getRootRouteChildren());
 };
 
 const filterMenuItems = filterRoutesByClaims(
-  (route: RouteConfig, userClaims, requireClaims): any => {
+  (route: RouteConfig, requiredRoles): any => {
     if (route.meta.activator) {
-      const childRoutes = filterMenuItems(
-        route.children,
-        userClaims,
-        requireClaims
-      );
+      const childRoutes = filterMenuItems(route.children, requiredRoles);
       if (childRoutes.length) return { ...route, children: childRoutes };
-    } else if (requireClaims && hasClaim(requireClaims, userClaims)) {
+    } else if (requiredRoles && store.getters["user/hasRole"](requiredRoles)) {
       return route;
-    } else if (!requireClaims) {
+    } else if (!requiredRoles) {
       return route;
     }
   }
 );
 
-export const getMenuItems = async () => {
+export const getMenuItems = () => {
   return filterMenuItems(
     getRootRouteChildren().filter((route: any) => {
       return route.meta && (route.meta.activator || route.meta.menuItem);
-    }),
-    (await store.dispatch("user/getUserClaims")) || {}
+    })
   );
 };
 
@@ -239,11 +201,11 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
   const currentUser = firebase.auth().currentUser;
   const {
     meta: {
-      auth: { requireAuth, guestOnly, requireClaims }
+      auth: { requireAuth, guestOnly, roles }
     }
   } = restrictedRoute;
 
-  if ((requireAuth || requireClaims) && !currentUser)
+  if ((requireAuth || roles) && !currentUser)
     return next({
       path: "/login",
       query: { redirect: to.fullPath }
@@ -251,12 +213,12 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
 
   if (guestOnly && currentUser) return next("/");
 
-  if (requireClaims) {
+  if (roles) {
     const userClaims = currentUser
-      ? (await currentUser.getIdTokenResult()).claims
+      ? (await currentUser.getIdTokenResult()).claims.roles
       : null;
 
-    return !userClaims || !hasClaim(requireClaims, userClaims)
+    return !userClaims || !store.getters["user/hasRole"](roles, userClaims)
       ? next("/")
       : next();
   }
@@ -270,10 +232,9 @@ export const redirectSections: NavigationGuard = async (to, from, next) => {
   const activatorChildren: RouteConfig[] = getRootRouteChildren().find(
     (route: RouteConfig) => `/${route.path}` === `${to.fullPath}/`
   ).children;
-  const userClaims = await store.dispatch("user/getUserClaims");
   const childRedirectRoute = activatorChildren.find(route => {
-    const requireClaims = _.get(route, "meta.auth.requireClaims");
-    return requireClaims && hasClaim(requireClaims, userClaims);
+    const roles = _.get(route, "meta.auth.roles");
+    return roles && store.getters["user/hasRole"](roles);
   });
   childRedirectRoute
     ? next(`${to.fullPath}/${childRedirectRoute.path}`)

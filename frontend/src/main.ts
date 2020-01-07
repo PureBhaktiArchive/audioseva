@@ -22,6 +22,7 @@ import "vuetify/dist/vuetify.min.css";
 
 import { rtdbPlugin as VueFire } from "vuefire";
 import VuePageTitle from "vue-page-title";
+import { abilitiesPlugin } from "@casl/vue";
 
 import "@/styles/main.css";
 
@@ -38,6 +39,7 @@ Vue.use(VuePageTitle, {
 Vue.use(VueResource);
 Vue.use(VueFire);
 Vue.use(Vuetify);
+Vue.use(abilitiesPlugin, store.getters.ability);
 
 async function getFirebaseConfig(): Promise<Object> {
   return process.env.NODE_ENV === "production"
@@ -57,7 +59,7 @@ async function getFirebaseConfig(): Promise<Object> {
 getFirebaseConfig().then(config => {
   firebase.initializeApp(config);
   firebase.auth().onAuthStateChanged(user => {
-    store.commit("user/setCurrentUser", user);
+    store.dispatch("user/handleUser", user);
   });
 
   const unsubscribe: any = firebase.auth().onAuthStateChanged(() => {

@@ -1,5 +1,5 @@
 function isSignedIn() { auth != null }
-function hasRole(role) { isSignedIn() && auth.token.roles[role] == true }
+function hasRole(phase, role) { isSignedIn() && auth.token.roles[phase][role] == true }
 
 type CurrentTimestamp extends Number {
   validate() { this == now }
@@ -119,7 +119,7 @@ path /SQR {
       update() {
         tokenIsValid(token, fileName, root.SQR)
         &&
-        (hasRole('SQR.checker') || hasRole('SQR.coordinator') || root.SQR.allotments[fileName].status != 'Done')
+        (hasRole('SQR', 'checker') || hasRole('SQR', 'coordinator') || root.SQR.allotments[fileName].status != 'Done')
       }
     }
 
@@ -146,7 +146,7 @@ type FileResolution {
   isApproved: Boolean,
   feedback: String,
 
-  create() { hasRole('TE.checker') }
+  create() { hasRole('TE', 'checker') }
 }
 
 type FileVersion {
@@ -170,8 +170,8 @@ path /TE {
     read() {
       isSignedIn() && (
         query.orderByChild == 'assignee/emailAddress' && query.equalTo == auth.token.email
-        || hasRole('TE.checker')
-        || hasRole('TE.coordinator')
+        || hasRole('TE', 'checker')
+        || hasRole('TE', 'coordinator')
       )
     }
   }

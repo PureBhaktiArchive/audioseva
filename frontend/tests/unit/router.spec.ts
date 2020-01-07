@@ -51,7 +51,7 @@ describe("checkAuth", () => {
     }));
     to = {
       fullPath: "/te/tasks",
-      matched: [{}, { meta: { auth: { requireClaims: ["TE.coordinator"] } } }]
+      matched: [{}, { meta: { auth: { roles: ["TE.coordinator"] } } }]
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
@@ -100,14 +100,14 @@ describe("checkAuth", () => {
       currentUser: {
         getIdTokenResult: async () => {
           return {
-            claims: { TE: { coordinator: true } }
+            claims: { roles: { TE: { coordinator: true } } }
           };
         }
       }
     }));
 
     to = {
-      matched: [{ meta: { auth: { requireClaims: ["TE.coordinator"] } } }]
+      matched: [{ meta: { auth: { roles: ["TE.coordinator"] } } }]
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
@@ -116,7 +116,7 @@ describe("checkAuth", () => {
 
   it("should redirect to / on bad custom claims", async () => {
     to = {
-      matched: [{ meta: { auth: { requireClaims: ["SQR.coordinator"] } } }]
+      matched: [{ meta: { auth: { roles: ["SQR.coordinator"] } } }]
     };
     const from: any = {};
     const next: any = jest.fn();

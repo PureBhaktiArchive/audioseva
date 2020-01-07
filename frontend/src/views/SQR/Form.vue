@@ -64,9 +64,14 @@
                 <v-btn v-if="!isCompleted" @click="saveDraft">
                   Save draft
                 </v-btn>
-                <v-btn type="submit" color="primary" class=" mx-2"
-                  >Submit</v-btn
+                <v-btn
+                  v-if="$can('update', 'SQR/Form')"
+                  type="submit"
+                  color="primary"
+                  class="mx-2"
                 >
+                  Submit
+                </v-btn>
                 <p
                   :style="{ color: 'red' }"
                   v-if="formHasError && showValidationSummary"
@@ -94,9 +99,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Watch, Vue } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
-import { mapActions } from "vuex";
+import { mapGetters } from "vuex";
 import moment from "moment";
 import "moment-timezone/builds/moment-timezone-with-data-10-year-range.min.js";
 import firebase from "firebase/app";
@@ -125,8 +130,8 @@ enum SubmissionsBranch {
 @Component({
   name: "Form",
   components: { Fields, CancelListItem },
-  methods: {
-    ...mapActions("user", ["getUserClaims"])
+  computed: {
+    ...mapGetters("user", ["hasRole"])
   },
   title: ({ $route }) => `Sound Quality Report for ${$route.params.fileName}`
 })
@@ -195,7 +200,7 @@ export default class Form extends Vue {
   errorMessage = "";
   isCoordinator = false;
   showValidationSummary = false;
-  getUserClaims!: any;
+  hasRole!: any;
   rules = [required];
   destroyFormErrorWatch!: any;
   branch: SubmissionsBranch | null = null;
@@ -247,11 +252,6 @@ export default class Form extends Vue {
     const {
       params: { fileName, token }
     } = this.$route;
-    const isCoordinator = _.get(
-      await this.getUserClaims(),
-      "coordinator",
-      false
-    );
     const response = (
       await firebase
         .database()
@@ -264,7 +264,10 @@ export default class Form extends Vue {
     if (!allotmentStatus) {
       this.errorMessage =
         "This allotment is not valid, please contact coordinator.";
-    } else if (!isCoordinator && allotmentStatus.toLowerCase() === "done") {
+    } else if (
+      !this.hasRole("SQR.coordinator") &&
+      allotmentStatus.toLowerCase() === "done"
+    ) {
       this.errorMessage =
         "This submission is finalized and cannot be updated, please contact the coordinator.";
     }

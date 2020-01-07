@@ -22,7 +22,12 @@ describe("HomePageButtons", () => {
     await mockClaims(claims);
     const wrapper = shallowMount(HomePageButtons, {
       localVue,
-      router
+      router,
+      computed: {
+        roles() {
+          return claims;
+        }
+      }
     });
     await flushPromises();
     expect((wrapper.vm as any).routeButtons).toMatchSnapshot();
