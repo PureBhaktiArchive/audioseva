@@ -3,14 +3,15 @@
     <template v-for="(chunk, index) in item.chunks">
       <v-row class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
         <v-col v-bind="layout.link">
-          <div :style="{ display: 'flex', flexWrap: 'wrap' }">
-            <v-chip v-if="item.isRestored" class="mr-1" color="primary">
-              SEd
-            </v-chip>
+          <v-badge v-if="item.isRestored" color="#2196F3">
+            <template v-slot:badge>SEd</template>
             <a :href="getLink(chunk.fileName)">
               {{ chunk.fileName }}
             </a>
-          </div>
+          </v-badge>
+          <a v-else :href="getLink(chunk.fileName)">
+            {{ chunk.fileName }}
+          </a>
         </v-col>
         <v-col v-bind="layout.duration">
           <span
@@ -80,4 +81,8 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+  >>> .v-badge__badge {
+    right: -35px;
+  }
+</style>
