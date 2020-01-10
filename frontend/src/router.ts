@@ -214,11 +214,15 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
   if (guestOnly && currentUser) return next("/");
 
   if (roles) {
-    const userClaims = currentUser
+    const userRoles = currentUser
       ? (await currentUser.getIdTokenResult()).claims.roles
       : null;
 
-    return !userClaims || !store.getters["user/hasRole"](roles, userClaims)
+    /*
+     * This function runs before roles are populated into the user store.
+     * Required roles are directly passed in to check for role
+     */
+    return !userRoles || !store.getters["user/hasRole"](roles, userRoles)
       ? next("/")
       : next();
   }
