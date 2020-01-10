@@ -266,7 +266,6 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   task: any = {};
   State = State;
   state: State = State.LOADING;
-  claims!: { [key: string]: any };
   form = {
     isApproved: false,
     feedback: ""
