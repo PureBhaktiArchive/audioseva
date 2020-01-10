@@ -1,7 +1,13 @@
 import { AbilityBuilder } from "@casl/ability";
 import { store } from "@/store";
 
-const TESubjects = ["TE/Task", "TE/Upload"];
+const TESubjects = [
+  "TE/Task",
+  "TE/Upload",
+  "TE/Allot",
+  "TE/Tasks",
+  "TE/MyTasks"
+];
 const SQRSubjects = ["SQR/Allot", "SQR/UpdateDone"];
 
 const subjects = [...TESubjects, ...SQRSubjects].reduce(
