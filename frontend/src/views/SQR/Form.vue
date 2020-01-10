@@ -65,7 +65,7 @@
                   Save draft
                 </v-btn>
                 <v-btn
-                  v-if="$can('update', 'SQR/Form')"
+                  v-if="!isCompleted || $can('submit', 'SQR/UpdateDone')"
                   type="submit"
                   color="primary"
                   class="mx-2"

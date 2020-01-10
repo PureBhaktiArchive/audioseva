@@ -1,8 +1,16 @@
 import { AbilityBuilder } from "@casl/ability";
 import { store } from "@/store";
 
-const tePermissions = ["TE/Task", "TE/Upload"];
-const SQRPermissions = ["SQR/Allot", "SQR/Form"];
+const TESubjects = ["TE/Task", "TE/Upload"];
+const SQRSubjects = ["SQR/Allot", "SQR/UpdateDone"];
+
+const subjects = [...TESubjects, ...SQRSubjects].reduce(
+  (permissions, permission) => {
+    permissions[permission] = permission;
+    return permissions;
+  },
+  {} as { [key: string]: string }
+);
 
 const hasRole = (roles: any) => {
   return store.getters["user/hasRole"](roles);
@@ -10,24 +18,24 @@ const hasRole = (roles: any) => {
 
 const handleTEPermissions = (can: any) => {
   if (hasRole("TE.coordinator")) {
-    can("manage", tePermissions);
+    can("manage", TESubjects);
     return;
   }
   if (hasRole("TE.checker")) {
-    can("update", tePermissions[0]);
+    can("resolve", subjects["TE/Task"]);
   }
   if (hasRole("TE.editor")) {
-    can("read", tePermissions[1]);
+    can("upload", subjects["TE/Upload"]);
   }
 };
 
 const handleSQRPermissions = (can: any) => {
   if (hasRole("SQR.coordinator")) {
-    can("manage", SQRPermissions);
+    can("manage", SQRSubjects);
     return;
   }
   if (hasRole("SQR.checker")) {
-    can("update", SQRPermissions[1]);
+    can("submit", subjects["SQR/UpdateDone"]);
   }
 };
 
