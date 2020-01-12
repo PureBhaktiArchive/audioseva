@@ -179,7 +179,7 @@ export class TasksRepository {
       .filter(taskRows => {
         const validationResult = new TaskValidator().validate(taskRows);
         if (!validationResult.isValid)
-          console.warn(`${taskRows[0].taskId}:`, validationResult.messages);
+          console.info(`${taskRows[0].taskId}:`, validationResult.messages);
         return validationResult.isValid;
       })
       // Convert the rows into the tasks
