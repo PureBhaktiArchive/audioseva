@@ -51,7 +51,7 @@
                   <v-col cols="12" sm="3" class="pt-0">
                     <v-btn
                       @click="onCancelClick"
-                      v-if="$can('cancel', 'TE/Task')"
+                      v-if="$can('cancel', $subjects.TE.task)"
                       class="mt-0 ml-1"
                       color="error"
                       small
@@ -131,7 +131,8 @@
             </v-timeline-item>
             <v-timeline-item
               v-else-if="
-                index === versionsCount - 1 && $can('resolve', 'TE/Task')
+                index === versionsCount - 1 &&
+                  $can('resolve', $subjects.TE.task)
               "
               :key="`resolution-${key}`"
             >
@@ -228,7 +229,9 @@
           </template>
         </v-timeline>
       </article>
-      <v-btn v-if="$can('upload', 'TE/Upload')" to="/te/upload">Upload</v-btn>
+      <v-btn v-if="$can('upload', $subjects.TE.task)" to="/te/upload">
+        Upload
+      </v-btn>
     </div>
   </div>
 </template>

@@ -23,6 +23,7 @@ import "vuetify/dist/vuetify.min.css";
 import { rtdbPlugin as VueFire } from "vuefire";
 import VuePageTitle from "vue-page-title";
 import { abilitiesPlugin } from "@casl/vue";
+import { SubjectsPlugin } from "@/abilities";
 
 import "@/styles/main.css";
 
@@ -40,6 +41,7 @@ Vue.use(VueResource);
 Vue.use(VueFire);
 Vue.use(Vuetify);
 Vue.use(abilitiesPlugin, store.getters.ability);
+Vue.use(SubjectsPlugin);
 
 async function getFirebaseConfig(): Promise<Object> {
   return process.env.NODE_ENV === "production"

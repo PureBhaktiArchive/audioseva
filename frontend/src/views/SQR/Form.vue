@@ -61,11 +61,11 @@
                   flexWrap: 'wrap'
                 }"
               >
-                <v-btn v-if="!isCompleted" @click="saveDraft">
+                <v-btn v-if="$can('save', this.sqrForm)" @click="saveDraft">
                   Save draft
                 </v-btn>
                 <v-btn
-                  v-if="!isCompleted || $can('submit', 'SQR/UpdateDone')"
+                  v-if="$can('submit', this.sqrForm)"
                   type="submit"
                   color="primary"
                   class="mx-2"
@@ -101,7 +101,6 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
-import { mapGetters } from "vuex";
 import moment from "moment";
 import "moment-timezone/builds/moment-timezone-with-data-10-year-range.min.js";
 import firebase from "firebase/app";
@@ -111,6 +110,7 @@ import Fields from "@/components/SQRForm/Fields.vue";
 import CancelListItem from "@/components/SQRForm/CancelListItem.vue";
 import { updateObject, removeObjectKey, getPathAndKey } from "@/utility";
 import { required } from "@/validation";
+import { SQRForm } from "@/abilities";
 
 enum FormState {
   SAVING = 0,
@@ -130,9 +130,6 @@ enum SubmissionsBranch {
 @Component({
   name: "Form",
   components: { Fields, CancelListItem },
-  computed: {
-    ...mapGetters("user", ["hasRole"])
-  },
   title: ({ $route }) => `Sound Quality Report for ${$route.params.fileName}`
 })
 export default class Form extends Vue {
@@ -198,12 +195,14 @@ export default class Form extends Vue {
   submitSuccess = false;
   formHasError = false;
   errorMessage = "";
-  isCoordinator = false;
   showValidationSummary = false;
-  hasRole!: any;
   rules = [required];
   destroyFormErrorWatch!: any;
   branch: SubmissionsBranch | null = null;
+
+  get sqrForm() {
+    return new SQRForm({ isCompleted: this.isCompleted });
+  }
 
   handleListClick(cancelField: number) {
     this.cancelCheck = {};
@@ -265,8 +264,12 @@ export default class Form extends Vue {
       this.errorMessage =
         "This allotment is not valid, please contact coordinator.";
     } else if (
-      !this.hasRole("SQR.coordinator") &&
-      allotmentStatus.toLowerCase() === "done"
+      this.$ability.cannot(
+        "read",
+        new SQRForm({
+          done: allotmentStatus.toLowerCase() === "done"
+        })
+      )
     ) {
       this.errorMessage =
         "This submission is finalized and cannot be updated, please contact the coordinator.";
