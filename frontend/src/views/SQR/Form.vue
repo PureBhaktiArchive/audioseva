@@ -265,9 +265,9 @@ export default class Form extends Vue {
         "This allotment is not valid, please contact coordinator.";
     } else if (
       this.$ability.cannot(
-        "read",
+        "submit",
         new SQRForm({
-          done: allotmentStatus.toLowerCase() === "done"
+          isCompleted: allotmentStatus.toLowerCase() === "done"
         })
       )
     ) {
