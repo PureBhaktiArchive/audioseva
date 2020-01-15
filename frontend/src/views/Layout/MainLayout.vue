@@ -130,7 +130,7 @@ export default class MainLayout extends Vue {
       [...matched].reverse().find(({ meta }) => meta.auth),
       "meta.auth"
     );
-    if (path !== "/" && auth && (auth.requireClaims || auth.requireAuth)) {
+    if (path !== "/" && auth && (auth.ability || auth.requireAuth)) {
       const paths = path.split("/");
       const pathsLength = paths.length - 1;
       paths.forEach((item: string, index: number) => {

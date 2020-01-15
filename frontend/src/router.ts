@@ -145,71 +145,74 @@ export const router = new Router({
   ]
 });
 
-const getRootRouteChildren = () => {
+const getRootRouteChildren = (): any => {
   return (router as any).options.routes.find(
     (route: RouteConfig) => route.path === "/"
   ).children;
 };
 
+type RouteAbility = { action: string; subject: string };
+
 export const filterRoutesByClaims = (
   filterCb: <T>(
     route: RouteConfig,
-    parentRoles: string[] | undefined,
+    parentAbility: RouteAbility | undefined,
     ...args: any[]
   ) => any
 ) => (
   routes: RouteConfig[] = [],
-  parentRoles: string[] | undefined = undefined,
+  parentAbility: RouteAbility | undefined = undefined,
   ...args: any[]
 ): RouteConfig[] => {
   return routes.reduce((filteredRoutes, route) => {
-    const requiredRoles = _.get(route, "meta.auth.roles", parentRoles);
+    const ability = _.get(route, "meta.auth.ability", parentAbility);
 
-    const filteredRoute = filterCb<RouteConfig>(route, requiredRoles, ...args);
+    const filteredRoute = filterCb<RouteConfig>(route, ability, ...args);
     filteredRoute && filteredRoutes.push(filteredRoute);
     return filteredRoutes;
   }, [] as RouteConfig[]);
 };
 
-const filterHomePageRoutes = filterRoutesByClaims(
-  (route, requiredRoles): any => {
-    const homePageButton = _.get(route, "meta.homePageLink", false);
-    let filteredRoute: RouteConfig = route;
-    if (route.children) {
-      const routeChildren = filterHomePageRoutes(route.children, requiredRoles);
-      filteredRoute = { ...route, children: routeChildren };
-    }
-
-    if (
-      homePageButton &&
-      requiredRoles &&
-      store.getters["user/hasRole"](requiredRoles)
-    ) {
-      return filteredRoute;
-    } else if (filteredRoute.children && filteredRoute.children.length) {
-      filteredRoute = _.setWith(
-        _.clone(filteredRoute),
-        "meta.homePageLink",
-        false,
-        _.clone
-      );
-      return filteredRoute;
-    }
+const filterHomePageRoutes = filterRoutesByClaims((route, ability): any => {
+  const homePageButton = _.get(route, "meta.homePageLink", false);
+  let filteredRoute: RouteConfig = route;
+  if (route.children) {
+    const routeChildren = filterHomePageRoutes(route.children, ability);
+    filteredRoute = { ...route, children: routeChildren };
   }
-);
+
+  if (
+    homePageButton &&
+    ability &&
+    store.getters.ability.can(ability.action, ability.subject)
+  ) {
+    return filteredRoute;
+  } else if (filteredRoute.children && filteredRoute.children.length) {
+    filteredRoute = _.setWith(
+      _.clone(filteredRoute),
+      "meta.homePageLink",
+      false,
+      _.clone
+    );
+    return filteredRoute;
+  }
+});
 
 export const getHomePageRoutes = () => {
   return filterHomePageRoutes(getRootRouteChildren());
 };
 
 const filterMenuItems = filterRoutesByClaims(
-  (route: RouteConfig, requiredRoles): any => {
+  (route: RouteConfig, ability): any => {
     if (route.meta.activator) {
-      const childRoutes = filterMenuItems(route.children, requiredRoles);
+      const childRoutes = filterMenuItems(route.children, ability);
       if (childRoutes.length) return { ...route, children: childRoutes };
-    } else if (requiredRoles && store.getters["user/hasRole"](requiredRoles)) {
+    } else if (
+      ability &&
+      store.getters.ability.can(ability.action, ability.subject)
+    ) {
       return route;
-    } else if (!requiredRoles) {
+    } else if (!ability) {
       return route;
     }
   }
@@ -229,15 +232,9 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
     .reverse()
     .find(({ meta }) => meta.auth);
 
-  const currentUser = firebase.auth().currentUser;
-  const userRoles = currentUser
-    ? (await currentUser.getIdTokenResult()).claims.roles
-    : null;
-
-  await store.dispatch("user/updateUserRoles", userRoles);
-
   if (!restrictedRoute) return next();
 
+  const currentUser = firebase.auth().currentUser;
   const {
     meta: {
       auth: { requireAuth, guestOnly, ability }

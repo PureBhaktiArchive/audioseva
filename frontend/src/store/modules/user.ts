@@ -45,23 +45,28 @@ export default {
     }
   },
   actions: {
-    signOut({ dispatch }: ActionContext<any, any>) {
+    signOut() {
       firebase.auth().signOut();
-      dispatch("updateUserRoles", null);
     },
     async handleUser(
-      { commit }: ActionContext<any, any>,
+      { commit, dispatch }: ActionContext<any, any>,
       user: firebase.User | null
     ) {
       commit("setCurrentUser", user);
+      if (user) {
+        await dispatch(
+          "updateUserRoles",
+          (await user.getIdTokenResult()).claims.roles
+        );
+      } else {
+        await dispatch("updateUserRoles", null);
+      }
     },
-    async updateUserRoles(
+    updateUserRoles(
       { commit, rootGetters }: ActionContext<any, any>,
       roles: { [key: string]: any } | null
     ) {
-      if (roles) {
-        commit("setUserRoles", roles);
-      }
+      commit("setUserRoles", roles);
       rootGetters.ability.update(defineAbilities());
     }
   }

@@ -7,6 +7,12 @@ Array [
       Object {
         "component": [Function],
         "meta": Object {
+          "auth": Object {
+            "ability": Object {
+              "action": "allot",
+              "subject": "SQR/Tasks",
+            },
+          },
           "menuItem": true,
         },
         "path": "allot",
@@ -16,11 +22,6 @@ Array [
     "meta": Object {
       "activator": true,
       "activatorName": "Sound Quality Reporting",
-      "auth": Object {
-        "roles": Array [
-          "SQR.coordinator",
-        ],
-      },
       "menuIcon": "fas fa-headphones",
     },
     "path": "sqr/",
@@ -36,10 +37,10 @@ Array [
         "component": [Function],
         "meta": Object {
           "auth": Object {
-            "roles": Array [
-              "TE.editor",
-              "TE.coordinator",
-            ],
+            "ability": Object {
+              "action": "view",
+              "subject": "TE/MyTasks",
+            },
           },
           "menuItem": true,
           "menuLinkName": "My Tasks",
@@ -50,10 +51,10 @@ Array [
         "component": [Function],
         "meta": Object {
           "auth": Object {
-            "roles": Array [
-              "TE.editor",
-              "TE.coordinator",
-            ],
+            "ability": Object {
+              "action": "upload",
+              "subject": "TE/Task",
+            },
           },
           "homePageLink": Object {
             "text": "Upload",
@@ -66,11 +67,10 @@ Array [
         "component": [Function],
         "meta": Object {
           "auth": Object {
-            "roles": Array [
-              "TE.checker",
-              "TE.editor",
-              "TE.coordinator",
-            ],
+            "ability": Object {
+              "action": "view",
+              "subject": "TE/Task",
+            },
           },
           "menuItem": false,
         },

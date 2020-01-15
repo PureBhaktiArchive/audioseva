@@ -64,7 +64,13 @@ getFirebaseConfig().then(config => {
     store.dispatch("user/handleUser", user);
   });
 
-  const unsubscribe: any = firebase.auth().onAuthStateChanged(() => {
+  const unsubscribe: any = firebase.auth().onAuthStateChanged(async user => {
+    const userRoles = user
+      ? (await user.getIdTokenResult()).claims.roles
+      : null;
+    console.log("on auth state change");
+    await store.dispatch("user/updateUserRoles", userRoles);
+
     new Vue({
       router,
       store,
