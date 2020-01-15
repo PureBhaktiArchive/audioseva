@@ -7,6 +7,7 @@ import _ from "lodash";
 import Vue from "vue";
 import Router, { NavigationGuard, RouteConfig } from "vue-router";
 import { store } from "@/store";
+import { subjects } from "@/abilities";
 
 Vue.use(Router);
 
@@ -45,14 +46,18 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Sound Quality Reporting",
-            menuIcon: "fas fa-headphones",
-            auth: { roles: ["SQR.coordinator"] }
+            menuIcon: "fas fa-headphones"
           },
           children: [
             {
               path: "allot",
               component: () => import("@/views/SQRAllotment.vue"),
-              meta: { menuItem: true }
+              meta: {
+                menuItem: true,
+                auth: {
+                  ability: { subject: subjects.SQR.tasks, action: "allot" }
+                }
+              }
             }
           ]
         },
@@ -70,14 +75,27 @@ export const router = new Router({
               component: () => import("@/views/TE/Tasks.vue"),
               meta: {
                 menuItem: true,
-                auth: { roles: ["TE.checker", "TE.coordinator"] },
+                auth: {
+                  ability: {
+                    subject: subjects.TE.tasks,
+                    action: "view"
+                  }
+                },
                 homePageLink: { text: "TE" }
               }
             },
             {
               path: "allot",
               component: () => import("@/views/TE/Allotment.vue"),
-              meta: { menuItem: true, auth: { roles: ["TE.coordinator"] } }
+              meta: {
+                menuItem: true,
+                auth: {
+                  ability: {
+                    subject: subjects.TE.tasks,
+                    action: "allot"
+                  }
+                }
+              }
             },
             {
               path: "my",
@@ -85,7 +103,12 @@ export const router = new Router({
               meta: {
                 menuItem: true,
                 menuLinkName: "My Tasks",
-                auth: { roles: ["TE.editor", "TE.coordinator"] }
+                auth: {
+                  ability: {
+                    subject: subjects.TE.myTasks,
+                    action: "view"
+                  }
+                }
               }
             },
             {
@@ -93,7 +116,12 @@ export const router = new Router({
               component: () => import("@/views/TE/Upload.vue"),
               meta: {
                 menuItem: true,
-                auth: { roles: ["TE.editor", "TE.coordinator"] },
+                auth: {
+                  ability: {
+                    subject: subjects.TE.task,
+                    action: "upload"
+                  }
+                },
                 homePageLink: { text: "Upload" }
               }
             },
@@ -102,7 +130,12 @@ export const router = new Router({
               component: () => import("@/views/TE/Task.vue"),
               meta: {
                 menuItem: false,
-                auth: { roles: ["TE.checker", "TE.editor", "TE.coordinator"] }
+                auth: {
+                  ability: {
+                    subject: subjects.TE.task,
+                    action: "view"
+                  }
+                }
               }
             }
           ]
@@ -196,16 +229,22 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
     .reverse()
     .find(({ meta }) => meta.auth);
 
+  const currentUser = firebase.auth().currentUser;
+  const userRoles = currentUser
+    ? (await currentUser.getIdTokenResult()).claims.roles
+    : null;
+
+  await store.dispatch("user/updateUserRoles", userRoles);
+
   if (!restrictedRoute) return next();
 
-  const currentUser = firebase.auth().currentUser;
   const {
     meta: {
-      auth: { requireAuth, guestOnly, roles }
+      auth: { requireAuth, guestOnly, ability }
     }
   } = restrictedRoute;
 
-  if ((requireAuth || roles) && !currentUser)
+  if ((requireAuth || ability) && !currentUser)
     return next({
       path: "/login",
       query: { redirect: to.fullPath }
@@ -213,18 +252,10 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
 
   if (guestOnly && currentUser) return next("/");
 
-  if (roles) {
-    const userRoles = currentUser
-      ? (await currentUser.getIdTokenResult()).claims.roles
-      : null;
-
-    /*
-     * This function runs before roles are populated into the user store.
-     * Required roles are directly passed in to check for role
-     */
-    return !userRoles || !store.getters["user/hasRole"](roles, userRoles)
-      ? next("/")
-      : next();
+  if (ability) {
+    return store.getters.ability.can(ability.action, ability.subject)
+      ? next()
+      : next("/");
   }
 
   next();
@@ -237,8 +268,10 @@ export const redirectSections: NavigationGuard = async (to, from, next) => {
     (route: RouteConfig) => `/${route.path}` === `${to.fullPath}/`
   ).children;
   const childRedirectRoute = activatorChildren.find(route => {
-    const roles = _.get(route, "meta.auth.roles");
-    return roles && store.getters["user/hasRole"](roles);
+    const ability = _.get(route, "meta.auth.ability");
+    return (
+      ability && store.getters.ability.can(ability.action, ability.subject)
+    );
   });
   childRedirectRoute
     ? next(`${to.fullPath}/${childRedirectRoute.path}`)

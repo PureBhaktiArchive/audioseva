@@ -18,16 +18,12 @@ export default {
   },
   getters: {
     isSignedIn: (state: any) => state.currentUser !== null,
-    hasRole: (state: any) => (
-      roles: string | string[],
-      userRolesOverride: null | { [key: string]: any }
-    ) => {
-      const userRoles = userRolesOverride || state.roles;
-      if (!userRoles) return false;
+    hasRole: (state: any) => (roles: string | string[]) => {
+      if (!state.roles) return false;
       if (typeof roles === "string") {
-        return _.get(userRoles, roles);
+        return _.get(state.roles, roles);
       }
-      return roles.some(role => _.get(userRoles, role));
+      return roles.some(role => _.get(state.roles, role));
     }
   },
   mutations: {
@@ -49,18 +45,22 @@ export default {
     }
   },
   actions: {
-    signOut({ commit, rootGetters }: ActionContext<any, any>) {
+    signOut({ dispatch }: ActionContext<any, any>) {
       firebase.auth().signOut();
-      commit("setUserRoles", null);
-      rootGetters.ability.update(defineAbilities());
+      dispatch("updateUserRoles", null);
     },
     async handleUser(
-      { commit, rootGetters }: ActionContext<any, any>,
+      { commit }: ActionContext<any, any>,
       user: firebase.User | null
     ) {
       commit("setCurrentUser", user);
-      if (user) {
-        commit("setUserRoles", (await user.getIdTokenResult()).claims.roles);
+    },
+    async updateUserRoles(
+      { commit, rootGetters }: ActionContext<any, any>,
+      roles: { [key: string]: any } | null
+    ) {
+      if (roles) {
+        commit("setUserRoles", roles);
       }
       rootGetters.ability.update(defineAbilities());
     }

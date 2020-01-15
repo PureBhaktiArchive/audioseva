@@ -1,6 +1,7 @@
 import firebase from "firebase/app";
 import { checkAuth, redirectSections } from "@/router";
 import { mockClaims } from "./helpers";
+import { subjects } from "@/abilities";
 
 describe("redirectSections", () => {
   let to: any;
@@ -12,22 +13,17 @@ describe("redirectSections", () => {
   });
 
   test.each`
-    claims                           | toProps                                         | expectedPath
-    ${{ TE: { editor: true } }}      | ${{ fullPath: "/te", toClaims: ["TE.editor"] }} | ${"/te/my"}
-    ${{ TE: { coordinator: true } }} | ${{ fullPath: "/te" }}                          | ${"/te/tasks"}
+    claims                           | toProps                | expectedPath
+    ${{ TE: { editor: true } }}      | ${{ fullPath: "/te" }} | ${"/te/my"}
+    ${{ TE: { coordinator: true } }} | ${{ fullPath: "/te" }} | ${"/te/tasks"}
   `(
     "should redirect to first available child route that matches claims $claims",
-    async ({
-      claims,
-      expectedPath,
-      toProps: { fullPath, toClaims = ["TE.coordinator"] }
-    }) => {
+    async ({ claims, expectedPath, toProps: { fullPath } }) => {
       await mockClaims(claims);
       to = {
         fullPath: fullPath,
         meta: {
-          activator: true,
-          auth: { requireClaims: toClaims }
+          activator: true
         }
       };
       await redirectSections(to, from, next);
@@ -45,13 +41,20 @@ describe("checkAuth", () => {
     next = jest.fn();
   });
 
-  it("should redirect to login when requireClaims and no current user", async () => {
+  it("should redirect to login when ability and no current user", async () => {
     (firebase.auth as any).mockImplementationOnce(() => ({
       currentUser: null
     }));
     to = {
       fullPath: "/te/tasks",
-      matched: [{}, { meta: { auth: { roles: ["TE.coordinator"] } } }]
+      matched: [
+        {},
+        {
+          meta: {
+            auth: { ability: { action: "view", subject: subjects.TE.task } }
+          }
+        }
+      ]
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
@@ -96,18 +99,27 @@ describe("checkAuth", () => {
   });
 
   it("should not redirect on correct claims", async () => {
+    const roles = { TE: { editor: true } };
     (firebase.auth as any).mockImplementationOnce(() => ({
       currentUser: {
         getIdTokenResult: async () => {
           return {
-            claims: { roles: { TE: { coordinator: true } } }
+            claims: { roles }
           };
         }
       }
     }));
 
+    await mockClaims(roles);
+
     to = {
-      matched: [{ meta: { auth: { roles: ["TE.coordinator"] } } }]
+      matched: [
+        {
+          meta: {
+            auth: { ability: { action: "view", subject: subjects.TE.myTasks } }
+          }
+        }
+      ]
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
@@ -115,8 +127,15 @@ describe("checkAuth", () => {
   });
 
   it("should redirect to / on bad custom claims", async () => {
+    await mockClaims({ SQR: { checker: true } });
     to = {
-      matched: [{ meta: { auth: { roles: ["SQR.coordinator"] } } }]
+      matched: [
+        {
+          meta: {
+            auth: { ability: { action: "view", subject: subjects.TE.task } }
+          }
+        }
+      ]
     };
     const from: any = {};
     const next: any = jest.fn();
