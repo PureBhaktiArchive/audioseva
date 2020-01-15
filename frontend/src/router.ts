@@ -184,7 +184,7 @@ const filterHomePageRoutes = filterRoutesByClaims((route, ability): any => {
   if (
     homePageButton &&
     ability &&
-    store.getters.ability.can(ability.action, ability.subject)
+    store.getters["user/ability"].can(ability.action, ability.subject)
   ) {
     return filteredRoute;
   } else if (filteredRoute.children && filteredRoute.children.length) {
@@ -209,7 +209,7 @@ const filterMenuItems = filterRoutesByClaims(
       if (childRoutes.length) return { ...route, children: childRoutes };
     } else if (
       ability &&
-      store.getters.ability.can(ability.action, ability.subject)
+      store.getters["user/ability"].can(ability.action, ability.subject)
     ) {
       return route;
     } else if (!ability) {
@@ -250,7 +250,7 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
   if (guestOnly && currentUser) return next("/");
 
   if (ability) {
-    return store.getters.ability.can(ability.action, ability.subject)
+    return store.getters["user/ability"].can(ability.action, ability.subject)
       ? next()
       : next("/");
   }
@@ -267,7 +267,8 @@ export const redirectSections: NavigationGuard = async (to, from, next) => {
   const childRedirectRoute = activatorChildren.find(route => {
     const ability = _.get(route, "meta.auth.ability");
     return (
-      ability && store.getters.ability.can(ability.action, ability.subject)
+      ability &&
+      store.getters["user/ability"].can(ability.action, ability.subject)
     );
   });
   childRedirectRoute

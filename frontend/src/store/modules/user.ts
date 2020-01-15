@@ -7,7 +7,7 @@ import firebase from "firebase/app";
 import "firebase/auth";
 import { ActionContext } from "vuex";
 import _ from "lodash";
-
+import { Ability } from "@casl/ability";
 import { defineAbilities } from "@/abilities";
 
 export default {
@@ -24,6 +24,9 @@ export default {
         return _.get(state.roles, roles);
       }
       return roles.some(role => _.get(state.roles, role));
+    },
+    ability: () => {
+      return new Ability([]);
     }
   },
   mutations: {
@@ -63,11 +66,11 @@ export default {
       }
     },
     updateUserRoles(
-      { commit, rootGetters }: ActionContext<any, any>,
+      { commit, getters }: ActionContext<any, any>,
       roles: { [key: string]: any } | null
     ) {
       commit("setUserRoles", roles);
-      rootGetters.ability.update(defineAbilities());
+      getters.ability.update(defineAbilities());
     }
   }
 };

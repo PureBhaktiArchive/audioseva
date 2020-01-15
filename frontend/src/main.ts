@@ -40,7 +40,7 @@ Vue.use(VuePageTitle, {
 Vue.use(VueResource);
 Vue.use(VueFire);
 Vue.use(Vuetify);
-Vue.use(abilitiesPlugin, store.getters.ability);
+Vue.use(abilitiesPlugin, store.getters["user/ability"]);
 Vue.use(SubjectsPlugin);
 
 async function getFirebaseConfig(): Promise<Object> {
