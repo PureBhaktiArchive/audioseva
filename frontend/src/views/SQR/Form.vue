@@ -61,7 +61,7 @@
                   flexWrap: 'wrap'
                 }"
               >
-                <v-btn v-if="$can('save', this.sqrForm)" @click="saveDraft">
+                <v-btn v-if="!isCompleted" @click="saveDraft">
                   Save draft
                 </v-btn>
                 <v-btn
