@@ -51,9 +51,16 @@
               <v-list-item-content>
                 <v-list-item-subtitle
                   :style="{ color: 'red' }"
-                  v-if="status.error"
-                  >{{ status.error }}</v-list-item-subtitle
-                >
+                  v-if="typeof status.error === 'string'"
+                  >{{ status.error }}
+                </v-list-item-subtitle>
+                <v-list-item-subtitle v-if="typeof status.error === 'object'">
+                  <component
+                    :is="status.error.component"
+                    v-bind="status.error.props"
+                  >
+                  </component>
+                </v-list-item-subtitle>
                 <v-list-item-title>{{ file.name }}</v-list-item-title>
               </v-list-item-content>
               <v-list-item-action :style="{ flexDirection: 'row' }">
@@ -84,20 +91,25 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Mixins } from "vue-property-decorator";
 import { mapState } from "vuex";
+import * as Spark from "spark-md5";
+import _ from "lodash";
 import VueDropzone from "vue2-dropzone";
 import "vue2-dropzone/dist/vue2Dropzone.min.css";
 import moment from "moment";
 import firebase from "firebase/app";
+import "firebase/database";
 import "firebase/storage";
+import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
+import FileTimeError from "@/components/TE/FileTimeError.vue";
 
 import { getTaskId, getProjectDomain, validateFlacFile } from "@/utility";
 
 interface IFileStatus {
   progress?: number;
   uploadTask?: any; // upload ref from firebase
-  error?: string;
+  error?: string | { [key: string]: any };
   complete?: boolean;
   uploadStartedAt?: Date;
   uploadRemainingTime?: number;
@@ -105,17 +117,24 @@ interface IFileStatus {
   downloadUrl?: string;
 }
 
+class FileUploadError {
+  constructor(value: { [key: string]: any }) {
+    Object.assign(this, value);
+  }
+}
+
 @Component({
   name: "Upload",
   components: {
-    VueDropzone
+    VueDropzone,
+    FileTimeError
   },
   computed: {
     ...mapState("user", ["currentUser"])
   },
   title: "Track Editing Upload"
 })
-export default class Upload extends Vue {
+export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   user: any = null;
   currentUser!: firebase.User;
   files: Map<File, IFileStatus> = new Map();
@@ -190,7 +209,67 @@ export default class Upload extends Vue {
     }
   }
 
-  filesAdded(selectedFiles: File | FileList) {
+  getFileHash(file: File) {
+    return new Promise(resolve => {
+      const fileReader = new FileReader();
+      fileReader.onload = function(event: any) {
+        const spark = new Spark.ArrayBuffer();
+        spark.append(event.target.result);
+        resolve(btoa(spark.end(true)));
+      };
+      fileReader.readAsArrayBuffer(file);
+    });
+  }
+
+  async validateFileHash(file: File) {
+    const fileHash = await this.getFileHash(file);
+    const { prefixes } = await this.uploadsBucket
+      .ref(`/${this.currentUser.uid}`)
+      .listAll();
+    for (const prefix of prefixes) {
+      const ref = this.uploadsBucket
+        .ref()
+        .child(`/${prefix.fullPath}/${file.name}`);
+      const metadata = await ref.getMetadata().catch(e => "error");
+      if (metadata === "error") continue;
+      if (fileHash === metadata.md5Hash) {
+        throw new Error("You had uploaded the same file earlier.");
+      }
+    }
+  }
+
+  async validateUpload(file: File) {
+    validateFlacFile(file);
+    const taskId = getTaskId(file.name);
+    const task = (
+      await firebase
+        .database()
+        .ref(`/TE/tasks/${taskId}`)
+        .once("value")
+    ).val();
+    if (this.currentUser.email !== _.get(task, "assignee.emailAddress")) {
+      throw new Error(`The task ${taskId} is not assigned to you.`);
+    }
+    if (task.status === "Done") {
+      throw new Error(`The task ${taskId} is marked as Done.`);
+    }
+    const lastTaskResolutionTimestamp = _.get(
+      this.getLastVersion(task),
+      "resolution.timestamp"
+    );
+    if (
+      lastTaskResolutionTimestamp &&
+      lastTaskResolutionTimestamp > file.lastModified
+    ) {
+      throw new FileUploadError({
+        props: { taskId },
+        component: "file-time-error"
+      });
+    }
+    await this.validateFileHash(file);
+  }
+
+  async filesAdded(selectedFiles: File | FileList) {
     // when a file is selected by clicking the box "selectedFiles" is an object
     // when files are dropped selectedFiles is an array
     setTimeout(() => this.$refs.myDropzone.removeAllFiles(), 100);
@@ -198,18 +277,18 @@ export default class Upload extends Vue {
     let files = Array.isArray(selectedFiles)
       ? selectedFiles
       : Object.values(selectedFiles);
-    files.forEach(file => {
-      this.files.set(file, {});
+    for (const file of files) {
+      this.updateFileFields(file, {});
       try {
-        validateFlacFile(file);
+        await this.validateUpload(file);
         this.handleFile(file, timestamp);
       } catch (e) {
-        this.emitFileError(file, e.message);
+        this.emitFileError(file, e instanceof FileUploadError ? e : e.message);
       }
-    });
+    }
   }
 
-  emitFileError(file: File, message: string) {
+  emitFileError(file: File, message: string | FileUploadError) {
     this.updateFileStatus(file, "error", message);
   }
 
