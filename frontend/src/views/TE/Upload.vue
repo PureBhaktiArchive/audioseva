@@ -221,15 +221,11 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     });
   }
 
-  async validateFileHash(file: File) {
+  async validateFileHash(file: File, task: any) {
     const fileHash = await this.getFileHash(file);
-    const { prefixes } = await this.uploadsBucket
-      .ref(`/${this.currentUser.uid}`)
-      .listAll();
-    for (const prefix of prefixes) {
-      const ref = this.uploadsBucket
-        .ref()
-        .child(`/${prefix.fullPath}/${file.name}`);
+    if (!task.versions) return;
+    for (const version of Object.values<any>(task.versions)) {
+      const ref = this.uploadsBucket.ref().child(`/${version.uploadPath}`);
       const metadata = await ref.getMetadata().catch(e => "error");
       if (metadata === "error") continue;
       if (fileHash === metadata.md5Hash) {
@@ -266,7 +262,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
         component: "file-time-error"
       });
     }
-    await this.validateFileHash(file);
+    await this.validateFileHash(file, task);
   }
 
   async filesAdded(selectedFiles: File | FileList) {
