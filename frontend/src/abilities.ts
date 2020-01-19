@@ -57,8 +57,8 @@ const handleSQRPermissions = (can: any, cannot: any) => {
   }
 
   if (hasRole("SQR.coordinator")) {
-    can("submit", subjects.SQR.form);
-    can("allot", subjects.SQR.tasks);
+    can("manage", subjects.SQR.form);
+    can("manage", subjects.SQR.tasks);
   }
 
   if (hasRole("SQR.checker")) {
