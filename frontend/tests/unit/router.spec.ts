@@ -36,15 +36,18 @@ describe("checkAuth", () => {
   let to: any;
   let from: any = {};
   let next: any;
+  let handleClaims: any;
 
   beforeEach(() => {
     next = jest.fn();
   });
 
+  afterEach(async () => {
+    handleClaims && (await handleClaims());
+  });
+
   it("should redirect to login when ability and no current user", async () => {
-    (firebase.auth as any).mockImplementationOnce(() => ({
-      currentUser: null
-    }));
+    await mockClaims();
     to = {
       fullPath: "/te/tasks",
       matched: [
@@ -65,6 +68,7 @@ describe("checkAuth", () => {
   });
 
   it("should redirect to / if guestOnly and currentUser", async () => {
+    handleClaims = await mockClaims({ SQR: { coordinator: true } });
     to = {
       matched: [{ meta: { auth: { guestOnly: true } } }]
     };
@@ -74,9 +78,7 @@ describe("checkAuth", () => {
   });
 
   it("should redirect to /login if requireAuth and no currentUser", async () => {
-    (firebase.auth as any).mockImplementationOnce(() => ({
-      currentUser: null
-    }));
+    await mockClaims();
     to = {
       fullPath: "/sqr",
       matched: [{ meta: { auth: { requireAuth: true } } }]
@@ -99,18 +101,7 @@ describe("checkAuth", () => {
   });
 
   it("should not redirect on correct claims", async () => {
-    const roles = { TE: { editor: true } };
-    (firebase.auth as any).mockImplementationOnce(() => ({
-      currentUser: {
-        getIdTokenResult: async () => {
-          return {
-            claims: { roles }
-          };
-        }
-      }
-    }));
-
-    await mockClaims(roles);
+    handleClaims = await mockClaims({ TE: { editor: true } });
 
     to = {
       matched: [
@@ -127,7 +118,7 @@ describe("checkAuth", () => {
   });
 
   it("should redirect to / on bad custom claims", async () => {
-    await mockClaims({ SQR: { checker: true } });
+    handleClaims = await mockClaims({ SQR: { checker: true } });
     to = {
       matched: [
         {

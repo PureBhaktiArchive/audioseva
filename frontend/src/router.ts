@@ -2,7 +2,6 @@
  * sri sri guru gauranga jayatah
  */
 
-import firebase from "firebase/app";
 import _ from "lodash";
 import Vue from "vue";
 import Router, { NavigationGuard, RouteConfig } from "vue-router";
@@ -234,20 +233,19 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
 
   if (!restrictedRoute) return next();
 
-  const currentUser = firebase.auth().currentUser;
   const {
     meta: {
       auth: { requireAuth, guestOnly, ability }
     }
   } = restrictedRoute;
 
-  if ((requireAuth || ability) && !currentUser)
+  if ((requireAuth || ability) && !store.getters["user/isSignedIn"])
     return next({
       path: "/login",
       query: { redirect: to.fullPath }
     });
 
-  if (guestOnly && currentUser) return next("/");
+  if (guestOnly && store.getters["user/isSignedIn"]) return next("/");
 
   if (ability) {
     return store.getters["user/ability"].can(ability.action, ability.subject)
