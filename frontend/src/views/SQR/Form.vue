@@ -65,7 +65,12 @@
                   Save draft
                 </v-btn>
                 <v-btn
-                  v-if="$can('submit', this.abilityData)"
+                  v-if="
+                    $can('submit', {
+                      modelName: $subjects.SQR.form,
+                      isCompleted
+                    })
+                  "
                   type="submit"
                   color="primary"
                   class="mx-2"
@@ -110,7 +115,6 @@ import Fields from "@/components/SQRForm/Fields.vue";
 import CancelListItem from "@/components/SQRForm/CancelListItem.vue";
 import { updateObject, removeObjectKey, getPathAndKey } from "@/utility";
 import { required } from "@/validation";
-import { SQRFormAbilityData } from "@/abilities";
 
 enum FormState {
   SAVING = 0,
@@ -200,10 +204,6 @@ export default class Form extends Vue {
   destroyFormErrorWatch!: any;
   branch: SubmissionsBranch | null = null;
 
-  get abilityData() {
-    return new SQRFormAbilityData({ isCompleted: this.isCompleted });
-  }
-
   handleListClick(cancelField: number) {
     this.cancelCheck = {};
     this.cancelComment = "";
@@ -264,12 +264,10 @@ export default class Form extends Vue {
       this.errorMessage =
         "This allotment is not valid, please contact coordinator.";
     } else if (
-      this.$ability.cannot(
-        "submit",
-        new SQRFormAbilityData({
-          isCompleted: allotmentStatus.toLowerCase() === "done"
-        })
-      )
+      this.$ability.cannot("submit", {
+        modelName: this.$subjects.SQR.form,
+        isCompleted: allotmentStatus.toLowerCase() === "done"
+      })
     ) {
       this.errorMessage =
         "This submission is finalized and cannot be updated, please contact the coordinator.";

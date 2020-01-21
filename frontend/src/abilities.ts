@@ -13,18 +13,6 @@ export const subjects = {
   }
 };
 
-class Data {
-  constructor(props: any) {
-    Object.assign(this, props);
-  }
-}
-
-export class SQRFormAbilityData extends Data {
-  static get modelName() {
-    return subjects.SQR.form;
-  }
-}
-
 export const SubjectsPlugin = {
   install(Vue: any) {
     Vue.prototype.$subjects = subjects;

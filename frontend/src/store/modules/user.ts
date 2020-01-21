@@ -26,7 +26,13 @@ export default {
       return roles.some(role => _.get(state.roles, role));
     },
     ability: () => {
-      return new Ability([]);
+      return new Ability([], {
+        subjectName(subject) {
+          if (!subject || typeof subject === "string") return subject;
+
+          return subject.modelName;
+        }
+      });
     }
   },
   mutations: {
