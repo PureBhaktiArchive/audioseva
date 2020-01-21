@@ -19,7 +19,7 @@ class Data {
   }
 }
 
-export class SQRForm extends Data {
+export class SQRFormAbilityData extends Data {
   static get modelName() {
     return subjects.SQR.form;
   }

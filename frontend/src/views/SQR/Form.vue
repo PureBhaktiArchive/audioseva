@@ -65,7 +65,7 @@
                   Save draft
                 </v-btn>
                 <v-btn
-                  v-if="$can('submit', this.sqrForm)"
+                  v-if="$can('submit', this.abilityData)"
                   type="submit"
                   color="primary"
                   class="mx-2"
@@ -110,7 +110,7 @@ import Fields from "@/components/SQRForm/Fields.vue";
 import CancelListItem from "@/components/SQRForm/CancelListItem.vue";
 import { updateObject, removeObjectKey, getPathAndKey } from "@/utility";
 import { required } from "@/validation";
-import { SQRForm } from "@/abilities";
+import { SQRFormAbilityData } from "@/abilities";
 
 enum FormState {
   SAVING = 0,
@@ -200,8 +200,8 @@ export default class Form extends Vue {
   destroyFormErrorWatch!: any;
   branch: SubmissionsBranch | null = null;
 
-  get sqrForm() {
-    return new SQRForm({ isCompleted: this.isCompleted });
+  get abilityData() {
+    return new SQRFormAbilityData({ isCompleted: this.isCompleted });
   }
 
   handleListClick(cancelField: number) {
@@ -266,7 +266,7 @@ export default class Form extends Vue {
     } else if (
       this.$ability.cannot(
         "submit",
-        new SQRForm({
+        new SQRFormAbilityData({
           isCompleted: allotmentStatus.toLowerCase() === "done"
         })
       )
