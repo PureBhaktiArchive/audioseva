@@ -265,7 +265,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     await this.validateFileHash(file, task);
   }
 
-  async filesAdded(selectedFiles: File | FileList) {
+  filesAdded(selectedFiles: File | FileList) {
     // when a file is selected by clicking the box "selectedFiles" is an object
     // when files are dropped selectedFiles is an array
     setTimeout(() => this.$refs.myDropzone.removeAllFiles(), 100);
@@ -275,12 +275,11 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       : Object.values(selectedFiles);
     for (const file of files) {
       this.updateFileFields(file, {});
-      try {
-        await this.validateUpload(file);
-        this.handleFile(file, timestamp);
-      } catch (e) {
-        this.emitFileError(file, e instanceof FileUploadError ? e : e.message);
-      }
+      this.validateUpload(file)
+        .then(() => this.handleFile(file, timestamp))
+        .catch(e =>
+          this.emitFileError(file, e instanceof FileUploadError ? e : e.message)
+        );
     }
   }
 
