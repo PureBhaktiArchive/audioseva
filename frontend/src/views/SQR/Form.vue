@@ -61,14 +61,14 @@
                   flexWrap: 'wrap'
                 }"
               >
-                <v-btn v-if="!isCompleted" @click="saveDraft">
+                <v-btn v-if="!isLoadedFromCompletedBranch" @click="saveDraft">
                   Save draft
                 </v-btn>
                 <v-btn
                   v-if="
                     $can('submit', {
                       modelName: $subjects.SQR.form,
-                      isCompleted
+                      isMarkedDone
                     })
                   "
                   type="submit"
@@ -203,6 +203,7 @@ export default class Form extends Vue {
   rules = [required];
   destroyFormErrorWatch!: any;
   branch: SubmissionsBranch | null = null;
+  isMarkedDone!: boolean;
 
   handleListClick(cancelField: number) {
     this.cancelCheck = {};
@@ -234,10 +235,10 @@ export default class Form extends Vue {
 
     if (_.isEqual(this.initialData, this.form)) {
       this.formState = FormState.INITIAL_LOAD;
-      if (!this.isCompleted) {
+      if (!this.isLoadedFromCompletedBranch) {
         this.debounceSaveDraft.cancel();
       }
-    } else if (this.isCompleted) {
+    } else if (this.isLoadedFromCompletedBranch) {
       this.formState = FormState.UNSAVED_CHANGES;
     } else {
       this.formState = FormState.SAVING;
@@ -260,13 +261,14 @@ export default class Form extends Vue {
         .once("value")
     ).val();
     const allotmentStatus = _.get<string>(response, `${fileName}.status`, "");
+    this.isMarkedDone = allotmentStatus.toLowerCase() === "done";
     if (!allotmentStatus) {
       this.errorMessage =
         "This allotment is not valid, please contact coordinator.";
     } else if (
       this.$ability.cannot("submit", {
         modelName: this.$subjects.SQR.form,
-        isCompleted: allotmentStatus.toLowerCase() === "done"
+        isMarkedDone: this.isMarkedDone
       })
     ) {
       this.errorMessage =
@@ -280,7 +282,7 @@ export default class Form extends Vue {
 
     if (_.isEqual(this.initialData, this.form)) {
       this.formState = FormState.INITIAL_LOAD;
-    } else if (this.isCompleted) {
+    } else if (this.isLoadedFromCompletedBranch) {
       this.formState = FormState.UNSAVED_CHANGES;
       return;
     }
@@ -465,7 +467,7 @@ export default class Form extends Vue {
   }
 
   debounceSaveDraft: any = _.debounce(async () => {
-    if (this.isCompleted) return;
+    if (this.isLoadedFromCompletedBranch) return;
     await this.saveDraft();
   }, 3000);
 
@@ -508,7 +510,7 @@ export default class Form extends Vue {
     return Object.values(this.cancelCheck).includes(true);
   }
 
-  get isCompleted() {
+  get isLoadedFromCompletedBranch() {
     return (
       this.branch === SubmissionsBranch.COMPLETED ||
       this.branch === SubmissionsBranch.MIGRATED

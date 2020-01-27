@@ -39,7 +39,7 @@ const handleTEPermissions = (can: any, cannot: any) => {
 };
 
 const handleSQRPermissions = (can: any, cannot: any) => {
-  can("submit", subjects.SQR.form, { isCompleted: false });
+  can("submit", subjects.SQR.form, { isMarkedDone: false });
 
   if (hasRole("SQR.coordinator")) {
     can("manage", subjects.SQR.form);
