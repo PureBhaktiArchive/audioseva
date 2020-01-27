@@ -147,18 +147,6 @@ export class TasksRepository {
   }
 
   public async importTasks() {
-    // Getting allotments map to later mix it into the tasks.
-    const allotmentsMap = _.chain(
-      await this.allotmentsSheet.getRows(this.rowToObjectSchema)
-    )
-      .keyBy(({ id }) => id)
-      .mapValues(({ status, assignee, timestampGiven }) => ({
-        assignee,
-        status,
-        timestampGiven,
-      }))
-      .value();
-
     const tasksSheet = await Spreadsheet.open(
       functions.config().te.spreadsheet.id,
       'Tasks'
@@ -193,11 +181,49 @@ export class TasksRepository {
             ),
           })
       )
-      // Mix allotments into the tasks
-      .forEach(task => _.assign(task, allotmentsMap[task.id]))
       .value();
 
     await this.saveToDatabase(tasks);
     return tasks.length;
+  }
+
+  public async syncAllotments() {
+    /// Getting rows and snapshot in parallel
+    const [rows, snapshot] = await Promise.all([
+      this.allotmentsSheet.getRows(this.rowToObjectSchema),
+      tasksRef.once('value'),
+    ]);
+
+    const fromSpreadsheet = _.chain(rows)
+      .keyBy(({ id }) => id)
+      .mapValues(
+        ({ status, assignee, timestampGiven }, id) =>
+          new TrackEditingTask(id, {
+            assignee,
+            status,
+            timestampGiven,
+          })
+      )
+      .value();
+
+    // Finding tasks in the database that do not exist in the Allotments sheet
+    const [tasksForDatabase, tasksForSpreadsheet] = _.chain(snapshot.val())
+      .toPairs()
+      .map(
+        ([taskId, task]) =>
+          fromSpreadsheet[taskId] || new TrackEditingTask(taskId, task)
+      )
+      /**
+       * Partition by `isRestored`
+       * because it is not filled from the spreadsheet in this case
+       * so the first outcome will be tasks from spreadsheet to database
+       */
+      .partition(task => task.isRestored === undefined)
+      .value();
+
+    await Promise.all([
+      this.saveToDatabase(tasksForDatabase),
+      this.saveToSpreadsheet(tasksForSpreadsheet),
+    ]);
   }
 }
