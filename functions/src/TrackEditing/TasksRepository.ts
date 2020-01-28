@@ -188,42 +188,61 @@ export class TasksRepository {
   }
 
   public async syncAllotments() {
-    /// Getting rows and snapshot in parallel
-    const [rows, snapshot] = await Promise.all([
+    /// Getting spreadsheet rows and database snapshot in parallel
+    const [allotmentsFromSpreadsheet, snapshot] = await Promise.all([
       this.allotmentsSheet.getRows(this.rowToObjectSchema),
       tasksRef.once('value'),
     ]);
 
-    const fromSpreadsheet = _.chain(rows)
-      .keyBy(({ id }) => id)
-      .mapValues(
-        ({ status, assignee, timestampGiven }, id) =>
-          new TrackEditingTask(id, {
-            assignee,
-            status,
-            timestampGiven,
-          })
-      )
-      .value();
+    const idsInSpreadsheet = new Set(
+      _.map(allotmentsFromSpreadsheet, ({ id }) => id)
+    );
 
-    // Finding tasks in the database that do not exist in the Allotments sheet
-    const [tasksForDatabase, tasksForSpreadsheet] = _.chain(snapshot.val())
-      .toPairs()
-      .map(
-        ([taskId, task]) =>
-          fromSpreadsheet[taskId] || new TrackEditingTask(taskId, task)
-      )
-      /**
-       * Partition by `isRestored`
-       * because it is not filled from the spreadsheet in this case
-       * so the first outcome will be tasks from spreadsheet to database
-       */
-      .partition(task => task.isRestored === undefined)
-      .value();
+    const tasksFromDatabase = snapshot.val();
 
-    await Promise.all([
-      this.saveToDatabase(tasksForDatabase),
-      this.saveToSpreadsheet(tasksForSpreadsheet),
-    ]);
+    /// Adding missing tasks from the database to the spreadsheet
+    const spreadsheetOperation = this.saveToSpreadsheet(
+      _.chain(tasksFromDatabase)
+        .filter((task: TrackEditingTask) => !idsInSpreadsheet.has(task.id))
+        .forEach(task => {
+          console.info(`Adding missing task ${task.id} into the spreadsheet.`);
+        })
+        .value()
+    );
+
+    /// Updating allotment info from the spreadsheet to the database
+    const databaseOperation = this.saveToDatabase(
+      _.chain(allotmentsFromSpreadsheet)
+        .filter(allotment => {
+          const task: TrackEditingTask = tasksFromDatabase[allotment.id];
+
+          if (!task) {
+            console.info(`Task ${allotment.id} is not found in the database.`);
+            return false;
+          }
+
+          /// Updating only if these fields have changed
+          const difference =
+            allotment.status !== task.status &&
+            allotment.assignee.emailAddress !== task.assignee.emailAddress;
+
+          if (difference)
+            console.info(
+              `Updating task ${task.id} in the database from ${task.status} ${task.assignee?.emailAddress} to ${allotment.status} ${allotment.assignee?.emailAddress}.`
+            );
+
+          return difference;
+        })
+        /// Updating only these fields
+        .map(({ id, status, assignee, timestampGiven }) => ({
+          id,
+          assignee,
+          status,
+          timestampGiven,
+        }))
+        .value()
+    );
+
+    await Promise.all([spreadsheetOperation, databaseOperation]);
   }
 }
