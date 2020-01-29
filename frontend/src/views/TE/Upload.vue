@@ -221,19 +221,6 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     });
   }
 
-  async validateFileHash(file: File, task: any) {
-    const fileHash = await this.getFileHash(file);
-    if (!task.versions) return;
-    for (const version of Object.values<any>(task.versions)) {
-      const ref = this.uploadsBucket.ref().child(`/${version.uploadPath}`);
-      const metadata = await ref.getMetadata().catch(e => "error");
-      if (metadata === "error") continue;
-      if (fileHash === metadata.md5Hash) {
-        throw new Error("You had uploaded the same file earlier.");
-      }
-    }
-  }
-
   async validateFile(file: File) {
     validateFlacFile(file);
     const taskId = getTaskId(file.name);
@@ -262,7 +249,16 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
         component: "file-time-error"
       });
     }
-    await this.validateFileHash(file, task);
+    if (!task.versions) return;
+    const fileHash = await this.getFileHash(file);
+    for (const version of Object.values<any>(task.versions)) {
+      const ref = this.uploadsBucket.ref().child(`/${version.uploadPath}`);
+      const metadata = await ref.getMetadata().catch(e => "error");
+      if (metadata === "error") continue;
+      if (fileHash === metadata.md5Hash) {
+        throw new Error("You had uploaded the same file earlier.");
+      }
+    }
   }
 
   filesAdded(selectedFiles: File | FileList) {
