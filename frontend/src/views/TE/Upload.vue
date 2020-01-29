@@ -239,7 +239,9 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       throw new Error(`The task ${taskId} is not assigned to you.`);
     }
     if (task.status === "Done") {
-      throw new Error(`The task ${taskId} is marked as Done.`);
+      throw new Error(
+        `The task ${taskId} is marked as Done. Uploads are not allowed.`
+      );
     }
     const lastTaskResolutionTimestamp = _.get(
       this.getLastVersion(task),
