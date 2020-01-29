@@ -243,13 +243,13 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
         `The task ${taskId} is marked as Done. Uploads are not allowed.`
       );
     }
-    const lastTaskResolutionTimestamp = _.get(
+    const lastVersionResolutionTimestamp = _.get(
       this.getLastVersion(task),
       "resolution.timestamp"
     );
     if (
-      lastTaskResolutionTimestamp &&
-      lastTaskResolutionTimestamp > file.lastModified
+      lastVersionResolutionTimestamp &&
+      lastVersionResolutionTimestamp > file.lastModified
     ) {
       throw new FileUploadError({
         props: { taskId },
