@@ -251,12 +251,18 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     }
     if (!task.versions) return;
     const fileHash = await this.getFileHash(file);
-    for (const version of Object.values<any>(task.versions)) {
+    for (const [versionId, version] of Object.entries<any>(task.versions)) {
       const ref = this.uploadsBucket.ref().child(version.uploadPath);
       const metadata = await ref.getMetadata().catch(e => "error");
       if (metadata === "error") continue;
       if (fileHash === metadata.md5Hash) {
-        throw new Error("You had uploaded the same file earlier.");
+        throw new Error(
+          `You had uploaded the same file earlier. Version: ${versionId} on ${moment(
+            version.timestamp
+          )
+            .local()
+            .format("LLL")}`
+        );
       }
     }
   }
