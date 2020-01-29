@@ -104,7 +104,7 @@ import "firebase/storage";
 import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
 import FileTimeError from "@/components/TE/FileTimeError.vue";
 
-import { getTaskId, getProjectDomain, validateFlacFile } from "@/utility";
+import { getTaskId, getProjectDomain, flacFileFormat } from "@/utility";
 
 interface IFileStatus {
   progress?: number;
@@ -222,7 +222,12 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   async validateFile(file: File) {
-    validateFlacFile(file);
+    if (file.type !== "audio/flac") {
+      throw new Error("File type must be flac");
+    }
+    if (!file.name.match(flacFileFormat)) {
+      throw new Error("The file name does not start with task ID");
+    }
     const taskId = getTaskId(file.name);
     const task = (
       await firebase
