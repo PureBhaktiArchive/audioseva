@@ -198,12 +198,14 @@ export class TasksRepository {
       _.map(allotmentsFromSpreadsheet, ({ id }) => id)
     );
 
-    const tasksFromDatabase = snapshot.val();
+    const tasksFromDatabase = _.chain(snapshot.val())
+      .mapValues((source, id) => new TrackEditingTask(id, source))
+      .value();
 
     /// Adding missing tasks from the database to the spreadsheet
     const spreadsheetOperation = this.saveToSpreadsheet(
       _.chain(tasksFromDatabase)
-        .filter((task: TrackEditingTask) => !idsInSpreadsheet.has(task.id))
+        .filter(task => !idsInSpreadsheet.has(task.id))
         .forEach(task => {
           console.info(`Adding missing task ${task.id} into the spreadsheet.`);
         })
@@ -214,7 +216,7 @@ export class TasksRepository {
     const databaseOperation = this.saveToDatabase(
       _.chain(allotmentsFromSpreadsheet)
         .filter(allotment => {
-          const task: TrackEditingTask = tasksFromDatabase[allotment.id];
+          const task = tasksFromDatabase[allotment.id];
 
           if (!task) {
             console.info(`Task ${allotment.id} is not found in the database.`);
@@ -224,19 +226,20 @@ export class TasksRepository {
           /// Updating only if any of these fields have changed
           if (
             allotment.status === task.status &&
-            allotment.assignee.emailAddress === task.assignee.emailAddress
+            (allotment.assignee?.emailAddress || null) ===
+              (task.assignee?.emailAddress || null)
           )
             return false;
 
           /// Checking the sanity of the spreadsheet data
           if (
             (allotment.status === AllotmentStatus.Spare &&
-              allotment.assignee) ||
+              allotment.assignee?.emailAddress) ||
             (allotment.status !== AllotmentStatus.Spare &&
               !allotment.assignee?.emailAddress)
           ) {
             console.info(
-              `Task ${allotment.id} has invalid data in spreadsheet: ${allotment.status} ${allotment.assignee.emailAddress}. Aborting.`
+              `Task ${allotment.id} has invalid data in spreadsheet: ${allotment.status} ${allotment.assignee?.emailAddress}. Aborting.`
             );
             return false;
           }
