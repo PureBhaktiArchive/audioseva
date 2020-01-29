@@ -234,7 +234,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     }
   }
 
-  async validateUpload(file: File) {
+  async validateFile(file: File) {
     validateFlacFile(file);
     const taskId = getTaskId(file.name);
     const task = (
@@ -275,7 +275,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       : Object.values(selectedFiles);
     for (const file of files) {
       this.updateFileFields(file, {});
-      this.validateUpload(file)
+      this.validateFile(file)
         .then(() => this.handleFile(file, timestamp))
         .catch(e =>
           this.emitFileError(file, e instanceof FileUploadError ? e : e.message)
