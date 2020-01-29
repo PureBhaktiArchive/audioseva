@@ -221,17 +221,31 @@ export class TasksRepository {
             return false;
           }
 
-          /// Updating only if these fields have changed
-          const difference =
-            allotment.status !== task.status &&
-            allotment.assignee.emailAddress !== task.assignee.emailAddress;
+          /// Updating only if any of these fields have changed
+          if (
+            allotment.status === task.status &&
+            allotment.assignee.emailAddress === task.assignee.emailAddress
+          )
+            return false;
 
-          if (difference)
+          /// Checking the sanity of the spreadsheet data
+          if (
+            (allotment.status === AllotmentStatus.Spare &&
+              allotment.assignee) ||
+            (allotment.status !== AllotmentStatus.Spare &&
+              !allotment.assignee?.emailAddress)
+          ) {
             console.info(
-              `Updating task ${task.id} in the database from ${task.status} ${task.assignee?.emailAddress} to ${allotment.status} ${allotment.assignee?.emailAddress}.`
+              `Task ${allotment.id} has invalid data in spreadsheet: ${allotment.status} ${allotment.assignee.emailAddress}. Aborting.`
             );
+            return false;
+          }
 
-          return difference;
+          console.info(
+            `Updating task ${task.id} in the database from ${task.status} ${task.assignee?.emailAddress} to ${allotment.status} ${allotment.assignee?.emailAddress}.`
+          );
+
+          return true;
         })
         /// Updating only these fields
         .map(({ id, status, assignee, timestampGiven }) => ({
