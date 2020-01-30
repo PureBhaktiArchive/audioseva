@@ -54,4 +54,15 @@ export class Allotment {
   public get isActive(): boolean {
     return ![AllotmentStatus.Spare, AllotmentStatus.Done].includes(this.status);
   }
+
+  public get isSane(): boolean {
+    const mustBeAssigned = [
+      AllotmentStatus.Given,
+      AllotmentStatus.WIP,
+      AllotmentStatus.Done,
+    ].includes(this.status);
+    const isAssigned = !!this.assignee?.emailAddress;
+
+    return (mustBeAssigned && isAssigned) || (!mustBeAssigned && !isAssigned);
+  }
 }

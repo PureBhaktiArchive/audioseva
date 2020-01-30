@@ -232,12 +232,7 @@ export class TasksRepository {
             return false;
 
           /// Checking the sanity of the spreadsheet data
-          if (
-            (allotment.status === AllotmentStatus.Spare &&
-              allotment.assignee?.emailAddress) ||
-            (allotment.status !== AllotmentStatus.Spare &&
-              !allotment.assignee?.emailAddress)
-          ) {
+          if (allotment.isSane) {
             console.info(
               `Task ${allotment.id} has invalid data in spreadsheet: ${allotment.status} ${allotment.assignee?.emailAddress}. Aborting.`
             );
