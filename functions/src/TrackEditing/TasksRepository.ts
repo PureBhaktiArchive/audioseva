@@ -189,7 +189,7 @@ export class TasksRepository {
 
   public async syncAllotments() {
     const mode = (await baseRef.child('sync/mode').once('value')).val();
-    if (mode || 'off' === 'off') {
+    if ((mode || 'off') === 'off') {
       console.info('Sync is off, see /TE/sync/mode.');
       return;
     }
@@ -246,7 +246,16 @@ export class TasksRepository {
             return false;
 
           /// Checking the sanity of the spreadsheet data
-          if (allotment.isSane) {
+          const mustBeAssigned = [
+            AllotmentStatus.Given,
+            AllotmentStatus.WIP,
+            AllotmentStatus.Done,
+          ].includes(allotment.status);
+          const isAssigned = !!allotment.assignee?.emailAddress;
+          if (
+            (mustBeAssigned && !isAssigned) ||
+            (!mustBeAssigned && isAssigned)
+          ) {
             console.info(
               `Task ${allotment.id} has invalid data in the spreadsheet: ${allotment.status} ${allotment.assignee?.emailAddress}. Skipping.`
             );
