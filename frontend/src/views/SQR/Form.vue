@@ -24,6 +24,9 @@
     </p>
     <v-form v-else ref="form" @submit.prevent="handleSubmit">
       <v-container>
+        <v-alert type="warning" v-if="finalizedSubmissionError">
+          {{ finalizedSubmissionError }}
+        </v-alert>
         <v-row>
           <v-col>
             <v-list class="cancel-list">
@@ -204,6 +207,7 @@ export default class Form extends Vue {
   destroyFormErrorWatch!: any;
   branch: SubmissionsBranch | null = null;
   isMarkedDone!: boolean;
+  finalizedSubmissionError = "";
 
   handleListClick(cancelField: number) {
     this.cancelCheck = {};
@@ -271,7 +275,7 @@ export default class Form extends Vue {
         isMarkedDone: this.isMarkedDone
       })
     ) {
-      this.errorMessage =
+      this.finalizedSubmissionError =
         "This submission is finalized and cannot be updated, please contact the coordinator.";
     }
     if (this.errorMessage) this.isLoadingForm = false;
