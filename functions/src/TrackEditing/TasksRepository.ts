@@ -188,6 +188,14 @@ export class TasksRepository {
   }
 
   public async syncAllotments() {
+    const mode = (await baseRef.child('sync/mode').once('value')).val();
+    if (mode || 'off' === 'off') {
+      console.info('Sync is off, see /TE/sync/mode.');
+      return;
+    }
+
+    const shouldWrite = mode === 'on';
+
     /// Getting spreadsheet rows and database snapshot in parallel
     const [allotmentsFromSpreadsheet, snapshot] = await Promise.all([
       this.allotmentsSheet.getRows(this.rowToObjectSchema),
@@ -207,8 +215,14 @@ export class TasksRepository {
       _.chain(tasksFromDatabase)
         .filter(task => !idsInSpreadsheet.has(task.id))
         .forEach(task => {
-          console.info(`Adding missing task ${task.id} into the spreadsheet.`);
+          console.info(
+            `${shouldWrite ? 'Adding' : 'Would add'} missing task ${
+              task.id
+            } into the spreadsheet.`
+          );
         })
+        /// For dry run
+        .filter(shouldWrite ? _.stubTrue : _.stubFalse)
         .value()
     );
 
@@ -234,17 +248,23 @@ export class TasksRepository {
           /// Checking the sanity of the spreadsheet data
           if (allotment.isSane) {
             console.info(
-              `Task ${allotment.id} has invalid data in spreadsheet: ${allotment.status} ${allotment.assignee?.emailAddress}. Aborting.`
+              `Task ${allotment.id} has invalid data in the spreadsheet: ${allotment.status} ${allotment.assignee?.emailAddress}. Skipping.`
             );
             return false;
           }
 
           console.info(
-            `Updating task ${task.id} in the database from ${task.status} ${task.assignee?.emailAddress} to ${allotment.status} ${allotment.assignee?.emailAddress}.`
+            `${shouldWrite ? 'Updating' : 'Would update'} task ${
+              task.id
+            } in the database from ${task.status} ${
+              task.assignee?.emailAddress
+            } to ${allotment.status} ${allotment.assignee?.emailAddress}.`
           );
 
           return true;
         })
+        /// For dry run
+        .filter(shouldWrite ? _.stubTrue : _.stubFalse)
         /// Updating only these fields
         .map(({ id, status, assignee, timestampGiven }) => ({
           id,
