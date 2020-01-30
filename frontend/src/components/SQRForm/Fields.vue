@@ -3,7 +3,11 @@
     <v-row>
       <v-col class="my-2" cols="12">
         <h3>B. Sound Quality Rating</h3>
-        <s-q-r-field :form="form" :updateForm="updateForm"></s-q-r-field>
+        <s-q-r-field
+          v-bind="$attrs"
+          :form="form"
+          :updateForm="updateForm"
+        ></s-q-r-field>
         <guidelines>
           <p>
             Please rate the overall sound quality of the allotted file by
@@ -24,6 +28,7 @@
       <v-col class="my-2" cols="12">
         <h3>C. Unwanted parts to be cut</h3>
         <unwanted-parts
+          v-bind="$attrs"
           :form="form"
           :updateForm="updateForm"
           :removeField="removeField"
@@ -64,6 +69,7 @@
       <v-col class="my-2" cols="12">
         <h3>D. Sound issues</h3>
         <sound-issues
+          v-bind="$attrs"
           :form="form"
           :updateForm="updateForm"
           :removeField="removeField"
@@ -103,6 +109,7 @@
       <v-col class="my-2" cols="12">
         <h3>E. Total Duration of the Recording</h3>
         <duration
+          v-bind="$attrs"
           :form="form"
           :updateForm="updateForm"
           :removeField="removeField"
@@ -130,7 +137,8 @@
           :fieldProps="{
             filled: true,
             outlined: true,
-            required: true
+            required: true,
+            disabled: $attrs.disabled
           }"
         ></text-area>
         <guidelines>

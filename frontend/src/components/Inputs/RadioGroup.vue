@@ -1,7 +1,7 @@
 <template>
   <v-radio-group
     :value="formData()"
-    v-bind="fieldProps"
+    v-bind="$attrs"
     @change="handleRadioSelect"
   >
     <v-radio
@@ -25,8 +25,6 @@ export default class RadioGroup extends Vue {
   @Prop() updateForm!: any;
   @Prop() fields!: any[];
   @Prop() updatePath!: string;
-  @Prop({ default: () => ({}) })
-  fieldProps!: any;
   @Prop() form!: any;
 
   handleRadioSelect(value: any) {

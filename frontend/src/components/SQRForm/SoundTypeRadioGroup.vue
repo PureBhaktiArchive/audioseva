@@ -16,6 +16,7 @@
           <div v-show="otherField === 0">
             <v-text-field
               outlined
+              :disabled="fieldProps.disabled"
               @input="handleTextInput"
               :value="otherTextField"
               placeholder="Other"

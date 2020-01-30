@@ -40,6 +40,7 @@
                 :selected.sync="cancelCheck[index + 1]"
                 v-model="cancelComment"
                 :rules="rules"
+                :disabled="!!finalizedSubmissionError"
               ></cancel-list-item>
             </v-list>
           </v-col>
@@ -50,6 +51,7 @@
               </v-text-field>
             </v-col>
             <fields
+              :disabled="!!finalizedSubmissionError"
               :form="form"
               :updateForm="debounceUpdateForm"
               :removeField="removeField"
