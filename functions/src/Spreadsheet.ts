@@ -284,7 +284,10 @@ export class Spreadsheet {
       this.rowsToA1Notation(this.fromDataRowNumber(1), this.rowCount)
     );
 
-    const objects = values.map(row => this.rowToObject(row));
+    const objects = _.chain(values)
+      .filter(row => row.length > 0)
+      .map(row => this.rowToObject(row))
+      .value();
     return schema ? morphism(schema, <any[]>objects) : objects;
   }
 
