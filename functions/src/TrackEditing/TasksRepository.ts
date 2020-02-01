@@ -174,7 +174,6 @@ export class TasksRepository {
       .map(
         taskRows =>
           new TrackEditingTask(taskRows[0].taskId, {
-            status: AllotmentStatus.Spare,
             isRestored: taskRows[0].isRestored,
             chunks: taskRows.map(row =>
               _.pick(row, ['fileName', 'beginning', 'ending', 'unwantedParts'])
