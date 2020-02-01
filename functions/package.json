@@ -16,17 +16,17 @@
     "node": "8"
   },
   "dependencies": {
-    "email-templates": "6.0.2",
+    "email-templates": "7.0.2",
     "express": "4.17.1",
-    "firebase-admin": "8.8.0",
+    "firebase-admin": "8.9.2",
     "firebase-functions": "3.3.0",
     "glob": "7.1.6",
-    "googleapis": "46.0.0",
+    "googleapis": "47.0.0",
     "lodash": "4.17.15",
-    "luxon": "1.21.3",
+    "luxon": "1.22.0",
     "morphism": "1.12.3",
     "pug": "2.0.4",
-    "uuid": "3.3.3"
+    "uuid": "3.4.0"
   },
   "peerDependencies": {
     "gaxios": "^2.0.0"
@@ -34,17 +34,17 @@
   "devDependencies": {
     "@types/email-templates": "6.0.2",
     "@types/glob": "7.1.1",
-    "@types/jest": "24.0.24",
+    "@types/jest": "25.1.1",
     "@types/lodash": "4.14.149",
     "@types/luxon": "1.21.0",
     "@types/node": "12.12.21",
-    "@types/uuid": "3.4.6",
+    "@types/uuid": "3.4.7",
     "firebase-functions-test": "0.1.7",
-    "jest": "24.9.0",
+    "jest": "25.1.0",
     "prettier": "1.19.1",
-    "ts-jest": "24.2.0",
+    "ts-jest": "25.1.0",
     "tslint": "5.20.1",
-    "typescript": "3.7.3"
+    "typescript": "3.7.5"
   },
   "private": true
 }
