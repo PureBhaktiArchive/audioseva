@@ -219,12 +219,20 @@ export const processResolution = functions.database
   });
 
 export const importTasks = functions.pubsub
-  .schedule('every 1 hours')
+  .schedule('every day 00:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = await TasksRepository.open();
     const count: number = await repository.importTasks();
     console.info(`Imported ${count} tasks.`);
+  });
+
+export const syncAllotments = functions.pubsub
+  .schedule('every 1 hours synchronized')
+  .timeZone(functions.config().coordinator.timezone)
+  .onRun(async () => {
+    const repository = await TasksRepository.open();
+    await repository.syncAllotments();
   });
 
 export const download = functions.https.onRequest(
