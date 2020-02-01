@@ -147,18 +147,6 @@ export class TasksRepository {
   }
 
   public async importTasks() {
-    // Getting allotments map to later mix it into the tasks.
-    const allotmentsMap = _.chain(
-      await this.allotmentsSheet.getRows(this.rowToObjectSchema)
-    )
-      .keyBy(({ id }) => id)
-      .mapValues(({ status, assignee, timestampGiven }) => ({
-        assignee,
-        status,
-        timestampGiven,
-      }))
-      .value();
-
     const tasksSheet = await Spreadsheet.open(
       functions.config().te.spreadsheet.id,
       'Tasks'
@@ -186,18 +174,116 @@ export class TasksRepository {
       .map(
         taskRows =>
           new TrackEditingTask(taskRows[0].taskId, {
-            status: AllotmentStatus.Spare,
             isRestored: taskRows[0].isRestored,
             chunks: taskRows.map(row =>
               _.pick(row, ['fileName', 'beginning', 'ending', 'unwantedParts'])
             ),
           })
       )
-      // Mix allotments into the tasks
-      .forEach(task => _.assign(task, allotmentsMap[task.id]))
       .value();
 
     await this.saveToDatabase(tasks);
     return tasks.length;
+  }
+
+  public async syncAllotments() {
+    const mode = (await baseRef.child('sync/mode').once('value')).val();
+    if ((mode || 'off') === 'off') {
+      console.info('Sync is off, see /TE/sync/mode.');
+      return;
+    }
+
+    const shouldWrite = mode === 'on';
+
+    /// Getting spreadsheet rows and database snapshot in parallel
+    const [allotmentsFromSpreadsheet, snapshot] = await Promise.all([
+      this.allotmentsSheet.getRows(this.rowToObjectSchema),
+      tasksRef.once('value'),
+    ]);
+
+    const idsInSpreadsheet = new Set(
+      _.map(allotmentsFromSpreadsheet, ({ id }) => id)
+    );
+
+    const tasksFromDatabase = _.chain(snapshot.val())
+      .mapValues((source, id) => new TrackEditingTask(id, source))
+      .value();
+
+    /// Adding missing tasks from the database to the spreadsheet
+    const tasksForSpreadsheet = _.chain(tasksFromDatabase)
+      .filter(task => !idsInSpreadsheet.has(task.id))
+      .forEach(task => {
+        console.info(
+          `${shouldWrite ? 'Adding' : 'Would add'} missing task ${task.id}`,
+          'into the spreadsheet.'
+        );
+      })
+      .value();
+
+    /// Updating allotment info from the spreadsheet to the database
+    const tasksForDatabase = _.chain(allotmentsFromSpreadsheet)
+      .filter(allotment => {
+        const task = tasksFromDatabase[allotment.id];
+
+        if (!task) {
+          console.info(`Task ${allotment.id} is not found in the database.`);
+          return false;
+        }
+
+        /// Updating only if any of these fields have changed
+        if (
+          allotment.status === task.status &&
+          (allotment.assignee?.emailAddress || null) ===
+            (task.assignee?.emailAddress || null)
+        )
+          return false;
+
+        /// Checking the sanity of the spreadsheet data
+        const mustBeAssigned = [
+          AllotmentStatus.Given,
+          AllotmentStatus.WIP,
+          AllotmentStatus.Done,
+        ].includes(allotment.status);
+        const mustNotBeAssigned = [AllotmentStatus.Spare].includes(
+          allotment.status
+        );
+        const isAssigned = !!allotment.assignee?.emailAddress;
+        if (
+          (mustBeAssigned && !isAssigned) ||
+          (mustNotBeAssigned && isAssigned)
+        ) {
+          console.info(
+            `Task ${allotment.id} has invalid data in the spreadsheet:`,
+            `“${allotment.status} ${allotment.assignee?.emailAddress} ”.`,
+            'Skipping.'
+          );
+          return false;
+        }
+
+        console.info(
+          `${shouldWrite ? 'Updating' : 'Would update'} task ${task.id}`,
+          'in the database',
+          `from “${task.status} ${task.assignee?.emailAddress}”`,
+          `to “${allotment.status} ${allotment.assignee?.emailAddress}”.`
+        );
+
+        return true;
+      })
+      /// Updating only these fields
+      .map(({ id, status, assignee, timestampGiven }) => ({
+        id,
+        assignee,
+        status,
+        timestampGiven,
+      }))
+      .value();
+
+    if (shouldWrite) {
+      console.log(`Updating spreadsheet and database.`);
+      await Promise.all([
+        this.saveToSpreadsheet(tasksForSpreadsheet),
+        this.saveToDatabase(tasksForDatabase),
+      ]);
+    } else console.log(`Doing nothing.`);
   }
 }
