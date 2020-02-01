@@ -244,10 +244,13 @@ export class TasksRepository {
           AllotmentStatus.WIP,
           AllotmentStatus.Done,
         ].includes(allotment.status);
+        const mustNotBeAssigned = [AllotmentStatus.Spare].includes(
+          allotment.status
+        );
         const isAssigned = !!allotment.assignee?.emailAddress;
         if (
           (mustBeAssigned && !isAssigned) ||
-          (!mustBeAssigned && isAssigned)
+          (mustNotBeAssigned && isAssigned)
         ) {
           console.info(
             `Task ${allotment.id} has invalid data in the spreadsheet:`,
