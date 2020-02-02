@@ -173,7 +173,7 @@ export class TasksRepository {
       // Convert the rows into the tasks
       .map(
         taskRows =>
-          new TrackEditingTask(taskRows[0].taskId, {
+          new TrackEditingTask(taskRows[0].taskId.trim(), {
             isRestored: taskRows[0].isRestored,
             chunks: taskRows.map(row =>
               _.pick(row, ['fileName', 'beginning', 'ending', 'unwantedParts'])
