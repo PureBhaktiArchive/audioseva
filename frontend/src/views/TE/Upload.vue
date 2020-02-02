@@ -220,9 +220,6 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
         .ref(`/TE/tasks/${taskId}`)
         .once("value")
     ).val();
-    if (this.currentUser.email !== _.get(task, "assignee.emailAddress")) {
-      throw new Error(`The task ${taskId} is not assigned to you.`);
-    }
     if (task.status === "Done") {
       throw new Error(
         `The task ${taskId} is marked as Done. Uploads are not allowed.`
