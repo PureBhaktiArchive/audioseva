@@ -211,7 +211,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       throw new Error("File type must be flac");
     }
     if (!file.name.match(flacFileFormat)) {
-      throw new Error("The file name does not start with task ID");
+      throw new Error("The file name is not a correct task ID");
     }
     const taskId = getTaskId(file.name);
     const task = (
