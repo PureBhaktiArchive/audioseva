@@ -51,15 +51,8 @@
               <v-list-item-content>
                 <v-list-item-subtitle
                   :style="{ color: 'red' }"
-                  v-if="typeof status.error === 'string'"
+                  v-if="status.error"
                   >{{ status.error }}
-                </v-list-item-subtitle>
-                <v-list-item-subtitle v-if="typeof status.error === 'object'">
-                  <component
-                    :is="status.error.component"
-                    v-bind="status.error.props"
-                  >
-                  </component>
                 </v-list-item-subtitle>
                 <v-list-item-title>{{ file.name }}</v-list-item-title>
               </v-list-item-content>
@@ -102,14 +95,13 @@ import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/storage";
 import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
-import FileTimeError from "@/components/TE/FileTimeError.vue";
 
 import { getTaskId, getProjectDomain, flacFileFormat } from "@/utility";
 
 interface IFileStatus {
   progress?: number;
   uploadTask?: any; // upload ref from firebase
-  error?: string | { [key: string]: any };
+  error?: string;
   complete?: boolean;
   uploadStartedAt?: Date;
   uploadRemainingTime?: number;
@@ -117,17 +109,10 @@ interface IFileStatus {
   downloadUrl?: string;
 }
 
-class FileUploadError {
-  constructor(value: { [key: string]: any }) {
-    Object.assign(this, value);
-  }
-}
-
 @Component({
   name: "Upload",
   components: {
-    VueDropzone,
-    FileTimeError
+    VueDropzone
   },
   computed: {
     ...mapState("user", ["currentUser"])
@@ -251,10 +236,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       lastVersionResolutionTimestamp &&
       lastVersionResolutionTimestamp > file.lastModified
     ) {
-      throw new FileUploadError({
-        props: { taskId },
-        component: "file-time-error"
-      });
+      throw new Error("File is older than the latest feedback on the task.");
     }
     if (!task.versions) return;
     const fileHash = await this.getFileHash(file);
@@ -286,13 +268,11 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       this.updateFileFields(file, {});
       this.validateFile(file)
         .then(() => this.handleFile(file, timestamp))
-        .catch(e =>
-          this.emitFileError(file, e instanceof FileUploadError ? e : e.message)
-        );
+        .catch(e => this.emitFileError(file, e.message));
     }
   }
 
-  emitFileError(file: File, message: string | FileUploadError) {
+  emitFileError(file: File, message: string) {
     this.updateFileStatus(file, "error", message);
   }
 
