@@ -52,8 +52,8 @@
                 <v-list-item-subtitle
                   :style="{ color: 'red' }"
                   v-if="status.error"
-                  >{{ status.error }}</v-list-item-subtitle
-                >
+                  >{{ status.error }}
+                </v-list-item-subtitle>
                 <v-list-item-title>{{ file.name }}</v-list-item-title>
               </v-list-item-content>
               <v-list-item-action :style="{ flexDirection: 'row' }">
@@ -84,15 +84,19 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Mixins } from "vue-property-decorator";
 import { mapState } from "vuex";
+import * as Spark from "spark-md5";
+import _ from "lodash";
 import VueDropzone from "vue2-dropzone";
 import "vue2-dropzone/dist/vue2Dropzone.min.css";
 import moment from "moment";
 import firebase from "firebase/app";
+import "firebase/database";
 import "firebase/storage";
+import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
 
-import { getTaskId, getProjectDomain, validateFlacFile } from "@/utility";
+import { getTaskId, getProjectDomain, flacFileFormat } from "@/utility";
 
 interface IFileStatus {
   progress?: number;
@@ -115,7 +119,7 @@ interface IFileStatus {
   },
   title: "Track Editing Upload"
 })
-export default class Upload extends Vue {
+export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   user: any = null;
   currentUser!: firebase.User;
   files: Map<File, IFileStatus> = new Map();
@@ -190,6 +194,73 @@ export default class Upload extends Vue {
     }
   }
 
+  getFileHash(file: File) {
+    return new Promise(resolve => {
+      const fileReader = new FileReader();
+      fileReader.onload = function(event: any) {
+        const spark = new Spark.ArrayBuffer();
+        spark.append(event.target.result);
+        resolve(btoa(spark.end(true)));
+      };
+      fileReader.readAsArrayBuffer(file);
+    });
+  }
+
+  async validateFile(file: File) {
+    if (file.type !== "audio/flac") {
+      throw new Error("File type must be flac");
+    }
+    if (!file.name.match(flacFileFormat)) {
+      throw new Error("The file name is not a correct task ID");
+    }
+    const taskId = getTaskId(file.name);
+    const taskSnapshot = await firebase
+      .database()
+      .ref(`/TE/tasks/${taskId}`)
+      .once("value")
+      .catch(() => "error");
+    if (typeof taskSnapshot === "string") {
+      throw new Error(`The task ${taskId} does not exist or is not assigned to you.`);
+    }
+    const task = taskSnapshot.val();
+    if (!task) {
+      throw new Error(`The task ${taskId} does not exist.`);
+    }
+    if (task.status === "Done") {
+      throw new Error(
+        `The task ${taskId} is marked as Done. Uploads are not allowed.`
+      );
+    }
+    if (!task.versions) return;
+    const lastVersionResolutionTimestamp = _.get(
+      this.getLastVersion(task),
+      "resolution.timestamp"
+    );
+    if (
+      lastVersionResolutionTimestamp &&
+      lastVersionResolutionTimestamp > file.lastModified
+    ) {
+      throw new Error("File is older than the latest feedback on the task.");
+    }
+    const fileHash = await this.getFileHash(file);
+    const versions = Object.values<any>(task.versions);
+    for (const i in versions) {
+      const version = versions[i];
+      const ref = this.uploadsBucket.ref().child(version.uploadPath);
+      const metadata = await ref.getMetadata().catch(e => "error");
+      if (metadata === "error") continue;
+      if (fileHash === metadata.md5Hash) {
+        throw new Error(
+          `You had uploaded the same file earlier. Version: ${i+1} on ${moment(
+            version.timestamp
+          )
+            .local()
+            .format("LLL")}`
+        );
+      }
+    }
+  }
+
   filesAdded(selectedFiles: File | FileList) {
     // when a file is selected by clicking the box "selectedFiles" is an object
     // when files are dropped selectedFiles is an array
@@ -198,15 +269,12 @@ export default class Upload extends Vue {
     let files = Array.isArray(selectedFiles)
       ? selectedFiles
       : Object.values(selectedFiles);
-    files.forEach(file => {
-      this.files.set(file, {});
-      try {
-        validateFlacFile(file);
-        this.handleFile(file, timestamp);
-      } catch (e) {
-        this.emitFileError(file, e.message);
-      }
-    });
+    for (const file of files) {
+      this.updateFileFields(file, {});
+      this.validateFile(file)
+        .then(() => this.handleFile(file, timestamp))
+        .catch(e => this.emitFileError(file, e.message));
+    }
   }
 
   emitFileError(file: File, message: string) {
