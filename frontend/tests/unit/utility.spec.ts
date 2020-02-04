@@ -4,7 +4,6 @@ import {
   getLastDays,
   mergeDoneStatistics,
   formatTimestamp,
-  validateFlacFile,
   removeObjectKey,
   getPathAndKey,
   getProjectDomain
@@ -56,19 +55,6 @@ describe("utility", function() {
     };
     const results = formatTimestamp("allotment.timestampGiven", item);
     expect(results).toEqual("6.11.2018");
-  });
-
-  it("should validateFlacFile", () => {
-    const fileName = "list1-001-1.flac";
-    expect(
-      validateFlacFile({ name: fileName, type: "audio/flac" })
-    ).toBeTruthy();
-  });
-
-  it("should throw error if bad validateFlacFile", () => {
-    expect(() => validateFlacFile({ name: "badname.txt" })).toThrowError(
-      "File type must be flac"
-    );
   });
 
   test("removeObjectKey", () => {

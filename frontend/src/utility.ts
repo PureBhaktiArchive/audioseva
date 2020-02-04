@@ -67,17 +67,7 @@ const taskIdPattern = "^\\w+-\\d+-\\d+";
 
 const taskIdFormat = new RegExp(taskIdPattern);
 
-const flacFileFormat = new RegExp(`${taskIdPattern}.flac`);
-
-export const validateFlacFile = ({ name: fileName, type }: any) => {
-  if (type !== "audio/flac") {
-    throw new Error("File type must be flac");
-  }
-  if (!fileName.match(flacFileFormat)) {
-    throw new Error("The file name does not start with task ID");
-  }
-  return true;
-};
+export const flacFileFormat = new RegExp(`${taskIdPattern}.flac`);
 
 export const getTaskId = (fileName: string) => {
   const match = fileName.match(taskIdFormat);
