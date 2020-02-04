@@ -243,13 +243,15 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       throw new Error("File is older than the latest feedback on the task.");
     }
     const fileHash = await this.getFileHash(file);
-    for (const [versionId, version] of Object.entries<any>(task.versions)) {
+    const versions = Object.values<any>(task.versions);
+    for (const i in versions) {
+      const version = versions[i];
       const ref = this.uploadsBucket.ref().child(version.uploadPath);
       const metadata = await ref.getMetadata().catch(e => "error");
       if (metadata === "error") continue;
       if (fileHash === metadata.md5Hash) {
         throw new Error(
-          `You had uploaded the same file earlier. Version: ${versionId} on ${moment(
+          `You had uploaded the same file earlier. Version: ${i} on ${moment(
             version.timestamp
           )
             .local()
