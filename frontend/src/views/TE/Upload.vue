@@ -214,12 +214,18 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       throw new Error("The file name is not a correct task ID");
     }
     const taskId = getTaskId(file.name);
-    const task = (
-      await firebase
-        .database()
-        .ref(`/TE/tasks/${taskId}`)
-        .once("value")
-    ).val();
+    const taskSnapshot = await firebase
+      .database()
+      .ref(`/TE/tasks/${taskId}`)
+      .once("value")
+      .catch(() => "error");
+    if (typeof taskSnapshot === "string") {
+      throw new Error(`The task ${taskId} is not assigned to you.`);
+    }
+    const task = taskSnapshot.val();
+    if (!task) {
+      throw new Error(`The task ${taskId} does not exist.`);
+    }
     if (task.status === "Done") {
       throw new Error(
         `The task ${taskId} is marked as Done. Uploads are not allowed.`
