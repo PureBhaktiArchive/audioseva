@@ -231,6 +231,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
         `The task ${taskId} is marked as Done. Uploads are not allowed.`
       );
     }
+    if (!task.versions) return;
     const lastVersionResolutionTimestamp = _.get(
       this.getLastVersion(task),
       "resolution.timestamp"
@@ -241,7 +242,6 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     ) {
       throw new Error("File is older than the latest feedback on the task.");
     }
-    if (!task.versions) return;
     const fileHash = await this.getFileHash(file);
     for (const [versionId, version] of Object.entries<any>(task.versions)) {
       const ref = this.uploadsBucket.ref().child(version.uploadPath);
