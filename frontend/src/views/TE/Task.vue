@@ -8,6 +8,12 @@
         This task is not available to you. Please contact your coordinator.
       </v-alert>
     </div>
+    <v-alert
+      v-else-if="!Object.keys(task).length || task['.value'] === null"
+      type="warning"
+    >
+      The task {{ $route.params.taskId }} does not exist in the database.
+    </v-alert>
     <div v-else>
       <div>
         <h1>
