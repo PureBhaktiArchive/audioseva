@@ -220,7 +220,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       .once("value")
       .catch(() => "error");
     if (typeof taskSnapshot === "string") {
-      throw new Error(`The task ${taskId} is not assigned to you.`);
+      throw new Error(`The task ${taskId} does not exist or is not assigned to you.`);
     }
     const task = taskSnapshot.val();
     if (!task) {
@@ -251,7 +251,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       if (metadata === "error") continue;
       if (fileHash === metadata.md5Hash) {
         throw new Error(
-          `You had uploaded the same file earlier. Version: ${i} on ${moment(
+          `You had uploaded the same file earlier. Version: ${i+1} on ${moment(
             version.timestamp
           )
             .local()
