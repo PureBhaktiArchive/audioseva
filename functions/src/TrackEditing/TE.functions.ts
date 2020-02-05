@@ -36,10 +36,7 @@ export const processAllotment = functions.https.onCall(
 
     const dirtyTasks = _(tasks)
       .filter()
-      .filter(
-        ({ status, token, timestampGiven }) =>
-          !!token || !!timestampGiven || status !== AllotmentStatus.Spare
-      )
+      .filter(({ status }) => status !== AllotmentStatus.Spare)
       .map(({ id }) => id)
       .join();
 
