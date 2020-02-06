@@ -35,7 +35,7 @@
           }"
           class="pl-2"
         >
-          <v-btn v-if="completedFileUploads" @click="clearCompletedFiles">
+          <v-btn v-if="completedCount" @click="clearCompletedFiles">
             Clear completed
           </v-btn>
           <v-btn class="ml-2" v-if="totalUploadCount" @click="cancelAllFiles"
@@ -45,46 +45,61 @@
       </div>
       <v-divider v-if="getFiles().length"></v-divider>
       <v-list two-line>
-        <template v-for="[file, status] in getFiles()">
-          <div :key="file.upload.uuid">
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-subtitle
-                  :style="{ color: 'red' }"
-                  v-if="status.error"
-                  >{{ status.error }}
-                </v-list-item-subtitle>
-                <v-list-item-title>{{ file.name }}</v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-action :style="{ flexDirection: 'row' }">
-                <v-btn v-if="status.error" @click="deleteFile(file)"
-                  >remove</v-btn
-                >
-                <v-icon color="green" v-else-if="status.complete"
-                  >fa-check-circle</v-icon
-                >
-                <div v-else>
-                  <v-progress-circular
-                    :value="status.progress"
-                    color="green"
-                    :style="{ marginRight: '16px' }"
-                  ></v-progress-circular>
-                  <v-btn @click="cancelFile(status)" v-if="status.uploading">
-                    Cancel
-                  </v-btn>
-                </div>
-              </v-list-item-action>
-            </v-list-item>
-            <v-divider></v-divider>
-          </div>
-        </template>
+        <file-list
+          listPrefix="upload"
+          :fileList="getFiles()"
+          :getKey="([file]) => file.upload.uuid"
+        >
+          <template v-slot:content="{ file: [file, status] }">
+            <v-list-item-content>
+              <v-list-item-subtitle
+                :style="{ color: 'red' }"
+                v-if="status.error"
+              >
+                {{ status.error }}
+              </v-list-item-subtitle>
+              <v-list-item-title>{{ file.name }}</v-list-item-title>
+            </v-list-item-content>
+          </template>
+          <template v-slot:action="{ file: [file, status] }">
+            <v-btn v-if="status.error" @click="deleteFile(file)">
+              remove
+            </v-btn>
+            <div v-else>
+              <v-progress-circular
+                :value="status.progress"
+                color="green"
+                :style="{ marginRight: '16px' }"
+              ></v-progress-circular>
+              <v-btn @click="cancelFile(status)" v-if="status.uploading">
+                Cancel
+              </v-btn>
+            </div>
+          </template>
+        </file-list>
+        <file-list :fileList="queue" listPrefix="queue">
+          <template v-slot:title="{ file }">
+            {{ file.name }}
+          </template>
+          <template v-slot:action="{ file, index }">
+            <v-btn @click="cancelQueueFile(index)">Cancel item</v-btn>
+          </template>
+        </file-list>
+        <file-list :fileList="completedFiles" listPrefix="completed">
+          <template v-slot:title="{ file }">
+            {{ file.name }}
+            <v-icon color="green">
+              fa-check-circle
+            </v-icon>
+          </template>
+        </file-list>
       </v-list>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Mixins } from "vue-property-decorator";
+import { Component, Mixins, Watch } from "vue-property-decorator";
 import { mapState } from "vuex";
 import * as Spark from "spark-md5";
 import _ from "lodash";
@@ -95,6 +110,7 @@ import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/storage";
 import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
+import UploadFileList from "@/components/TE/UploadFileList.vue";
 
 import { getTaskId, getProjectDomain, flacFileFormat } from "@/utility";
 
@@ -102,7 +118,6 @@ interface IFileStatus {
   progress?: number;
   uploadTask?: any; // upload ref from firebase
   error?: string;
-  complete?: boolean;
   uploadStartedAt?: Date;
   uploadRemainingTime?: number;
   uploading?: boolean;
@@ -112,7 +127,8 @@ interface IFileStatus {
 @Component({
   name: "Upload",
   components: {
-    VueDropzone
+    VueDropzone,
+    FileList: UploadFileList
   },
   computed: {
     ...mapState("user", ["currentUser"])
@@ -126,6 +142,9 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   totalUploadCount: number = 0;
   completedFileUploads: number = 0;
   uploadsBucket = firebase.app().storage(`te.uploads.${getProjectDomain()}`);
+  queue: File[] = [];
+  completedFiles: File[] = [];
+  uploadLimit = 3;
 
   $refs!: {
     myDropzone: any;
@@ -169,6 +188,10 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     uploadTask && uploadTask.cancel();
   }
 
+  cancelQueueFile(index: number) {
+    this.$delete(this.queue, index);
+  }
+
   cancelAllFiles() {
     this.files.forEach(status => {
       this.cancelFile(status);
@@ -176,12 +199,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   clearCompletedFiles() {
-    for (let [file, status] of this.files) {
-      if (status.complete) {
-        this.files.delete(file);
-      }
-    }
-    this.completedFileUploads = 0;
+    this.completedFiles = [];
   }
 
   async handleFile(file: File, timestamp: number) {
@@ -220,7 +238,9 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       .once("value")
       .catch(() => "error");
     if (typeof taskSnapshot === "string") {
-      throw new Error(`The task ${taskId} does not exist or is not assigned to you.`);
+      throw new Error(
+        `The task ${taskId} does not exist or is not assigned to you.`
+      );
     }
     const task = taskSnapshot.val();
     if (!task) {
@@ -251,9 +271,8 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       if (metadata === "error") continue;
       if (fileHash === metadata.md5Hash) {
         throw new Error(
-          `You had uploaded the same file earlier. Version: ${i+1} on ${moment(
-            version.timestamp
-          )
+          `You had uploaded the same file earlier. Version: ${i +
+            1} on ${moment(version.timestamp)
             .local()
             .format("LLL")}`
         );
@@ -261,16 +280,21 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     }
   }
 
-  filesAdded(selectedFiles: File | FileList) {
+  filesAdded(selectedFiles: File[] | FileList) {
     // when a file is selected by clicking the box "selectedFiles" is an object
     // when files are dropped selectedFiles is an array
     setTimeout(() => this.$refs.myDropzone.removeAllFiles(), 100);
     const timestamp = new Date().valueOf();
     let files = Array.isArray(selectedFiles)
-      ? selectedFiles
+      ? [...selectedFiles]
       : Object.values(selectedFiles);
-    for (const file of files) {
-      this.updateFileFields(file, {});
+    const filesToUpload = files.splice(
+      0,
+      this.uploadLimit - this.totalUploadCount
+    );
+    this.queue.push(...files);
+    for (const file of filesToUpload) {
+      this.updateFileFields(file, { uploading: true });
       this.validateFile(file)
         .then(() => this.handleFile(file, timestamp))
         .catch(e => this.emitFileError(file, e.message));
@@ -278,7 +302,16 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   emitFileError(file: File, message: string) {
-    this.updateFileStatus(file, "error", message);
+    this.updateFileFields(file, { error: message, uploading: false });
+  }
+
+  @Watch("totalUploadCount")
+  uploadNextFile(newVal: number) {
+    if (newVal >= this.uploadLimit) return;
+    const queuedFile = this.queue.pop();
+    if (queuedFile) {
+      this.filesAdded([queuedFile]);
+    }
   }
 
   getTotalUploadTime() {
@@ -297,7 +330,6 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       .child(path)
       .put(file);
     this.updateFileFields(file, {
-      uploading: true,
       uploadTask: uploadTask,
       uploadStartedAt: new Date()
     });
@@ -321,27 +353,21 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       },
       (error: any) => {
         if (error.code === "storage/canceled") {
-          this.updateFileFields(file, {
-            error: "Canceled upload",
-            complete: false,
-            uploading: false
-          });
+          this.emitFileError(file, "Canceled upload");
         } else if (error.code === "storage/unauthorized") {
-          this.updateFileFields(file, {
-            error: "You are not authorized to upload this file",
-            complete: false,
-            uploading: false
-          });
+          this.emitFileError(
+            file,
+            "You are not authorized to upload this file"
+          );
         } else {
           this.emitFileError(file, error.message);
         }
       },
-      async () => {
-        this.completedFileUploads += 1;
-        this.updateFileFields(file, {
-          complete: true,
-          uploading: false
-        });
+      () => {
+        this.totalUploadCount -= 1;
+        this.completedFiles.unshift(file);
+        this.files.delete(file);
+        this.$forceUpdate();
       }
     );
   }
@@ -361,6 +387,10 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
                 <div class="dz-error-mark"><i class="fa fa-close"></i></div>
             </div>
         `;
+  }
+
+  get completedCount() {
+    return this.completedFiles.length;
   }
 }
 </script>
