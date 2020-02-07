@@ -71,7 +71,7 @@ export const flacFileFormat = new RegExp(`${taskIdPattern}.flac`);
 
 export const getTaskId = (fileName: string) => {
   const match = fileName.match(taskIdFormat);
-  return match?[0];
+  return match ? match[0] : null;
 };
 
 export const getListId = (fileId: string) => fileId.split("-")[0];
