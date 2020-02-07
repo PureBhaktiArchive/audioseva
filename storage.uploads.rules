@@ -2,11 +2,17 @@ service firebase.storage {
   match /b/{bucket}/o {
     match /{uid}/{time}/{fileName} {
       allow read;
-      allow write: if fileName.matches('\\w+-\\d+-\\d+\\.flac')
-        && resource == null
-        && request.resource.contentType == 'audio/flac'
+      allow write: if resource == null
         && request.auth.uid == uid
         && (request.auth.token.TE || request.auth.token.coordinator)
+        && (
+          fileName.matches('DIGI\\d\\d-\\d+-\\d+\\.mp3')
+          && request.resource.contentType == 'audio/mpeg'
+
+          || !fileName.matches('DIGI\\d\\d-.*')
+          && fileName.matches('\\w+-\\d+-\\d+\\.flac')
+          && request.resource.contentType == 'audio/flac'          
+        )
         ;
     }
   }

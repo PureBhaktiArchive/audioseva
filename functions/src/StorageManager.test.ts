@@ -45,6 +45,7 @@ describe('Uploaded SE file', () => {
     ${'ML2-1113-1_v2-2.flac'}    | ${'ML2/ML2-1113-1.flac'}
     ${'ML2-97 B_V2.flac'}        | ${'ML2/ML2-97 B.flac'}
     ${'BR-03B v3.flac'}          | ${'BR/BR-03B.flac'}
+    ${'DIGI07-0001-1.mp3'}       | ${'DIGI07/DIGI07-0001-1.mp3'}
   `(
     `$sourceFileName should be saved to $destinationFileName`,
     ({ sourceFileName, destinationFileName }) => {
