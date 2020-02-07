@@ -118,7 +118,7 @@ export const processUpload = functions.storage
 
     // `context.auth` is not populated here. See https://stackoverflow.com/a/49723193/3082178
     const uid = object.name.split('/').shift();
-    const taskId = path.basename(object.name);
+    const taskId = path.basename(object.name, path.extname(object.name));
 
     const user = await admin.auth().getUser(uid);
     console.info(`Processing upload of ${taskId} by ${user.email}.`);
@@ -196,7 +196,7 @@ export const processResolution = functions.database
         .copy(
           StorageManager.getFile(
             'edited',
-            `${taskId}${path.extname(task.versions[versionKey].uploadPath)}`
+            path.basename(task.versions[versionKey].uploadPath)
           )
         );
 
