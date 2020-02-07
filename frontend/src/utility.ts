@@ -1,7 +1,7 @@
-import { Vue } from "vue-property-decorator";
+import { ICount } from "@/types/DataTable";
 import _ from "lodash";
 import moment from "moment";
-import { ICount } from "@/types/DataTable";
+import { Vue } from "vue-property-decorator";
 
 export const getProjectDomain = () => {
   return window.location.host
@@ -71,7 +71,7 @@ export const flacFileFormat = new RegExp(`${taskIdPattern}.flac`);
 
 export const getTaskId = (fileName: string) => {
   const match = fileName.match(taskIdFormat);
-  return match ? match[0] : false;
+  return match?[0];
 };
 
 export const getListId = (fileId: string) => fileId.split("-")[0];
