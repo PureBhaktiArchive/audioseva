@@ -112,12 +112,14 @@ export class StorageManager {
 
   static getDestinationFileForRestoredUpload(fileName: string): File {
     const matches = /^(\w+)-(\d{1,4}.*?)(?:[\s_]+v[-\d\s]+)?$/i.exec(
-      path.basename(fileName, '.flac')
+      path.basename(fileName, path.extname(fileName))
     );
 
     if (!matches) return null;
 
     const [, list, serial] = matches;
-    return this.getBucket('restored').file(`${list}/${list}-${serial}.flac`);
+    return this.getBucket('restored').file(
+      `${list}/${list}-${serial}${path.extname(fileName)}`
+    );
   }
 }
