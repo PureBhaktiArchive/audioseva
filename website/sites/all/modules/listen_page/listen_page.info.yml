@@ -1,9 +1,0 @@
-# sri sri guru gauranga jayatah
-# Srila Gurudeva ki jaya!
-
-name: Listener Page
-description: Creates a page for listening to the audio files.
-package: AudioSeva
-
-type: module
-core: 8.x
