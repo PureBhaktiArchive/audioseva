@@ -290,7 +290,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       if (metadata === "error") continue;
       if (fileHash === metadata.md5Hash) {
         throw new Error(
-          `You had uploaded the same file earlier. Version: ${i +
+          `You had uploaded the same file earlier. Version: ${parseInt(i) +
             1} on ${moment(version.timestamp)
             .local()
             .format("LLL")}`
