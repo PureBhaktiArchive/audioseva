@@ -224,7 +224,9 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     const taskId = getTaskId(file.name);
     if (taskId) {
       this.uploadFile(
-        `${this.currentUser.uid}/${timestamp}/${taskId}.flac`,
+        `${this.currentUser.uid}/${timestamp}/${taskId}.${file.name
+          .split(".")
+          .pop()}`,
         file
       );
     }
@@ -243,13 +245,15 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   async validateFile(file: File) {
-    if (file.type !== "audio/flac") {
-      throw new Error("File type must be flac");
-    }
-    if (!file.name.match(flacFileFormat)) {
-      throw new Error("The file name is not a correct task ID");
-    }
     const taskId = getTaskId(file.name);
+
+    if (!taskId) throw new Error("The file name is not a correct task ID");
+
+    if (file.type !== `audio/${taskId.startsWith("DIGI") ? "mpeg" : "flac"}`) {
+      throw new Error(
+        `File type must be ${taskId.startsWith("DIGI") ? "MP3" : "FLAC"}`
+      );
+    }
     const taskSnapshot = await firebase
       .database()
       .ref(`/TE/tasks/${taskId}`)

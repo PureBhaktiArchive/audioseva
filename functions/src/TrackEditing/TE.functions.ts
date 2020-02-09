@@ -36,10 +36,7 @@ export const processAllotment = functions.https.onCall(
 
     const dirtyTasks = _(tasks)
       .filter()
-      .filter(
-        ({ status, token, timestampGiven }) =>
-          !!token || !!timestampGiven || status !== AllotmentStatus.Spare
-      )
+      .filter(({ status }) => status !== AllotmentStatus.Spare)
       .map(({ id }) => id)
       .join();
 
@@ -118,7 +115,7 @@ export const processUpload = functions.storage
 
     // `context.auth` is not populated here. See https://stackoverflow.com/a/49723193/3082178
     const uid = object.name.split('/').shift();
-    const taskId = path.basename(object.name, '.flac');
+    const taskId = path.basename(object.name, path.extname(object.name));
 
     const user = await admin.auth().getUser(uid);
     console.info(`Processing upload of ${taskId} by ${user.email}.`);
@@ -193,7 +190,12 @@ export const processResolution = functions.database
       // Saving the approved file to the final storage bucket
       await StorageManager.getBucket('te.uploads')
         .file(task.versions[versionKey].uploadPath)
-        .copy(StorageManager.getFile('edited', `${taskId}.flac`));
+        .copy(
+          StorageManager.getFile(
+            'edited',
+            path.basename(task.versions[versionKey].uploadPath)
+          )
+        );
 
       await repository.save({
         id: taskId,
@@ -282,7 +284,9 @@ export const download = functions.https.onRequest(
           expires: DateTime.local()
             .plus({ days: 3 })
             .toJSDate(),
-          promptSaveAs: `${taskId}.v${versionNumber}.flac`,
+          promptSaveAs: `${taskId}.v${versionNumber}${path.extname(
+            version.uploadPath
+          )}`,
         })
       ).shift();
 
