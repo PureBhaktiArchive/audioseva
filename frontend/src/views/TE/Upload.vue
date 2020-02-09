@@ -58,6 +58,9 @@
               >
                 {{ status.error }}
               </v-list-item-subtitle>
+              <v-list-item-subtitle v-else-if="status.retrying">
+                Retrying upload
+              </v-list-item-subtitle>
               <v-list-item-title>{{ file.name }}</v-list-item-title>
             </v-list-item-content>
           </template>
@@ -71,7 +74,7 @@
                 color="green"
                 :style="{ marginRight: '16px' }"
               ></v-progress-circular>
-              <v-btn @click="cancelFile(status)" v-if="status.uploading">
+              <v-btn @click="cancelFile(status, file)" v-if="status.uploading">
                 Cancel
               </v-btn>
             </div>
@@ -106,6 +109,7 @@ import _ from "lodash";
 import VueDropzone from "vue2-dropzone";
 import "vue2-dropzone/dist/vue2Dropzone.min.css";
 import moment from "moment";
+import Promise from "bluebird";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/storage";
@@ -113,6 +117,8 @@ import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
 import UploadFileList from "@/components/TE/UploadFileList.vue";
 
 import { getTaskId, getProjectDomain, flacFileFormat } from "@/utility";
+
+Promise.config({ cancellation: true });
 
 interface IFileStatus {
   progress?: number;
@@ -122,6 +128,10 @@ interface IFileStatus {
   uploadRemainingTime?: number;
   uploading?: boolean;
   downloadUrl?: string;
+  retrying?: boolean;
+  retryTimer?: Promise<any>;
+  retryDuration?: number;
+  retryAttempts?: number;
 }
 
 @Component({
@@ -145,6 +155,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   queue: File[] = [];
   completedFiles: File[] = [];
   uploadLimit = 3;
+  maxRetryAttempts = 5;
 
   $refs!: {
     myDropzone: any;
@@ -184,7 +195,15 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     this.$forceUpdate();
   }
 
-  cancelFile({ uploadTask }: IFileStatus = {}) {
+  cancelFile(
+    { uploadTask, retrying, retryTimer }: IFileStatus = {},
+    file: File
+  ) {
+    if (retrying) {
+      retryTimer && retryTimer.cancel();
+      this.emitFileError(file, "Canceled upload");
+      return;
+    }
     uploadTask && uploadTask.cancel();
   }
 
@@ -193,8 +212,8 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   cancelAllFiles() {
-    this.files.forEach(status => {
-      this.cancelFile(status);
+    this.files.forEach((status, file) => {
+      this.cancelFile(status, file);
     });
   }
 
@@ -324,6 +343,16 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       : moment.duration(totalUploadTime, "seconds").humanize();
   }
 
+  backOff(delay: number) {
+    return new Promise((resolve, reject, onCancel) => {
+      const timer = setTimeout(resolve, delay);
+      onCancel &&
+        onCancel(() => {
+          clearTimeout(timer);
+        });
+    });
+  }
+
   uploadFile(path: string, file: File) {
     const uploadTask = this.uploadsBucket
       .ref()
@@ -331,7 +360,8 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       .put(file);
     this.updateFileFields(file, {
       uploadTask: uploadTask,
-      uploadStartedAt: new Date()
+      uploadStartedAt: new Date(),
+      retrying: false
     });
     uploadTask.on(
       "state_changed",
@@ -351,7 +381,26 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
             : 0
         });
       },
-      (error: any) => {
+      async (error: any) => {
+        if (error.code === "storage/retry-limit-exceeded") {
+          const { retryAttempts = 0, retryDuration = 1000 } = this.getFile(
+            file
+          );
+          if (retryAttempts < this.maxRetryAttempts) {
+            const retry = this.backOff(retryDuration);
+            this.updateFileFields(file, {
+              retryAttempts: retryAttempts + 1,
+              retryDuration: retryDuration * 2,
+              retryTimer: retry,
+              retrying: true
+            });
+            await retry;
+            this.uploadFile(path, file);
+          } else {
+            this.emitFileError(file, "Max retry limit has been reached.");
+          }
+          return;
+        }
         if (error.code === "storage/canceled") {
           this.emitFileError(file, "Canceled upload");
         } else if (error.code === "storage/unauthorized") {
