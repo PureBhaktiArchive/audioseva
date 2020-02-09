@@ -150,7 +150,6 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   currentUser!: firebase.User;
   files: Map<File, IFileStatus> = new Map();
   totalUploadCount: number = 0;
-  completedFileUploads: number = 0;
   uploadsBucket = firebase.app().storage(`te.uploads.${getProjectDomain()}`);
   queue: File[] = [];
   completedFiles: File[] = [];
