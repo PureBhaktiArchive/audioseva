@@ -3,7 +3,6 @@
  */
 import { GaxiosResponse } from 'gaxios';
 import { google, sheets_v4 } from 'googleapis';
-import { morphism, StrictSchema } from 'morphism';
 import _ = require('lodash');
 
 enum IValueInputOption {
@@ -11,13 +10,17 @@ enum IValueInputOption {
   RAW = 'RAW',
 }
 
-export class Spreadsheet {
-  protected api: sheets_v4.Sheets;
-  protected schema: sheets_v4.Schema$Spreadsheet;
-  protected sheetIndex: number;
+type Mapper<From, To> = (source: From) => To;
+
+export class Spreadsheet<T extends object = object> {
   public columnNames: string[];
 
-  public static async open(spreadsheetId: string, sheetName: string) {
+  public static async open<T extends object = object>(
+    spreadsheetId: string,
+    sheetName: string,
+    rowToObjectMapper?: Mapper<object, T>,
+    objectToRowMapper?: Mapper<T, object>
+  ) {
     const auth = await google.auth.getClient({
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
@@ -35,17 +38,22 @@ export class Spreadsheet {
     if (sheetIndex < 0)
       throw new Error(`No "${sheetName}" sheet in the spreadsheet.`);
 
-    return new Spreadsheet(api, schema, sheetIndex);
+    return new Spreadsheet<T>(
+      api,
+      schema,
+      sheetIndex,
+      rowToObjectMapper,
+      objectToRowMapper
+    );
   }
 
   protected constructor(
-    api: sheets_v4.Sheets,
-    schema: sheets_v4.Schema$Spreadsheet,
-    sheetIndex: number
+    private api: sheets_v4.Sheets,
+    private schema: sheets_v4.Schema$Spreadsheet,
+    private sheetIndex: number,
+    private rowToObjectMapper: Mapper<object, T> = _.identity,
+    private objectToRowMapper: Mapper<T, object> = _.identity
   ) {
-    this.api = api;
-    this.schema = schema;
-    this.sheetIndex = sheetIndex;
     this.columnNames = _(this.sheet.data[0].rowData[0].values)
       .map(cell =>
         cell.effectiveValue ? cell.effectiveValue.stringValue : null
@@ -237,29 +245,38 @@ export class Spreadsheet {
    * Transforms the row into an object. @see objectToRow.
    * @param row The row to be transformed into an object
    */
-  protected rowToObject<T extends object>(row: any[]) {
-    return _.zipObject(
-      this.columnNames,
-      this.columnNames.map((columnName, index) =>
-        row[index] === '' ? null : row[index] === undefined ? null : row[index]
+  protected rowToObject(row: any[]) {
+    return this.rowToObjectMapper(
+      _.zipObject(
+        this.columnNames,
+        this.columnNames.map((columnName, index) =>
+          row[index] === ''
+            ? null
+            : row[index] === undefined
+            ? null
+            : row[index]
+        )
       )
-    ) as T;
+    );
   }
 
   /**
    * Transforms the object into a row.
-   * `null` in the row and `undefined` in the object are skipped.
-   * Empty strings in the rows and `nulls` in the object are standing for the empty cell.
+   * https://developers.google.com/sheets/api/guides/values says,
+   * “When updating, values with no data are skipped. To clear data, use an empty string ("").”
+   * - `null` in the row corresponds to `undefined` in the object.
+   * - Empty string in the rows corresponds to `null` in the object.
    * @param object Source object to transform into a row
    */
-  protected objectToRow<T extends object>(object: T) {
-    return this.columnNames.map(columnName =>
-      object[columnName] === undefined
-        ? null
-        : object[columnName] === null
-        ? ''
-        : object[columnName]
-    );
+  protected objectToRow(object: T) {
+    console.debug(object);
+    const mapped = this.objectToRowMapper(object);
+    const row = _(this.columnNames)
+      .map(columnName => mapped[columnName])
+      .map(value => (value === undefined ? null : value === null ? '' : value))
+      .value();
+    console.debug(row);
+    return row;
   }
 
   /**
@@ -273,22 +290,18 @@ export class Spreadsheet {
     return this.rowToObject(values[0]);
   }
 
-  public async getRows<T>(schema: StrictSchema<T>): Promise<T[]>;
-  public async getRows(): Promise<object[]>;
-
   /**
    * Gets all the rows on the sheet.
    */
-  public async getRows<T>(schema?: StrictSchema<T>) {
+  public async getRows(): Promise<T[]> {
     const values = await this.getValues(
       this.rowsToA1Notation(this.fromDataRowNumber(1), this.rowCount)
     );
 
-    const objects = _.chain(values)
+    return _.chain(values)
       .filter(row => row.length > 0)
       .map(row => this.rowToObject(row))
       .value();
-    return schema ? morphism(schema, <any[]>objects) : objects;
   }
 
   /**
@@ -297,7 +310,7 @@ export class Spreadsheet {
    * @param object Object to be saved into the row
    * Nulls are skipped. To clear data, use an empty string ("") in the property value.
    */
-  public async updateRow<T extends object>(dataRowNumber: number, object: T) {
+  public async updateRow(dataRowNumber: number, object: T) {
     Spreadsheet.getResponse(
       await this.api.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
@@ -314,7 +327,7 @@ export class Spreadsheet {
    * Update rows at specified row numbers.
    * @param objects Map of objects by data row number
    */
-  public async updateRows<T extends object>(objects: Map<number, T>) {
+  public async updateRows(objects: Map<number, T>) {
     if (objects.size === 0) return;
 
     Spreadsheet.getResponse(
@@ -340,8 +353,8 @@ export class Spreadsheet {
    * Appends new rows
    * @param objects Data values to add to Google Sheets
    */
-  public async appendRows<T extends object>(objects: T[]) {
-    Spreadsheet.getResponse(
+  public async appendRows(objects: T[]) {
+    const response = Spreadsheet.getResponse(
       await this.api.spreadsheets.values.append({
         spreadsheetId: this.spreadsheetId,
         range: this.title,
@@ -351,6 +364,7 @@ export class Spreadsheet {
         },
       })
     );
+    console.debug(response);
   }
 
   /**
@@ -358,10 +372,7 @@ export class Spreadsheet {
    * @param columnName Name of the column to search in
    * @param objects Objects to be saved into the spreadsheet
    */
-  public async updateOrAppendRows<T extends object>(
-    columnName: string,
-    objects: T[]
-  ) {
+  public async updateOrAppendRows(columnName: string, objects: T[]) {
     const column = await this.getColumn(columnName);
     const indexedByDataRowNumber = objects.map<[number, T]>(object => [
       column.indexOf(object[columnName]) + 1,
@@ -374,7 +385,7 @@ export class Spreadsheet {
     );
 
     await Promise.all([
-      this.updateRows(new Map<number, T>(updates)),
+      this.updateRows(new Map(updates)),
       this.appendRows(appends.map(([, object]) => object)),
     ]);
   }
