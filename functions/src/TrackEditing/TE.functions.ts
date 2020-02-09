@@ -52,6 +52,7 @@ export const processAllotment = functions.https.onCall(
         assignee,
         status: AllotmentStatus.Given,
         timestampGiven: admin.database.ServerValue.TIMESTAMP,
+        versions: null, // Removing old versions
       }))
     );
 
@@ -92,6 +93,7 @@ export const cancelAllotment = functions.https.onCall(
       status: AllotmentStatus.Spare,
       assignee: null,
       timestampGiven: null,
+      versions: null, // Removing old versions
     });
   }
 );
