@@ -10,16 +10,12 @@ enum IValueInputOption {
   RAW = 'RAW',
 }
 
-type Mapper<From, To> = (source: From) => To;
-
 export class Spreadsheet<T extends object = object> {
   public columnNames: string[];
 
   public static async open<T extends object = object>(
     spreadsheetId: string,
-    sheetName: string,
-    rowToObjectMapper?: Mapper<object, T>,
-    objectToRowMapper?: Mapper<T, object>
+    sheetName: string
   ) {
     const auth = await google.auth.getClient({
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
@@ -38,21 +34,13 @@ export class Spreadsheet<T extends object = object> {
     if (sheetIndex < 0)
       throw new Error(`No "${sheetName}" sheet in the spreadsheet.`);
 
-    return new Spreadsheet<T>(
-      api,
-      schema,
-      sheetIndex,
-      rowToObjectMapper,
-      objectToRowMapper
-    );
+    return new Spreadsheet<T>(api, schema, sheetIndex);
   }
 
   protected constructor(
     private api: sheets_v4.Sheets,
     private schema: sheets_v4.Schema$Spreadsheet,
-    private sheetIndex: number,
-    private rowToObjectMapper: Mapper<object, T> = _.identity,
-    private objectToRowMapper: Mapper<T, object> = _.identity
+    private sheetIndex: number
   ) {
     this.columnNames = _(this.sheet.data[0].rowData[0].values)
       .map(cell =>
@@ -246,14 +234,12 @@ export class Spreadsheet<T extends object = object> {
    * @param values The values array to be transformed into an object
    */
   protected arrayToObject(values: any[]) {
-    return this.rowToObjectMapper(
-      _.zipObject(
-        this.columnNames,
-        values.map(value =>
-          value === '' ? null : value === undefined ? null : value
-        )
+    return _.zipObject(
+      this.columnNames,
+      values.map(value =>
+        value === '' ? null : value === undefined ? null : value
       )
-    );
+    ) as T;
   }
 
   /**
@@ -266,9 +252,8 @@ export class Spreadsheet<T extends object = object> {
    */
   protected objectToArray(object: T) {
     console.debug(object);
-    const mapped = this.objectToRowMapper(object);
     const row = _(this.columnNames)
-      .map(columnName => mapped[columnName])
+      .map(columnName => object[columnName])
       .map(value => (value === undefined ? null : value === null ? '' : value))
       .value();
     console.debug(row);

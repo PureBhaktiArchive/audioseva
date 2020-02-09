@@ -6,12 +6,12 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { createSchema, morphism } from 'morphism';
 import { AllotmentStatus } from '../Allotment';
-import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
 import { RequireOnly } from '../RequireOnly';
 import { Spreadsheet } from '../Spreadsheet';
-import { ChunkRow, schema as chunkRowSchema } from './ChunkRow';
+import { AllotmentRow } from './AllotmentRow';
+import { ChunkRow } from './ChunkRow';
 import { TaskValidator } from './TaskValidator';
 import { TrackEditingTask } from './TrackEditingTask';
 import admin = require('firebase-admin');
@@ -39,84 +39,72 @@ export class TasksRepository {
     return repository;
   }
 
-  private allotmentsSheet: Spreadsheet;
+  private allotmentsSheet: Spreadsheet<AllotmentRow>;
 
   public async open() {
-    this.allotmentsSheet = await Spreadsheet.open<RestorableTask>(
+    this.allotmentsSheet = await Spreadsheet.open<AllotmentRow>(
       functions.config().te.spreadsheet.id,
-      'Allotments',
-      morphism(
-        createSchema<RestorableTask>({
-          id: 'Task ID',
-          isRestored: ({ 'SEd?': text }) =>
-            text ? !/^non/i.test(text) : undefined,
-          status: ({ Status: status }) =>
-            status?.trim() || AllotmentStatus.Spare,
-          timestampGiven: ({ 'Date Given': date }) =>
-            date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
-          timestampDone: ({ 'Date Done': date }) =>
-            date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
-          assignee: ({ Devotee: name, Email: emailAddress }) => ({
-            name: name?.trim() || null,
-            emailAddress: emailAddress?.trim() || null,
-          }),
-        })
-      ),
-      morphism(
-        createSchema<any, IdentifyableTask>({
-          'Task ID': 'id',
-          'SEd?': {
-            path: 'isRestored',
-            fn: isRestored => (isRestored ? 'SE' : 'non-SE'),
-          },
-          Status: {
-            path: 'status',
-            fn: status => (status === AllotmentStatus.Spare ? null : status),
-          },
-          'Date Given': {
-            path: 'timestampGiven',
-            fn: timestampGiven =>
-              timestampGiven === undefined
-                ? undefined
-                : timestampGiven
-                ? DateTimeConverter.toSerialDate(
-                    DateTime.fromMillis(timestampGiven)
-                  )
-                : null,
-          },
-          'Date Done': ({ timestampDone }) =>
-            timestampDone
-              ? DateTimeConverter.toSerialDate(
-                  DateTime.fromMillis(timestampDone)
-                )
-              : undefined,
-          Devotee: 'assignee.name',
-          Email: 'assignee.emailAddress',
-          // 'Upload Link': ({ id, lastVersion }) =>
-          //   lastVersion ? trackEditingVersionOutputLink(id, lastVersion.id) : null,
-          // 'Upload Date': ({ lastVersion }) =>
-          //   lastVersion
-          //     ? DateTimeConverter.toSerialDate(
-          //         DateTime.fromMillis(lastVersion.timestamp)
-          //       )
-          //     : undefined,
-          // 'Latest Resolution': ({ lastVersion }) =>
-          //   lastVersion && lastVersion.resolution
-          //     ? lastVersion.resolution.isApproved
-          //       ? 'Approved'
-          //       : `Disapproved: ${lastVersion.resolution.feedback}`
-          //     : null,
-          // 'Resolution Date': ({ lastVersion }) =>
-          //   lastVersion && lastVersion.resolution
-          //     ? DateTimeConverter.toSerialDate(
-          //         DateTime.fromMillis(lastVersion.resolution.timestamp)
-          //       )
-          //     : undefined,
-          // 'Checked By': ({ lastVersion }) => lastVersion?.resolution?.author?.name,
-        })
-      )
+      'Allotments'
     );
   }
+
+  private mapFromRows = morphism(
+    createSchema<RestorableTask, AllotmentRow>({
+      id: 'Task ID',
+      isRestored: ({ 'SEd?': text }) =>
+        text ? !/^non/i.test(text) : undefined,
+      status: ({ Status: status }) =>
+        <AllotmentStatus>status?.trim() || AllotmentStatus.Spare,
+      timestampGiven: ({ 'Date Given': date }) =>
+        date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
+      timestampDone: ({ 'Date Done': date }) =>
+        date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
+      assignee: ({ Devotee: name, Email: emailAddress }) => ({
+        name: name?.trim() || null,
+        emailAddress: emailAddress?.trim() || null,
+      }),
+    })
+  );
+
+  private mapToRows = morphism(
+    createSchema<AllotmentRow, IdentifyableTask>({
+      'Task ID': 'id',
+      'SEd?': ({ isRestored }) => (isRestored ? 'SE' : 'non-SE'),
+      Status: ({ status }) =>
+        status === AllotmentStatus.Spare ? null : status,
+      'Date Given': ({ timestampGiven }) =>
+        timestampGiven
+          ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven))
+          : undefined,
+      'Date Done': ({ timestampDone }) =>
+        timestampDone
+          ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampDone))
+          : undefined,
+      Devotee: 'assignee.name',
+      Email: 'assignee.emailAddress',
+      // 'Upload Link': ({ id, lastVersion }) =>
+      //   lastVersion ? trackEditingVersionOutputLink(id, lastVersion.id) : null,
+      // 'Upload Date': ({ lastVersion }) =>
+      //   lastVersion
+      //     ? DateTimeConverter.toSerialDate(
+      //         DateTime.fromMillis(lastVersion.timestamp)
+      //       )
+      //     : undefined,
+      // 'Latest Resolution': ({ lastVersion }) =>
+      //   lastVersion && lastVersion.resolution
+      //     ? lastVersion.resolution.isApproved
+      //       ? 'Approved'
+      //       : `Disapproved: ${lastVersion.resolution.feedback}`
+      //     : null,
+      // 'Resolution Date': ({ lastVersion }) =>
+      //   lastVersion && lastVersion.resolution
+      //     ? DateTimeConverter.toSerialDate(
+      //         DateTime.fromMillis(lastVersion.resolution.timestamp)
+      //       )
+      //     : undefined,
+      // 'Checked By': ({ lastVersion }) => lastVersion?.resolution?.author?.name,
+    })
+  );
 
   private getTaskRef(taskId: string) {
     return tasksRef.child(taskId);
@@ -168,19 +156,34 @@ export class TasksRepository {
   }
 
   public async saveToSpreadsheet(tasks: TrackEditingTask[]) {
-    console.debug(tasks);
-    const rows = morphism(this.objectToRowSchema, tasks);
-    await this.allotmentsSheet.updateOrAppendRows('Task ID', rows);
+    await this.allotmentsSheet.updateOrAppendRows(
+      'Task ID',
+      this.mapToRows(tasks)
+    );
   }
 
+  private mapChunksFromRows = morphism(
+    createSchema<ChunkRow>({
+      isRestored: ({ 'SEd?': text }) =>
+        text ? !/^non/i.test(text) : undefined,
+      taskId: 'Output File Name',
+      fileName: 'File Name',
+      beginning: ({ 'Beginning Time': beginning }) =>
+        DateTimeConverter.humanToSeconds(beginning),
+      ending: ({ 'End Time': ending }) =>
+        DateTimeConverter.humanToSeconds(ending),
+      continuationFrom: 'Continuation',
+      unwantedParts: 'Unwanted Parts',
+    })
+  );
+
   public async importTasks() {
-    const tasksSheet = await Spreadsheet.open<ChunkRow>(
+    const tasksSheet = await Spreadsheet.open(
       functions.config().te.spreadsheet.id,
-      'Tasks',
-      morphism(chunkRowSchema)
+      'Tasks'
     );
 
-    const tasks = _.chain(await tasksSheet.getRows())
+    const tasks = _.chain(this.mapChunksFromRows(await tasksSheet.getRows()))
       // Skip empty rows
       .filter(row => !!row.fileName)
       // Skip first rows without Task ID
@@ -202,7 +205,7 @@ export class TasksRepository {
       .map(taskRows => ({
         id: taskRows[0].taskId.trim(),
         isRestored: taskRows[0].isRestored,
-        chunks: taskRows.map<AudioChunk>(row =>
+        chunks: taskRows.map(row =>
           _.pick(row, ['fileName', 'beginning', 'ending', 'unwantedParts'])
         ),
       }))
@@ -222,10 +225,12 @@ export class TasksRepository {
     const shouldWrite = mode === 'on';
 
     /// Getting spreadsheet rows and database snapshot in parallel
-    const [allotmentsFromSpreadsheet, snapshot] = await Promise.all([
+    const [allotmentRows, snapshot] = await Promise.all([
       this.allotmentsSheet.getRows(),
       tasksRef.once('value'),
     ]);
+
+    const allotmentsFromSpreadsheet = this.mapFromRows(allotmentRows);
 
     const idsInSpreadsheet = new Set(
       _.map(allotmentsFromSpreadsheet, ({ id }) => id)
