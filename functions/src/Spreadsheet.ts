@@ -242,33 +242,29 @@ export class Spreadsheet<T extends object = object> {
   }
 
   /**
-   * Transforms the row into an object. @see objectToRow.
-   * @param row The row to be transformed into an object
+   * Transforms the values array into an object. @see objectToValues.
+   * @param values The values array to be transformed into an object
    */
-  protected rowToObject(row: any[]) {
+  protected arrayToObject(values: any[]) {
     return this.rowToObjectMapper(
       _.zipObject(
         this.columnNames,
-        this.columnNames.map((columnName, index) =>
-          row[index] === ''
-            ? null
-            : row[index] === undefined
-            ? null
-            : row[index]
+        values.map(value =>
+          value === '' ? null : value === undefined ? null : value
         )
       )
     );
   }
 
   /**
-   * Transforms the object into a row.
+   * Transforms the object into a values array.
    * https://developers.google.com/sheets/api/guides/values says,
    * “When updating, values with no data are skipped. To clear data, use an empty string ("").”
    * - `null` in the row corresponds to `undefined` in the object.
    * - Empty string in the rows corresponds to `null` in the object.
-   * @param object Source object to transform into a row
+   * @param object Source object to be transformed into an array
    */
-  protected objectToRow(object: T) {
+  protected objectToArray(object: T) {
     console.debug(object);
     const mapped = this.objectToRowMapper(object);
     const row = _(this.columnNames)
@@ -287,7 +283,7 @@ export class Spreadsheet<T extends object = object> {
     const values = await this.getValues(
       this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber))
     );
-    return this.rowToObject(values[0]);
+    return this.arrayToObject(values[0]);
   }
 
   /**
@@ -299,8 +295,8 @@ export class Spreadsheet<T extends object = object> {
     );
 
     return _.chain(values)
-      .filter(row => row.length > 0)
-      .map(row => this.rowToObject(row))
+      .filter(rowValues => rowValues.length > 0)
+      .map(rowValues => this.arrayToObject(rowValues))
       .value();
   }
 
@@ -317,7 +313,7 @@ export class Spreadsheet<T extends object = object> {
         range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
         valueInputOption: IValueInputOption.RAW,
         requestBody: {
-          values: [this.objectToRow(object)],
+          values: [this.objectToArray(object)],
         },
       })
     );
@@ -335,15 +331,10 @@ export class Spreadsheet<T extends object = object> {
         spreadsheetId: this.spreadsheetId,
         requestBody: {
           valueInputOption: IValueInputOption.RAW,
-          data: Array.from(
-            objects,
-            ([dataRowNumber, object]): sheets_v4.Schema$ValueRange => ({
-              range: this.rowToA1Notation(
-                this.fromDataRowNumber(dataRowNumber)
-              ),
-              values: [this.objectToRow(object)],
-            })
-          ),
+          data: Array.from(objects, ([dataRowNumber, object]) => ({
+            range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
+            values: [this.objectToArray(object)],
+          })),
         },
       })
     );
@@ -360,7 +351,7 @@ export class Spreadsheet<T extends object = object> {
         range: this.title,
         valueInputOption: IValueInputOption.RAW,
         requestBody: {
-          values: objects.map(object => this.objectToRow(object)),
+          values: objects.map(object => this.objectToArray(object)),
         },
       })
     );
