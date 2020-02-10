@@ -9,6 +9,15 @@
         item-text="name"
         :item-value="getAllotmentAssignee"
       >
+        <template v-slot:selection="{ item }">
+          {{ item.name }}
+          <v-badge class="ml-2" inline>
+            Given {{ assigneeTasksStats.Given }}
+          </v-badge>
+          <v-badge class="ml-2" inline>
+            WIP {{ assigneeTasksStats.WIP }}
+          </v-badge>
+        </template>
       </assignee-selector>
 
       <template v-if="isLoadingTasks">
@@ -73,7 +82,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue, Watch } from "vue-property-decorator";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
@@ -93,6 +102,7 @@ export default class Allotment extends Vue {
   tasks: any[] | null = [];
   submissionStatus: string | null = null;
   isLoadingTasks = true;
+  assigneeTasks: { [key: string]: any }[] = [];
 
   static initialAllotment() {
     return {
@@ -105,6 +115,26 @@ export default class Allotment extends Vue {
   async mounted() {
     this.getTrackEditors();
     this.getTasks();
+  }
+
+  @Watch("allotment.assignee")
+  async handleAssigneeChange(newVal: any, oldVal: any) {
+    if (!newVal) {
+      return;
+    }
+    if (newVal && newVal.emailAddress) {
+      if (oldVal && oldVal.emailAddress === newVal.emailAddress) {
+        return;
+      }
+      await this.$rtdbBind(
+        "assigneeTasks",
+        firebase
+          .database()
+          .ref("/TE/tasks")
+          .orderByChild("assignee/emailAddress")
+          .equalTo(this.allotment.assignee.emailAddress)
+      );
+    }
   }
 
   async getTrackEditors() {
@@ -178,6 +208,18 @@ export default class Allotment extends Vue {
         return summary;
       },
       ""
+    );
+  }
+
+  get assigneeTasksStats() {
+    return this.assigneeTasks.reduce(
+      (stats, task) => {
+        if (["WIP", "Given"].includes(task.status)) {
+          stats[task.status] += 1;
+        }
+        return stats;
+      },
+      { WIP: 0, Given: 0 }
     );
   }
 

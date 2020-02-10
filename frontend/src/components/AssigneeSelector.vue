@@ -7,6 +7,9 @@
     v-on="$listeners"
     :loading="loading"
   >
+    <template v-slot:selection="props">
+      <slot name="selection" v-bind="props">{{ props.item.name }}</slot>
+    </template>
     <template slot="item" slot-scope="{ item }">
       <template v-if="typeof item !== 'object'">
         <v-list-item-content v-text="item"></v-list-item-content>
