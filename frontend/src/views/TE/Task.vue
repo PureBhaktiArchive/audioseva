@@ -146,15 +146,23 @@
                   label="Feed back"
                 ></v-textarea>
                 <div :style="{ display: 'flex' }">
-                  <v-btn
-                    color="success"
+                  <vue-confirmation-button
+                    type="button"
+                    :messages="approveMessages"
                     class="mx-2"
-                    @click="handleSubmitForm(true, key)"
-                    >Approve</v-btn
+                    css="v-btn v-btn--contained theme--light v-size--default success"
+                    @confirmation-success="handleSubmitForm(true, key)"
                   >
-                  <v-btn color="error" @click="handleSubmitForm(false, key)"
-                    >Disapprove</v-btn
+                  </vue-confirmation-button>
+                  <vue-confirmation-button
+                    type="button"
+                    css="v-btn v-btn--contained theme--light v-size--default error"
+                    :messages="disapproveMessages"
+                    @confirmation-success="handleSubmitForm(false, key)"
+                    ref="disapproveConfirmation"
                   >
+                    Disapprove
+                  </vue-confirmation-button>
                 </div>
               </v-form>
             </v-timeline-item>
@@ -173,6 +181,7 @@ import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
 import _ from "lodash";
+import VueConfirmationButton from "vue-confirmation-button";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import FormatTime from "@/mixins/FormatTime";
@@ -186,7 +195,7 @@ enum State {
 
 @Component({
   name: "Task",
-  components: { TaskDefinition, VersionDownloadLink },
+  components: { TaskDefinition, VersionDownloadLink, VueConfirmationButton },
   computed: {
     ...mapState("user", ["currentUser"])
   },
@@ -199,6 +208,9 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   TaskMixin,
   FormatTime
 ) {
+  $refs!: {
+    disapproveConfirmation: any;
+  };
   task: any = {};
   State = State;
   state: State = State.LOADING;
@@ -208,6 +220,8 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     feedback: ""
   };
   rules: any[] = [];
+  approveMessages = ["Approve", "Are you sure?", "OK!"];
+  disapproveMessages = ["Disapprove", "Are you sure?", "OK!"];
 
   currentUser!: firebase.User;
   getUserClaims!: any;
@@ -260,6 +274,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     if (isApproved) {
       this.resetRules();
     } else {
+      this.$refs.disapproveConfirmation[0].reset();
       this.activateRules();
     }
     this.$nextTick(async () => {
