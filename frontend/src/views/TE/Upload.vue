@@ -417,7 +417,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       },
       () => {
         this.totalUploadCount -= 1;
-        this.completedFiles.unshift(file);
+        this.completedFiles.push(file);
         this.files.delete(file);
         this.$forceUpdate();
       }
