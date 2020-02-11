@@ -20,9 +20,6 @@
             <v-row align="start">
               <v-col
                 cols="12"
-                md="2"
-                lg="2"
-                xl="1"
                 :style="{ alignItems: 'center', flexWrap: 'wrap' }"
                 class="d-flex shrink"
               >
@@ -36,9 +33,7 @@
                 >
                   <code slot="label">{{ task[".key"] }}</code>
                 </v-checkbox>
-              </v-col>
-              <v-col md="9" lg="10" xl="11" class="pa-0 pl-2">
-                <task-definition class="pr-3" :item="task" />
+                {{ getTaskSummary(task) }}
               </v-col>
             </v-row>
             <v-divider
@@ -155,6 +150,33 @@ export default class Allotment extends Vue {
 
   getAllotmentAssignee({ emailAddress, name }: any) {
     return { emailAddress, name };
+  }
+
+  getTaskSummary(task: any) {
+    if (!task.chunks) return "";
+    const summaryStats = task.chunks.reduce(
+      (stats: { [x: string]: number | undefined }, chunk: any) => {
+        if (stats[chunk.fileName] === undefined) {
+          stats[chunk.fileName] = 0;
+        }
+        if (chunk.unwantedParts) {
+          stats[chunk.fileName] += chunk.unwantedParts.split("\n").length;
+        }
+        return stats;
+      },
+      {}
+    );
+    return Object.entries(summaryStats).reduce(
+      (summary: string, [fileName, count]: any) => {
+        if (summary) {
+          summary += ` + ${fileName} (${count} UP)`;
+        } else {
+          summary += `${fileName} (${count} UP)`;
+        }
+        return summary;
+      },
+      ""
+    );
   }
 
   reset() {
