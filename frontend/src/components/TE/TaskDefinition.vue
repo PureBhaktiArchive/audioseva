@@ -17,7 +17,7 @@
           >
         </v-col>
         <v-col v-bind="layout.unwantedParts">
-          <!-- Needed so pre-wrap doesn't add extra space at start of unwantedParts -->
+          <!-- Needed so prettier doesn't add extra space at start of unwantedParts -->
           <!-- prettier-ignore -->
           <div :style="{ whiteSpace: 'pre-wrap' }">{{ chunk.unwantedParts }}</div>
         </v-col>
