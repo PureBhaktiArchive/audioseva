@@ -11,11 +11,13 @@
       >
         <template v-slot:selection="{ item }">
           {{ item.name }}
-          <v-badge class="ml-2" inline>
-            Given {{ assigneeTasksStats.Given }}
+          <v-badge class="mx-3" inline>
+            <template v-slot:badge>{{ assigneeTasksStats.Given }}</template>
+            Given
           </v-badge>
-          <v-badge class="ml-2" inline>
-            WIP {{ assigneeTasksStats.WIP }}
+          <v-badge class="ml-4" inline>
+            <template v-slot:badge>{{ assigneeTasksStats.WIP }}</template>
+            WIP
           </v-badge>
         </template>
       </assignee-selector>
