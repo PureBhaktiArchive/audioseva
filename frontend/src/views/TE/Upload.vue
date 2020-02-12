@@ -135,6 +135,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     previewTemplate: this.template(),
     url: "localhost",
     autoProcessQueue: false,
+    acceptedFiles: ".mp3,.flac",
     uploadMultiple: true
   };
 
@@ -213,11 +214,18 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
 
     if (!taskId) throw new Error("The file name is not a correct task ID");
 
-    if (file.type !== `audio/${taskId.startsWith("DIGI") ? "mpeg" : "flac"}`) {
+    if (!file.type.startsWith("audio/"))
+      throw new Error("File is not an audio file.");
+
+    if (
+      !file.name
+        .toUpperCase()
+        .endsWith(taskId.startsWith("DIGI") ? ".MP3" : ".FLAC")
+    )
       throw new Error(
         `File type must be ${taskId.startsWith("DIGI") ? "MP3" : "FLAC"}`
       );
-    }
+
     const taskSnapshot = await firebase
       .database()
       .ref(`/TE/tasks/${taskId}`)
