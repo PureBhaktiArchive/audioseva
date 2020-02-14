@@ -251,12 +251,10 @@ export class Spreadsheet<T extends object = object> {
    * @param object Source object to be transformed into an array
    */
   protected objectToArray(object: T) {
-    console.debug(object);
     const row = _(this.columnNames)
       .map(columnName => object[columnName])
       .map(value => (value === undefined ? null : value === null ? '' : value))
       .value();
-    console.debug(row);
     return row;
   }
 
@@ -340,7 +338,6 @@ export class Spreadsheet<T extends object = object> {
         },
       })
     );
-    console.debug(response);
   }
 
   /**
