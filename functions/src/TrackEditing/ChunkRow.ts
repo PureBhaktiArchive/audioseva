@@ -3,11 +3,11 @@
  */
 
 export interface ChunkRow {
-  isRestored: boolean;
-  taskId: string;
+  sed: string;
+  outputFileName: string;
   fileName: string;
-  beginning: number;
-  ending: number;
+  beginningTime: string;
+  endingTime: string;
   continuationFrom: string;
   unwantedParts: string;
 }

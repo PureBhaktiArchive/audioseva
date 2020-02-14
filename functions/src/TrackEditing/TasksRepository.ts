@@ -6,6 +6,7 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { createSchema, morphism } from 'morphism';
 import { AllotmentStatus } from '../Allotment';
+import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
 import { RequireOnly } from '../RequireOnly';
@@ -162,35 +163,20 @@ export class TasksRepository {
     );
   }
 
-  private mapChunksFromRows = morphism(
-    createSchema<ChunkRow>({
-      isRestored: ({ 'SEd?': text }) =>
-        text ? !/^non/i.test(text) : undefined,
-      taskId: 'Output File Name',
-      fileName: 'File Name',
-      beginning: ({ 'Beginning Time': beginning }) =>
-        DateTimeConverter.humanToSeconds(beginning),
-      ending: ({ 'End Time': ending }) =>
-        DateTimeConverter.humanToSeconds(ending),
-      continuationFrom: 'Continuation',
-      unwantedParts: 'Unwanted Parts',
-    })
-  );
-
   public async importTasks() {
-    const tasksSheet = await Spreadsheet.open(
+    const tasksSheet = await Spreadsheet.open<ChunkRow>(
       functions.config().te.spreadsheet.id,
       'Tasks'
     );
 
-    const tasks = _.chain(this.mapChunksFromRows(await tasksSheet.getRows()))
+    const tasks = _.chain(await tasksSheet.getRows())
       // Skip empty rows
       .filter(row => !!row.fileName)
       // Skip first rows without Task ID
-      .dropWhile(row => !row.taskId)
+      .dropWhile(row => !row.outputFileName)
       // Group chunks of one task together
       .reduce((accumulator, row) => {
-        if (row.taskId) accumulator.push([]);
+        if (row.outputFileName) accumulator.push([]);
         accumulator[accumulator.length - 1].push(row);
         return accumulator;
       }, new Array<Array<ChunkRow>>())
@@ -198,15 +184,23 @@ export class TasksRepository {
       .filter(taskRows => {
         const validationResult = new TaskValidator().validate(taskRows);
         if (!validationResult.isValid)
-          console.info(`${taskRows[0].taskId}:`, validationResult.messages);
+          console.info(
+            `${taskRows[0].outputFileName}:`,
+            validationResult.messages
+          );
         return validationResult.isValid;
       })
       // Convert the rows into the tasks
       .map(taskRows => ({
-        id: taskRows[0].taskId.trim(),
-        isRestored: taskRows[0].isRestored,
-        chunks: taskRows.map(row =>
-          _.pick(row, ['fileName', 'beginning', 'ending', 'unwantedParts'])
+        id: taskRows[0].outputFileName.trim(),
+        isRestored: taskRows[0].sed.toUpperCase() === 'SED',
+        chunks: taskRows.map<AudioChunk>(
+          ({ fileName, beginningTime, endingTime, unwantedParts }) => ({
+            fileName,
+            beginning: DateTimeConverter.humanToSeconds(beginningTime),
+            ending: DateTimeConverter.humanToSeconds(endingTime),
+            unwantedParts,
+          })
         ),
       }))
       .value();
