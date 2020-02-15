@@ -230,14 +230,16 @@ export class Spreadsheet<T extends object = object> {
   }
 
   /**
-   * Transforms the values array into an object. @see objectToValues.
+   * Transforms the values array into an object.
+   * - `null` in the array transforms into `undefined` in the object.
+   * - Empty string in the array transforms into `null` in the object.
    * @param values The values array to be transformed into an object
    */
   protected arrayToObject(values: any[]) {
     return _.zipObject(
       this.columnNames,
       values.map(value =>
-        value === '' ? null : value === undefined ? null : value
+        value === '' ? null : value === null ? undefined : value
       )
     ) as T;
   }
@@ -246,8 +248,8 @@ export class Spreadsheet<T extends object = object> {
    * Transforms the object into a values array.
    * https://developers.google.com/sheets/api/guides/values says,
    * “When updating, values with no data are skipped. To clear data, use an empty string ("").”
-   * - `null` in the row corresponds to `undefined` in the object.
-   * - Empty string in the rows corresponds to `null` in the object.
+   * - `undefined` in the object transforms into `null` in the array.
+   * - `null` in the object transforms into empty string in the array.
    * @param object Source object to be transformed into an array
    */
   protected objectToArray(object: T) {
