@@ -21,15 +21,7 @@ import _ = require('lodash');
 
 type IdentifyableTask = RequireOnly<TrackEditingTask, 'id'>;
 
-type RestorableTask = Pick<
-  TrackEditingTask,
-  | 'id'
-  | 'isRestored'
-  | 'status'
-  | 'timestampGiven'
-  | 'timestampDone'
-  | 'assignee'
->;
+type RestorableTask = Pick<TrackEditingTask, 'id' | 'status' | 'assignee'>;
 
 const baseRef = admin.database().ref(`/TE`);
 const tasksRef = baseRef.child(`tasks`);
@@ -49,14 +41,8 @@ export class TasksRepository {
   private mapFromRows = morphism(
     createSchema<RestorableTask, AllotmentRow>({
       id: 'Task ID',
-      isRestored: ({ 'SEd?': text }) =>
-        text ? !/^non/i.test(text) : undefined,
       status: ({ Status: status }) =>
         <AllotmentStatus>status?.trim() || AllotmentStatus.Spare,
-      timestampGiven: ({ 'Date Given': date }) =>
-        date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
-      timestampDone: ({ 'Date Done': date }) =>
-        date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
       assignee: ({ Devotee: name, Email: emailAddress }) => ({
         name: name?.trim() || null,
         emailAddress: emailAddress?.trim() || null,
@@ -306,11 +292,10 @@ export class TasksRepository {
         return true;
       })
       /// Updating only these fields
-      .map(({ id, status, assignee, timestampGiven }) => ({
+      .map(({ id, status, assignee }) => ({
         id,
         assignee,
         status,
-        timestampGiven,
       }))
       .value();
 
