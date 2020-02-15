@@ -93,7 +93,7 @@ export class TasksRepository {
             )
           : null,
         'Checked By': lastResolvedVersion
-          ? lastResolvedVersion.resolution.author?.name
+          ? lastResolvedVersion.resolution.author?.name || null
           : null,
       };
     });
