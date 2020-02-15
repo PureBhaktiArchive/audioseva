@@ -190,7 +190,7 @@ export class TasksRepository {
           ({
             'File Name': fileName,
             'Beginning Time': beginningTime,
-            'Ending Time': endingTime,
+            'End Time': endingTime,
             'Unwanted Parts': unwantedParts,
           }) => ({
             fileName,

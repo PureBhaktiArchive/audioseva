@@ -15,7 +15,7 @@ export class TaskValidator extends Validator<ChunkRow[]> {
         `SEd is incorrect.`
       ),
       new ValidationRuleForEach(
-        ({ 'Beginning Time': beginningTime, 'Ending Time': endingTime }) =>
+        ({ 'Beginning Time': beginningTime, 'End Time': endingTime }) =>
           !Number.isNaN(DateTimeConverter.humanToSeconds(beginningTime)) &&
           !Number.isNaN(DateTimeConverter.humanToSeconds(endingTime)),
         'Timing is incorrect.'

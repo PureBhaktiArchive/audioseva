@@ -7,7 +7,7 @@ export interface ChunkRow {
   'Output File Name': string;
   'File Name': string;
   'Beginning Time': string;
-  'Ending Time': string;
+  'End Time': string;
   Continuation: string;
   'Unwanted Parts': string;
 }
