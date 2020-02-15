@@ -6,88 +6,98 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { createSchema, morphism } from 'morphism';
 import { AllotmentStatus } from '../Allotment';
+import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
 import { trackEditingVersionOutputLink } from '../Frontend';
 import { RequireOnly } from '../RequireOnly';
 import { Spreadsheet } from '../Spreadsheet';
-import { ChunkRow, schema as chunkRowSchema } from './ChunkRow';
+import { AllotmentRow } from './AllotmentRow';
+import { ChunkRow } from './ChunkRow';
 import { TaskValidator } from './TaskValidator';
 import { TrackEditingTask } from './TrackEditingTask';
 import admin = require('firebase-admin');
 import _ = require('lodash');
 
-export type IdentifyableTask = RequireOnly<TrackEditingTask, 'id'>;
+type IdentifiableTask = RequireOnly<TrackEditingTask, 'id'>;
+
+type RestorableTask = Pick<TrackEditingTask, 'id' | 'status' | 'assignee'>;
 
 const baseRef = admin.database().ref(`/TE`);
 const tasksRef = baseRef.child(`tasks`);
 
 export class TasksRepository {
-  static async open() {
-    const repository = new TasksRepository();
-    await repository.open();
-    return repository;
+  private _allotmentsSheet: Spreadsheet<AllotmentRow>;
+  protected async allotmentsSheet() {
+    this._allotmentsSheet =
+      this._allotmentsSheet ||
+      (await Spreadsheet.open<AllotmentRow>(
+        functions.config().te.spreadsheet.id,
+        'Allotments'
+      ));
+    return this._allotmentsSheet;
   }
 
-  private allotmentsSheet: Spreadsheet;
+  private mapFromRows = morphism(
+    createSchema<RestorableTask, AllotmentRow>({
+      id: 'Task ID',
+      status: ({ Status: status }) =>
+        <AllotmentStatus>status?.trim() || AllotmentStatus.Spare,
+      assignee: ({ Devotee: name, Email: emailAddress }) => ({
+        name: name?.trim() || null,
+        emailAddress: emailAddress?.trim() || null,
+      }),
+    })
+  );
 
-  public async open() {
-    this.allotmentsSheet = await Spreadsheet.open(
-      functions.config().te.spreadsheet.id,
-      'Allotments'
-    );
+  private mapToRows(tasks: IdentifiableTask[]): AllotmentRow[] {
+    return tasks.map<AllotmentRow>(task => {
+      const lastVersionKey = _.findLastKey(task.versions);
+      const lastResolvedVersion = _.findLast(
+        task.versions,
+        version => !!version.resolution
+      );
+
+      return {
+        'Task ID': task.id,
+        'SEd?': task.isRestored ? 'SEd' : 'non-SEd',
+        Status: task.status === AllotmentStatus.Spare ? null : task.status,
+        'Date Given': task.timestampGiven
+          ? DateTimeConverter.toSerialDate(
+              DateTime.fromMillis(task.timestampGiven)
+            )
+          : null,
+        'Date Done': task.timestampDone
+          ? DateTimeConverter.toSerialDate(
+              DateTime.fromMillis(task.timestampDone)
+            )
+          : null,
+        Devotee: task.assignee?.name || null,
+        Email: task.assignee?.emailAddress || null,
+        'Upload Link': lastVersionKey
+          ? trackEditingVersionOutputLink(task.id, lastVersionKey)
+          : null,
+        'Upload Date': lastVersionKey
+          ? DateTimeConverter.toSerialDate(
+              DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
+            )
+          : null,
+        'Latest Resolution': lastResolvedVersion
+          ? lastResolvedVersion.resolution.isApproved
+            ? 'Approved'
+            : `Disapproved: ${lastResolvedVersion.resolution.feedback}`
+          : null,
+        'Resolution Date': lastResolvedVersion
+          ? DateTimeConverter.toSerialDate(
+              DateTime.fromMillis(lastResolvedVersion.resolution.timestamp)
+            )
+          : null,
+        'Checked By': lastResolvedVersion
+          ? lastResolvedVersion.resolution.author?.name || null
+          : null,
+      };
+    });
   }
-
-  private rowToObjectSchema = createSchema<IdentifyableTask>({
-    id: 'Task ID',
-    isRestored: ({ 'SEd?': text }) => (text ? !/^non/i.test(text) : undefined),
-    status: ({ Status: status }) => status?.trim() || AllotmentStatus.Spare,
-    timestampGiven: ({ 'Date Given': date }) =>
-      date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
-    timestampDone: ({ 'Date Done': date }) =>
-      date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
-    assignee: ({ Devotee: name, Email: emailAddress }) => ({
-      name: name?.trim() || null,
-      emailAddress: emailAddress?.trim() || null,
-    }),
-  });
-
-  private objectToRowSchema = createSchema<any, IdentifyableTask>({
-    'Task ID': 'id',
-    'SEd?': ({ isRestored }) => (isRestored ? 'SE' : 'non-SE'),
-    Status: ({ status }) => (status === AllotmentStatus.Spare ? null : status),
-    'Date Given': ({ timestampGiven }) =>
-      timestampGiven
-        ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven))
-        : null,
-    'Date Done': ({ timestampDone }) =>
-      timestampDone
-        ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampDone))
-        : null,
-    Devotee: 'assignee.name',
-    Email: 'assignee.emailAddress',
-    'Upload Link': ({ id, lastVersion }) =>
-      lastVersion ? trackEditingVersionOutputLink(id, lastVersion.id) : null,
-    'Upload Date': ({ lastVersion }) =>
-      lastVersion
-        ? DateTimeConverter.toSerialDate(
-            DateTime.fromMillis(lastVersion.timestamp)
-          )
-        : null,
-    'Latest Resolution': ({ lastVersion }) =>
-      lastVersion && lastVersion.resolution
-        ? lastVersion.resolution.isApproved
-          ? 'Approved'
-          : `Disapproved: ${lastVersion.resolution.feedback}`
-        : null,
-    'Resolution Date': ({ lastVersion }) =>
-      lastVersion && lastVersion.resolution
-        ? DateTimeConverter.toSerialDate(
-            DateTime.fromMillis(lastVersion.resolution.timestamp)
-          )
-        : null,
-    'Checked By': ({ lastVersion }) => lastVersion?.resolution?.author?.name,
-  });
 
   private getTaskRef(taskId: string) {
     return tasksRef.child(taskId);
@@ -96,7 +106,7 @@ export class TasksRepository {
   public async getTask(taskId: string) {
     const snapshot = await this.getTaskRef(taskId).once('value');
     return snapshot.exists()
-      ? new TrackEditingTask(taskId, snapshot.val())
+      ? <TrackEditingTask>{ id: taskId, ...snapshot.val() }
       : null;
   }
 
@@ -104,7 +114,7 @@ export class TasksRepository {
     return await Promise.all(taskIds.map(async taskId => this.getTask(taskId)));
   }
 
-  public async save(...tasks: IdentifyableTask[]) {
+  public async save(...tasks: IdentifiableTask[]) {
     await this.saveToDatabase(tasks);
 
     const updatedTasks = await this.getTasks(tasks.map(({ id }) => id));
@@ -124,7 +134,7 @@ export class TasksRepository {
     return updatedTask;
   }
 
-  private async saveToDatabase(tasks: IdentifyableTask[]) {
+  private async saveToDatabase(tasks: IdentifiableTask[]) {
     await tasksRef.update(
       _.chain(tasks)
         .flatMap(task =>
@@ -139,27 +149,26 @@ export class TasksRepository {
   }
 
   public async saveToSpreadsheet(tasks: TrackEditingTask[]) {
-    const rows = morphism(this.objectToRowSchema, tasks);
-    await this.allotmentsSheet.updateOrAppendRows(
-      <string>this.rowToObjectSchema.id,
-      rows
+    await (await this.allotmentsSheet()).updateOrAppendRows(
+      'Task ID',
+      this.mapToRows(tasks)
     );
   }
 
   public async importTasks() {
-    const tasksSheet = await Spreadsheet.open(
+    const tasksSheet = await Spreadsheet.open<ChunkRow>(
       functions.config().te.spreadsheet.id,
       'Tasks'
     );
 
-    const tasks = _.chain(await tasksSheet.getRows(chunkRowSchema))
+    const tasks = _.chain(await tasksSheet.getRows())
       // Skip empty rows
-      .filter(row => !!row.fileName)
+      .filter(row => !!row['File Name'])
       // Skip first rows without Task ID
-      .dropWhile(row => !row.taskId)
+      .dropWhile(row => !row['Output File Name'])
       // Group chunks of one task together
       .reduce((accumulator, row) => {
-        if (row.taskId) accumulator.push([]);
+        if (row['Output File Name']) accumulator.push([]);
         accumulator[accumulator.length - 1].push(row);
         return accumulator;
       }, new Array<Array<ChunkRow>>())
@@ -167,19 +176,30 @@ export class TasksRepository {
       .filter(taskRows => {
         const validationResult = new TaskValidator().validate(taskRows);
         if (!validationResult.isValid)
-          console.info(`${taskRows[0].taskId}:`, validationResult.messages);
+          console.info(
+            `${taskRows[0]['Output File Name']}:`,
+            validationResult.messages
+          );
         return validationResult.isValid;
       })
       // Convert the rows into the tasks
-      .map(
-        taskRows =>
-          new TrackEditingTask(taskRows[0].taskId.trim(), {
-            isRestored: taskRows[0].isRestored,
-            chunks: taskRows.map(row =>
-              _.pick(row, ['fileName', 'beginning', 'ending', 'unwantedParts'])
-            ),
+      .map(taskRows => ({
+        id: taskRows[0]['Output File Name'].trim(),
+        isRestored: taskRows[0]['SEd?'].toUpperCase() === 'SED',
+        chunks: taskRows.map<AudioChunk>(
+          ({
+            'File Name': fileName,
+            'Beginning Time': beginningTime,
+            'End Time': endingTime,
+            'Unwanted Parts': unwantedParts,
+          }) => ({
+            fileName,
+            beginning: DateTimeConverter.humanToSeconds(beginningTime),
+            ending: DateTimeConverter.humanToSeconds(endingTime),
+            unwantedParts,
           })
-      )
+        ),
+      }))
       .value();
 
     await this.saveToDatabase(tasks);
@@ -196,17 +216,19 @@ export class TasksRepository {
     const shouldWrite = mode === 'on';
 
     /// Getting spreadsheet rows and database snapshot in parallel
-    const [allotmentsFromSpreadsheet, snapshot] = await Promise.all([
-      this.allotmentsSheet.getRows(this.rowToObjectSchema),
+    const [allotmentRows, snapshot] = await Promise.all([
+      (await this.allotmentsSheet()).getRows(),
       tasksRef.once('value'),
     ]);
+
+    const allotmentsFromSpreadsheet = this.mapFromRows(allotmentRows);
 
     const idsInSpreadsheet = new Set(
       _.map(allotmentsFromSpreadsheet, ({ id }) => id)
     );
 
     const tasksFromDatabase = _.chain(snapshot.val())
-      .mapValues((source, id) => new TrackEditingTask(id, source))
+      .mapValues((source, id) => <TrackEditingTask>{ id, ...source })
       .value();
 
     /// Adding missing tasks from the database to the spreadsheet
@@ -270,11 +292,10 @@ export class TasksRepository {
         return true;
       })
       /// Updating only these fields
-      .map(({ id, status, assignee, timestampGiven }) => ({
+      .map(({ id, status, assignee }) => ({
         id,
         assignee,
         status,
-        timestampGiven,
       }))
       .value();
 
