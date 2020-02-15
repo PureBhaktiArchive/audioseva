@@ -328,7 +328,7 @@ export class Spreadsheet<T extends object = object> {
    * @param objects Data values to add to Google Sheets
    */
   public async appendRows(objects: T[]) {
-    const response = Spreadsheet.getResponse(
+    Spreadsheet.getResponse(
       await this.api.spreadsheets.values.append({
         spreadsheetId: this.spreadsheetId,
         range: this.title,
