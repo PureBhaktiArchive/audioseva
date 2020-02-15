@@ -3,11 +3,11 @@
  */
 
 export interface ChunkRow {
-  sed: string;
-  outputFileName: string;
-  fileName: string;
-  beginningTime: string;
-  endingTime: string;
-  continuationFrom: string;
-  unwantedParts: string;
+  'SEd?': string;
+  'Output File Name': string;
+  'File Name': string;
+  'Beginning Time': string;
+  'Ending Time': string;
+  Continuation: string;
+  'Unwanted Parts': string;
 }

@@ -11,22 +11,22 @@ export class TaskValidator extends Validator<ChunkRow[]> {
   constructor() {
     super([
       new ValidationRuleForEach(
-        row => !row.outputFileName || /^(non-)?SEd$/i.test(row.sed),
+        row => !row['Output File Name'] || /^(non-)?SEd$/i.test(row['SEd?']),
         `SEd is incorrect.`
       ),
       new ValidationRuleForEach(
-        ({ beginningTime, endingTime }) =>
+        ({ 'Beginning Time': beginningTime, 'Ending Time': endingTime }) =>
           !Number.isNaN(DateTimeConverter.humanToSeconds(beginningTime)) &&
           !Number.isNaN(DateTimeConverter.humanToSeconds(endingTime)),
         'Timing is incorrect.'
       ),
       new ValidationRuleForEach(
-        row => !row.outputFileName || !row.continuationFrom,
+        row => !row['Output File Name'] || !row['Continuation'],
         `Continuation From is not empty for the first chunk.`
       ),
       new ValidationRuleForEach(
         (row, index, source) =>
-          !index || row.continuationFrom === source[index - 1].fileName,
+          !index || row['Continuation'] === source[index - 1]['File Name'],
         'Continuation is not matching the file name.'
       ),
     ]);

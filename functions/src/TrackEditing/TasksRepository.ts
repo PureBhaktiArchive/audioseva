@@ -171,12 +171,12 @@ export class TasksRepository {
 
     const tasks = _.chain(await tasksSheet.getRows())
       // Skip empty rows
-      .filter(row => !!row.fileName)
+      .filter(row => !!row['File Name'])
       // Skip first rows without Task ID
-      .dropWhile(row => !row.outputFileName)
+      .dropWhile(row => !row['Output File Name'])
       // Group chunks of one task together
       .reduce((accumulator, row) => {
-        if (row.outputFileName) accumulator.push([]);
+        if (row['Output File Name']) accumulator.push([]);
         accumulator[accumulator.length - 1].push(row);
         return accumulator;
       }, new Array<Array<ChunkRow>>())
@@ -185,17 +185,22 @@ export class TasksRepository {
         const validationResult = new TaskValidator().validate(taskRows);
         if (!validationResult.isValid)
           console.info(
-            `${taskRows[0].outputFileName}:`,
+            `${taskRows[0]['Output File Name']}:`,
             validationResult.messages
           );
         return validationResult.isValid;
       })
       // Convert the rows into the tasks
       .map(taskRows => ({
-        id: taskRows[0].outputFileName.trim(),
-        isRestored: taskRows[0].sed.toUpperCase() === 'SED',
+        id: taskRows[0]['Output File Name'].trim(),
+        isRestored: taskRows[0]['SEd?'].toUpperCase() === 'SED',
         chunks: taskRows.map<AudioChunk>(
-          ({ fileName, beginningTime, endingTime, unwantedParts }) => ({
+          ({
+            'File Name': fileName,
+            'Beginning Time': beginningTime,
+            'Ending Time': endingTime,
+            'Unwanted Parts': unwantedParts,
+          }) => ({
             fileName,
             beginning: DateTimeConverter.humanToSeconds(beginningTime),
             ending: DateTimeConverter.humanToSeconds(endingTime),
