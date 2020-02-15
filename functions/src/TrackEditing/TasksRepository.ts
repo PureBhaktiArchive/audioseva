@@ -9,6 +9,7 @@ import { AllotmentStatus } from '../Allotment';
 import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
+import { trackEditingVersionOutputLink } from '../Frontend';
 import { RequireOnly } from '../RequireOnly';
 import { Spreadsheet } from '../Spreadsheet';
 import { AllotmentRow } from './AllotmentRow';
@@ -63,45 +64,54 @@ export class TasksRepository {
     })
   );
 
-  private mapToRows = morphism(
-    createSchema<AllotmentRow, IdentifyableTask>({
-      'Task ID': 'id',
-      'SEd?': ({ isRestored }) => (isRestored ? 'SE' : 'non-SE'),
-      Status: ({ status }) =>
-        status === AllotmentStatus.Spare ? null : status,
-      'Date Given': ({ timestampGiven }) =>
-        timestampGiven
-          ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven))
-          : undefined,
-      'Date Done': ({ timestampDone }) =>
-        timestampDone
-          ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampDone))
-          : undefined,
-      Devotee: 'assignee.name',
-      Email: 'assignee.emailAddress',
-      // 'Upload Link': ({ id, lastVersion }) =>
-      //   lastVersion ? trackEditingVersionOutputLink(id, lastVersion.id) : null,
-      // 'Upload Date': ({ lastVersion }) =>
-      //   lastVersion
-      //     ? DateTimeConverter.toSerialDate(
-      //         DateTime.fromMillis(lastVersion.timestamp)
-      //       )
-      //     : undefined,
-      // 'Latest Resolution': ({ lastVersion }) =>
-      //   lastVersion && lastVersion.resolution
-      //     ? lastVersion.resolution.isApproved
-      //       ? 'Approved'
-      //       : `Disapproved: ${lastVersion.resolution.feedback}`
-      //     : null,
-      // 'Resolution Date': ({ lastVersion }) =>
-      //   lastVersion && lastVersion.resolution
-      //     ? DateTimeConverter.toSerialDate(
-      //         DateTime.fromMillis(lastVersion.resolution.timestamp)
-      //       )
-      //     : undefined,
-      // 'Checked By': ({ lastVersion }) => lastVersion?.resolution?.author?.name,
-    })
-  );
+  private mapToRows(tasks: IdentifyableTask[]): AllotmentRow[] {
+    return tasks.map<AllotmentRow>(task => {
+      const lastVersionKey = _.findLastKey(task.versions);
+      const lastResolvedVersion = _.findLast(
+        task.versions,
+        version => !!version.resolution
+      );
+
+      return {
+        'Task ID': task.id,
+        'SEd?': task.isRestored ? 'SEd' : 'non-SEd',
+        Status: task.status === AllotmentStatus.Spare ? null : task.status,
+        'Date Given': task.timestampGiven
+          ? DateTimeConverter.toSerialDate(
+              DateTime.fromMillis(task.timestampGiven)
+            )
+          : null,
+        'Date Done': task.timestampDone
+          ? DateTimeConverter.toSerialDate(
+              DateTime.fromMillis(task.timestampDone)
+            )
+          : null,
+        Devotee: task.assignee?.name || null,
+        Email: task.assignee?.emailAddress || null,
+        'Upload Link': lastVersionKey
+          ? trackEditingVersionOutputLink(task.id, lastVersionKey)
+          : null,
+        'Upload Date': lastVersionKey
+          ? DateTimeConverter.toSerialDate(
+              DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
+            )
+          : null,
+        'Latest Resolution': lastResolvedVersion
+          ? lastResolvedVersion.resolution.isApproved
+            ? 'Approved'
+            : `Disapproved: ${lastResolvedVersion.resolution.feedback}`
+          : null,
+        'Resolution Date': lastResolvedVersion
+          ? DateTimeConverter.toSerialDate(
+              DateTime.fromMillis(lastResolvedVersion.resolution.timestamp)
+            )
+          : null,
+        'Checked By': lastResolvedVersion
+          ? lastResolvedVersion.resolution.author?.name
+          : null,
+      };
+    });
+  }
 
   private getTaskRef(taskId: string) {
     return tasksRef.child(taskId);
