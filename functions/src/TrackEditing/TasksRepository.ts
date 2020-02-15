@@ -19,7 +19,7 @@ import { TrackEditingTask } from './TrackEditingTask';
 import admin = require('firebase-admin');
 import _ = require('lodash');
 
-type IdentifyableTask = RequireOnly<TrackEditingTask, 'id'>;
+type IdentifiableTask = RequireOnly<TrackEditingTask, 'id'>;
 
 type RestorableTask = Pick<TrackEditingTask, 'id' | 'status' | 'assignee'>;
 
@@ -50,7 +50,7 @@ export class TasksRepository {
     })
   );
 
-  private mapToRows(tasks: IdentifyableTask[]): AllotmentRow[] {
+  private mapToRows(tasks: IdentifiableTask[]): AllotmentRow[] {
     return tasks.map<AllotmentRow>(task => {
       const lastVersionKey = _.findLastKey(task.versions);
       const lastResolvedVersion = _.findLast(
@@ -114,7 +114,7 @@ export class TasksRepository {
     return await Promise.all(taskIds.map(async taskId => this.getTask(taskId)));
   }
 
-  public async save(...tasks: IdentifyableTask[]) {
+  public async save(...tasks: IdentifiableTask[]) {
     await this.saveToDatabase(tasks);
 
     const updatedTasks = await this.getTasks(tasks.map(({ id }) => id));
@@ -134,7 +134,7 @@ export class TasksRepository {
     return updatedTask;
   }
 
-  private async saveToDatabase(tasks: IdentifyableTask[]) {
+  private async saveToDatabase(tasks: IdentifiableTask[]) {
     await tasksRef.update(
       _.chain(tasks)
         .flatMap(task =>
