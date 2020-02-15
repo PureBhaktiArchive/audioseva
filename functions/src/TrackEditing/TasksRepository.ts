@@ -34,19 +34,15 @@ const baseRef = admin.database().ref(`/TE`);
 const tasksRef = baseRef.child(`tasks`);
 
 export class TasksRepository {
-  static async open() {
-    const repository = new TasksRepository();
-    await repository.open();
-    return repository;
-  }
-
-  private allotmentsSheet: Spreadsheet<AllotmentRow>;
-
-  public async open() {
-    this.allotmentsSheet = await Spreadsheet.open<AllotmentRow>(
-      functions.config().te.spreadsheet.id,
-      'Allotments'
-    );
+  private _allotmentsSheet: Spreadsheet<AllotmentRow>;
+  protected async allotmentsSheet() {
+    this._allotmentsSheet =
+      this._allotmentsSheet ||
+      (await Spreadsheet.open<AllotmentRow>(
+        functions.config().te.spreadsheet.id,
+        'Allotments'
+      ));
+    return this._allotmentsSheet;
   }
 
   private mapFromRows = morphism(
@@ -157,7 +153,7 @@ export class TasksRepository {
   }
 
   public async saveToSpreadsheet(tasks: TrackEditingTask[]) {
-    await this.allotmentsSheet.updateOrAppendRows(
+    await (await this.allotmentsSheet()).updateOrAppendRows(
       'Task ID',
       this.mapToRows(tasks)
     );
@@ -225,7 +221,7 @@ export class TasksRepository {
 
     /// Getting spreadsheet rows and database snapshot in parallel
     const [allotmentRows, snapshot] = await Promise.all([
-      this.allotmentsSheet.getRows(),
+      (await this.allotmentsSheet()).getRows(),
       tasksRef.once('value'),
     ]);
 

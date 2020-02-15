@@ -31,7 +31,7 @@ export const processAllotment = functions.https.onCall(
 
     console.info(`Allotting ${taskIds.join(', ')} to ${assignee.emailAddress}`);
 
-    const repository = await TasksRepository.open();
+    const repository = new TasksRepository();
     const tasks = await repository.getTasks(taskIds);
 
     const dirtyTasks = _(tasks)
@@ -79,7 +79,7 @@ export const cancelAllotment = functions.https.onCall(
 
     if (!taskId) abortCall('invalid-argument', 'Task ID is required.');
 
-    const repository = await TasksRepository.open();
+    const repository = new TasksRepository();
     const task = await repository.getTask(taskId);
 
     if (task.status === AllotmentStatus.Done)
@@ -120,7 +120,7 @@ export const processUpload = functions.storage
     const user = await admin.auth().getUser(uid);
     console.info(`Processing upload of ${taskId} by ${user.email}.`);
 
-    const repository = await TasksRepository.open();
+    const repository = new TasksRepository();
     let task = await repository.getTask(taskId);
 
     if (!task || !task.assignee) {
@@ -175,7 +175,7 @@ export const processUpload = functions.storage
 export const processResolution = functions.database
   .ref('/TE/tasks/{taskId}/versions/{versionKey}/resolution')
   .onCreate(async (resolution, { params: { taskId, versionKey } }) => {
-    const repository = await TasksRepository.open();
+    const repository = new TasksRepository();
     const task = await repository.getTask(taskId);
 
     console.info(
@@ -224,7 +224,7 @@ export const importTasks = functions.pubsub
   .schedule('every day 00:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
-    const repository = await TasksRepository.open();
+    const repository = new TasksRepository();
     const count: number = await repository.importTasks();
     console.info(`Imported ${count} tasks.`);
   });
@@ -233,7 +233,7 @@ export const syncAllotments = functions.pubsub
   .schedule('every 1 hours synchronized')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
-    const repository = await TasksRepository.open();
+    const repository = new TasksRepository();
     await repository.syncAllotments();
   });
 
@@ -241,7 +241,7 @@ export const download = functions.https.onRequest(
   express().get(
     '/te/tasks/:taskId/versions/:versionId/file',
     async ({ params: { taskId, versionId } }, res) => {
-      const repository = await TasksRepository.open();
+      const repository = new TasksRepository();
       const task = await repository.getTask(taskId);
 
       if (!task) {
