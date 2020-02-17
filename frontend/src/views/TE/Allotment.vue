@@ -15,9 +15,9 @@
         <p>Loading tasks…</p>
       </template>
       <template v-else-if="tasks.length">
-        <template v-for="task in tasks">
-          <div :key="task['.key']">
-            <v-row align="start">
+        <template v-for="(groupedTask, name) in groupedTasks">
+          <template v-for="task in groupedTask">
+            <v-row align="start" :key="task['.key']">
               <v-col
                 cols="12"
                 :style="{ alignItems: 'center', flexWrap: 'wrap' }"
@@ -36,11 +36,12 @@
                 {{ getTaskSummary(task) }}
               </v-col>
             </v-row>
-            <v-divider
-              :style="{ borderColor: '#9a9a9a' }"
-              class="my-1 py-1"
-            ></v-divider>
-          </div>
+          </template>
+          <v-divider
+            :key="name"
+            :style="{ borderColor: '#9a9a9a' }"
+            class="my-1 py-1"
+          ></v-divider>
         </template>
       </template>
       <p v-else>No tasks</p>
@@ -76,6 +77,7 @@ import { Component, Vue } from "vue-property-decorator";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
+import _ from "lodash";
 
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import AssigneeSelector from "@/components/AssigneeSelector.vue";
@@ -182,6 +184,13 @@ export default class Allotment extends Vue {
   reset() {
     this.allotment = Allotment.initialAllotment();
     this.submissionStatus = null;
+  }
+
+  get groupedTasks() {
+    if (!this.tasks) return {};
+    return _.groupBy(this.tasks, task =>
+      _.split(task[".key"], "-", 2).join("-")
+    );
   }
 }
 </script>
