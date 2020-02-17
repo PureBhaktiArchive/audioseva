@@ -44,15 +44,59 @@
         </div>
       </div>
       <v-divider v-if="getFiles().length"></v-divider>
-      <upload-files
-        @delete-file="deleteFile"
-        @cancel-file="cancelFile(...arguments)"
-        @cancel-queued-file="cancelQueueFile"
-        :completedFiles="completedFiles"
-        :queuedFiles="queue"
-        :uploadingFiles="getFiles()"
-      >
-      </upload-files>
+      <v-list two-line>
+        <file-list
+          listPrefix="upload"
+          :fileList="getFiles()"
+          :getKey="([file]) => file.upload.uuid"
+        >
+          <template v-slot:content="{ file: [file, status] }">
+            <v-list-item-content>
+              <v-list-item-subtitle
+                :style="{ color: 'red' }"
+                v-if="status.error"
+              >
+                {{ status.error }}
+              </v-list-item-subtitle>
+              <v-list-item-subtitle v-else-if="status.retrying">
+                Retrying upload
+              </v-list-item-subtitle>
+              <v-list-item-title>{{ file.name }}</v-list-item-title>
+            </v-list-item-content>
+          </template>
+          <template v-slot:action="{ file: [file, status] }">
+            <v-btn v-if="status.error" @click="deleteFile(file)">
+              remove
+            </v-btn>
+            <div v-else>
+              <v-progress-circular
+                :value="status.progress"
+                color="green"
+                :style="{ marginRight: '16px' }"
+              ></v-progress-circular>
+              <v-btn @click="cancelFile(status, file)" v-if="status.uploading">
+                Cancel
+              </v-btn>
+            </div>
+          </template>
+        </file-list>
+        <file-list :fileList="queue" listPrefix="queue">
+          <template v-slot:title="{ file }">
+            {{ file.name }}
+          </template>
+          <template v-slot:action="{ file, index }">
+            <v-btn @click="cancelQueueFile(index)">Cancel item</v-btn>
+          </template>
+        </file-list>
+        <file-list :fileList="completedFiles" listPrefix="completed">
+          <template v-slot:title="{ file }">
+            {{ file.name }}
+            <v-icon color="green">
+              fa-check-circle
+            </v-icon>
+          </template>
+        </file-list>
+      </v-list>
     </div>
   </div>
 </template>
@@ -72,8 +116,7 @@ import "firebase/storage";
 import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
 import UploadFileList from "@/components/TE/UploadFileList.vue";
 
-import { getTaskId, getProjectDomain } from "@/utility";
-import UploadFiles from "@/components/TE/UploadFilesList.vue";
+import { getTaskId, getProjectDomain, flacFileFormat } from "@/utility";
 
 Promise.config({ cancellation: true });
 
@@ -94,7 +137,6 @@ interface IFileStatus {
 @Component({
   name: "Upload",
   components: {
-    UploadFiles,
     VueDropzone,
     FileList: UploadFileList
   },
