@@ -15,14 +15,11 @@
         <p>Loading tasks…</p>
       </template>
       <template v-else-if="tasks.length">
-        <template v-for="task in tasks">
-          <div :key="task['.key']">
-            <v-row align="start">
+        <template v-for="(groupedTask, name) in groupedTasks">
+          <template v-for="task in groupedTask">
+            <v-row align="start" :key="task['.key']">
               <v-col
                 cols="12"
-                md="2"
-                lg="2"
-                xl="1"
                 :style="{ alignItems: 'center', flexWrap: 'wrap' }"
                 class="d-flex shrink"
               >
@@ -36,16 +33,15 @@
                 >
                   <code slot="label">{{ task[".key"] }}</code>
                 </v-checkbox>
-              </v-col>
-              <v-col md="9" lg="10" xl="11" class="pa-0 pl-2">
-                <task-definition class="pr-3" :item="task" />
+                {{ getTaskSummary(task) }}
               </v-col>
             </v-row>
-            <v-divider
-              :style="{ borderColor: '#9a9a9a' }"
-              class="my-1 py-1"
-            ></v-divider>
-          </div>
+          </template>
+          <v-divider
+            :key="name"
+            :style="{ borderColor: '#9a9a9a' }"
+            class="my-1 py-1"
+          ></v-divider>
         </template>
       </template>
       <p v-else>No tasks</p>
@@ -81,6 +77,7 @@ import { Component, Vue } from "vue-property-decorator";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
+import _ from "lodash";
 
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import AssigneeSelector from "@/components/AssigneeSelector.vue";
@@ -157,9 +154,43 @@ export default class Allotment extends Vue {
     return { emailAddress, name };
   }
 
+  getTaskSummary(task: any) {
+    if (!task.chunks) return "";
+    const summaryStats = task.chunks.reduce(
+      (stats: { [x: string]: number | undefined }, chunk: any) => {
+        if (stats[chunk.fileName] === undefined) {
+          stats[chunk.fileName] = 0;
+        }
+        if (chunk.unwantedParts) {
+          stats[chunk.fileName] += chunk.unwantedParts.split("\n").length;
+        }
+        return stats;
+      },
+      {}
+    );
+    return Object.entries(summaryStats).reduce(
+      (summary: string, [fileName, count]: any) => {
+        if (summary) {
+          summary += ` + ${fileName} (${count} UP)`;
+        } else {
+          summary += `${fileName} (${count} UP)`;
+        }
+        return summary;
+      },
+      ""
+    );
+  }
+
   reset() {
     this.allotment = Allotment.initialAllotment();
     this.submissionStatus = null;
+  }
+
+  get groupedTasks() {
+    if (!this.tasks) return {};
+    return _.groupBy(this.tasks, task =>
+      _.split(task[".key"], "-", 2).join("-")
+    );
   }
 }
 </script>
