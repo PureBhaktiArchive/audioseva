@@ -43,14 +43,10 @@
           >
         </div>
       </div>
-      <v-divider v-if="getFiles().length"></v-divider>
-      <v-list two-line>
-        <file-list
-          listPrefix="upload"
-          :fileList="getFiles()"
-          :getKey="([file]) => file.upload.uuid"
-        >
-          <template v-slot:content="{ file: [file, status] }">
+      <v-divider v-if="files.size"></v-divider>
+      <v-list two-line v-if="files.size">
+        <template v-for="[file, status] in getFiles()">
+          <v-list-item :key="file.upload.uuid">
             <v-list-item-content>
               <v-list-item-subtitle
                 :style="{ color: 'red' }"
@@ -63,46 +59,41 @@
               </v-list-item-subtitle>
               <v-list-item-title>{{ file.name }}</v-list-item-title>
             </v-list-item-content>
-          </template>
-          <template v-slot:action="{ file: [file, status] }">
-            <v-btn v-if="status.error" @click="deleteFile(file)">
-              remove
-            </v-btn>
-            <div v-else>
-              <v-progress-circular
-                :value="status.progress"
-                color="green"
-                :style="{ marginRight: '16px' }"
-              ></v-progress-circular>
-              <v-btn @click="cancelFile(status, file)" v-if="status.uploading">
-                Cancel
+
+            <v-list-item-action :style="{ flexDirection: 'row' }">
+              <v-btn v-if="status.error" @click="deleteFile(file)">
+                remove
               </v-btn>
-            </div>
-          </template>
-        </file-list>
-        <file-list :fileList="queue" listPrefix="queue">
-          <template v-slot:title="{ file }">
-            {{ file.name }}
-          </template>
-          <template v-slot:action="{ file, index }">
-            <v-btn @click="cancelQueueFile(index)">Cancel item</v-btn>
-          </template>
-        </file-list>
-        <file-list :fileList="completedFiles" listPrefix="completed">
-          <template v-slot:title="{ file }">
-            {{ file.name }}
-            <v-icon color="green">
-              fa-check-circle
-            </v-icon>
-          </template>
-        </file-list>
+              <div v-else>
+                <v-progress-circular
+                  v-if="status.state === 'uploading'"
+                  :value="status.progress"
+                  color="green"
+                  :style="{ marginRight: '16px' }"
+                ></v-progress-circular>
+                <v-btn
+                  @click="cancelFile(status, file)"
+                  v-if="
+                    status.state === 'uploading' || status.state === 'queued'
+                  "
+                >
+                  Cancel
+                </v-btn>
+                <v-icon v-if="status.state === 'completed'" color="green">
+                  fa-check-circle
+                </v-icon>
+              </div>
+            </v-list-item-action>
+          </v-list-item>
+          <v-divider :key="`divider-${file.upload.uuid}`"></v-divider>
+        </template>
       </v-list>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Watch } from "vue-property-decorator";
+import { Component, Mixins } from "vue-property-decorator";
 import { mapState } from "vuex";
 import * as Spark from "spark-md5";
 import _ from "lodash";
@@ -113,10 +104,10 @@ import Promise from "bluebird";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/storage";
+import Pqueue from "p-queue";
 import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
-import UploadFileList from "@/components/TE/UploadFileList.vue";
 
-import { getTaskId, getProjectDomain, flacFileFormat } from "@/utility";
+import { getTaskId, getProjectDomain } from "@/utility";
 
 Promise.config({ cancellation: true });
 
@@ -126,19 +117,26 @@ interface IFileStatus {
   error?: string;
   uploadStartedAt?: Date;
   uploadRemainingTime?: number;
-  uploading?: boolean;
   downloadUrl?: string;
+  state?: "uploading" | "completed" | "queued";
+  canceled?: boolean;
+  timestamp?: number;
   retrying?: boolean;
   retryTimer?: Promise<any>;
   retryDuration?: number;
   retryAttempts?: number;
 }
 
+const sortOrder = {
+  uploading: 0,
+  queued: 1,
+  completed: 2
+};
+
 @Component({
   name: "Upload",
   components: {
-    VueDropzone,
-    FileList: UploadFileList
+    VueDropzone
   },
   computed: {
     ...mapState("user", ["currentUser"])
@@ -150,10 +148,9 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   currentUser!: firebase.User;
   files: Map<File, IFileStatus> = new Map();
   totalUploadCount: number = 0;
+  completedCount = 0;
   uploadsBucket = firebase.app().storage(`te.uploads.${getProjectDomain()}`);
-  queue: File[] = [];
-  completedFiles: File[] = [];
-  uploadLimit = 3;
+  pQueue = new Pqueue({ concurrency: 3 });
   maxRetryAttempts = 5;
 
   $refs!: {
@@ -172,7 +169,10 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   getFiles() {
-    return Array.from(this.files);
+    return _.sortBy(Array.from(this.files), [
+      ([_, status]) => (status.state ? sortOrder[status.state] : 4),
+      ([_, status]) => status.timestamp
+    ]);
   }
 
   deleteFile(file: File) {
@@ -187,27 +187,24 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   updateFileFields(file: File, obj: IFileStatus) {
     const selectedFile = this.getFile(file);
     const newFile = { ...selectedFile, ...obj };
-    if (typeof obj.uploading === "boolean") {
-      this.totalUploadCount += obj.uploading ? 1 : -1;
+    if (selectedFile.state !== newFile.state) {
+      newFile.timestamp = new Date().valueOf();
     }
     this.files.set(file, newFile);
     this.$forceUpdate();
   }
 
   cancelFile(
-    { uploadTask, retrying, retryTimer }: IFileStatus = {},
+    { uploadTask, retrying, retryTimer, state }: IFileStatus = {},
     file: File
   ) {
-    if (retrying) {
+    this.updateFileFields(file, { canceled: true });
+    if (retrying || state === "queued") {
       retryTimer && retryTimer.cancel();
       this.emitFileError(file, "Canceled upload");
       return;
     }
     uploadTask && uploadTask.cancel();
-  }
-
-  cancelQueueFile(index: number) {
-    this.$delete(this.queue, index);
   }
 
   cancelAllFiles() {
@@ -217,18 +214,29 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   clearCompletedFiles() {
-    this.completedFiles = [];
+    for (let [file, status] of this.files) {
+      if (status.state === "completed") {
+        this.files.delete(file);
+      }
+    }
+    this.completedCount = 0;
   }
 
   async handleFile(file: File, timestamp: number) {
     const taskId = getTaskId(file.name);
     if (taskId) {
-      this.uploadFile(
-        `${this.currentUser.uid}/${timestamp}/${taskId}.${file.name
-          .split(".")
-          .pop()}`,
-        file
-      );
+      this.pQueue
+        .add(() =>
+          this.uploadFile(
+            `${this.currentUser.uid}/${timestamp}/${taskId}.${file.name
+              .split(".")
+              .pop()}`,
+            file
+          )
+        )
+        .catch(e => {
+          this.emitFileError(file, e.message);
+        });
     }
   }
 
@@ -310,13 +318,10 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     let files = Array.isArray(selectedFiles)
       ? [...selectedFiles]
       : Object.values(selectedFiles);
-    const filesToUpload = files.splice(
-      0,
-      this.uploadLimit - this.totalUploadCount
-    );
-    this.queue.push(...files);
-    for (const file of filesToUpload) {
-      this.updateFileFields(file, { uploading: true });
+    for (const file of files) {
+      this.updateFileFields(file, {
+        state: "queued"
+      });
       this.validateFile(file)
         .then(() => this.handleFile(file, timestamp))
         .catch(e => this.emitFileError(file, e.message));
@@ -324,16 +329,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   emitFileError(file: File, message: string) {
-    this.updateFileFields(file, { error: message, uploading: false });
-  }
-
-  @Watch("totalUploadCount")
-  uploadNextFile(newVal: number) {
-    if (newVal >= this.uploadLimit) return;
-    const queuedFile = this.queue.pop();
-    if (queuedFile) {
-      this.filesAdded([queuedFile]);
-    }
+    this.updateFileFields(file, { error: message });
   }
 
   getTotalUploadTime() {
@@ -357,71 +353,86 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   uploadFile(path: string, file: File) {
-    const uploadTask = this.uploadsBucket
-      .ref()
-      .child(path)
-      .put(file);
-    this.updateFileFields(file, {
-      uploadTask: uploadTask,
-      uploadStartedAt: new Date(),
-      retrying: false
-    });
-    uploadTask.on(
-      "state_changed",
-      ({ bytesTransferred, totalBytes }: any) => {
-        const { uploadStartedAt } = this.getFile(file);
-        const startedAt = uploadStartedAt ? uploadStartedAt.getTime() : 0;
-        const secondsElapsed = (new Date().getTime() - startedAt) / 1000;
-        const bytesPerSecond = secondsElapsed
-          ? bytesTransferred / secondsElapsed
-          : 0;
-        const remainingBytes = totalBytes - bytesTransferred;
-        const progress = (bytesTransferred / totalBytes) * 100;
-        this.updateFileFields(file, {
-          progress: Math.round(progress),
-          uploadRemainingTime: secondsElapsed
-            ? remainingBytes / bytesPerSecond
-            : 0
-        });
-      },
-      async (error: any) => {
-        if (error.code === "storage/retry-limit-exceeded") {
-          const { retryAttempts = 0, retryDuration = 1000 } = this.getFile(
-            file
-          );
-          if (retryAttempts < this.maxRetryAttempts) {
-            const retry = this.backOff(retryDuration);
-            this.updateFileFields(file, {
-              retryAttempts: retryAttempts + 1,
-              retryDuration: retryDuration * 2,
-              retryTimer: retry,
-              retrying: true
-            });
-            await retry;
-            this.uploadFile(path, file);
-          } else {
-            this.emitFileError(file, "Max retry limit has been reached.");
-          }
-          return;
-        }
-        if (error.code === "storage/canceled") {
-          this.emitFileError(file, "Canceled upload");
-        } else if (error.code === "storage/unauthorized") {
-          this.emitFileError(
-            file,
-            "You are not authorized to upload this file"
-          );
-        } else {
-          this.emitFileError(file, error.message);
-        }
-      },
-      () => {
-        this.totalUploadCount -= 1;
-        this.completedFiles.push(file);
-        this.files.delete(file);
-        this.$forceUpdate();
+    return new Promise((resolve, reject) => {
+      const status = this.getFile(file);
+      if (status.canceled || !Object.keys(status).length) {
+        resolve();
+        return;
       }
-    );
+      if (!status.retrying) {
+        this.totalUploadCount += 1;
+      }
+      const uploadTask = this.uploadsBucket
+        .ref()
+        .child(path)
+        .put(file);
+      this.updateFileFields(file, {
+        state: "uploading",
+        uploadTask: uploadTask,
+        uploadStartedAt: new Date(),
+        retrying: false
+      });
+      uploadTask.on(
+        "state_changed",
+        ({ bytesTransferred, totalBytes }: any) => {
+          const { uploadStartedAt } = this.getFile(file);
+          const startedAt = uploadStartedAt ? uploadStartedAt.getTime() : 0;
+          const secondsElapsed = (new Date().getTime() - startedAt) / 1000;
+          const bytesPerSecond = secondsElapsed
+            ? bytesTransferred / secondsElapsed
+            : 0;
+          const remainingBytes = totalBytes - bytesTransferred;
+          const progress = (bytesTransferred / totalBytes) * 100;
+          this.updateFileFields(file, {
+            progress: Math.round(progress),
+            uploadRemainingTime: secondsElapsed
+              ? remainingBytes / bytesPerSecond
+              : 0
+          });
+        },
+        async (error: any) => {
+          if (error.code === "storage/retry-limit-exceeded") {
+            const { retryAttempts = 0, retryDuration = 1000 } = this.getFile(
+              file
+            );
+            if (retryAttempts < this.maxRetryAttempts) {
+              const retry = this.backOff(retryDuration);
+              this.updateFileFields(file, {
+                retryAttempts: retryAttempts + 1,
+                retryDuration: retryDuration * 2,
+                retryTimer: retry,
+                retrying: true
+              });
+              await retry;
+              await this.uploadFile(path, file).catch(e => reject(e));
+            } else {
+              this.totalUploadCount -= 1;
+              reject(new Error("Max retry limit has been reached."));
+            }
+            return;
+          }
+          this.totalUploadCount -= 1;
+          let errorMessage: string;
+          switch (error.code) {
+            case "storage/canceled":
+              errorMessage = "Canceled upload";
+              break;
+            case "storage/unauthorized":
+              errorMessage = "You are not authorized to upload this file";
+              break;
+            default:
+              errorMessage = error.message;
+          }
+          reject(new Error(errorMessage));
+        },
+        () => {
+          this.updateFileFields(file, { state: "completed" });
+          this.totalUploadCount -= 1;
+          this.completedCount += 1;
+          resolve();
+        }
+      );
+    });
   }
 
   template() {
@@ -439,10 +450,6 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
                 <div class="dz-error-mark"><i class="fa fa-close"></i></div>
             </div>
         `;
-  }
-
-  get completedCount() {
-    return this.completedFiles.length;
   }
 }
 </script>
