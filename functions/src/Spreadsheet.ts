@@ -10,11 +10,6 @@ enum IValueInputOption {
   RAW = 'RAW',
 }
 
-enum TransformationMode {
-  NullToEmptyString,
-  SkipNull,
-}
-
 export class Spreadsheet<T extends object = object> {
   public columnNames: string[];
 
@@ -257,21 +252,10 @@ export class Spreadsheet<T extends object = object> {
    * - `null` in the object transforms into empty string in the array.
    * @param object Source object to be transformed into an array
    */
-  protected objectToArray(
-    object: T,
-    mode: TransformationMode = TransformationMode.NullToEmptyString
-  ) {
+  protected objectToArray(object: T) {
     return _(this.columnNames)
       .map(columnName => object[columnName])
-      .map(value =>
-        value === undefined
-          ? null
-          : value === null
-          ? mode === TransformationMode.NullToEmptyString
-            ? ''
-            : null
-          : value
-      )
+      .map(value => (value === undefined ? null : value === null ? '' : value))
       .value();
   }
 
@@ -351,9 +335,7 @@ export class Spreadsheet<T extends object = object> {
         range: this.title,
         valueInputOption: IValueInputOption.RAW,
         requestBody: {
-          values: objects.map(object =>
-            this.objectToArray(object, TransformationMode.SkipNull)
-          ),
+          values: objects.map(object => this.objectToArray(object)),
         },
       })
     );
