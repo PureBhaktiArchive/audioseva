@@ -11,6 +11,10 @@ export class TaskValidator extends Validator<ChunkRow[]> {
   constructor() {
     super([
       new ValidationRuleForEach(
+        row => /^\w+-\d+-\d{1,2}$/.test(row['Output File Name']),
+        `Task ID is incorrect.`
+      ),
+      new ValidationRuleForEach(
         row => !row['Output File Name'] || /^(non-)?SEd$/i.test(row['SEd?']),
         `SEd is incorrect.`
       ),

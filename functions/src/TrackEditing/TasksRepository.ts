@@ -61,7 +61,12 @@ export class TasksRepository {
       return {
         'Task ID': task.id,
         'SEd?': task.isRestored ? 'SEd' : 'non-SEd',
-        Status: task.status === AllotmentStatus.Spare ? null : task.status,
+        Status:
+          task.status === undefined
+            ? undefined
+            : task.status === AllotmentStatus.Spare
+            ? null
+            : task.status,
         'Date Given': task.timestampGiven
           ? DateTimeConverter.toSerialDate(
               DateTime.fromMillis(task.timestampGiven)
@@ -148,7 +153,7 @@ export class TasksRepository {
     );
   }
 
-  public async saveToSpreadsheet(tasks: TrackEditingTask[]) {
+  public async saveToSpreadsheet(tasks: IdentifiableTask[]) {
     await (await this.allotmentsSheet()).updateOrAppendRows(
       'Task ID',
       this.mapToRows(tasks)
