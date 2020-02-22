@@ -2,13 +2,30 @@
   <div>
     <h1>{{ $title }}</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus !== 'complete'">
+      <!-- Pass in empty messages so message slot shows -->
       <assignee-selector
         v-model="allotment.assignee"
         :items="trackEditors || []"
         :loading="trackEditors === null"
+        :messages="['']"
         item-text="name"
         :item-value="getAllotmentAssignee"
       >
+        <template v-slot:selection="{ item }">
+          {{ item.name }}
+        </template>
+        <template v-slot:message>
+          <div
+            :style="{ visibility: allotment.assignee ? 'visible' : 'hidden' }"
+          >
+            <v-chip :color="getTaskStyle({ status: 'Given' }).backgroundColor">
+              Given {{ assigneeTasksStats.Given }}
+            </v-chip>
+            <v-chip :color="getTaskStyle({ status: 'WIP' }).backgroundColor">
+              WIP {{ assigneeTasksStats.WIP }}
+            </v-chip>
+          </div>
+        </template>
       </assignee-selector>
 
       <template v-if="isLoadingTasks">
@@ -73,12 +90,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Mixins, Watch } from "vue-property-decorator";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
 import _ from "lodash";
 
+import TaskMixin from "@/components/TE/TaskMixin";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import AssigneeSelector from "@/components/AssigneeSelector.vue";
 
@@ -87,12 +105,13 @@ import AssigneeSelector from "@/components/AssigneeSelector.vue";
   components: { AssigneeSelector, TaskDefinition },
   title: "Track Editing Allotment"
 })
-export default class Allotment extends Vue {
+export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
   allotment: any = Allotment.initialAllotment();
   trackEditors: any = null;
   tasks: any[] | null = [];
   submissionStatus: string | null = null;
   isLoadingTasks = true;
+  assigneeTasks: { [key: string]: any }[] = [];
 
   static initialAllotment() {
     return {
@@ -105,6 +124,26 @@ export default class Allotment extends Vue {
   async mounted() {
     this.getTrackEditors();
     this.getTasks();
+  }
+
+  @Watch("allotment.assignee")
+  async handleAssigneeChange(newVal: any, oldVal: any) {
+    if (!newVal) {
+      return;
+    }
+    if (newVal && newVal.emailAddress) {
+      if (oldVal && oldVal.emailAddress === newVal.emailAddress) {
+        return;
+      }
+      await this.$rtdbBind(
+        "assigneeTasks",
+        firebase
+          .database()
+          .ref("/TE/tasks")
+          .orderByChild("assignee/emailAddress")
+          .equalTo(this.allotment.assignee.emailAddress)
+      );
+    }
   }
 
   async getTrackEditors() {
@@ -178,6 +217,18 @@ export default class Allotment extends Vue {
         return summary;
       },
       ""
+    );
+  }
+
+  get assigneeTasksStats() {
+    return this.assigneeTasks.reduce(
+      (stats, task) => {
+        if (["WIP", "Given"].includes(task.status)) {
+          stats[task.status] += 1;
+        }
+        return stats;
+      },
+      { WIP: 0, Given: 0 }
     );
   }
 
