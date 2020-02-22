@@ -264,9 +264,6 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   TaskMixin,
   FormatTime
 ) {
-  $refs!: {
-    disapproveConfirmation: any;
-  };
   task: any = {};
   State = State;
   state: State = State.LOADING;
@@ -330,7 +327,6 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     if (isApproved) {
       this.resetRules();
     } else {
-      this.$refs.disapproveConfirmation[0].reset();
       this.activateRules();
     }
     this.$nextTick(async () => {
