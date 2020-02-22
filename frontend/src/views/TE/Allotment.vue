@@ -2,23 +2,29 @@
   <div>
     <h1>{{ $title }}</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus !== 'complete'">
+      <!-- Pass in empty messages so message slot shows -->
       <assignee-selector
         v-model="allotment.assignee"
         :items="trackEditors || []"
         :loading="trackEditors === null"
+        :messages="['']"
         item-text="name"
         :item-value="getAllotmentAssignee"
       >
         <template v-slot:selection="{ item }">
           {{ item.name }}
-          <v-badge class="mx-3" inline>
-            <template v-slot:badge>{{ assigneeTasksStats.Given }}</template>
-            Given
-          </v-badge>
-          <v-badge class="ml-4" inline>
-            <template v-slot:badge>{{ assigneeTasksStats.WIP }}</template>
-            WIP
-          </v-badge>
+        </template>
+        <template v-slot:message>
+          <div
+            :style="{ visibility: allotment.assignee ? 'visible' : 'hidden' }"
+          >
+            <v-chip :color="getTaskStyle({ status: 'Given' }).backgroundColor">
+              Given {{ assigneeTasksStats.Given }}
+            </v-chip>
+            <v-chip :color="getTaskStyle({ status: 'WIP' }).backgroundColor">
+              WIP {{ assigneeTasksStats.WIP }}
+            </v-chip>
+          </div>
         </template>
       </assignee-selector>
 
@@ -84,12 +90,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
+import { Component, Mixins, Watch } from "vue-property-decorator";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
 import _ from "lodash";
 
+import TaskMixin from "@/components/TE/TaskMixin";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import AssigneeSelector from "@/components/AssigneeSelector.vue";
 
@@ -98,7 +105,7 @@ import AssigneeSelector from "@/components/AssigneeSelector.vue";
   components: { AssigneeSelector, TaskDefinition },
   title: "Track Editing Allotment"
 })
-export default class Allotment extends Vue {
+export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
   allotment: any = Allotment.initialAllotment();
   trackEditors: any = null;
   tasks: any[] | null = [];

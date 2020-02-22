@@ -23,6 +23,9 @@
         </v-list-item-content>
       </template>
     </template>
+    <template v-slot:message>
+      <slot name="message"></slot>
+    </template>
     <template v-slot:no-data>
       <div class="pa-2" v-if="loading">
         Loading Assignees
