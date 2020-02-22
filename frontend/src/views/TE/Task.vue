@@ -146,23 +146,68 @@
                   label="Feed back"
                 ></v-textarea>
                 <div :style="{ display: 'flex' }">
-                  <vue-confirmation-button
-                    type="button"
-                    :messages="approveMessages"
-                    class="mx-2"
-                    css="v-btn v-btn--contained theme--light v-size--default success"
-                    @confirmation-success="handleSubmitForm(true, key)"
-                  >
-                  </vue-confirmation-button>
-                  <vue-confirmation-button
-                    type="button"
-                    css="v-btn v-btn--contained theme--light v-size--default error"
-                    :messages="disapproveMessages"
-                    @confirmation-success="handleSubmitForm(false, key)"
-                    ref="disapproveConfirmation"
-                  >
-                    Disapprove
-                  </vue-confirmation-button>
+                  <v-menu v-model="approve" offset-x :nudge-width="200">
+                    <template v-slot:activator="{ on }">
+                      <v-btn class="success" v-on="on">
+                        Approve
+                      </v-btn>
+                    </template>
+                    <v-card>
+                      <v-list>
+                        <v-list-item>
+                          <v-list-item-content>
+                            <v-list-item-title
+                              :style="{ whiteSpace: 'normal' }"
+                            >
+                              When you click Approve below, the file will be
+                              marked as final.
+                            </v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+                      </v-list>
+                      <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn text @click="approve = false">Cancel</v-btn>
+                        <v-btn
+                          color="success"
+                          @click="handleSubmitForm(true, key)"
+                        >
+                          Approve
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-menu>
+                  <v-menu v-model="disapprove" offset-x :nudge-width="200">
+                    <template v-slot:activator="{ on }">
+                      <v-btn class="error ml-2" v-on="on">
+                        Disapprove
+                      </v-btn>
+                    </template>
+                    <v-card>
+                      <v-list>
+                        <v-list-item>
+                          <v-list-item-content>
+                            <v-list-item-title
+                              :style="{ whiteSpace: 'normal' }"
+                            >
+                              When you click Disapproval below, another version
+                              will be requested from Track Editor.
+                            </v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+                      </v-list>
+                      <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn text @click="disapprove = false">Cancel</v-btn>
+                        <v-btn
+                          color="error"
+                          @click="handleSubmitForm(false, key)"
+                        >
+                          Disapprove
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-menu>
                 </div>
               </v-form>
             </v-timeline-item>
@@ -181,7 +226,6 @@ import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
 import _ from "lodash";
-import VueConfirmationButton from "vue-confirmation-button";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import TaskMixin from "@/components/TE/TaskMixin";
 import FormatTime from "@/mixins/FormatTime";
@@ -195,7 +239,7 @@ enum State {
 
 @Component({
   name: "Task",
-  components: { TaskDefinition, VersionDownloadLink, VueConfirmationButton },
+  components: { TaskDefinition, VersionDownloadLink },
   computed: {
     ...mapState("user", ["currentUser"])
   },
@@ -220,8 +264,8 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     feedback: ""
   };
   rules: any[] = [];
-  approveMessages = ["Approve", "Are you sure?", "OK!"];
-  disapproveMessages = ["Disapprove", "Are you sure?", "OK!"];
+  approve = false;
+  disapprove = false;
 
   currentUser!: firebase.User;
   getUserClaims!: any;
