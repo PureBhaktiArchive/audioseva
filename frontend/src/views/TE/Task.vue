@@ -190,7 +190,7 @@
                             <v-list-item-title
                               :style="{ whiteSpace: 'normal' }"
                             >
-                              When you click Disapproval below, another version
+                              When you click Disapprove below, another version
                               will be requested from Track Editor.
                             </v-list-item-title>
                           </v-list-item-content>
