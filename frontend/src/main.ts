@@ -23,6 +23,8 @@ import "vuetify/dist/vuetify.min.css";
 import { rtdbPlugin as VueFire } from "vuefire";
 import VuePageTitle from "vue-page-title";
 
+import "@/styles/main.css";
+
 Vue.use(VuePageTitle, {
   suffix: "| Audio Seva",
   setTitleMethod: (title: string) => {

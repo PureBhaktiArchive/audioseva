@@ -48,7 +48,9 @@
                   class="mr-2 pr-3 mt-0 pt-0"
                   :hide-details="true"
                 >
-                  <code slot="label">{{ task[".key"] }}</code>
+                  <code slot="label">
+                    {{ task[".key"] }}
+                  </code>
                 </v-checkbox>
                 {{ getTaskSummary(task) }}
               </v-col>

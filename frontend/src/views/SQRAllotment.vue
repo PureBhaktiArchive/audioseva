@@ -76,7 +76,9 @@
                       :loading="!files"
                       class="mr-2"
                     >
-                      <code slot="label">{{ file.name }}</code>
+                      <code slot="label">
+                        {{ file.name }}
+                      </code>
                     </v-checkbox>
                     <span
                       >{{ file.date || "No date" }}
