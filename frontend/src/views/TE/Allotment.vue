@@ -34,7 +34,7 @@
                   class="mr-2 pr-3 mt-0 pt-0"
                   :hide-details="true"
                 >
-                  <code class="user-select-text" slot="label">
+                  <code slot="label">
                     {{ task[".key"] }}
                   </code>
                 </v-checkbox>

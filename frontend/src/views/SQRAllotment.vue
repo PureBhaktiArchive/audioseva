@@ -76,7 +76,7 @@
                       :loading="!files"
                       class="mr-2"
                     >
-                      <code class="user-select-text" slot="label">
+                      <code slot="label">
                         {{ file.name }}
                       </code>
                     </v-checkbox>
