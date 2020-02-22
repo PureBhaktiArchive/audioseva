@@ -146,15 +146,80 @@
                   label="Feed back"
                 ></v-textarea>
                 <div :style="{ display: 'flex' }">
-                  <v-btn
-                    color="success"
-                    class="mx-2"
-                    @click="handleSubmitForm(true, key)"
-                    >Approve</v-btn
+                  <v-menu
+                    v-model="approveConfirmation"
+                    offset-x
+                    :nudge-width="200"
                   >
-                  <v-btn color="error" @click="handleSubmitForm(false, key)"
-                    >Disapprove</v-btn
+                    <template v-slot:activator="{ on }">
+                      <v-btn class="success" v-on="on">
+                        Approve
+                      </v-btn>
+                    </template>
+                    <v-card>
+                      <v-list>
+                        <v-list-item>
+                          <v-list-item-content>
+                            <v-list-item-title
+                              :style="{ whiteSpace: 'normal' }"
+                            >
+                              When you click Approve below, the file will be
+                              marked as final.
+                            </v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+                      </v-list>
+                      <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn text @click="approveConfirmation = false">
+                          Cancel
+                        </v-btn>
+                        <v-btn
+                          color="success"
+                          @click="handleSubmitForm(true, key)"
+                        >
+                          Approve
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-menu>
+                  <v-menu
+                    v-model="disapproveConfirmation"
+                    offset-x
+                    :nudge-width="200"
                   >
+                    <template v-slot:activator="{ on }">
+                      <v-btn class="error ml-2" v-on="on">
+                        Disapprove
+                      </v-btn>
+                    </template>
+                    <v-card>
+                      <v-list>
+                        <v-list-item>
+                          <v-list-item-content>
+                            <v-list-item-title
+                              :style="{ whiteSpace: 'normal' }"
+                            >
+                              When you click Disapprove below, another version
+                              will be requested from Track Editor.
+                            </v-list-item-title>
+                          </v-list-item-content>
+                        </v-list-item>
+                      </v-list>
+                      <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn text @click="disapproveConfirmation = false">
+                          Cancel
+                        </v-btn>
+                        <v-btn
+                          color="error"
+                          @click="handleSubmitForm(false, key)"
+                        >
+                          Disapprove
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-menu>
                 </div>
               </v-form>
             </v-timeline-item>
@@ -208,6 +273,8 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     feedback: ""
   };
   rules: any[] = [];
+  approveConfirmation = false;
+  disapproveConfirmation = false;
 
   currentUser!: firebase.User;
   getUserClaims!: any;
