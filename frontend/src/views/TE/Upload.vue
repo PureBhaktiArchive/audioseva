@@ -57,6 +57,9 @@
               <v-list-item-subtitle v-else-if="status.retrying">
                 Retrying upload
               </v-list-item-subtitle>
+              <v-list-item-subtitle v-else-if="status.state === 'queued'">
+                Queued
+              </v-list-item-subtitle>
               <v-list-item-title>{{ file.name }}</v-list-item-title>
             </v-list-item-content>
 
