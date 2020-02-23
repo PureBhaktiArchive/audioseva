@@ -173,10 +173,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   getFiles() {
-    return _.sortBy(Array.from(this.files), [
-      ([_, status]) => (status.state ? sortOrder[status.state] : 4),
-      ([_, status]) => status.timestamp
-    ]);
+    return Array.from(this.files);
   }
 
   deleteFile(file: File) {
