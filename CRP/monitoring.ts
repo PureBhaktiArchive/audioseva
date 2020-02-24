@@ -125,6 +125,7 @@ function onEdit(e: OnEditEventObject) {
           {
             Timestamp: timestamp,
             Sheet: sheet.getName(),
+            Range: `=HYPERLINK("https://docs.google.com/spreadsheets/d/${e.source.getId()}/edit#gid=${sheet.getSheetId()}&range=${e.range.getA1Notation()}", "${e.range.getA1Notation()}")`,
             "Row Number": `=HYPERLINK("https://docs.google.com/spreadsheets/d/${e.source.getId()}/edit#gid=${sheet.getSheetId()}&range=${rowIndex}:${rowIndex}", ${rowIndex})`,
             "Audio File Name": object["Audio File Name"],
             "FCR (before)": previousFCR,
