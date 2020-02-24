@@ -85,15 +85,12 @@ function onEdit(e: OnEditEventObject) {
   const massEdit = e.range.getNumRows() > 1 || e.range.getNumColumns() > 1;
   const oldValue = massEdit ? "UNKNOWN" : e.oldValue;
 
-  const editedColumns = headers.slice(
-    e.range.getColumn() - 1,
-    e.range.getLastColumn()
-  );
+  const editedColumns = headers
+    .slice(e.range.getColumn() - 1, e.range.getLastColumn())
+    .filter(value => watchedColumns.includes(value));
 
   /// skipping changes besides watched columns
-  if (
-    editedColumns.filter(value => watchedColumns.includes(value)).length === 0
-  ) {
+  if (editedColumns.length === 0) {
     return;
   }
 
