@@ -43,3 +43,30 @@ app.get(
 );
 
 export const download = functions.https.onRequest(app);
+
+export const sanitizeEditedFiles = functions.https.onCall(async () => {
+  const [filesML2] = await StorageManager.getBucket('edited').getFiles({
+    prefix: 'ML2/',
+  });
+
+  await Promise.all(
+    filesML2
+      .filter(({ name }) => !name.startsWith('ML2/ML2-'))
+      .map(file => {
+        const newName = file.name.replace('ML2/', 'ML2/ML2-');
+        console.log(`Renaming ${file.name} to ${newName}`);
+        return file.move(newName);
+      })
+  );
+  const [filesML1] = await StorageManager.getBucket('edited').getFiles({
+    prefix: 'ML1/ML1--',
+  });
+
+  await Promise.all(
+    filesML1.map(file => {
+      const newName = file.name.replace('ML1/ML1--', 'HI/HI-');
+      console.log(`Renaming ${file.name} to ${newName}`);
+      return file.move(newName);
+    })
+  );
+});
