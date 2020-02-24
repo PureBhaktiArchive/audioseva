@@ -87,6 +87,12 @@ function onEdit(e: OnEditEventObject) {
     return;
   }
 
+  /// Skiping full-row changes (half columns actually)
+  if (e.range.getNumColumns() > sheet.getMaxColumns() / 2) {
+    if (DEBUG) console.log("Skipping full row change", e.range.getA1Notation());
+    return;
+  }
+
   const massEdit = e.range.getNumRows() > 1 || e.range.getNumColumns() > 1;
   const oldValue = massEdit ? "=NA()" : e.oldValue;
 
