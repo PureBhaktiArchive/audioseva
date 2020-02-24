@@ -104,12 +104,11 @@ function onEdit(e: OnEditEventObject) {
     rowIndex <= e.range.getLastRow();
     rowIndex++
   ) {
-    const object = rowToObject(
-      sheet
-        .getRange(rowIndex, 1, 1, e.range.getSheet().getLastColumn())
-        .getValues(),
-      headers
-    );
+    const [row] = sheet
+      .getRange(rowIndex, 1, 1, e.range.getSheet().getLastColumn())
+      .getValues();
+
+    const object = rowToObject(row, headers);
 
     const previousFCR = editedColumns.includes("Fidelity Check Resolution")
       ? oldValue
