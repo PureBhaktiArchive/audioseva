@@ -1,3 +1,5 @@
+// tslint:disable no-console
+
 function rowToObject(row: any[], columnNames: string[]): object {
   return Object.assign({}, ...columnNames.map((k, i) => ({ [k]: row[i] })));
 }
@@ -58,6 +60,8 @@ interface OnEditEventObject {
   value: any;
 }
 
+const DEBUG = PropertiesService.getScriptProperties().getProperty("DEBUG");
+
 // this script records changes to the spreadsheet on a "Changelog" sheet.
 function onEdit(e: OnEditEventObject) {
   const timestamp = new Date();
@@ -92,6 +96,11 @@ function onEdit(e: OnEditEventObject) {
 
   /// skipping changes besides watched columns
   if (editedColumns.length === 0) {
+    if (DEBUG)
+      console.log(
+        "Skipping changes to secondary columns",
+        e.range.getA1Notation()
+      );
     return;
   }
 
@@ -116,6 +125,8 @@ function onEdit(e: OnEditEventObject) {
 
     /// skipping not resolved rows
     if (!previousFCR) {
+      if (DEBUG)
+        console.log("Skipping rows without FCR", e.range.getA1Notation());
       return;
     }
 
