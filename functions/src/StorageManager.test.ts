@@ -30,6 +30,7 @@ describe('File', () => {
     ${'restored'} | ${'ML2-71 A.flac'}     | ${'ML2/ML2-71 A.flac'}
     ${'edited'}   | ${'DK-001-1.flac'}     | ${'DK/DK-001-1.flac'}
     ${'edited'}   | ${'DIGI07-0001-1.mp3'} | ${'DIGI07/DIGI07-0001-1.mp3'}
+    ${'edited'}   | ${'ML2-1000-2.flac'}   | ${'ML2/ML2-1000-2.flac'}
   `(
     `$bucket $fileName is served from gs://$bucket/$path`,
     ({ fileName, bucket, path }) => {
