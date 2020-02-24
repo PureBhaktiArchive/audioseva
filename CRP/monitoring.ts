@@ -2,7 +2,7 @@ function rowToObject(row: any[], columnNames: string[]): object {
   return Object.assign({}, ...columnNames.map((k, i) => ({ [k]: row[i] })));
 }
 
-const changelogSheetName: string = "Changelog";
+const changelogSheetName = "Changelog";
 
 const standardColumns = [
   "Audio File Name",
