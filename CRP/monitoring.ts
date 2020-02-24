@@ -83,7 +83,7 @@ function onEdit(e: OnEditEventObject) {
   }
 
   const massEdit = e.range.getNumRows() > 1 || e.range.getNumColumns() > 1;
-  const oldValue = massEdit ? "UNKNOWN - MASS EDIT" : e.oldValue;
+  const oldValue = massEdit ? "UNKNOWN" : e.oldValue;
 
   const editedColumns = headers.slice(
     e.range.getColumn() - 1,
