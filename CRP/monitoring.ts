@@ -89,7 +89,12 @@ function onEdit(e: OnEditEventObject) {
 
   /// Skiping full-row changes (half columns actually)
   if (e.range.getNumColumns() > sheet.getMaxColumns() / 2) {
-    if (DEBUG) console.log("Skipping full row change", e.range.getA1Notation());
+    if (DEBUG)
+      console.log(
+        "Skipping full row change",
+        e.range.getSheet().getName(),
+        e.range.getA1Notation()
+      );
     return;
   }
 
@@ -105,6 +110,7 @@ function onEdit(e: OnEditEventObject) {
     if (DEBUG)
       console.log(
         "Skipping changes to secondary columns",
+        e.range.getSheet().getName(),
         e.range.getA1Notation()
       );
     return;
@@ -132,7 +138,11 @@ function onEdit(e: OnEditEventObject) {
     /// skipping not resolved rows
     if (!previousFCR) {
       if (DEBUG)
-        console.log("Skipping rows without FCR", e.range.getA1Notation());
+        console.log(
+          "Skipping rows without FCR",
+          e.range.getSheet().getName(),
+          e.range.getA1Notation()
+        );
       return;
     }
 
