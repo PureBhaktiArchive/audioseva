@@ -40,7 +40,6 @@ const watchedColumns = [
   "Beginning",
   "Ending",
   "Continuation From",
-  "Topics",
   "Resolution",
   "Fidelity Check Resolution"
 ];
