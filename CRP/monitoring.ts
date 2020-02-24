@@ -2,6 +2,10 @@ function rowToObject(row: any[], columnNames: string[]): object {
   return Object.assign({}, ...columnNames.map((k, i) => ({ [k]: row[i] })));
 }
 
+function objectToRow(object: object, columnNames: string[]): any[] {
+  return columnNames.map(columnName => object[columnName]);
+}
+
 const changelogSheetName = "Changelog";
 
 const standardColumns = [
@@ -69,10 +73,7 @@ function onEdit(e: OnEditEventObject) {
     return;
   }
 
-  const headers: string[] = sheet
-    .getRange(1, 1, 1, sheet.getLastColumn())
-    .getValues()
-    .shift();
+  const [headers] = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues();
 
   /// skipping sheets not having any of the standard columns
   if (
@@ -93,6 +94,10 @@ function onEdit(e: OnEditEventObject) {
   if (editedColumns.length === 0) {
     return;
   }
+
+  const [changelogHeaders] = changelogSheet
+    .getRange(1, 1, 1, changelogSheet.getLastColumn())
+    .getValues();
 
   for (
     let rowIndex = e.range.getRowIndex();
@@ -116,16 +121,21 @@ function onEdit(e: OnEditEventObject) {
     }
 
     editedColumns.forEach(columnName => {
-      changelogSheet.appendRow([
-        timestamp,
-        sheet.getName(),
-        `=HYPERLINK("https://docs.google.com/spreadsheets/d/${e.source.getId()}/edit#gid=${sheet.getSheetId()}&range=${rowIndex}:${rowIndex}", ${rowIndex})`,
-        object["Audio File Name"],
-        previousFCR,
-        columnName,
-        oldValue,
-        object[columnName]
-      ]);
+      changelogSheet.appendRow(
+        objectToRow(
+          {
+            Timestamp: timestamp,
+            Sheet: sheet.getName(),
+            "Row Number": `=HYPERLINK("https://docs.google.com/spreadsheets/d/${e.source.getId()}/edit#gid=${sheet.getSheetId()}&range=${rowIndex}:${rowIndex}", ${rowIndex})`,
+            "Audio File Name": object["Audio File Name"],
+            "FCR (before)": previousFCR,
+            Column: columnName,
+            "Old Value": oldValue,
+            "New Value": object[columnName]
+          },
+          changelogHeaders
+        )
+      );
     });
   }
 }
