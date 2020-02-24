@@ -57,6 +57,9 @@
               <v-list-item-subtitle v-else-if="status.retrying">
                 Retrying upload
               </v-list-item-subtitle>
+              <v-list-item-subtitle v-else-if="status.state === 'queued'">
+                Queued
+              </v-list-item-subtitle>
               <v-list-item-title>{{ file.name }}</v-list-item-title>
             </v-list-item-content>
 
@@ -170,10 +173,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   getFiles() {
-    return _.sortBy(Array.from(this.files), [
-      ([_, status]) => (status.state ? sortOrder[status.state] : 4),
-      ([_, status]) => status.timestamp
-    ]);
+    return Array.from(this.files);
   }
 
   deleteFile(file: File) {
