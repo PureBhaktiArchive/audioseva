@@ -94,17 +94,17 @@ function onEdit(e: OnEditEventObject) {
     return;
   }
 
-  const rows = e.range
-    .offset(
-      0,
-      -e.range.getColumn() + 1,
-      e.range.getNumRows(),
-      e.range.getSheet().getLastColumn()
-    )
-    .getValues();
-
-  rows.forEach((row, index) => {
-    const object = rowToObject(row, headers);
+  for (
+    let rowIndex = e.range.getRowIndex();
+    rowIndex <= e.range.getLastRow();
+    rowIndex++
+  ) {
+    const object = rowToObject(
+      sheet
+        .getRange(rowIndex, 1, 1, e.range.getSheet().getLastColumn())
+        .getValues(),
+      headers
+    );
 
     const previousFCR = editedColumns.includes("Fidelity Check Resolution")
       ? oldValue
@@ -119,7 +119,7 @@ function onEdit(e: OnEditEventObject) {
       changelogSheet.appendRow([
         timestamp,
         sheet.getName(),
-        e.range.getRowIndex() + index,
+        `=HYPERLINK("https://docs.google.com/spreadsheets/d/${e.source.getId()}/edit#gid=${sheet.getSheetId()}&range=${rowIndex}:${rowIndex}", ${rowIndex})`,
         object["Audio File Name"],
         previousFCR,
         columnName,
@@ -127,5 +127,5 @@ function onEdit(e: OnEditEventObject) {
         object[columnName]
       ]);
     });
-  });
+  }
 }
