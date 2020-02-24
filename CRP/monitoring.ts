@@ -131,7 +131,8 @@ function onEdit(e: OnEditEventObject) {
             "FCR (before)": previousFCR,
             Column: columnName,
             "Old Value": oldValue,
-            "New Value": object[columnName]
+            "New Value": object[columnName],
+            Checked: false
           },
           changelogHeaders
         )
