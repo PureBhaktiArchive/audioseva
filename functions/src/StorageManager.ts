@@ -44,9 +44,9 @@ export class StorageManager {
   static getFile(bucketName: BucketName, fileName: string) {
     return this.getBucket(bucketName).file(
       `${this.extractListFromFilename(fileName)}/${
-        bucketName === 'restored'
-          ? fileName
-          : this.standardizeFileName(fileName)
+        bucketName === 'original'
+          ? this.standardizeFileName(fileName)
+          : fileName
       }`
     );
   }
