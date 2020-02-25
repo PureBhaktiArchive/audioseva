@@ -19,10 +19,30 @@
             :style="{ visibility: allotment.assignee ? 'visible' : 'hidden' }"
           >
             <v-chip :color="getTaskStyle({ status: 'Given' }).backgroundColor">
-              Given {{ assigneeTasksStats.Given }}
+              Given
+              <v-avatar right>
+                <v-progress-circular
+                  size="24"
+                  indeterminate
+                  v-if="isLoadingAssigneeTasks"
+                ></v-progress-circular>
+                <template v-else>
+                  {{ assigneeTasksStats.Given }}
+                </template>
+              </v-avatar>
             </v-chip>
             <v-chip :color="getTaskStyle({ status: 'WIP' }).backgroundColor">
-              WIP {{ assigneeTasksStats.WIP }}
+              WIP
+              <v-avatar right>
+                <v-progress-circular
+                  size="24"
+                  indeterminate
+                  v-if="isLoadingAssigneeTasks"
+                ></v-progress-circular>
+                <template v-else>
+                  {{ assigneeTasksStats.WIP }}
+                </template>
+              </v-avatar>
             </v-chip>
           </div>
         </template>
@@ -113,6 +133,7 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
   tasks: any[] | null = [];
   submissionStatus: string | null = null;
   isLoadingTasks = true;
+  isLoadingAssigneeTasks = false;
   assigneeTasks: { [key: string]: any }[] = [];
 
   static initialAllotment() {
@@ -137,6 +158,7 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
       if (oldVal && oldVal.emailAddress === newVal.emailAddress) {
         return;
       }
+      this.isLoadingAssigneeTasks = true;
       await this.$rtdbBind(
         "assigneeTasks",
         firebase
@@ -145,6 +167,7 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
           .orderByChild("assignee/emailAddress")
           .equalTo(this.allotment.assignee.emailAddress)
       );
+      this.isLoadingAssigneeTasks = false;
     }
   }
 
