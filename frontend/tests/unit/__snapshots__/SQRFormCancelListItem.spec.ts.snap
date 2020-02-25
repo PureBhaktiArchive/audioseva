@@ -12,6 +12,6 @@ exports[`SQRFormCancelListItem should render 1`] = `
     </div>
     <div class="v-list-item__icon v-list-group__header__append-icon"><i aria-hidden="true" class="v-icon notranslate fas fa-chevron-down theme--light"></i></div>
   </div>
-  <div class="v-list-group__items" style="display: none;"></div>
+  <!---->
 </div>
 `;
