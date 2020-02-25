@@ -1,5 +1,3 @@
-import { VuetifyPreset } from "vuetify/types/presets";
-
 export default {
   icons: {
     iconfont: "fa",
@@ -16,4 +14,4 @@ export default {
       check: "fas fa-check"
     }
   }
-} as VuetifyPreset;
+} as any;
