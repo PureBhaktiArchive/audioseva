@@ -12,7 +12,7 @@
       v-bind="datatableProps"
       :headers="headers"
       :tableRowStyle="getTaskStyle"
-      :items="tasks"
+      :items="activeTasks"
       :classes="classes"
     >
       <!-- eslint-disable vue/no-parsing-error -->
@@ -118,6 +118,10 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
         .equalTo(this.currentUser.email)
     );
     this.datatableProps.loading = false;
+  }
+
+  get activeTasks() {
+    return this.tasks.filter(task => ["Given", "WIP"].includes(task.status));
   }
 }
 </script>
