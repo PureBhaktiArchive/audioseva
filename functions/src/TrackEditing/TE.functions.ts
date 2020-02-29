@@ -253,7 +253,7 @@ export const download = functions.https.onRequest(
         return;
       }
 
-      const version = task.versions[versionId];
+      const version = task.versions?.[versionId];
       if (!version) {
         res
           .status(404)
