@@ -11,7 +11,8 @@ export class TaskValidator extends Validator<ChunkRow[]> {
   constructor() {
     super([
       new ValidationRuleForEach(
-        row => /^\w+-\d+-\d{1,2}$/.test(row['Output File Name']),
+        (row, index) =>
+          index > 0 || /^\w+-\d+-\d{1,2}$/.test(row['Output File Name']),
         `Task ID is incorrect.`
       ),
       new ValidationRuleForEach(
@@ -30,7 +31,7 @@ export class TaskValidator extends Validator<ChunkRow[]> {
       ),
       new ValidationRuleForEach(
         (row, index, source) =>
-          !index || row['Continuation'] === source[index - 1]['File Name'],
+          index === 0 || row['Continuation'] === source[index - 1]['File Name'],
         'Continuation is not matching the file name.'
       ),
     ]);
