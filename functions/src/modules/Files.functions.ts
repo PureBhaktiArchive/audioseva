@@ -13,6 +13,8 @@ const app = express();
 app.get(
   ['/download/:bucket/:fileName', '/download/:fileName'],
   async ({ params: { bucket, fileName } }, res) => {
+    const baseName = path.basename(fileName, path.extname(fileName));
+
     const candidates = bucket
       ? /**
          * Bucket is specified in SE spreadsheets:
@@ -22,8 +24,8 @@ app.get(
          */
         bucket === 'edited' && fileName.startsWith('DIGI')
         ? [
-            StorageManager.getFile(bucket, `${path.basename(fileName)}.mp3`),
-            StorageManager.getFile(bucket, `${path.basename(fileName)}.flac`),
+            StorageManager.getFile(bucket, `${baseName}.mp3`),
+            StorageManager.getFile(bucket, `${baseName}.flac`),
           ]
         : [StorageManager.getFile(<BucketName>bucket, fileName)]
       : /**
@@ -53,10 +55,7 @@ app.get(
          * However taking the extension from the found file,
          * as it may differ in case of DIGI files.
          */
-        promptSaveAs: `${path.basename(
-          fileName,
-          path.extname(fileName)
-        )}${path.extname(file.name)}`,
+        promptSaveAs: `${baseName}${path.extname(file.name)}`,
       });
       console.log(`Redirecting ${bucket}/${fileName} to ${url}`);
       res.redirect(307, url);
