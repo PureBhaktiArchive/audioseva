@@ -1,11 +1,15 @@
 <template>
-  <div v-if="item.versions">
-    <span
-      >Version {{ versionNumber }}:
+  <div :style="{ paddingTop: '4px' }" v-if="item.versions">
+    <div class="pb-2">
+      <v-avatar color="blue" size="26">
+        <v-icon size="14" class="white--text">
+          {{ $vuetify.icons.values.upload }}
+        </v-icon>
+      </v-avatar>
       <version-download-link :taskId="item['.key']" :versionId="lastVersion.id">
-        {{ item[".key"] }}
+        Version {{ versionNumber }}
       </version-download-link>
-    </span>
+    </div>
     <p class="subtext">{{ timestamp }}</p>
   </div>
 </template>
