@@ -48,6 +48,9 @@ const versions = [
     timestamp: 1573234120570,
     uploadPath: "upload-path",
     resolution: {
+      author: {
+        name: "author1"
+      },
       isApproved: true,
       feedback: "feedback here",
       timestamp: 1573234161738

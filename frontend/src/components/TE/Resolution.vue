@@ -1,15 +1,18 @@
 <template>
-  <div>
+  <div :style="{ paddingTop: '4px' }">
     <div v-if="lastResolution">
-      <v-chip
-        class="ma-1 ml-0"
-        label
-        :color="lastIsApproved ? 'green' : 'red'"
-        text-color="white"
+      <div
+        class="pb-2"
+        :style="{
+          display: 'inline-flex',
+          alignItems: 'center'
+        }"
       >
-        {{ lastIsApproved ? "Approved" : "Disapproved" }}
-      </v-chip>
-      <p class="mb-0">{{ lastResolution.feedback }}</p>
+        <v-avatar size="26" class="mr-2" :color="icon.color">
+          <v-icon size="14" class="white--text">{{ icon.icon }}</v-icon>
+        </v-avatar>
+        {{ text }}
+      </div>
       <p class="subtext">{{ timestamp }}</p>
     </div>
     <v-btn
@@ -24,7 +27,7 @@
 
 <script lang="ts">
 import { Component, Mixins, Prop } from "vue-property-decorator";
-
+import _ from "lodash";
 import LastVersionMixin from "@/components/TE/LastVersionMixin";
 import FormatTime from "@/mixins/FormatTime";
 
@@ -51,6 +54,23 @@ export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
       this.lastVersion &&
       this.item.status === "WIP"
     );
+  }
+
+  get icon() {
+    return {
+      icon: this.lastIsApproved
+        ? (this.$vuetify.icons as any).values.check
+        : (this.$vuetify.icons as any).values.undo,
+      color: this.lastIsApproved ? "green" : "red"
+    };
+  }
+
+  get text() {
+    const author = _.get(this.lastResolution || {}, "author.name", "");
+    const feedback = _.get(this.lastResolution || {}, "feedback", "");
+    return `${this.lastIsApproved ? "Approved" : "Disapproved"} by ${author}${
+      feedback ? `: ${feedback}` : ""
+    }`;
   }
 }
 </script>
