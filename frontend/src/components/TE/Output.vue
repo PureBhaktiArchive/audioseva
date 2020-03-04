@@ -7,7 +7,7 @@
         </v-icon>
       </v-avatar>
       <version-download-link :taskId="item['.key']" :versionId="lastVersion.id">
-        Version {{ versionNumber }}:
+        Version {{ versionNumber }}
       </version-download-link>
     </div>
     <p class="subtext">{{ timestamp }}</p>
