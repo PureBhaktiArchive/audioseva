@@ -1,0 +1,20 @@
+#
+# sri sri guru gauranga jayatah
+#
+
+name: Deploy Production
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  create_deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: maxkomarychev/oction-create-deployment@master
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          ref: ${{ github.ref }}
+          environment: production
+          state: pending
