@@ -4,14 +4,12 @@ jobs:
   build:
     name: Build and test
     runs-on: ubuntu-latest
-    if: github.head_ref != 'gh/deploy-pull-requests'
     strategy:
       matrix:
         project: [frontend, functions]
     env:
-      CI: "true"
+      CI: true
     steps:
-      - run: "echo ${{github.head_ref}}"
       - uses: actions/checkout@v1
         with:
           fetch-depth: 1
