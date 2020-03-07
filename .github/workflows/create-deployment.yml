@@ -1,0 +1,24 @@
+#
+# sri sri guru gauranga jayatah
+#
+
+name: Create Deployment
+on:
+  repository_dispatch:
+    types: [deploy-command]
+jobs:
+  create_deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output command and arguments
+        run: |
+          echo ${{ github.event.client_payload.slash_command.command }}
+          echo ${{ github.event.client_payload.slash_command.args }}
+          echo ${{ github.event.client_payload.slash_command.arg1 }}
+          echo ${{ github.event.client_payload.slash_command.arg2 }}
+          echo ${{ github.event.client_payload.slash_command.arg3 }}
+          # etc.
+      - name: Dump the client payload context
+        env:
+          PAYLOAD_CONTEXT: ${{ toJson(github.event.client_payload) }}
+        run: echo "$PAYLOAD_CONTEXT"
