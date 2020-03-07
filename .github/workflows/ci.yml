@@ -11,6 +11,7 @@ jobs:
     env:
       CI: true
     steps:
+      - run: "echo ${{github.head_ref}}"
       - uses: actions/checkout@v1
         with:
           fetch-depth: 1
