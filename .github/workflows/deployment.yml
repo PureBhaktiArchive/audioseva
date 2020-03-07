@@ -10,17 +10,18 @@ jobs:
       GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
 
     steps:
+      - name: Deployment status
+        uses: maxkomarychev/oction-create-deployment-status@master
+        with:
+          token: ${{ github.token }}
+          deployment_id: ${{ github.event.id }}
+          state: in_progress
+
       - uses: actions/checkout@v2
 
       - uses: actions/setup-node@v1
         with:
           node-version: 8.x
-
-      - name: Deployment pending
-        uses: deliverybot/deployment-status@master
-        with:
-          state: in_progress
-          token: ${{ github.token }}
 
       - name: Install dependencies
         run: |
@@ -63,7 +64,8 @@ jobs:
 
       - name: Deployment status
         if: always()
-        uses: deliverybot/deployment-status@master
+        uses: maxkomarychev/oction-create-deployment-status@master
         with:
-          state: ${{ job.status }}
           token: ${{ github.token }}
+          deployment_id: ${{ github.event.id }}
+          state: ${{ job.status }}

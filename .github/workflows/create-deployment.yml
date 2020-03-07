@@ -22,3 +22,15 @@ jobs:
         env:
           PAYLOAD_CONTEXT: ${{ toJson(github.event.client_payload) }}
         run: echo "$PAYLOAD_CONTEXT"
+      - uses: maxkomarychev/oction-create-deployment@master
+        id: create_deployment
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          ref: ${{ github.event.client_payload.github.ref }}
+          environment: staging
+          state: pending
+          description: "From Pull Request"
+      - name: Print outputs
+        run: |
+          echo ${{ steps.create_deployment.outputs.id }}
+          echo ${{ steps.create_deployment.outputs.number }}
