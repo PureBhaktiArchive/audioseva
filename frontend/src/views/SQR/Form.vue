@@ -24,6 +24,9 @@
     </p>
     <v-form v-else ref="form" @submit.prevent="handleSubmit">
       <v-container>
+        <v-alert type="warning" v-if="finalizedSubmissionError">
+          {{ finalizedSubmissionError }}
+        </v-alert>
         <v-row>
           <v-col>
             <v-list class="cancel-list">
@@ -37,6 +40,7 @@
                 :selected.sync="cancelCheck[index + 1]"
                 v-model="cancelComment"
                 :rules="rules"
+                :disabled="!!finalizedSubmissionError"
               ></cancel-list-item>
             </v-list>
           </v-col>
@@ -47,6 +51,7 @@
               </v-text-field>
             </v-col>
             <fields
+              :disabled="!!finalizedSubmissionError"
               :form="form"
               :updateForm="debounceUpdateForm"
               :removeField="removeField"
@@ -61,12 +66,22 @@
                   flexWrap: 'wrap'
                 }"
               >
-                <v-btn v-if="!isCompleted" @click="saveDraft">
+                <v-btn v-if="!isLoadedFromCompletedBranch" @click="saveDraft">
                   Save draft
                 </v-btn>
-                <v-btn type="submit" color="primary" class=" mx-2"
-                  >Submit</v-btn
+                <v-btn
+                  v-if="
+                    $can('submit', {
+                      modelName: $subjects.SQR.form,
+                      isMarkedDone
+                    })
+                  "
+                  type="submit"
+                  color="primary"
+                  class="mx-2"
                 >
+                  Submit
+                </v-btn>
                 <p
                   :style="{ color: 'red' }"
                   v-if="formHasError && showValidationSummary"
@@ -94,9 +109,8 @@
 </template>
 
 <script lang="ts">
-import { Component, Watch, Vue } from "vue-property-decorator";
+import { Component, Vue } from "vue-property-decorator";
 import _ from "lodash";
-import { mapActions } from "vuex";
 import moment from "moment";
 import "moment-timezone/builds/moment-timezone-with-data-10-year-range.min.js";
 import firebase from "firebase/app";
@@ -125,9 +139,6 @@ enum SubmissionsBranch {
 @Component({
   name: "Form",
   components: { Fields, CancelListItem },
-  methods: {
-    ...mapActions("user", ["getUserClaims"])
-  },
   title: ({ $route }) => `Sound Quality Report for ${$route.params.fileName}`
 })
 export default class Form extends Vue {
@@ -193,12 +204,12 @@ export default class Form extends Vue {
   submitSuccess = false;
   formHasError = false;
   errorMessage = "";
-  isCoordinator = false;
   showValidationSummary = false;
-  getUserClaims!: any;
   rules = [required];
   destroyFormErrorWatch!: any;
   branch: SubmissionsBranch | null = null;
+  isMarkedDone!: boolean;
+  finalizedSubmissionError = "";
 
   handleListClick(cancelField: number) {
     this.cancelCheck = {};
@@ -230,10 +241,10 @@ export default class Form extends Vue {
 
     if (_.isEqual(this.initialData, this.form)) {
       this.formState = FormState.INITIAL_LOAD;
-      if (!this.isCompleted) {
+      if (!this.isLoadedFromCompletedBranch) {
         this.debounceSaveDraft.cancel();
       }
-    } else if (this.isCompleted) {
+    } else if (this.isLoadedFromCompletedBranch) {
       this.formState = FormState.UNSAVED_CHANGES;
     } else {
       this.formState = FormState.SAVING;
@@ -247,11 +258,6 @@ export default class Form extends Vue {
     const {
       params: { fileName, token }
     } = this.$route;
-    const isCoordinator = _.get(
-      await this.getUserClaims(),
-      "coordinator",
-      false
-    );
     const response = (
       await firebase
         .database()
@@ -261,11 +267,17 @@ export default class Form extends Vue {
         .once("value")
     ).val();
     const allotmentStatus = _.get<string>(response, `${fileName}.status`, "");
+    this.isMarkedDone = allotmentStatus.toLowerCase() === "done";
     if (!allotmentStatus) {
       this.errorMessage =
         "This allotment is not valid, please contact coordinator.";
-    } else if (!isCoordinator && allotmentStatus.toLowerCase() === "done") {
-      this.errorMessage =
+    } else if (
+      this.$ability.cannot("submit", {
+        modelName: this.$subjects.SQR.form,
+        isMarkedDone: this.isMarkedDone
+      })
+    ) {
+      this.finalizedSubmissionError =
         "This submission is finalized and cannot be updated, please contact the coordinator.";
     }
     if (this.errorMessage) this.isLoadingForm = false;
@@ -276,7 +288,7 @@ export default class Form extends Vue {
 
     if (_.isEqual(this.initialData, this.form)) {
       this.formState = FormState.INITIAL_LOAD;
-    } else if (this.isCompleted) {
+    } else if (this.isLoadedFromCompletedBranch) {
       this.formState = FormState.UNSAVED_CHANGES;
       return;
     }
@@ -461,7 +473,7 @@ export default class Form extends Vue {
   }
 
   debounceSaveDraft: any = _.debounce(async () => {
-    if (this.isCompleted) return;
+    if (this.isLoadedFromCompletedBranch) return;
     await this.saveDraft();
   }, 3000);
 
@@ -504,7 +516,7 @@ export default class Form extends Vue {
     return Object.values(this.cancelCheck).includes(true);
   }
 
-  get isCompleted() {
+  get isLoadedFromCompletedBranch() {
     return (
       this.branch === SubmissionsBranch.COMPLETED ||
       this.branch === SubmissionsBranch.MIGRATED

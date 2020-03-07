@@ -2,11 +2,11 @@
  * sri sri guru gauranga jayatah
  */
 
-import firebase from "firebase/app";
 import _ from "lodash";
 import Vue from "vue";
 import Router, { NavigationGuard, RouteConfig } from "vue-router";
 import { store } from "@/store";
+import { subjects } from "@/abilities";
 
 Vue.use(Router);
 
@@ -45,14 +45,18 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Sound Quality Reporting",
-            menuIcon: "fas fa-headphones",
-            auth: { requireClaims: { coordinator: true } }
+            menuIcon: "fas fa-headphones"
           },
           children: [
             {
               path: "allot",
               component: () => import("@/views/SQRAllotment.vue"),
-              meta: { menuItem: true }
+              meta: {
+                menuItem: true,
+                auth: {
+                  ability: { subject: subjects.SQR.tasks, action: "allot" }
+                }
+              }
             }
           ]
         },
@@ -62,8 +66,7 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Track Editing",
-            menuIcon: "fas fa-cut",
-            auth: { requireClaims: { coordinator: true } }
+            menuIcon: "fas fa-cut"
           },
           children: [
             {
@@ -71,13 +74,27 @@ export const router = new Router({
               component: () => import("@/views/TE/Tasks.vue"),
               meta: {
                 menuItem: true,
+                auth: {
+                  ability: {
+                    subject: subjects.TE.tasks,
+                    action: "view"
+                  }
+                },
                 homePageLink: { text: "TE" }
               }
             },
             {
               path: "allot",
               component: () => import("@/views/TE/Allotment.vue"),
-              meta: { menuItem: true }
+              meta: {
+                menuItem: true,
+                auth: {
+                  ability: {
+                    subject: subjects.TE.tasks,
+                    action: "allot"
+                  }
+                }
+              }
             },
             {
               path: "my",
@@ -85,7 +102,12 @@ export const router = new Router({
               meta: {
                 menuItem: true,
                 menuLinkName: "My Tasks",
-                auth: { requireClaims: { TE: true } }
+                auth: {
+                  ability: {
+                    subject: subjects.TE.myTasks,
+                    action: "view"
+                  }
+                }
               }
             },
             {
@@ -93,7 +115,12 @@ export const router = new Router({
               component: () => import("@/views/TE/Upload.vue"),
               meta: {
                 menuItem: true,
-                auth: { requireClaims: { TE: true, coordinator: true } },
+                auth: {
+                  ability: {
+                    subject: subjects.TE.task,
+                    action: "upload"
+                  }
+                },
                 homePageLink: { text: "Upload" }
               }
             },
@@ -102,7 +129,12 @@ export const router = new Router({
               component: () => import("@/views/TE/Task.vue"),
               meta: {
                 menuItem: false,
-                auth: { requireClaims: { TE: true, coordinator: true } }
+                auth: {
+                  ability: {
+                    subject: subjects.TE.task,
+                    action: "view"
+                  }
+                }
               }
             }
           ]
@@ -112,113 +144,84 @@ export const router = new Router({
   ]
 });
 
-export const hasClaim = (
-  requiredClaims: { [key: string]: any },
-  userClaims: { [key: string]: any }
-) => {
-  return Object.entries(requiredClaims).some(
-    ([claimName, claimValue]) => userClaims[claimName] === claimValue
-  );
-};
-
-const getRootRouteChildren = () => {
+const getRootRouteChildren = (): any => {
   return (router as any).options.routes.find(
     (route: RouteConfig) => route.path === "/"
   ).children;
 };
 
+type RouteAbility = { action: string; subject: string };
+
 export const filterRoutesByClaims = (
   filterCb: <T>(
     route: RouteConfig,
-    userClaims: { [key: string]: any },
-    requireParentClaims: boolean | { [key: string]: any },
+    parentAbility: RouteAbility | undefined,
     ...args: any[]
-  ) => T
+  ) => any
 ) => (
   routes: RouteConfig[] = [],
-  userClaims: { [key: string]: any },
-  requireParentClaims: boolean | { [key: string]: any } = false,
+  parentAbility: RouteAbility | undefined = undefined,
   ...args: any[]
 ): RouteConfig[] => {
   return routes.reduce((filteredRoutes, route) => {
-    const requireClaims = _.get(
-      route,
-      "meta.auth.requireClaims",
-      requireParentClaims
-    );
+    const ability = _.get(route, "meta.auth.ability", parentAbility);
 
-    const filteredRoute = filterCb<RouteConfig>(
-      route,
-      userClaims,
-      requireClaims,
-      ...args
-    );
+    const filteredRoute = filterCb<RouteConfig>(route, ability, ...args);
     filteredRoute && filteredRoutes.push(filteredRoute);
     return filteredRoutes;
   }, [] as RouteConfig[]);
 };
 
-const filterHomePageRoutes = filterRoutesByClaims(
-  (route, userClaims, requiredClaims): any => {
-    const homePageButton = _.get(route, "meta.homePageLink", false);
-    let filteredRoute: RouteConfig = route;
-    if (route.children) {
-      const routeChildren = filterHomePageRoutes(
-        route.children,
-        userClaims,
-        requiredClaims
-      );
-      filteredRoute = { ...route, children: routeChildren };
-    }
-
-    if (
-      homePageButton &&
-      typeof requiredClaims === "object" &&
-      hasClaim(requiredClaims, userClaims)
-    ) {
-      return filteredRoute;
-    } else if (filteredRoute.children && filteredRoute.children.length) {
-      filteredRoute = _.setWith(
-        _.clone(filteredRoute),
-        "meta.homePageLink",
-        false,
-        _.clone
-      );
-      return filteredRoute;
-    }
+const filterHomePageRoutes = filterRoutesByClaims((route, ability): any => {
+  const homePageButton = _.get(route, "meta.homePageLink", false);
+  let filteredRoute: RouteConfig = route;
+  if (route.children) {
+    const routeChildren = filterHomePageRoutes(route.children, ability);
+    filteredRoute = { ...route, children: routeChildren };
   }
-);
 
-export const getHomePageRoutes = async () => {
-  return filterHomePageRoutes(
-    getRootRouteChildren(),
-    (await store.dispatch("user/getUserClaims")) || {}
-  );
+  if (
+    homePageButton &&
+    ability &&
+    store.getters["user/ability"].can(ability.action, ability.subject)
+  ) {
+    return filteredRoute;
+  } else if (filteredRoute.children && filteredRoute.children.length) {
+    filteredRoute = _.setWith(
+      _.clone(filteredRoute),
+      "meta.homePageLink",
+      false,
+      _.clone
+    );
+    return filteredRoute;
+  }
+});
+
+export const getHomePageRoutes = () => {
+  return filterHomePageRoutes(getRootRouteChildren());
 };
 
 const filterMenuItems = filterRoutesByClaims(
-  (route: RouteConfig, userClaims, requireClaims): any => {
+  (route: RouteConfig, ability): any => {
     if (route.meta.activator) {
-      const childRoutes = filterMenuItems(
-        route.children,
-        userClaims,
-        requireClaims
-      );
+      const childRoutes = filterMenuItems(route.children, ability);
       if (childRoutes.length) return { ...route, children: childRoutes };
-    } else if (typeof requireClaims === "object") {
-      if (hasClaim(requireClaims, userClaims)) return route;
-    } else {
+    } else if (
+      ability &&
+      store.getters["user/ability"].can(ability.action, ability.subject)
+    ) {
+      return route;
+    } else if (!ability) {
       return route;
     }
   }
 );
 
-export const getMenuItems = async () => {
+export const getMenuItems = () => {
   return filterMenuItems(
     getRootRouteChildren().filter((route: any) => {
       return route.meta && (route.meta.activator || route.meta.menuItem);
-    }),
-    (await store.dispatch("user/getUserClaims")) || {}
+    })
   );
 };
 
@@ -230,29 +233,24 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
 
   if (!restrictedRoute) return next();
 
-  const currentUser = firebase.auth().currentUser;
   const {
     meta: {
-      auth: { requireAuth, guestOnly, requireClaims }
+      auth: { requireAuth, guestOnly, ability }
     }
   } = restrictedRoute;
 
-  if ((requireAuth || requireClaims) && !currentUser)
+  if ((requireAuth || ability) && !store.getters["user/isSignedIn"])
     return next({
       path: "/login",
       query: { redirect: to.fullPath }
     });
 
-  if (guestOnly && currentUser) return next("/");
+  if (guestOnly && store.getters["user/isSignedIn"]) return next("/");
 
-  if (requireClaims) {
-    const userClaims = currentUser
-      ? (await currentUser.getIdTokenResult()).claims
-      : null;
-
-    return !userClaims || !hasClaim(requireClaims, userClaims)
-      ? next("/")
-      : next();
+  if (ability) {
+    return store.getters["user/ability"].can(ability.action, ability.subject)
+      ? next()
+      : next("/");
   }
 
   next();
@@ -261,17 +259,15 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
 export const redirectSections: NavigationGuard = async (to, from, next) => {
   if (!_.get(to, "meta.activator")) return next();
 
-  const activatorChildren = getRootRouteChildren().find(
+  const activatorChildren: RouteConfig[] = getRootRouteChildren().find(
     (route: RouteConfig) => `/${route.path}` === `${to.fullPath}/`
   ).children;
-  const userClaims = await store.dispatch("user/getUserClaims");
-  const childRedirectRoute = activatorChildren.find((route: RouteConfig) => {
-    const requireClaims = _.get(
-      route,
-      "meta.auth.requireClaims",
-      _.get(to, "meta.auth.requireClaims")
+  const childRedirectRoute = activatorChildren.find(route => {
+    const ability = _.get(route, "meta.auth.ability");
+    return (
+      ability &&
+      store.getters["user/ability"].can(ability.action, ability.subject)
     );
-    return hasClaim(requireClaims, userClaims);
   });
   childRedirectRoute
     ? next(`${to.fullPath}/${childRedirectRoute.path}`)

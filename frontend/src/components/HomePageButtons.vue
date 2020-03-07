@@ -12,19 +12,27 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Watch, Vue } from "vue-property-decorator";
 import { RouteConfig } from "vue-router";
+import { mapState } from "vuex";
 import { getHomePageRoutes } from "@/router";
 
 @Component({
-  name: "HomePageButtons"
+  name: "HomePageButtons",
+  computed: {
+    ...mapState("user", ["roles"])
+  }
 })
 export default class HomePageButtons extends Vue {
-  userClaims: any = {};
   routeButtons: any[] = [];
 
-  async mounted() {
-    this.makeButtons(await getHomePageRoutes());
+  @Watch("roles", { immediate: true })
+  handleUserRoles(newRoles: { [key: string]: any } | null) {
+    if (newRoles) {
+      this.makeButtons(getHomePageRoutes());
+    } else {
+      this.routeButtons = [];
+    }
   }
 
   makeButtons(routes: RouteConfig[], parentPath: string = "/") {

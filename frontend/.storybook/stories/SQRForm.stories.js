@@ -1,4 +1,4 @@
-import { object } from "@storybook/addon-knobs";
+import { object, boolean } from "@storybook/addon-knobs";
 import { action } from "@storybook/addon-actions";
 import { storyFactory } from "../util/helpers";
 import SoundIssues from "../../src/components/SQRForm/SoundIssues";
@@ -20,6 +20,9 @@ const formData = path => ({
           { beginning: "13:55" }
         ])
       }
+    },
+    disabled: {
+      default: boolean("disabled", false)
     }
   },
   methods: {
@@ -34,6 +37,7 @@ export const soundIssues = () =>
     template: `
     <sound-issues
       :form="form"
+      :disabled="disabled"
       :updateForm="updateForm"
       :removeField="removeField"
     ></sound-issues>
@@ -46,6 +50,7 @@ export const unwantedParts = () =>
     template: `
     <unwanted-parts 
       :form="form" 
+      :disabled="disabled"
       :updateForm="updateForm" 
       :removeField="removeField"
     ></unwanted-parts>

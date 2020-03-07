@@ -1,6 +1,7 @@
 <template>
   <radio-group
-    :fieldProps="fieldProps"
+    v-bind="$attrs"
+    :rules="fieldProps.rules"
     :form="form"
     :fields="ratings"
     updatePath="soundQualityRating"

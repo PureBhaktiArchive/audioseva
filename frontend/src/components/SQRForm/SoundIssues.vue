@@ -68,7 +68,7 @@
         </v-row>
       </v-card-title>
     </v-card>
-    <v-btn class="ma-0" color="success" @click="addField">
+    <v-btn class="ma-0" color="success" @click="addField" :disabled="disabled">
       Add Sound Issue
     </v-btn>
   </div>

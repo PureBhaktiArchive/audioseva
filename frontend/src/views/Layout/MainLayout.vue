@@ -86,7 +86,6 @@ import { Component, Vue, Watch } from "vue-property-decorator";
 import _ from "lodash";
 import { mapState, mapActions } from "vuex";
 import { RouteConfig } from "vue-router";
-import firebase from "firebase/app";
 import { getMenuItems } from "@/router";
 import MenuLinks from "@/components/MenuLinks";
 
@@ -103,7 +102,7 @@ const pathMap = {
     MenuLinks
   },
   computed: {
-    ...mapState("user", ["currentUser"])
+    ...mapState("user", ["currentUser", "roles"])
   },
   methods: {
     ...mapActions("user", ["signOut"])
@@ -115,10 +114,10 @@ export default class MainLayout extends Vue {
   menuItems: RouteConfig[] = [];
   breadcrumbs: any[] = [];
 
-  @Watch("currentUser", { immediate: true })
-  async handleCurrentUserChange(newUser: firebase.User | null) {
-    if (newUser) {
-      this.menuItems = await getMenuItems();
+  @Watch("roles", { immediate: true })
+  handleUserRolesChange(newRoles: { [key: string]: any } | null) {
+    if (newRoles) {
+      this.menuItems = getMenuItems();
     } else {
       this.menuItems = [];
     }
@@ -131,7 +130,7 @@ export default class MainLayout extends Vue {
       [...matched].reverse().find(({ meta }) => meta.auth),
       "meta.auth"
     );
-    if (path !== "/" && auth && (auth.requireClaims || auth.requireAuth)) {
+    if (path !== "/" && auth && (auth.ability || auth.requireAuth)) {
       const paths = path.split("/");
       const pathsLength = paths.length - 1;
       paths.forEach((item: string, index: number) => {

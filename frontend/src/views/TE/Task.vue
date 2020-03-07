@@ -51,7 +51,7 @@
                   <v-col cols="12" sm="3" class="pt-0">
                     <v-btn
                       @click="onCancelClick"
-                      v-if="isCoordinator"
+                      v-if="$can('cancel', $subjects.TE.task)"
                       class="mt-0 ml-1"
                       color="error"
                       small
@@ -130,7 +130,10 @@
               </v-row>
             </v-timeline-item>
             <v-timeline-item
-              v-else-if="index === versionsCount - 1 && isCoordinator"
+              v-else-if="
+                index === versionsCount - 1 &&
+                  $can('resolve', $subjects.TE.task)
+              "
               :key="`resolution-${key}`"
             >
               <template v-slot:icon>
@@ -226,14 +229,16 @@
           </template>
         </v-timeline>
       </article>
-      <v-btn v-if="!isCoordinator" to="/te/upload">Upload</v-btn>
+      <v-btn v-if="$can('upload', $subjects.TE.task)" to="/te/upload">
+        Upload
+      </v-btn>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Mixins, Watch } from "vue-property-decorator";
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 import firebase from "firebase/app";
 import "firebase/database";
 import "firebase/functions";
@@ -255,9 +260,6 @@ enum State {
   computed: {
     ...mapState("user", ["currentUser"])
   },
-  methods: {
-    ...mapActions("user", ["getUserClaims"])
-  },
   title: ({ $route }) => `Track Editing Task ${$route.params.taskId}`
 })
 export default class Task extends Mixins<TaskMixin, FormatTime>(
@@ -267,7 +269,6 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   task: any = {};
   State = State;
   state: State = State.LOADING;
-  isCoordinator = false;
   form = {
     isApproved: false,
     feedback: ""
@@ -277,11 +278,9 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   disapproveConfirmation = false;
 
   currentUser!: firebase.User;
-  getUserClaims!: any;
 
-  mounted() {
+  async mounted() {
     this.getTask();
-    this.checkUserClaims();
   }
 
   async getTask() {
@@ -294,11 +293,6 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     } catch (e) {
       this.state = State.ERROR;
     }
-  }
-
-  async checkUserClaims() {
-    const claims = await this.getUserClaims();
-    this.isCoordinator = claims.coordinator;
   }
 
   async onCancelClick() {
