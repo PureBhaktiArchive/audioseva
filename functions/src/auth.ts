@@ -3,6 +3,7 @@
  */
 
 import * as functions from 'firebase-functions';
+import _ = require('lodash');
 
 export function abortCall(
   code: functions.https.FunctionsErrorCode,
@@ -13,16 +14,20 @@ export function abortCall(
 }
 
 /*
- * Checks that the callable function is called by a coordinator
+ * Checks that the callable function is called by an authorized user
  * @param context Callable function context
+ * @param roles Required roles (any of them)
  */
-export function authorizeCoordinator(context: functions.https.CallableContext) {
+export function authorize(
+  context: functions.https.CallableContext,
+  roles: string[]
+) {
   if (
     !functions.config().emulator &&
-    (!context.auth || !context.auth.token || !context.auth.token.coordinator)
+    !_.some(roles, role => _.get(context.auth?.token?.roles, role))
   )
     abortCall(
       'permission-denied',
-      'The function must be called by an authenticated coordinator.'
+      'The user is not authorized to call this function.'
     );
 }

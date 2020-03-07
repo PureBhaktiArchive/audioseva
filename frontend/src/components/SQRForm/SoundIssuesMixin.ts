@@ -1,4 +1,4 @@
-import { Component, Mixins } from "vue-property-decorator";
+import { Component, Prop, Mixins } from "vue-property-decorator";
 import _ from "lodash";
 import FormField from "@/mixins/FormField";
 import { required, validateDuration } from "@/validation";
@@ -7,6 +7,7 @@ import { required, validateDuration } from "@/validation";
 export default class SoundIssuesMixin extends Mixins(FormField) {
   updatePath = "";
   prefix: string | undefined;
+  @Prop({ default: false }) disabled!: boolean;
 
   style = {
     minWidth: "75px"
@@ -52,7 +53,8 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
       value,
       fieldProps: {
         ..._.get(props, "fieldProps", {}),
-        rules: hasRules ? rules : []
+        rules: hasRules ? rules : [],
+        disabled: this.disabled
       }
     };
   }
@@ -64,7 +66,10 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
       actions: {
         props: {
           removeField: this.removeField,
-          updatePath: this.updatePath
+          updatePath: this.updatePath,
+          buttonProps: {
+            disabled: this.disabled
+          }
         }
       },
       description: {

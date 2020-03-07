@@ -3,7 +3,7 @@
  */
 
 import * as functions from 'firebase-functions';
-import { abortCall, authorizeCoordinator } from '../auth';
+import { abortCall, authorize } from '../auth';
 import { SQRWorkflow } from './SQRWorkflow';
 import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
@@ -13,7 +13,7 @@ import _ = require('lodash');
  */
 export const processAllotment = functions.https.onCall(
   async ({ assignee, files, comment }, context) => {
-    authorizeCoordinator(context);
+    authorize(context, ['SQR.coordinator']);
 
     if (!assignee || !files || files.length === 0)
       abortCall('invalid-argument', 'Assignee and Files are required.');
@@ -47,7 +47,7 @@ export const processSubmission = functions.database
  * Gets lists with spare files
  */
 export const getLists = functions.https.onCall(async (data, context) => {
-  authorizeCoordinator(context);
+  authorize(context, ['SQR.coordinator']);
 
   const repository = await TasksRepository.open();
   return await repository.getLists();
@@ -58,7 +58,7 @@ export const getLists = functions.https.onCall(async (data, context) => {
  */
 export const getSpareFiles = functions.https.onCall(
   async ({ list, language, languages, count }, context) => {
-    authorizeCoordinator(context);
+    authorize(context, ['SQR.coordinator']);
     return await SQRWorkflow.getSpareFiles(
       list,
       languages || [language],

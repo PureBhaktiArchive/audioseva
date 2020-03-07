@@ -8,6 +8,7 @@
         @input="handleInput(field.toLowerCase(), $event)"
         :value="getFormData(field.toLowerCase())"
         :rules="rules()"
+        v-bind="$attrs"
       ></v-text-field>
     </v-col>
   </v-row>

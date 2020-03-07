@@ -77,5 +77,4 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

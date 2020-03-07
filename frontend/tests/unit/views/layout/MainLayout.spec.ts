@@ -20,8 +20,8 @@ describe("MainLayout", () => {
 
   test.each`
     claims
-    ${{ TE: true }}
-    ${{ coordinator: true }}
+    ${{ TE: { editor: true } }}
+    ${{ SQR: { coordinator: true } }}
   `(
     "should render menu items that match claims $claims",
     async ({ claims }) => {
@@ -33,6 +33,9 @@ describe("MainLayout", () => {
         computed: {
           currentUser() {
             return {};
+          },
+          roles() {
+            return claims;
           }
         },
         methods: {
