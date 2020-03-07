@@ -16,3 +16,4 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           reaction-token: ${{ secrets.GITHUB_TOKEN }}
           commands: deploy
+          issue-type: pull-request
