@@ -10,7 +10,7 @@ jobs:
       GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - uses: actions/setup-node@v1
         with:
@@ -19,7 +19,7 @@ jobs:
       - name: Deployment pending
         uses: deliverybot/deployment-status@master
         with:
-          state: pending
+          state: in_progress
           token: ${{ github.token }}
 
       - name: Install dependencies
@@ -61,16 +61,9 @@ jobs:
       - name: Deploy to ${{ github.event.deployment.environment }}
         run: firebase deploy --force
 
-      - name: Deployment success
-        if: success()
+      - name: Deployment status
+        if: always()
         uses: deliverybot/deployment-status@master
         with:
-          state: success
-          token: ${{ github.token }}
-
-      - name: Deployment failure
-        if: failure()
-        uses: deliverybot/deployment-status@master
-        with:
-          state: failure
+          state: ${{ job.status }}
           token: ${{ github.token }}
