@@ -4,6 +4,7 @@ jobs:
   build:
     name: Build and test
     runs-on: ubuntu-latest
+    if: github.head_ref != 'refs/heads/gh/deploy-pull-requests'
     strategy:
       matrix:
         project: [frontend, functions]
