@@ -12,7 +12,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - run: "echo Labeled!"
+      - run: |
+          array = ${{ github.event.pull_request.labels }}
+          echo "${array[*]}"
       # - uses: khan/pull-request-comment-trigger@master
       #   id: check
       #   with:
