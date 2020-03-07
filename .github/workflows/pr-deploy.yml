@@ -9,19 +9,11 @@ on:
     types: [labeled]
 
 jobs:
-  test:
+  deploy:
+    if: startsWith(github.event.label.name, 'deploy-')
     runs-on: ubuntu-latest
     steps:
       - run: |
           echo ${{ github.event.pull_request.labels }}
           echo ${{ github.event.label.name }}
           echo ${{ github.event.pull_request.label.name }}
-      # - uses: khan/pull-request-comment-trigger@master
-      #   id: check
-      #   with:
-      #     trigger: "@deploy"
-      #     reaction: rocket
-      #   env:
-      #     GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      # - run: "echo Found it!"
-      # if: steps.check.outputs.triggered == 'true'
