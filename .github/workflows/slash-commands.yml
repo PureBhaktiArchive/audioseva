@@ -1,0 +1,19 @@
+#
+# sri sri guru gauranga jayatah
+#
+
+name: Slash Command Dispatch
+on:
+  issue_comment:
+    types: [created]
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slash Command Dispatch
+        uses: peter-evans/slash-command-dispatch@v1
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          reaction-token: ${{ secrets.GITHUB_TOKEN }}
+          commands: deploy
+          issue-type: pull-request
