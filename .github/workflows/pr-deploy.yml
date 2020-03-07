@@ -13,8 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          array = ${{ github.event.pull_request.labels }}
-          echo "${array[*]}"
+          echo ${{ github.event.pull_request.labels }}
           echo ${{ github.event.label.name }}
           echo ${{ github.event.pull_request.label.name }}
       # - uses: khan/pull-request-comment-trigger@master
