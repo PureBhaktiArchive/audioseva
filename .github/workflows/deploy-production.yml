@@ -14,7 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create deployment
-        uses: kamaz/deploy-action@v1.0
+        uses: maxkomarychev/oction-create-deployment@master
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          ref: ${{ github.ref }}
           environment: production
+          required_contexts: <<EMPTY>>
+          state: pending
