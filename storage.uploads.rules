@@ -4,11 +4,14 @@ service firebase.storage {
       allow read;
       allow write: if resource == null
         && request.auth.uid == uid
-        && (request.auth.token.TE || request.auth.token.coordinator)
         && (
-          fileName.matches('DIGI\\d\\d-\\d+-\\d+\\.(?i)mp3')
-          || fileName.matches('\\w+-\\d+-\\d+\\.(?i)flac')
-        )
+          request.auth.token.roles.TE.editor ||
+          request.auth.token.roles.TE.coordinator
+          )
+        && (
+          fileName.matches('DIGI\\d\\d-\\d+-\\d+\\.(?i)mp3') ||
+          fileName.matches('\\w+-\\d+-\\d+\\.(?i)flac')
+          )
         ;
     }
   }
