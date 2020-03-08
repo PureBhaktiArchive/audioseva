@@ -20,7 +20,7 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Create deployment
         if: steps.check.outputs.triggered == 'true'
-        uses: kamaz/deploy-action@v1
+        uses: kamaz/deploy-action@v1.0
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           environment: staging
