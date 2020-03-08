@@ -3,25 +3,16 @@
 #
 
 name: Pull Request Deployment
-on: issue_comment
+on:
+  issue_comment:
+    types: [created]
 
 jobs:
   create-deployment:
     name: Create deployment
     runs-on: ubuntu-latest
     steps:
-      - name: Check trigger word
-        id: check
-        uses: khan/pull-request-comment-trigger@master
-        with:
-          trigger: "/deploy"
-          reaction: rocket
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Create deployment
-        if: steps.check.outputs.triggered == 'true'
-        uses: kamaz/deploy-action@v1.0
-        with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          environment: staging
-          description: "From Pull Request"
+        uses: alexjurkiewicz/pr-comment-github-deployment@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
