@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create deployment
-        uses: kamaz/deploy-action@v1
+        uses: kamaz/deploy-action@v1.0
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           environment: production
