@@ -1,3 +1,0 @@
-production:
-  auto_deploy_on: refs/heads/production
-  environment: production

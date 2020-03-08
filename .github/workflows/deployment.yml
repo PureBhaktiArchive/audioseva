@@ -1,17 +1,28 @@
-name: Deployment
+#
+# sri sri guru gauranga jayatah
+#
 
-on: [deployment]
+name: Deployment
+on: deployment
 
 jobs:
   deployment:
+    name: Deployment to Firebase
     runs-on: ubuntu-latest
 
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
 
     steps:
-      - name: Deployment status
-        uses: maxkomarychev/oction-create-deployment-status@master
+      - name: Turnstyle
+        uses: softprops/turnstyle@master
+        with:
+          continue-after-seconds: 180
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Report deployment status in progress
+        uses: kamaz/deploy-action@v1
         with:
           token: ${{ github.token }}
           deployment_id: ${{ github.event.deployment.id }}
@@ -62,17 +73,17 @@ jobs:
       - name: Deploy to ${{ github.event.deployment.environment }}
         run: firebase deploy --force
 
-      - name: Deployment success
+      - name: Report deployment success
         if: success()
-        uses: maxkomarychev/oction-create-deployment-status@master
+        uses: kamaz/deploy-action@v1
         with:
           token: ${{ github.token }}
           deployment_id: ${{ github.event.deployment.id }}
           state: success
 
-      - name: Deployment failure
+      - name: Report deployment failure
         if: failure()
-        uses: maxkomarychev/oction-create-deployment-status@master
+        uses: kamaz/deploy-action@v1
         with:
           token: ${{ github.token }}
           deployment_id: ${{ github.event.deployment.id }}

@@ -1,9 +1,9 @@
+#
+# sri sri guru gauranga jayatah
+#
+
 name: Continuous Integration
-on:
-  pull_request:
-  push:
-    branches:
-      - master
+on: pull_request
 
 jobs:
   build:
@@ -15,9 +15,7 @@ jobs:
     env:
       CI: true
     steps:
-      - uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
+      - uses: actions/checkout@master
       - uses: actions/setup-node@v1
         with:
           node-version: 8.x
