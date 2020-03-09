@@ -47,53 +47,13 @@
         </div>
       </div>
       <v-divider v-if="files.size"></v-divider>
-      <v-list two-line v-if="files.size">
-        <template v-for="[file, status] in getFiles()">
-          <v-list-item :key="file.upload.uuid">
-            <v-list-item-content>
-              <v-list-item-subtitle
-                :style="{ color: 'red' }"
-                v-if="status.error"
-              >
-                {{ status.error }}
-              </v-list-item-subtitle>
-              <v-list-item-subtitle v-else-if="status.retrying">
-                Retrying upload
-              </v-list-item-subtitle>
-              <v-list-item-subtitle v-else-if="status.state === 'queued'">
-                Queued
-              </v-list-item-subtitle>
-              <v-list-item-title>{{ file.name }}</v-list-item-title>
-            </v-list-item-content>
-
-            <v-list-item-action :style="{ flexDirection: 'row' }">
-              <v-btn v-if="status.error" @click="deleteFile(file)">
-                remove
-              </v-btn>
-              <div v-else>
-                <v-progress-circular
-                  v-if="status.state === 'uploading'"
-                  :value="status.progress"
-                  color="green"
-                  :style="{ marginRight: '16px' }"
-                ></v-progress-circular>
-                <v-btn
-                  @click="cancelFile(status, file)"
-                  v-if="
-                    status.state === 'uploading' || status.state === 'queued'
-                  "
-                >
-                  Cancel
-                </v-btn>
-                <v-icon v-if="status.state === 'completed'" color="green">
-                  fa-check-circle
-                </v-icon>
-              </div>
-            </v-list-item-action>
-          </v-list-item>
-          <v-divider :key="`divider-${file.upload.uuid}`"></v-divider>
-        </template>
-      </v-list>
+      <upload-file-list
+        :files="getFiles()"
+        @cancel-file="cancelFile"
+        @delete-file="deleteFile"
+        v-if="files.size"
+      >
+      </upload-file-list>
     </div>
   </div>
 </template>
@@ -112,6 +72,7 @@ import "firebase/database";
 import "firebase/storage";
 import Pqueue from "p-queue";
 import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
+import UploadFileList from "@/components/TE/UploadFileList.vue";
 
 import { getTaskId, getProjectDomain } from "@/utility";
 
@@ -143,6 +104,7 @@ const sortOrder = {
   name: "Upload",
   components: {
     VueDropzone,
+    UploadFileList
   },
   computed: {
     ...mapState("user", ["currentUser"]),
