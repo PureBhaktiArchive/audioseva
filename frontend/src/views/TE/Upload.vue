@@ -19,7 +19,11 @@
     </div>
     <div>
       <div
-        :style="{ alignItems: 'center', justifyContent: 'space-between' }"
+        :style="{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap'
+        }"
         class="d-flex pa-2"
       >
         <span v-if="totalUploadCount" class="pl-2">
@@ -30,8 +34,7 @@
         <div
           :style="{
             justifyContent: 'flex-end',
-            display: 'flex',
-            width: '100%',
+            display: 'flex'
           }"
           class="pl-2"
         >
