@@ -1,5 +1,5 @@
 <template>
-  <v-list two-line>
+  <v-list dense>
     <template v-for="[file, status] in files">
       <v-list-item :key="file.upload.uuid">
         <v-list-item-content>
