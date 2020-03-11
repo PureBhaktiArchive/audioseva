@@ -2,12 +2,12 @@
   <div>
     <h1>{{ $title }}</h1>
     <v-form @submit.stop.prevent v-if="submissionStatus !== 'complete'">
-      <!-- Pass in empty messages so message slot shows -->
+      <!-- Pass in placeholder messages so message slot shows -->
       <assignee-selector
         v-model="allotment.assignee"
         :items="trackEditors || []"
         :loading="trackEditors === null"
-        :messages="['']"
+        :messages="['placeholder']"
         item-text="name"
         :item-value="getAllotmentAssignee"
       >
