@@ -60,7 +60,7 @@ export default {
     async handleUser(
       { commit, dispatch }: ActionContext<any, any>,
       {
-        user,
+        user = null,
         refreshToken = false
       }: { user: firebase.User | null; refreshToken: boolean }
     ) {
