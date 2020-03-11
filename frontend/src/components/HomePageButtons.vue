@@ -28,10 +28,9 @@ export default class HomePageButtons extends Vue {
 
   @Watch("roles", { immediate: true })
   handleUserRoles(newRoles: { [key: string]: any } | null) {
+    this.routeButtons = [];
     if (newRoles) {
       this.makeButtons(getHomePageRoutes());
-    } else {
-      this.routeButtons = [];
     }
   }
 
