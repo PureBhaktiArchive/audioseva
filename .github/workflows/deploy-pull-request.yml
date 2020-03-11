@@ -4,15 +4,20 @@
 
 name: Pull Request Deployment
 on:
-  issue_comment:
-    types: [created]
+  pull_request:
+    types: [labeled]
 
 jobs:
   create-deployment:
     name: Create deployment
     runs-on: ubuntu-latest
+    if: contains( github.event.pull_request.labels.*.name, 'deploy')
     steps:
       - name: Create deployment
-        uses: alexjurkiewicz/pr-comment-github-deployment@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+        uses: maxkomarychev/oction-create-deployment@master
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          ref: ${{ github.ref }}
+          environment: staging
+          required_contexts: <<EMPTY>>
+          state: pending
