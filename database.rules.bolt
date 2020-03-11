@@ -184,3 +184,9 @@ path /quotes {
     read() { true }
     path /{push_id}/text is String {}
 }
+
+path /metadata/{user_id}/refreshTime {
+  read() {
+    user_id == auth.uid
+  }
+}

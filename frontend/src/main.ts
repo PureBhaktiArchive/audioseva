@@ -58,14 +58,31 @@ async function getFirebaseConfig(): Promise<Object> {
       };
 }
 
+const onMetaDataChange = (user: firebase.User) => {
+  store.dispatch("user/handleUser", { user, refreshToken: true });
+};
+
+let callback: ((snapshot: firebase.database.DataSnapshot) => void) | null;
+let metadataRef: firebase.database.Reference | null;
+
 getFirebaseConfig().then((config) => {
   firebase.initializeApp(config);
   firebase.auth().onAuthStateChanged((user) => {
-    store.dispatch("user/handleUser", user);
+    store.dispatch("user/handleUser", { user });
+    if (callback && metadataRef) {
+      metadataRef.off("value", callback);
+    }
+    if (user) {
+      metadataRef = firebase.database().ref(`metadata/${user.uid}/refreshTime`);
+      callback = () => {
+        onMetaDataChange(user);
+      };
+      metadataRef.on("value", callback);
+    }
   });
 
   const unsubscribe: any = firebase.auth().onAuthStateChanged(async (user) => {
-    await store.dispatch("user/handleUser", user);
+    await store.dispatch("user/handleUser", { user });
 
     new Vue({
       router,

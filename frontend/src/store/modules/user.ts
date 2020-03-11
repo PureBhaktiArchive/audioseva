@@ -59,13 +59,16 @@ export default {
     },
     async handleUser(
       { commit, dispatch }: ActionContext<any, any>,
-      user: firebase.User | null
+      {
+        user,
+        refreshToken = false
+      }: { user: firebase.User | null; refreshToken: boolean }
     ) {
       commit("setCurrentUser", user);
       if (user) {
         await dispatch(
           "updateUserRoles",
-          (await user.getIdTokenResult()).claims.roles
+          (await user.getIdTokenResult(refreshToken)).claims.roles
         );
       } else {
         await dispatch("updateUserRoles", null);
