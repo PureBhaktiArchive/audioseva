@@ -19,6 +19,8 @@ describe('File', () => {
   test.each`
     bucket        | fileName               | path
     ${'original'} | ${'Hi3 A.flac'}        | ${'ML1/ML1-003A.flac'}
+    ${'original'} | ${'Hi201.mp3'}         | ${'ML1/ML1-201A.mp3'}
+    ${'original'} | ${'Hi201B.mp3'}        | ${'ML1/ML1-201B.mp3'}
     ${'original'} | ${'BR-01A.flac'}       | ${'BR/BR-001A.flac'}
     ${'original'} | ${'DK-1A.flac'}        | ${'DK/DK-001A.flac'}
     ${'original'} | ${'SER-88A.flac'}      | ${'SER/SER-088A.flac'}

@@ -70,13 +70,22 @@ export class StorageManager {
     return list === 'HI' ? 'ML1' : list;
   };
 
-  static standardizeFileName = (fileName: string) => {
-    if (fileName.startsWith('ML2-')) return fileName.replace(/^ML2-/, '');
+  static standardizeFileName = (fileName: string) =>
+    fileName
+      // ML2 files are just untouched, only the list is removed.
+      .replace(/^ML2-/, '')
 
-    return fileName
+      // Standardizing ML1 list name
       .replace(/^Hi/i, 'ML1-')
+
+      //  For HI (ML1) list there are some files without a suffix (Hi201).
+      //  Implying “A” when the suffix is empty.
+      .replace(/^(ML1-\d+)(\.\w{3,4})$/, '$1A$2')
+
+      // Main replacement
       .replace(
-        /^(ML[12]|[a-zA-Z]+)-(\d{1,4})\s*([\w\s]*)(\.\w{3,4})$/i,
+        //(list         )-(serial )   (suffix )(extension)
+        /^(ML1|[a-zA-Z]+)-(\d{1,4})\s*([\w\s]*)(\.\w{3,4})$/i,
         (
           match,
           list: string,
@@ -94,7 +103,6 @@ export class StorageManager {
             extension,
           ].join('')
       );
-  };
 
   static getDestinationFileForRestoredUpload(fileName: string): File {
     const matches = /^(\w+)-(\d{1,4}.*?)(?:[\s_]+v[-\d\s]+)?$/i.exec(
