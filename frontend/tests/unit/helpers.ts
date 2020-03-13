@@ -2,15 +2,13 @@ import { store } from "@/store";
 
 export const mockClaims = async (roles?: { [key: string]: any }) => {
   if (!roles) {
-    return await store.dispatch("user/handleUser", {});
+    return await store.dispatch("user/handleUser", null);
   }
   await store.dispatch("user/handleUser", {
-    user: {
-      getIdTokenResult: () => ({ claims: { roles } })
-    }
+    getIdTokenResult: () => ({ claims: { roles } })
   });
   // allow clean up after a test
   return async () => {
-    await store.dispatch("user/handleUser", {});
+    await store.dispatch("user/handleUser", null);
   };
 };
