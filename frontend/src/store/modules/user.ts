@@ -92,7 +92,7 @@ export default {
         };
         metadataRef = firebase
           .database()
-          .ref(`metadata/${state.currentUser.uid}/refreshTime`);
+          .ref(`users/${state.currentUser.uid}/refreshTime`);
         metadataRef.on("value", callback);
       }
     },
