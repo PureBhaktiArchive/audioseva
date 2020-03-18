@@ -10,14 +10,14 @@ import _ from "lodash";
 import { Ability } from "@casl/ability";
 import { defineAbilities } from "@/abilities";
 
-let callback: ((snapshot: firebase.database.DataSnapshot) => void) | null;
-let metadataRef: firebase.database.Reference | null;
-
 export default {
   namespaced: true,
   state: {
     currentUser: null,
     roles: null,
+    metadataCallback: null,
+    metadataRef: null,
+    timestamp: null,
   },
   getters: {
     isSignedIn: (state: any) => state.currentUser !== null,
@@ -55,49 +55,68 @@ export default {
     setUserRoles: (state: any, roles: { [key: string]: any } | null) => {
       state.roles = roles;
     },
+    setMetadataCallback: (
+      state: any,
+      callback: ((snapshot: firebase.database.DataSnapshot) => void) | null
+    ) => {
+      state.metadataCallback = callback;
+    },
+    setMetadataRef: (state: any, ref: any) => {
+      state.metadataRef = ref;
+    },
+    setTimestamp: (state: any, timestamp: number) => {
+      state.timestamp = timestamp;
+    }
   },
   actions: {
     signOut() {
       firebase.auth().signOut();
     },
-    async handleUser(
+    async onAuthStateChanged(
+      { dispatch, commit }: ActionContext<any, any>,
+      user: firebase.User | null
+    ) {
+      commit("setCurrentUser", user);
+      dispatch("handleMetadata");
+    },
+    async handleInitialUserLoad(
       { commit, dispatch }: ActionContext<any, any>,
       user: firebase.User | null
     ) {
       commit("setCurrentUser", user);
-      dispatch("updateUserRoles", await dispatch("getUserRoles"));
+      await dispatch("updateUserRoles");
     },
-    updateUserRoles(
-      { commit, getters }: ActionContext<any, any>,
-      roles: { [key: string]: any } | null
+    async updateUserRoles(
+      { commit, getters, state }: ActionContext<any, any>,
+      { forceRefresh = false } = {}
     ) {
+      const roles = state.currentUser
+        ? (await state.currentUser.getIdTokenResult(forceRefresh)).claims.roles
+        : null;
       commit("setUserRoles", roles);
       getters.ability.update(defineAbilities());
     },
-    async getUserRoles(
-      { state }: ActionContext<any, any>,
-      refreshToken = false
-    ) {
-      if (!state.currentUser) return null;
-      return (await state.currentUser.getIdTokenResult(refreshToken)).claims
-        .roles;
-    },
-    handleMetaData({ state, dispatch }: ActionContext<any, any>) {
-      if (callback && metadataRef) {
-        metadataRef.off("value", callback);
+    handleMetadata({ state, dispatch, commit }: ActionContext<any, any>) {
+      if (state.metadataCallback && state.metadataRef) {
+        commit("setTimestamp", null);
+        state.metadataRef.off("value", state.metadataCallback);
       }
-      if (state.currentUser) {
-        callback = async () => {
-          await dispatch("onMetaDataChange");
-        };
-        metadataRef = firebase
-          .database()
-          .ref(`users/${state.currentUser.uid}/refreshTime`);
-        metadataRef.on("value", callback);
+      if (!state.currentUser) {
+        return;
       }
-    },
-    async onMetaDataChange({ dispatch }: ActionContext<any, any>) {
-      dispatch("updateUserRoles", await dispatch("getUserRoles", true));
+      const callback = () => {
+        if (!state.timestamp) {
+          commit("setTimestamp", +new Date());
+          return;
+        }
+        dispatch("updateUserRoles", { forceRefresh: true });
+      };
+      commit("setMetadataCallback", callback);
+      commit(
+        "setMetadataRef",
+        firebase.database().ref(`users/${state.currentUser.uid}/refreshTime`)
+      );
+      state.metadataRef.on("value", state.metadataCallback);
     }
   },
 };
