@@ -280,17 +280,15 @@ export const download = functions.https.onRequest(
         key => key <= versionId
       ).length;
 
-      const url = (
-        await file.getSignedUrl({
-          action: 'read',
-          expires: DateTime.local()
-            .plus({ days: 3 })
-            .toJSDate(),
-          promptSaveAs: `${taskId}.v${versionNumber}${path.extname(
-            version.uploadPath
-          )}`,
-        })
-      ).shift();
+      const url = await file.getSignedUrl({
+        action: 'read',
+        expires: DateTime.local()
+          .plus({ days: 3 })
+          .toJSDate(),
+        promptSaveAs: `${taskId}.v${versionNumber}${path.extname(
+          version.uploadPath
+        )}`,
+      });
 
       console.log(`Redirecting ${taskId}/${versionId} to ${url}`);
       res.redirect(307, url);
