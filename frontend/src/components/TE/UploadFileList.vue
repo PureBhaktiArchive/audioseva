@@ -14,7 +14,10 @@
               class="ml-2"
               :value="status.progress"
               color="green"
-            ></v-progress-linear>
+              height="20"
+            >
+              <strong>{{ status.progress }}%</strong>
+            </v-progress-linear>
           </v-list-item-title>
         </v-list-item-content>
 
