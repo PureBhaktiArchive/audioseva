@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [frontend, functions]
+        project: [frontend, functions, CRP]
     env:
       CI: true
     steps:
