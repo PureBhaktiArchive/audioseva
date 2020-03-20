@@ -65,6 +65,8 @@ function trackChanges(e: OnEditEventObject) {
   const timestamp = new Date();
   const sheet = e.range.getSheet();
 
+  if (DEBUG) console.log(`Changes on ${sheet.getName()}: ${JSON.stringify(e)}`);
+
   const changelogSpreadsheetId =
     PropertiesService.getScriptProperties().getProperty(
       "Changelog.SpreadsheetId"
