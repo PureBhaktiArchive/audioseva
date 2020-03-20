@@ -90,20 +90,24 @@ const getFileName = () => _.uniqueId("file-");
 
 const files = [
   [
-    { upload: { uuid: _.uniqueId() }, name: getFileName() },
+    { upload: { uuid: _.uniqueId() }, name: "file-uploading-1" },
     { state: "uploading", progress: 20 }
   ],
   [
-    { upload: { uuid: _.uniqueId() }, name: getFileName() },
-    { state: "uploading", progress: 30, retrying: true }
+    { upload: { uuid: _.uniqueId() }, name: "file-uploading-2" },
+    { state: "uploading", progress: 30 }
   ],
   [
-    { upload: { uuid: _.uniqueId() }, name: getFileName() },
-    { state: "uploading", retrying: true, error: "Error message" }
+    { upload: { uuid: _.uniqueId() }, name: "file-error-1" },
+    { state: "uploading", error: "Error message" }
   ],
   [
-    { upload: { uuid: _.uniqueId() }, name: getFileName() },
+    { upload: { uuid: _.uniqueId() }, name: "file-queued" },
     { state: "queued" }
+  ],
+  [
+    { upload: { uuid: _.uniqueId() }, name: "file-retrying" },
+    { state: "uploading", retry: true, error: "Max retry limit reached." }
   ],
   [
     { upload: { uuid: _.uniqueId() }, name: getFileName() },
@@ -124,13 +128,15 @@ export const upload = () =>
     },
     methods: {
       cancelFile: action("cancel-file"),
-      deleteFile: action("delete-file")
+      deleteFile: action("delete-file"),
+      retryFile: action("retry-file")
     },
     template: `
       <upload-file-list 
         :files="files"
         @cancel-file="cancelFile"
         @delete-file="deleteFile"
+        @retry-file="retryFile"
       ></upload-file-list>
     `
   });

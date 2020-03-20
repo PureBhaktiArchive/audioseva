@@ -7,11 +7,12 @@ export default {
       track: "fas fa-cut",
       sound: "fas fa-music",
       download: "fas fa-file-download",
-      delete: "fas fa-trash",
       event: "fas fa-calendar",
       undo: "fas fa-undo",
       upload: "fas fa-upload",
       check: "fas fa-check",
+      cancel: "fas fa-times-circle",
+      retry: "fas fa-redo"
     },
   },
 } as any;

@@ -51,6 +51,7 @@
         :files="getFiles()"
         @cancel-file="cancelFile"
         @delete-file="deleteFile"
+        @retry-file="retryFile"
         v-if="files.size"
       >
       </upload-file-list>
@@ -88,10 +89,7 @@ interface IFileStatus {
   state?: "uploading" | "completed" | "queued";
   canceled?: boolean;
   timestamp?: number;
-  retrying?: boolean;
-  retryTimer?: Promise<any>;
-  retryDuration?: number;
-  retryAttempts?: number;
+  retry?: boolean;
 }
 
 const sortOrder = {
@@ -160,13 +158,9 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     this.$forceUpdate();
   }
 
-  cancelFile(
-    { uploadTask, retrying, retryTimer, state }: IFileStatus = {},
-    file: File
-  ) {
+  cancelFile({ uploadTask, retry, state }: IFileStatus = {}, file: File) {
     this.updateFileFields(file, { canceled: true });
-    if (retrying || state === "queued") {
-      retryTimer && retryTimer.cancel();
+    if (retry || state === "queued") {
       this.emitFileError(file, "Canceled upload");
       return;
     }
@@ -314,14 +308,9 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       : moment.duration(totalUploadTime, "seconds").humanize();
   }
 
-  backOff(delay: number) {
-    return new Promise((resolve, reject, onCancel) => {
-      const timer = setTimeout(resolve, delay);
-      onCancel &&
-        onCancel(() => {
-          clearTimeout(timer);
-        });
-    });
+  retryFile(file: File) {
+    this.updateFileFields(file, { retry: false, error: "" });
+    this.handleFile(file, new Date().valueOf());
   }
 
   uploadFile(path: string, file: File) {
@@ -331,7 +320,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
         resolve();
         return;
       }
-      if (!status.retrying) {
+      if (!status.retry) {
         this.totalUploadCount += 1;
       }
       const uploadTask = this.uploadsBucket.ref().child(path).put(file);
@@ -339,7 +328,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
         state: "uploading",
         uploadTask: uploadTask,
         uploadStartedAt: new Date(),
-        retrying: false,
+        retry: false,
       });
       uploadTask.on(
         "state_changed",
@@ -360,26 +349,6 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
           });
         },
         async (error: any) => {
-          if (error.code === "storage/retry-limit-exceeded") {
-            const { retryAttempts = 0, retryDuration = 1000 } = this.getFile(
-              file
-            );
-            if (retryAttempts < this.maxRetryAttempts) {
-              const retry = this.backOff(retryDuration);
-              this.updateFileFields(file, {
-                retryAttempts: retryAttempts + 1,
-                retryDuration: retryDuration * 2,
-                retryTimer: retry,
-                retrying: true,
-              });
-              await retry;
-              await this.uploadFile(path, file).catch((e) => reject(e));
-            } else {
-              this.totalUploadCount -= 1;
-              reject(new Error("Max retry limit has been reached."));
-            }
-            return;
-          }
           this.totalUploadCount -= 1;
           let errorMessage: string;
           switch (error.code) {
@@ -388,6 +357,10 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
               break;
             case "storage/unauthorized":
               errorMessage = "You are not authorized to upload this file";
+              break;
+            case "storage/retry-limit-exceeded":
+              errorMessage = "Max retry limit has been reached.";
+              this.updateFileStatus(file, "retry", true);
               break;
             default:
               errorMessage = error.message;
