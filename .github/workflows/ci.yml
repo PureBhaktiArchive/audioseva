@@ -12,8 +12,6 @@ jobs:
     strategy:
       matrix:
         project: [frontend, functions, CRP]
-    env:
-      CI: true
     steps:
       - uses: actions/checkout@master
       - uses: actions/setup-node@v1
