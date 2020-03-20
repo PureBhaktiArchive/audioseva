@@ -8,8 +8,6 @@ function objectToRow(object: object, columnNames: string[]): any[] {
   return columnNames.map(columnName => object[columnName]);
 }
 
-const changelogSheetName = "Changelog";
-
 const standardColumns = [
   "Audio File Name",
   "Fused Lectures",
@@ -63,19 +61,27 @@ interface OnEditEventObject {
 const DEBUG = PropertiesService.getScriptProperties().getProperty("DEBUG");
 
 // this script records changes to the spreadsheet on a "Changelog" sheet.
-function onEdit(e: OnEditEventObject) {
+function trackChanges(e: OnEditEventObject) {
   const timestamp = new Date();
   const sheet = e.range.getSheet();
 
-  /// skipping chages to the Changelog sheet itself
-  if (sheet.getName() === changelogSheetName) {
-    return;
-  }
+  if (DEBUG) console.log(`Changes on ${sheet.getName()}: ${JSON.stringify(e)}`);
 
-  const changelogSheet = e.source.getSheetByName(changelogSheetName);
-  if (!changelogSheet) {
-    return;
-  }
+  const changelogSpreadsheetId =
+    PropertiesService.getScriptProperties().getProperty(
+      "Changelog.SpreadsheetId"
+    ) || e.source.getId();
+
+  const changelogSheetName =
+    PropertiesService.getScriptProperties().getProperty(
+      "Changelog.SheetName"
+    ) || "Changelog";
+
+  const changelogSheet = SpreadsheetApp.openById(
+    changelogSpreadsheetId
+  ).getSheetByName(changelogSheetName);
+
+  if (!changelogSheet) return;
 
   const [headers] = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues();
 
@@ -116,10 +122,6 @@ function onEdit(e: OnEditEventObject) {
     return;
   }
 
-  const [changelogHeaders] = changelogSheet
-    .getRange(1, 1, 1, changelogSheet.getLastColumn())
-    .getValues();
-
   for (
     let rowIndex = e.range.getRowIndex();
     rowIndex <= e.range.getLastRow();
@@ -145,6 +147,10 @@ function onEdit(e: OnEditEventObject) {
         );
       return;
     }
+
+    const [changelogHeaders] = changelogSheet
+      .getRange(1, 1, 1, changelogSheet.getLastColumn())
+      .getValues();
 
     editedColumns.forEach(columnName => {
       changelogSheet.appendRow(
