@@ -18,7 +18,7 @@ jobs:
         id: wait-for-build
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: build
+          checkName: Build and test
           timeoutSeconds: 300
           intervalSeconds: 30
 
