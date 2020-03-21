@@ -14,12 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for other check suites to complete
-        uses: jitterbit/await-check-suites@v1
+        uses: fountainhead/action-wait-for-check@v1.0.0
+        id: wait-for-build
         with:
-          timeoutSeconds: 600
-          onlyFirstCheckSuite: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: build
+          timeoutSeconds: 300
+          intervalSeconds: 30
+
       - name: Create deployment
         uses: maxkomarychev/oction-create-deployment@master
+        if: steps.wait-for-build.outputs.conclusion == 'success'
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           ref: ${{ github.ref }}
