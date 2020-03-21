@@ -21,7 +21,9 @@ export const arrangeUploadedFile = functions.storage
     }
 
     if ((await destinationFile.exists()).shift()) {
-      console.warn(`Desination file already exists, aborting.`);
+      console.warn(
+        `Desination file for ${object.name} already exists, aborting.`
+      );
       return;
     }
 
