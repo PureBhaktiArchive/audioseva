@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Wait for other check suites to complete
         uses: jitterbit/await-check-suites@v1
+        with:
+          timeoutSeconds: 600
+          onlyFirstCheckSuite: true
       - name: Create deployment
         uses: maxkomarychev/oction-create-deployment@master
         with:
