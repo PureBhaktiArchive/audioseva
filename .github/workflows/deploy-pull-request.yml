@@ -27,4 +27,3 @@ jobs:
           ref: ${{ steps.check.outputs.BRANCH_NAME }}
           environment: staging
           required_contexts: <<EMPTY>>
-          state: pending
