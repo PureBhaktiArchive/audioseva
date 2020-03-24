@@ -6,6 +6,7 @@
           <v-list-item-title :style="{ display: 'flex', alignItems: 'center' }">
             {{ file.name }}
             <v-progress-linear
+              rounded
               class="ml-2"
               :value="status.progress"
               :color="status.error ? 'red' : 'green'"
