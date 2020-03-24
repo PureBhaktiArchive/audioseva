@@ -8,7 +8,7 @@
             <v-progress-linear
               class="ml-2"
               :value="status.progress"
-              color="green"
+              :color="status.error ? 'red' : 'green'"
               height="20"
             >
               <strong>{{ status.progress || 0 }}%</strong>
