@@ -111,11 +111,11 @@ const files = [
   ],
   [
     { upload: { uuid: _.uniqueId() }, name: getFileName() },
-    { state: "completed" }
+    { state: "completed", progress: 100 }
   ],
   [
     { upload: { uuid: _.uniqueId() }, name: getFileName() },
-    { state: "completed" }
+    { state: "completed", progress: 100 }
   ]
 ];
 

@@ -6,21 +6,15 @@
           <v-list-item-title :style="{ display: 'flex', alignItems: 'center' }">
             {{ file.name }}
             <v-progress-linear
-              v-if="
-                status.state !== 'completed' &&
-                  !status.error &&
-                  status.state !== 'queued'
-              "
               class="ml-2"
               :value="status.progress"
               color="green"
               height="20"
             >
-              <strong>{{ status.progress }}%</strong>
+              <strong>{{ status.progress || 0 }}%</strong>
             </v-progress-linear>
           </v-list-item-title>
         </v-list-item-content>
-
         <v-list-item-action
           :style="{ flexDirection: 'row', alignItems: 'center' }"
         >
