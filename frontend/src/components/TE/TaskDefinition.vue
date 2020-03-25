@@ -3,15 +3,14 @@
     <template v-for="(chunk, index) in item.chunks">
       <v-row class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
         <v-col v-bind="layout.link">
-          <v-badge v-if="item.isRestored" color="#2196F3">
-            <template v-slot:badge>SEd</template>
+          <v-badge color="#2196F3">
+            <template v-slot:badge>
+              {{ item.isRestored ? "SEd" : "Non-SEd" }}
+            </template>
             <a :href="getLink(chunk.fileName)">
               {{ chunk.fileName }}
             </a>
           </v-badge>
-          <a v-else :href="getLink(chunk.fileName)">
-            {{ chunk.fileName }}
-          </a>
         </v-col>
         <v-col v-bind="layout.duration">
           <span
