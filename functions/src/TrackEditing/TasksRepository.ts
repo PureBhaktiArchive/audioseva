@@ -189,7 +189,7 @@ export class TasksRepository {
       })
       // Convert the rows into the tasks
       .map(taskRows => ({
-        id: taskRows[0]['Output File Name'].trim(),
+        id: taskRows[0]['Output File Name'].trim().toUpperCase(),
         isRestored: taskRows[0]['SEd?'].toUpperCase() === 'SED',
         chunks: taskRows.map<AudioChunk>(
           ({
