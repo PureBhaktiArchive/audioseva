@@ -231,16 +231,17 @@ export class Spreadsheet<T extends object = object> {
 
   /**
    * Transforms the values array into an object.
-   * - `null` in the array transforms into `undefined` in the object.
    * - Empty string in the array transforms into `null` in the object.
    * @param values The values array to be transformed into an object
    */
-  protected arrayToObject(values: any[]) {
-    return _.zipObject(
-      this.columnNames,
-      values.map(value =>
-        value === '' ? null : value === null ? undefined : value
-      )
+  protected arrayToObject(values: any[]): T {
+    /* According to https://developers.google.com/sheets/api/samples/reading#read_a_single_range_grouped_by_column,
+     * “Empty trailing rows and columns are omitted.”
+     * Thus, the values array may be shorter than columnNames, which produces `undefined`.
+     * That is why we coalesce the undefined values to null after zipping.
+     */
+    return _.mapValues(_.zipObject(this.columnNames, values), value =>
+      value === '' ? null : value ?? null
     ) as T;
   }
 
