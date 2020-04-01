@@ -3,11 +3,10 @@
     <template v-for="(chunk, index) in item.chunks">
       <v-row class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
         <v-col v-bind="layout.link">
-          <div>
-            <a :href="getLink(chunk.fileName)">
-              {{ chunk.fileName }}
-            </a>
-          </div>
+          <a :href="getLink(chunk.fileName)" class="mr-2">
+            {{ chunk.fileName }}</a
+          >
+          <restored-chip :isRestored="item.isRestored"></restored-chip>
         </v-col>
         <v-col v-bind="layout.duration">
           <span
@@ -40,9 +39,11 @@
 <script lang="ts">
 import { Component, Prop, Mixins } from "vue-property-decorator";
 import FormatTime from "@/mixins/FormatTime";
+import RestoredChip from "@/components/TE/RestoredChip.vue";
 
 @Component({
-  name: "TaskDefinition"
+  name: "TaskDefinition",
+  components: { RestoredChip }
 })
 export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   @Prop() item!: any;

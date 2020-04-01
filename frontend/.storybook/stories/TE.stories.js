@@ -21,6 +21,14 @@ const chunks = [
       "\n4-56: blank space - \n61-107: irrelevant - unwanted description",
     beginning: 56,
     ending: 72
+  },
+  {
+    fileName: "file-1",
+    unwantedParts:
+      "\n7-81: irrelevant - unwanted description" +
+      "\n4-56: blank space - \n61-107: irrelevant - unwanted description",
+    beginning: 56,
+    ending: 72
   }
 ];
 
@@ -29,6 +37,7 @@ export const taskDefinition = () =>
     props: {
       item: {
         default: {
+          isRestored: boolean("isRestored", false),
           chunks: object("chunks", chunks)
         }
       }

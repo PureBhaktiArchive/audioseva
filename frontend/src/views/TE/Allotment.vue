@@ -68,9 +68,14 @@
                   class="mr-2 pr-3 mt-0 pt-0"
                   :hide-details="true"
                 >
-                  <code slot="label">
-                    {{ task[".key"] }}
-                  </code>
+                  <div slot="label">
+                    <code class="mr-2">
+                      {{ task[".key"] }}
+                    </code>
+                    <restored-chip
+                      :isRestored="task.isRestored"
+                    ></restored-chip>
+                  </div>
                 </v-checkbox>
                 {{ getTaskSummary(task) }}
               </v-col>
@@ -121,10 +126,11 @@ import _ from "lodash";
 import TaskMixin from "@/components/TE/TaskMixin";
 import TaskDefinition from "@/components/TE/TaskDefinition.vue";
 import AssigneeSelector from "@/components/AssigneeSelector.vue";
+import RestoredChip from "@/components/TE/RestoredChip.vue";
 
 @Component({
   name: "Allotment",
-  components: { AssigneeSelector, TaskDefinition },
+  components: { AssigneeSelector, TaskDefinition, RestoredChip },
   title: "Track Editing Allotment"
 })
 export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
