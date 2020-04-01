@@ -153,7 +153,7 @@ export class Spreadsheet<T extends object = object> {
    * Returns count of the frozen rows in the sheet
    */
   public get frozenRowCount() {
-    return this.sheet.properties.gridProperties.frozenRowCount;
+    return this.sheet.properties.gridProperties.frozenRowCount || 0;
   }
 
   /**
