@@ -42,7 +42,7 @@ mixin currentSet(allotments, currentFileName)
         | #{ allotment.dateGiven }
         | #{ allotment.status }
         | #{ allotment.daysPassed }
-        if currentFileName && allotment.fileName == currentFileName
+        if currentFileName && allotment.fileName === currentFileName
           strong
             |
             | -- CURRENT SUBMISSION
