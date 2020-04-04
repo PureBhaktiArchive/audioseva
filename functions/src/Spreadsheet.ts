@@ -20,7 +20,15 @@ export class Spreadsheet<T extends object = object> {
     const auth = await google.auth.getClient({
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
-    const api = google.sheets({ version: 'v4', auth });
+    const api = google.sheets({
+      version: 'v4',
+      auth,
+      timeout: 60000,
+      retry: true,
+      retryConfig: {
+        retryDelay: 1000,
+      },
+    });
     const schema = this.getResponse(
       await api.spreadsheets.get({
         spreadsheetId: spreadsheetId,
@@ -29,7 +37,7 @@ export class Spreadsheet<T extends object = object> {
       })
     );
     const sheetIndex = schema.sheets.findIndex(
-      s => s.properties.title === sheetName
+      (s) => s.properties.title === sheetName
     );
     if (sheetIndex < 0)
       throw new Error(`No "${sheetName}" sheet in the spreadsheet.`);
@@ -43,7 +51,7 @@ export class Spreadsheet<T extends object = object> {
     private sheetIndex: number
   ) {
     this.columnNames = _(this.sheet.data[0].rowData[0].values)
-      .map(cell =>
+      .map((cell) =>
         cell.effectiveValue ? cell.effectiveValue.stringValue : null
       )
       .takeWhile()
@@ -74,8 +82,9 @@ export class Spreadsheet<T extends object = object> {
     lastColumnLetter: string,
     lastRowNumber: number
   ) {
-    return `${sheetName}!${firstColumnLetter || ''}${firstRowNumber ||
-      ''}:${lastColumnLetter || ''}${lastRowNumber || ''}`;
+    return `${sheetName}!${firstColumnLetter || ''}${firstRowNumber || ''}:${
+      lastColumnLetter || ''
+    }${lastRowNumber || ''}`;
   }
 
   protected toA1Notation(
@@ -240,7 +249,7 @@ export class Spreadsheet<T extends object = object> {
      * Thus, the values array may be shorter than columnNames, which produces `undefined`.
      * That is why we coalesce the undefined values to null after zipping.
      */
-    return _.mapValues(_.zipObject(this.columnNames, values), value =>
+    return _.mapValues(_.zipObject(this.columnNames, values), (value) =>
       value === '' ? null : value ?? null
     ) as T;
   }
@@ -255,8 +264,10 @@ export class Spreadsheet<T extends object = object> {
    */
   protected objectToArray(object: T) {
     return _(this.columnNames)
-      .map(columnName => object[columnName])
-      .map(value => (value === undefined ? null : value === null ? '' : value))
+      .map((columnName) => object[columnName])
+      .map((value) =>
+        value === undefined ? null : value === null ? '' : value
+      )
       .value();
   }
 
@@ -280,8 +291,8 @@ export class Spreadsheet<T extends object = object> {
     );
 
     return _.chain(values)
-      .filter(rowValues => rowValues.length > 0)
-      .map(rowValues => this.arrayToObject(rowValues))
+      .filter((rowValues) => rowValues.length > 0)
+      .map((rowValues) => this.arrayToObject(rowValues))
       .value();
   }
 
@@ -336,7 +347,7 @@ export class Spreadsheet<T extends object = object> {
         range: this.title,
         valueInputOption: IValueInputOption.RAW,
         requestBody: {
-          values: objects.map(object => this.objectToArray(object)),
+          values: objects.map((object) => this.objectToArray(object)),
         },
       })
     );
@@ -349,7 +360,7 @@ export class Spreadsheet<T extends object = object> {
    */
   public async updateOrAppendRows(columnName: string, objects: T[]) {
     const column = await this.getColumn(columnName);
-    const indexedByDataRowNumber = objects.map<[number, T]>(object => [
+    const indexedByDataRowNumber = objects.map<[number, T]>((object) => [
       column.indexOf(object[columnName]) + 1,
       object,
     ]);

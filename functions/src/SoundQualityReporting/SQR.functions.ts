@@ -29,8 +29,9 @@ export const processAllotment = functions.https.onCall(
 /**
  * SQR new submission processing
  */
-export const processSubmission = functions.database
-  .ref('/SQR/submissions/completed/{fileName}/{token}')
+export const processSubmission = functions
+  .runWith({ timeoutSeconds: 120 })
+  .database.ref('/SQR/submissions/completed/{fileName}/{token}')
   .onWrite(async (change, { params: { fileName, token } }) => {
     // Ignoring deletions
     if (!change.after.exists()) return;
