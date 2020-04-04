@@ -173,8 +173,7 @@ export abstract class AbstractRepository<
         /// Updating only if any of these fields have changed
         if (
           taskFromSpreadsheet.status === taskFromDatabase?.status &&
-          (taskFromSpreadsheet.assignee?.emailAddress || null) ===
-            (taskFromDatabase?.assignee?.emailAddress || null)
+          _.isEqual(taskFromSpreadsheet.assignee, taskFromDatabase.assignee)
         )
           return false;
 
