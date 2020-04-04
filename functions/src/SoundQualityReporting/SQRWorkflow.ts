@@ -5,6 +5,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
+import { v4 as uuidv4 } from 'uuid';
 import { AllotmentStatus } from '../Allotment';
 import { formatAudioAnnotations } from '../AudioAnnotation';
 import { abortCall } from '../auth';
@@ -19,7 +20,6 @@ import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import { TasksRepository } from './TasksRepository';
-import uuidv4 = require('uuid/v4');
 import _ = require('lodash');
 
 export class SQRWorkflow {
