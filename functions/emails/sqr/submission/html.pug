@@ -29,7 +29,8 @@ p
   b E. Total Duration of the Recording:
   |
   |
-  +interval(submission.duration)
+  if submission.duration
+    +interval(submission.duration)
 p
   b F. Comments:
   |
