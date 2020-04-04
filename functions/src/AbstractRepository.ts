@@ -174,7 +174,9 @@ export abstract class AbstractRepository<
         if (
           taskFromSpreadsheet.status === taskFromDatabase?.status &&
           (taskFromSpreadsheet.assignee?.emailAddress || null) ===
-            (taskFromDatabase?.assignee?.emailAddress || null)
+            (taskFromDatabase.assignee?.emailAddress || null) &&
+          (taskFromSpreadsheet.assignee?.name || null) ===
+            (taskFromDatabase.assignee?.name || null)
         )
           return false;
 
