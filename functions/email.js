@@ -102,10 +102,10 @@ const submission = {
       //   },
       // ],
       soundQualityRating: 'Good',
-      duration: {
-        beginning: '01:13',
-        ending: '05:18',
-      },
+      // duration: {
+      //   beginning: '01:13',
+      //   ending: '05:18',
+      // },
       comments: 'Haribol!',
       author: person,
       changed: 123,
@@ -160,6 +160,6 @@ const teUpload = {
 };
 
 email
-  .send(teUpload)
+  .send(submission)
   .then(console.log)
   .catch(console.error);
