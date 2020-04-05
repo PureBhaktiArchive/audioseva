@@ -76,6 +76,7 @@ describe("SQRFormCancelListItem", () => {
     wrapper.setProps({ selected: true });
     await Vue.nextTick();
     wrapper.find("textarea").setValue("new text");
+    // @ts-ignore
     expect(wrapper.emitted().input[0][0]).toEqual("new text");
   });
 });
