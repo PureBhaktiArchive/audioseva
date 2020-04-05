@@ -193,7 +193,7 @@ export class TasksRepository extends AbstractRepository<
                 `${existingTask.id}/versions/${latestVersionKey}.`
               );
 
-          incomingTask.versions[latestVersionKey] = latestVersion;
+          incomingTask.versions = { [latestVersionKey]: latestVersion };
         }
       },
     });
