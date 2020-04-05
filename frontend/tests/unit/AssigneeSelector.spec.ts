@@ -11,11 +11,11 @@ describe("AssigneeSelector", () => {
       localVue,
       vuetify: new Vuetify(vuetifyOptions),
       propsData: {
-        messages: ["placeholder"]
+        messages: ["placeholder"],
       },
       slots: {
-        message: "<div id='message-slot' />"
-      }
+        message: "<div id='message-slot' />",
+      },
     });
     expect(wrapper.find("#message-slot").exists()).toBe(true);
   });

@@ -11,7 +11,7 @@ describe("SQRFormGuidelines", () => {
     const wrapper = mount(Guidelines, {
       localVue,
       vuetify: new Vuetify(vuetifyOptions),
-      slots: { default: "Guidelines text here" }
+      slots: { default: "Guidelines text here" },
     });
     wrapper.find("button").trigger("click");
     await Vue.nextTick();

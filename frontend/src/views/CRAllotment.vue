@@ -145,7 +145,7 @@ import { initialAllotment, initialAllotmentFilter } from "@/utility";
 
 @Component({
   name: "CRAllotment",
-  title: "Content Reporting"
+  title: "Content Reporting",
 })
 export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
   assignees: any = null;
@@ -200,13 +200,13 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
     this.filter.languages = this.languages;
   }
 
-  debouncedFilter = _.debounce(async function(this: any) {
+  debouncedFilter = _.debounce(async function (this: any) {
     this.files = null;
     this.allotment.files = [];
     if (this.filter.list === null) return;
 
     const spareFiles = await this.$http.get(process.env.VUE_APP_CR_FILES_URL, {
-      params: this.filter
+      params: this.filter,
     });
 
     if (!spareFiles) return;

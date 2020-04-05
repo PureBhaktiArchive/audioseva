@@ -96,9 +96,9 @@ import "firebase/functions";
     DataTable,
     DateGiven,
     Resolution,
-    Assignee
+    Assignee,
   },
-  title: "Track Editing Tasks"
+  title: "Track Editing Tasks",
 })
 export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   headers = [
@@ -107,17 +107,17 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
     { text: "Date Given", value: "timestampGiven", sortable: false },
     { text: "Assignee", value: "assignee", sortable: false },
     { text: "Output", value: "output", sortable: false },
-    { text: "Resolution", value: "resolution", sortable: false }
+    { text: "Resolution", value: "resolution", sortable: false },
   ];
 
   pagination = {
     page: 1,
-    itemsPerPage: 50
+    itemsPerPage: 50,
   };
 
   datatableProps = {
     hideDefaultFooter: true,
-    loading: true
+    loading: true,
   };
   currentPage: any[] = [];
   pages: any = {};
@@ -130,8 +130,8 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   classes = {
     ".key": {
       "font-weight-bold": true,
-      "text-no-wrap": true
-    }
+      "text-no-wrap": true,
+    },
   };
 
   mounted() {
@@ -183,10 +183,7 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   }
 
   async loadNewPage(page: number) {
-    let query: any = firebase
-      .database()
-      .ref("/TE/tasks")
-      .orderByKey();
+    let query: any = firebase.database().ref("/TE/tasks").orderByKey();
     const pageKeys = Object.keys(this.pages);
     if (pageKeys.length > 0) {
       query = query.endAt(_.last(pageKeys));

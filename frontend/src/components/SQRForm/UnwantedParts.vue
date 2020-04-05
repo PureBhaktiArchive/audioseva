@@ -84,8 +84,8 @@ import SoundTypeRadioGroup from "@/components/SQRForm/SoundTypeRadioGroup.vue";
     TextField,
     TextArea,
     DeleteButton,
-    SoundTypeRadioGroup
-  }
+    SoundTypeRadioGroup,
+  },
 })
 export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
   SoundIssuesMixin
@@ -94,7 +94,7 @@ export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
 
   formProps = {
     updateForm: this.updateForm,
-    updatePath: this.updatePath
+    updatePath: this.updatePath,
   };
 
   get customData(): any {
@@ -108,10 +108,10 @@ export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
             { label: "Blank space", value: "blank space" },
             { label: "Glitch", value: "glitch" },
             { label: "Irrelevant part", value: "irrelevant" },
-            { label: "Other...", value: "other" }
-          ]
-        }
-      }
+            { label: "Other...", value: "other" },
+          ],
+        },
+      },
     };
   }
 

@@ -6,10 +6,10 @@ import {
   formatTimestamp,
   removeObjectKey,
   getPathAndKey,
-  getProjectDomain
+  getProjectDomain,
 } from "@/utility";
 
-describe("utility", function() {
+describe("utility", function () {
   beforeEach(() => {
     moment.now = () => +new Date();
   });
@@ -38,9 +38,7 @@ describe("utility", function() {
     moment.now = () => +new Date(1541497995699);
     const doneStatistics = {
       today: 1,
-      [moment()
-        .subtract(1, "days")
-        .format("MMM DD")]: 1
+      [moment().subtract(1, "days").format("MMM DD")]: 1,
     };
     const results = mergeDoneStatistics(doneStatistics);
     expect(results).toMatchSnapshot();
@@ -50,8 +48,8 @@ describe("utility", function() {
     moment.now = () => +new Date(1541497995699);
     const item = {
       allotment: {
-        timestampGiven: moment().valueOf()
-      }
+        timestampGiven: moment().valueOf(),
+      },
     };
     const results = formatTimestamp("allotment.timestampGiven", item);
     expect(results).toEqual("6.11.2018");
@@ -59,7 +57,7 @@ describe("utility", function() {
 
   test("removeObjectKey", () => {
     const data = {
-      nested: [{}, {}]
+      nested: [{}, {}],
     };
     removeObjectKey(data, getPathAndKey("nested.0"));
     expect(data.nested).toEqual([{}]);

@@ -43,7 +43,7 @@ import RestoredChip from "@/components/TE/RestoredChip.vue";
 
 @Component({
   name: "TaskDefinition",
-  components: { RestoredChip }
+  components: { RestoredChip },
 })
 export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   @Prop() item!: any;
@@ -53,20 +53,20 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
         cols: "4",
         sm: "2",
         md: "2",
-        xl: "1"
+        xl: "1",
       },
       duration: {
         cols: "8",
         sm: "4",
         md: "2",
-        xl: "1"
+        xl: "1",
       },
       unwantedParts: {
         cols: "12",
         md: "8",
-        xl: "9"
-      }
-    })
+        xl: "9",
+      },
+    }),
   })
   layout!: { [key: string]: any };
 

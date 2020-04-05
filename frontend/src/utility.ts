@@ -4,10 +4,7 @@ import moment from "moment";
 import { Vue } from "vue-property-decorator";
 
 export const getProjectDomain = () => {
-  return window.location.host
-    .split(".")
-    .slice(1)
-    .join(".");
+  return window.location.host.split(".").slice(1).join(".");
 };
 
 export function getDayDifference(date: number) {
@@ -53,7 +50,7 @@ export const mergeLanguageStatistics = (languageStatistics: ICount) => {
   const baseLanguageStats: ICount = {
     Bengali: 0,
     English: 0,
-    Hindi: 0
+    Hindi: 0,
   };
   return { ...baseLanguageStats, ...languageStatistics };
 };
@@ -79,12 +76,12 @@ export const getListId = (fileId: string) => fileId.split("-")[0];
 export const initialAllotment = () => ({
   assignee: null,
   files: [],
-  comment: null
+  comment: null,
 });
 
 export const initialFilter = () => ({
   language: null,
-  list: null
+  list: null,
 });
 
 export const initialAllotmentFilter = (): {
@@ -92,7 +89,7 @@ export const initialAllotmentFilter = (): {
   list: null;
 } => ({
   languages: [] as string[],
-  list: null
+  list: null,
 });
 
 const getObject = (obj: any, path: string, defaultValue: any = {}) => {

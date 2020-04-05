@@ -5,7 +5,7 @@
         class="pb-2"
         :style="{
           display: 'inline-flex',
-          alignItems: 'center'
+          alignItems: 'center',
         }"
       >
         <v-avatar size="26" class="mr-2" :color="icon.color">
@@ -32,7 +32,7 @@ import LastVersionMixin from "@/components/TE/LastVersionMixin";
 import FormatTime from "@/mixins/FormatTime";
 
 @Component({
-  name: "Resolution"
+  name: "Resolution",
 })
 export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
   LastVersionMixin,
@@ -61,7 +61,7 @@ export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
       icon: this.lastIsApproved
         ? (this.$vuetify.icons as any).values.check
         : (this.$vuetify.icons as any).values.undo,
-      color: this.lastIsApproved ? "green" : "red"
+      color: this.lastIsApproved ? "green" : "red",
     };
   }
 

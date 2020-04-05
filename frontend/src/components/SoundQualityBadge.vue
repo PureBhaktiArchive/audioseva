@@ -8,7 +8,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "SoundQualityBadge"
+  name: "SoundQualityBadge",
 })
 export default class SoundQualityBadge extends Vue {
   @Prop() item!: any;
@@ -16,7 +16,7 @@ export default class SoundQualityBadge extends Vue {
   soundQualityRatingColor = {
     Bad: "red",
     Average: "yellow",
-    Good: "green"
+    Good: "green",
   };
 }
 </script>

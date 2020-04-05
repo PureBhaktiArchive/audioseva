@@ -39,7 +39,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "CancelListItem"
+  name: "CancelListItem",
 })
 export default class CancelListItem extends Vue {
   @Prop() header!: string;

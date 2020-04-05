@@ -1,7 +1,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "MenuLinks"
+  name: "MenuLinks",
 })
 export default class MenuLinks extends Vue {
   @Prop() parentRoute!: any;
@@ -26,9 +26,9 @@ export default class MenuLinks extends Vue {
       {
         props: {
           noAction: true,
-          subGroup
+          subGroup,
         },
-        key: id
+        key: id,
       },
       [
         MenuLinks.renderActivator(createElement, route),
@@ -36,7 +36,7 @@ export default class MenuLinks extends Vue {
           createElement,
           route.children,
           fullPath || route.path.slice(0, -1)
-        )
+        ),
       ]
     );
   }
@@ -45,12 +45,12 @@ export default class MenuLinks extends Vue {
     return createElement(
       "v-list-item",
       {
-        slot: "activator"
+        slot: "activator",
       },
       [
         createElement("v-list-item-content", [
-          createElement("v-list-item-title", item.meta.activatorName)
-        ])
+          createElement("v-list-item-title", item.meta.activatorName),
+        ]),
       ]
     );
   }
@@ -77,11 +77,11 @@ export default class MenuLinks extends Vue {
             props: {
               to: `/${fullPath}${route.path ? `/${route.path}` : ""}`,
               exact: true,
-              link: true
+              link: true,
             },
             key: `menu-link-${index}-${fullPath}${
               route.path ? `/${route.path}` : ""
-            }`
+            }`,
           },
           [createElement("v-list-item-title", this.getMenuLink(route))]
         );
@@ -96,8 +96,10 @@ export default class MenuLinks extends Vue {
         slot: "prependIcon",
         props: {
           color:
-            this.activeClass === "inactive-menu" ? "rgba(0,0,0,.54)" : "inherit"
-        }
+            this.activeClass === "inactive-menu"
+              ? "rgba(0,0,0,.54)"
+              : "inherit",
+        },
       },
       this.parentRoute.meta.menuIcon
     );
@@ -115,7 +117,7 @@ export default class MenuLinks extends Vue {
         createElement,
         this.parentRoute.children,
         this.parentRoute.path.slice(0, -1)
-      )
+      ),
     ];
   }
 
@@ -127,8 +129,8 @@ export default class MenuLinks extends Vue {
           noAction: true,
           prependIcon: this.parentRoute.meta.menuIcon,
           value: true,
-          activeClass: this.activeClass
-        }
+          activeClass: this.activeClass,
+        },
       },
       this.renderTopLevelActivators(createElement)
     );

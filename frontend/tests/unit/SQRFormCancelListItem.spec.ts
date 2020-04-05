@@ -15,7 +15,7 @@ describe("SQRFormCancelListItem", () => {
       localVue,
       vuetify,
       propsData,
-      ...props
+      ...props,
     });
 
   const clickListItem = (wrapper: any) => {
@@ -35,9 +35,9 @@ describe("SQRFormCancelListItem", () => {
         color: "#8a6d3b",
         border: "solid .2rem #faebcc",
         whiteSpace: "none",
-        width: "100%"
+        width: "100%",
       },
-      selected: false
+      selected: false,
     };
   });
 

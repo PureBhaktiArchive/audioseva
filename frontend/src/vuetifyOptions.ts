@@ -11,7 +11,7 @@ export default {
       event: "fas fa-calendar",
       undo: "fas fa-undo",
       upload: "fas fa-upload",
-      check: "fas fa-check"
-    }
-  }
+      check: "fas fa-check",
+    },
+  },
 } as any;

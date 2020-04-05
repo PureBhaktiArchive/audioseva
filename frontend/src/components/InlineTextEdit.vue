@@ -7,7 +7,7 @@
       @save="
         $listeners.save(item, editPath, textAreaValue, {
           itemPath: value,
-          newValue: textAreaValue
+          newValue: textAreaValue,
         })
       "
       @cancel="$listeners.cancel"
@@ -32,7 +32,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import _ from "lodash";
 
 @Component({
-  name: "InlineTextEdit"
+  name: "InlineTextEdit",
 })
 export default class InlineTextEdit extends Vue {
   @Prop({ default: () => ({}) })

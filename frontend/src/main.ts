@@ -35,7 +35,7 @@ Vue.use(VuePageTitle, {
     } else {
       document.title = title;
     }
-  }
+  },
 });
 Vue.use(VueResource);
 Vue.use(VueFire);
@@ -54,17 +54,17 @@ async function getFirebaseConfig(): Promise<Object> {
         databaseURL: process.env.VUE_APP_FIREBASE_DATABASE_URL,
         projectId: process.env.VUE_APP_FIREBASE_PROJECT_ID,
         storageBucket: process.env.VUE_APP_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.VUE_APP_FIREBASE_MESSAGING_SENDER_ID
+        messagingSenderId: process.env.VUE_APP_FIREBASE_MESSAGING_SENDER_ID,
       };
 }
 
-getFirebaseConfig().then(config => {
+getFirebaseConfig().then((config) => {
   firebase.initializeApp(config);
-  firebase.auth().onAuthStateChanged(user => {
+  firebase.auth().onAuthStateChanged((user) => {
     store.dispatch("user/handleUser", user);
   });
 
-  const unsubscribe: any = firebase.auth().onAuthStateChanged(async user => {
+  const unsubscribe: any = firebase.auth().onAuthStateChanged(async (user) => {
     await store.dispatch("user/handleUser", user);
 
     new Vue({
@@ -72,7 +72,7 @@ getFirebaseConfig().then(config => {
       store,
       vuetify: new Vuetify(vuetifyOptions),
       firebase: {},
-      render: h => h(App)
+      render: (h) => h(App),
     }).$mount("#app");
 
     unsubscribe();

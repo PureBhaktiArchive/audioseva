@@ -162,7 +162,7 @@ import "firebase/database";
 
 @Component({
   name: "DonationReceiptForm",
-  title: "Donation Receipt Form"
+  title: "Donation Receipt Form",
 })
 export default class DonationForm extends Vue {
   date = new Date().toISOString().substr(0, 10);
@@ -176,23 +176,23 @@ export default class DonationForm extends Vue {
         return pattern.test(value) || "Invalid e-mail";
       }
       return "Required email";
-    }
+    },
   ];
   rules = [(v: string) => (v && v.length > 0) || "Required"];
   form = {
     date: new Date().toISOString().substr(0, 10),
     donor: {
-      phoneNumber: ""
+      phoneNumber: "",
     },
     sum: {
-      currency: "INR"
+      currency: "INR",
     },
     collectedBy: "",
-    comment: ""
+    comment: "",
   };
   phoneData = {
     countryCode: "",
-    phoneNumber: ""
+    phoneNumber: "",
   };
   isSubmitting = false;
   submissionStatus = "";
@@ -202,10 +202,10 @@ export default class DonationForm extends Vue {
       ...this.form,
       donor: {
         ...this.form.donor,
-        phoneNumber: this.phoneNumber
+        phoneNumber: this.phoneNumber,
       },
       timestamp: firebase.database.ServerValue.TIMESTAMP,
-      token: this.$route.params.token
+      token: this.$route.params.token,
     };
   }
 
@@ -229,16 +229,16 @@ export default class DonationForm extends Vue {
       this.form = {
         ...this.form,
         donor: {
-          phoneNumber: ""
+          phoneNumber: "",
         },
         sum: {
-          currency: "INR"
+          currency: "INR",
         },
-        comment: ""
+        comment: "",
       };
       this.phoneData = {
         countryCode: "",
-        phoneNumber: ""
+        phoneNumber: "",
       };
     }
   }

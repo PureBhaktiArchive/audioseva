@@ -138,7 +138,7 @@
             filled: true,
             outlined: true,
             required: true,
-            disabled: $attrs.disabled
+            disabled: $attrs.disabled,
           }"
         ></text-area>
         <guidelines>
@@ -175,8 +175,8 @@ import Guidelines from "@/components/SQRForm/Guidelines.vue";
     SQRField,
     Duration,
     TextArea,
-    Guidelines
-  }
+    Guidelines,
+  },
 })
 export default class Fields extends Vue {
   @Prop() form!: { [key: string]: any };

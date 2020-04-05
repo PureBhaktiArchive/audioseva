@@ -14,7 +14,7 @@ export default {
   namespaced: true,
   state: {
     currentUser: null,
-    roles: null
+    roles: null,
   },
   getters: {
     isSignedIn: (state: any) => state.currentUser !== null,
@@ -23,7 +23,7 @@ export default {
       if (typeof roles === "string") {
         return _.get(state.roles, roles);
       }
-      return roles.some(role => _.get(state.roles, role));
+      return roles.some((role) => _.get(state.roles, role));
     },
     ability: () => {
       return new Ability([], {
@@ -31,9 +31,9 @@ export default {
           if (!subject || typeof subject === "string") return subject;
 
           return subject.modelName;
-        }
+        },
       });
-    }
+    },
   },
   mutations: {
     setCurrentUser: (state: any, user: any) => {
@@ -42,7 +42,7 @@ export default {
         router
           .push({
             path: "/login",
-            query: { redirect: router.currentRoute.fullPath }
+            query: { redirect: router.currentRoute.fullPath },
           })
           .catch(() => {
             // prevent uncaught promise error
@@ -51,7 +51,7 @@ export default {
     },
     setUserRoles: (state: any, roles: { [key: string]: any } | null) => {
       state.roles = roles;
-    }
+    },
   },
   actions: {
     signOut() {
@@ -77,6 +77,6 @@ export default {
     ) {
       commit("setUserRoles", roles);
       getters.ability.update(defineAbilities());
-    }
-  }
+    },
+  },
 };

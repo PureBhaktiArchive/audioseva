@@ -3,7 +3,7 @@
     :style="{
       maxWidth: '170px',
       width: `${Object.keys(itemRoles).length * 50}px`,
-      height: '100%'
+      height: '100%',
     }"
     :close-on-content-click="false"
   >
@@ -34,7 +34,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import _ from "lodash";
 
 @Component({
-  name: "InlineRolesEdit"
+  name: "InlineRolesEdit",
 })
 export default class InlineRolesEdit extends Vue {
   @Prop() item!: any;
@@ -57,7 +57,7 @@ export default class InlineRolesEdit extends Vue {
     }
     this.$emit("save", item, path, addedRole === true ? addedRole : null, {
       itemPath: "roles",
-      newValue: updatedRoles
+      newValue: updatedRoles,
     });
   }
 

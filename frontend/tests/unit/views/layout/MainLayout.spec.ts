@@ -36,11 +36,11 @@ describe("MainLayout", () => {
           },
           roles() {
             return claims;
-          }
+          },
         },
         methods: {
-          signOut: () => {}
-        }
+          signOut: () => {},
+        },
       });
       await flushPromises();
       expect((wrapper.vm as any).menuItems).toMatchSnapshot();

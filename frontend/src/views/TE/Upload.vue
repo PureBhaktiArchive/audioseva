@@ -31,7 +31,7 @@
           :style="{
             justifyContent: 'flex-end',
             display: 'flex',
-            width: '100%'
+            width: '100%',
           }"
           class="pl-2"
         >
@@ -133,18 +133,18 @@ interface IFileStatus {
 const sortOrder = {
   uploading: 0,
   queued: 1,
-  completed: 2
+  completed: 2,
 };
 
 @Component({
   name: "Upload",
   components: {
-    VueDropzone
+    VueDropzone,
   },
   computed: {
-    ...mapState("user", ["currentUser"])
+    ...mapState("user", ["currentUser"]),
   },
-  title: "Track Editing Upload"
+  title: "Track Editing Upload",
 })
 export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   user: any = null;
@@ -165,7 +165,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     url: "localhost",
     autoProcessQueue: false,
     acceptedFiles: ".mp3,.flac",
-    uploadMultiple: true
+    uploadMultiple: true,
   };
 
   getFile(file: File): IFileStatus {
@@ -235,16 +235,16 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
             file
           )
         )
-        .catch(e => {
+        .catch((e) => {
           this.emitFileError(file, e.message);
         });
     }
   }
 
   getFileHash(file: File) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const fileReader = new FileReader();
-      fileReader.onload = function(event: any) {
+      fileReader.onload = function (event: any) {
         const spark = new Spark.ArrayBuffer();
         spark.append(event.target.result);
         resolve(btoa(spark.end(true)));
@@ -305,14 +305,13 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     for (const i in versions) {
       const version = versions[i];
       const ref = this.uploadsBucket.ref().child(version.uploadPath);
-      const metadata = await ref.getMetadata().catch(e => "error");
+      const metadata = await ref.getMetadata().catch((e) => "error");
       if (metadata === "error") continue;
       if (fileHash === metadata.md5Hash) {
         throw new Error(
-          `You had uploaded the same file earlier. Version: ${parseInt(i) +
-            1} on ${moment(version.timestamp)
-            .local()
-            .format("LLL")}`
+          `You had uploaded the same file earlier. Version: ${
+            parseInt(i) + 1
+          } on ${moment(version.timestamp).local().format("LLL")}`
         );
       }
     }
@@ -328,11 +327,11 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       : Object.values(selectedFiles);
     for (const file of files) {
       this.updateFileFields(file, {
-        state: "queued"
+        state: "queued",
       });
       this.validateFile(file)
         .then(() => this.handleFile(file, timestamp))
-        .catch(e => this.emitFileError(file, e.message));
+        .catch((e) => this.emitFileError(file, e.message));
     }
   }
 
@@ -370,15 +369,12 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       if (!status.retrying) {
         this.totalUploadCount += 1;
       }
-      const uploadTask = this.uploadsBucket
-        .ref()
-        .child(path)
-        .put(file);
+      const uploadTask = this.uploadsBucket.ref().child(path).put(file);
       this.updateFileFields(file, {
         state: "uploading",
         uploadTask: uploadTask,
         uploadStartedAt: new Date(),
-        retrying: false
+        retrying: false,
       });
       uploadTask.on(
         "state_changed",
@@ -395,7 +391,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
             progress: Math.round(progress),
             uploadRemainingTime: secondsElapsed
               ? remainingBytes / bytesPerSecond
-              : 0
+              : 0,
           });
         },
         async (error: any) => {
@@ -409,10 +405,10 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
                 retryAttempts: retryAttempts + 1,
                 retryDuration: retryDuration * 2,
                 retryTimer: retry,
-                retrying: true
+                retrying: true,
               });
               await retry;
-              await this.uploadFile(path, file).catch(e => reject(e));
+              await this.uploadFile(path, file).catch((e) => reject(e));
             } else {
               this.totalUploadCount -= 1;
               reject(new Error("Max retry limit has been reached."));
