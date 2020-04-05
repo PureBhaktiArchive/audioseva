@@ -12,6 +12,7 @@ import { FileVersion } from '../FileVersion';
 import { trackEditingVersionOutputLink } from '../Frontend';
 import { Spreadsheet } from '../Spreadsheet';
 import { ChunkRow } from './ChunkRow';
+import { RecheckRow } from './RecheckRow';
 import { TaskValidator } from './TaskValidator';
 import { TrackEditingAllotmentRow } from './TrackEditingAllotmentRow';
 import { TrackEditingTask } from './TrackEditingTask';
@@ -84,8 +85,13 @@ export class TasksRepository extends AbstractRepository<
     });
   }
 
+  public getNewVersionRef(taskId: string) {
+    return this.getTaskRef(taskId).child('versions').push();
+  }
+
   public async saveNewVersion(taskId: string, version: FileVersion) {
-    await this.getTaskRef(taskId).child('versions').push(version);
+    const versionRef = this.getNewVersionRef(taskId);
+    await versionRef.set(version);
 
     const updatedTask = await this.getTask(taskId);
 
@@ -142,5 +148,110 @@ export class TasksRepository extends AbstractRepository<
 
     await this.saveToDatabase(tasks);
     return tasks.length;
+  }
+
+  public async processRechecked() {
+    const recheckSheet = await Spreadsheet.open<RecheckRow>(
+      functions.config().te.spreadsheet.id,
+      functions.config().te.spreadsheet?.sheets?.recheck?.name
+    );
+
+    /// Getting spreadsheet rows and database snapshot in parallel
+    const [rows, snapshot] = await Promise.all([
+      recheckSheet.getRows(),
+      tasksRef.once('value'),
+    ]);
+
+    const existingTasks = _.chain(snapshot.val())
+      .mapValues((value, key) => this.constructTask(key, value))
+      .value();
+
+    const updates = _.chain(rows)
+      // Skip empty rows and not yet rechecked
+      .filter((row) => !!row['Task ID'] && !!row['Date checked'])
+      .map<Pick<TrackEditingTask, 'id' | 'status' | 'assignee' | 'versions'>>(
+        (row) => {
+          const id = row['Task ID'];
+          const existingTask = existingTasks[id];
+
+          if (!existingTask) {
+            console.warn(`Task ${id} is not found in the database.`);
+            return null;
+          }
+
+          if (existingTask.status !== AllotmentStatus.Recheck) {
+            return null;
+          }
+
+          if (row.Feedback === 'OK') {
+            console.log(`Marking rechecked task ${id} as Done.`);
+            return {
+              id,
+              status: AllotmentStatus.Done,
+            };
+          }
+
+          if (!row['New assignee email']) {
+            console.log(`${id}: skipping as new assignee email is not set.`);
+            return null;
+          }
+
+          // Adding fake version if none exists
+          if (!existingTask.versions)
+            console.info(
+              `There is no version in task ${id}, will add a fake one.`
+            );
+
+          const latestVersionKey =
+            _.findLastKey(existingTask.versions) ||
+            this.getNewVersionRef(id).key;
+
+          const latestVersion = existingTask.versions?.[latestVersionKey] || {
+            timestamp:
+              existingTask.timestampDone || DateTime.local().toMillis(),
+            uploadPath: null,
+          };
+
+          const latestResolution = latestVersion?.resolution;
+
+          // Removing the resolution if it exists and is approving
+          if (latestResolution)
+            if (latestResolution.isApproved) {
+              console.info(
+                `${id}: will replace “Approved” resolution in version ${latestVersionKey}`,
+                `added by ${latestResolution.author?.name}`,
+                `on ${DateTime.fromMillis(latestResolution.timestamp).toHTTP()}`
+              );
+              latestVersion.resolution = {
+                author: {
+                  name: row['Rechecked by'],
+                  emailAddress: row['Rechecked by'],
+                },
+                isApproved: false,
+                feedback: row.Feedback,
+                timestamp: DateTimeConverter.fromSerialDate(
+                  row['Date checked']
+                ).toMillis(),
+              };
+            } else
+              console.warn(
+                `${id}: Will not remove “Disapproved” resolution from version ${latestVersionKey}.`
+              );
+
+          return {
+            id,
+            status: AllotmentStatus.WIP,
+            assignee: {
+              name: row['New assignee email'],
+              emailAddress: row['New assignee email'],
+            },
+            versions: { [latestVersionKey]: latestVersion },
+          };
+        }
+      )
+      .filter()
+      .value();
+
+    await this.save(...updates);
   }
 }

@@ -63,7 +63,7 @@ export abstract class AbstractRepository<
     return snapshot.exists() ? this.constructTask(id, snapshot.val()) : null;
   }
 
-  private constructTask(id: string, data): TTask {
+  protected constructTask(id: string, data): TTask {
     return { [this.idPropertyName]: id, ...data } as TTask;
   }
 
@@ -196,24 +196,9 @@ export abstract class AbstractRepository<
 
         return true;
       })
-      .map(
-        /// Updating only these fields
-        ({
-          [this.idPropertyName]: id,
-          status,
-          assignee,
-          timestampGiven,
-          timestampDone,
-        }) =>
-          ({
-            [this.idPropertyName]: id,
-            status,
-            assignee,
-            timestampGiven,
-            timestampDone,
-          } as RequireOnly<TTask, TId>)
-      )
-      .value();
+      // Type casting is required to pass this successfully to `saveToDatabase`.
+      // Asked question https://stackoverflow.com/q/63216805/3082178
+      .value() as RequireOnly<TTask, TId>[];
 
     if (dryRun) console.log(`DRY RUN, doing nothing.`);
     else {

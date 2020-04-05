@@ -147,10 +147,10 @@ export const processUpload = functions.storage
         status: AllotmentStatus.WIP,
       });
 
-    const version = new FileVersion({
+    const version: FileVersion = {
       timestamp: DateTime.fromISO(object.timeCreated).toMillis(),
       uploadPath: object.name,
-    });
+    };
 
     task = await repository.saveNewVersion(taskId, version);
 
@@ -227,6 +227,14 @@ export const importTasks = functions.pubsub
     const repository = new TasksRepository();
     const count: number = await repository.importTasks();
     console.info(`Imported ${count} tasks.`);
+  });
+
+export const processRechecked = functions.pubsub
+  .schedule('every day 00:30')
+  .timeZone(functions.config().coordinator.timezone)
+  .onRun(async () => {
+    const repository = new TasksRepository();
+    await repository.processRechecked();
   });
 
 export const syncAllotments = functions.pubsub

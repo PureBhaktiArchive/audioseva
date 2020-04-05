@@ -15,5 +15,5 @@ export interface TrackEditingTask extends Allotment {
   isRestored: boolean;
   chunks: AudioChunk[];
   timestampImported?: number;
-  versions: FileVersionMap;
+  versions?: FileVersionMap;
 }
