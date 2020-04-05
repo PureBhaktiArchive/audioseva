@@ -171,7 +171,7 @@ export class TasksRepository extends AbstractRepository<
             _.findLastKey(existingTask.versions) ||
             this.getNewVersionRef(existingTask.id).key;
 
-          const latestVersion = existingTask.versions[latestVersionKey] || {
+          const latestVersion = existingTask.versions?.[latestVersionKey] || {
             timestamp: existingTask.timestampDone,
             uploadPath: null,
           };
