@@ -10,17 +10,17 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
   @Prop({ default: false }) disabled!: boolean;
 
   style = {
-    minWidth: "75px"
+    minWidth: "75px",
   };
 
   formProps = {
     updateForm: this.updateForm,
-    updatePath: this.updatePath
+    updatePath: this.updatePath,
   };
 
   shouldValidateField(value: string, item: any) {
     const part = _.get(this.form, `${this.updatePath}.${item}`);
-    return Object.values(part).some(fieldValue => !!fieldValue);
+    return Object.values(part).some((fieldValue) => !!fieldValue);
   }
 
   get customData(): { [key: string]: any } {
@@ -36,10 +36,10 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           label,
           outlined: true,
           placeholder: "(h:)mm:ss",
-          rules: this.getValidators([required, validateDuration])
-        }
+          rules: this.getValidators([required, validateDuration]),
+        },
       },
-      style: this.style
+      style: this.style,
     };
   }
 
@@ -54,8 +54,8 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
       fieldProps: {
         ..._.get(props, "fieldProps", {}),
         rules: hasRules ? rules : [],
-        disabled: this.disabled
-      }
+        disabled: this.disabled,
+      },
     };
   }
 
@@ -68,9 +68,9 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           removeField: this.removeField,
           updatePath: this.updatePath,
           buttonProps: {
-            disabled: this.disabled
-          }
-        }
+            disabled: this.disabled,
+          },
+        },
       },
       description: {
         props: {
@@ -79,20 +79,20 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
           fieldProps: {
             filled: true,
             label: "Description",
-            outlined: true
-          }
+            outlined: true,
+          },
         },
-        style: this.style
+        style: this.style,
       },
       type: {
         props: {
           ...this.formProps,
           form: this.form,
           fieldProps: {
-            rules: this.getValidators([required])
-          }
-        }
-      }
+            rules: this.getValidators([required]),
+          },
+        },
+      },
     };
   }
 
@@ -100,26 +100,26 @@ export default class SoundIssuesMixin extends Mixins(FormField) {
     {
       text: "Beginning",
       value: "beginning",
-      width: "15%"
+      width: "15%",
     },
     {
       text: "Ending",
       value: "ending",
-      width: "15%"
+      width: "15%",
     },
     {
       text: "Type",
       value: "type",
-      width: "25%"
+      width: "25%",
     },
     {
       text: "Description",
       value: "description",
-      width: "25%"
+      width: "25%",
     },
     {
-      value: "actions"
-    }
+      value: "actions",
+    },
   ];
 
   get mappedHeaders() {

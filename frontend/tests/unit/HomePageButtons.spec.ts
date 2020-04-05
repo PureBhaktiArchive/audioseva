@@ -26,8 +26,8 @@ describe("HomePageButtons", () => {
       computed: {
         roles() {
           return claims;
-        }
-      }
+        },
+      },
     });
     await flushPromises();
     expect((wrapper.vm as any).routeButtons).toMatchSnapshot();

@@ -7,7 +7,7 @@ export default class TaskMixin extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     return {
       status: "Spare",
       timestampGiven: "",
-      assignee: null
+      assignee: null,
     };
   }
 
@@ -35,7 +35,7 @@ export default class TaskMixin extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
         break;
     }
     return {
-      backgroundColor
+      backgroundColor,
     };
   }
 }

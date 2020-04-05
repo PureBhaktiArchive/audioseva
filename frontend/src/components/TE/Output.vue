@@ -22,7 +22,7 @@ import VersionDownloadLink from "@/components/TE/VersionDownloadLink.vue";
 
 @Component({
   name: "Output",
-  components: { VersionDownloadLink }
+  components: { VersionDownloadLink },
 })
 export default class Output extends Mixins<LastVersionMixin, FormatTime>(
   LastVersionMixin,

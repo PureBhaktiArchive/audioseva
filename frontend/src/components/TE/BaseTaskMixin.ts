@@ -10,7 +10,7 @@ export default class BaseTaskMixin extends Vue {
     }).pop();
     return {
       id,
-      ...lastVersion
+      ...lastVersion,
     };
   }
 

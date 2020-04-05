@@ -28,7 +28,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "PaginationControls"
+  name: "PaginationControls",
 })
 export default class PaginationControls extends Vue {
   @Prop() pagination!: { [key: string]: any };

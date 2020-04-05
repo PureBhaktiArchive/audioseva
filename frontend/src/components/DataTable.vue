@@ -47,7 +47,7 @@ interface IAnyObject {
 
 @Component({
   name: "DataTable",
-  components: { TableData }
+  components: { TableData },
 })
 export default class DataTable extends Vue {
   // separator for array.join

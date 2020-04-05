@@ -44,13 +44,13 @@ const statuses = [
   "irrelevant",
   "Background noise",
   "Volume",
-  "Reverberation"
+  "Reverberation",
 ];
 
 type Field = { label: string; value: string } | string;
 
 @Component({
-  name: "SoundTypeRadioGroup"
+  name: "SoundTypeRadioGroup",
 })
 export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
   @Prop({ default: () => ({}) })

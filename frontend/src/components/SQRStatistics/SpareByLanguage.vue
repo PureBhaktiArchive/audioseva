@@ -16,7 +16,7 @@ import { mergeLanguageStatistics } from "@/utility";
 
 @Component({
   name: "SpareByLanguage",
-  components: { DataTable }
+  components: { DataTable },
 })
 export default class SpareByLanguage extends Vue {
   @Prop() spareByLanguage!: { [key: string]: number };
@@ -30,7 +30,7 @@ export default class SpareByLanguage extends Vue {
   get statistics() {
     return this.statsArray.map(([language, statistic]) => ({
       language,
-      statistic
+      statistic,
     }));
   }
 }

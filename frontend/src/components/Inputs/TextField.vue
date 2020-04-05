@@ -11,7 +11,7 @@ import { Component, Prop, Mixins } from "vue-property-decorator";
 import ItemPath from "@/mixins/ItemPath";
 
 @Component({
-  name: "TextField"
+  name: "TextField",
 })
 export default class TextField extends Mixins<ItemPath>(ItemPath) {
   @Prop({ default: () => ({}) })

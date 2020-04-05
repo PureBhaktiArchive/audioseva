@@ -63,7 +63,7 @@
                 :style="{
                   display: 'flex',
                   alignItems: 'center',
-                  flexWrap: 'wrap'
+                  flexWrap: 'wrap',
                 }"
               >
                 <v-btn v-if="!isLoadedFromCompletedBranch" @click="saveDraft">
@@ -73,7 +73,7 @@
                   v-if="
                     $can('submit', {
                       modelName: $subjects.SQR.form,
-                      isMarkedDone
+                      isMarkedDone,
                     })
                   "
                   type="submit"
@@ -94,7 +94,7 @@
                 <p
                   :style="{
                     margin: '6px 0 6px 8px',
-                    color: formStateMessageColor
+                    color: formStateMessageColor,
                   }"
                 >
                   {{ formStateMessages[formState] }}
@@ -127,19 +127,19 @@ enum FormState {
   INITIAL_LOAD = 2,
   SAVED = 3,
   ERROR = 4,
-  SUBMITTING = 5
+  SUBMITTING = 5,
 }
 
 enum SubmissionsBranch {
   COMPLETED = "completed",
   DRAFTS = "drafts",
-  MIGRATED = "migrated"
+  MIGRATED = "migrated",
 }
 
 @Component({
   name: "Form",
   components: { Fields, CancelListItem },
-  title: ({ $route }) => `Sound Quality Report for ${$route.params.fileName}`
+  title: ({ $route }) => `Sound Quality Report for ${$route.params.fileName}`,
 })
 export default class Form extends Vue {
   cancelFields = [
@@ -154,8 +154,8 @@ export default class Form extends Vue {
         color: "#8a6d3b",
         border: "solid .2rem #faebcc",
         whiteSpace: "none",
-        width: "100%"
-      }
+        width: "100%",
+      },
     },
     {
       header:
@@ -169,9 +169,9 @@ export default class Form extends Vue {
         color: "#31708f",
         border: "solid .2rem #bce8f1",
         whiteSpace: "none",
-        width: "100%"
-      }
-    }
+        width: "100%",
+      },
+    },
   ];
   cancel: number | null = null;
   cancelComment = "";
@@ -186,11 +186,11 @@ export default class Form extends Vue {
     [FormState.UNSAVED_CHANGES]: "Unsaved changes",
     [FormState.INITIAL_LOAD]: "",
     [FormState.SAVED]: "All changes saved",
-    [FormState.ERROR]: "Permission denied"
+    [FormState.ERROR]: "Permission denied",
   };
   formStateMessagesColor: { [key: string]: string } = {
     [FormState.UNSAVED_CHANGES]: "red",
-    [FormState.ERROR]: "red"
+    [FormState.ERROR]: "red",
   };
   formState = FormState.INITIAL_LOAD;
   initialData!: {
@@ -226,7 +226,7 @@ export default class Form extends Vue {
       () => (this.$refs.form as any).errorBag,
       (newFormErrors: { [key: string]: boolean }) => {
         this.formHasError = Object.values(newFormErrors).some(
-          hasError => hasError
+          (hasError) => hasError
         );
         if (!this.formHasError) this.showValidationSummary = false;
       },
@@ -256,7 +256,7 @@ export default class Form extends Vue {
 
   async validateAllotment() {
     const {
-      params: { fileName, token }
+      params: { fileName, token },
     } = this.$route;
     const response = (
       await firebase
@@ -274,7 +274,7 @@ export default class Form extends Vue {
     } else if (
       this.$ability.cannot("submit", {
         modelName: this.$subjects.SQR.form,
-        isMarkedDone: this.isMarkedDone
+        isMarkedDone: this.isMarkedDone,
       })
     ) {
       this.finalizedSubmissionError =
@@ -350,9 +350,9 @@ export default class Form extends Vue {
   }
 
   addId(soundIssuesOrUnwantedParts: Array<any>) {
-    return soundIssuesOrUnwantedParts.map(part => ({
+    return soundIssuesOrUnwantedParts.map((part) => ({
       id: _.uniqueId(),
-      ...part
+      ...part,
     }));
   }
 
@@ -364,7 +364,7 @@ export default class Form extends Vue {
     this.isLoadingForm = false;
     const defaultData = {
       unwantedParts: this.addId([{}]),
-      soundIssues: this.addId([{}])
+      soundIssues: this.addId([{}]),
     };
     if (this.initialData[".value"] !== null) {
       const { [".key"]: token, ...initialData } = this.initialData;
@@ -388,7 +388,7 @@ export default class Form extends Vue {
         ...initialData,
         ...(initialData.unwantedParts || initialData.soundIssues
           ? {}
-          : defaultData)
+          : defaultData),
       };
     } else {
       this.form = defaultData;
@@ -400,7 +400,7 @@ export default class Form extends Vue {
   async cancelForm() {
     if ((this.$refs as any).form.validate()) {
       const {
-        params: { fileName, token }
+        params: { fileName, token },
       } = this.$route;
       let showSuccess = true;
       await firebase
@@ -410,9 +410,9 @@ export default class Form extends Vue {
           token,
           comments: this.cancelComment,
           // cancel is a number greater than 0 or null
-          reason: this.cancelFields[(this.cancel || 1) - 1].reason
+          reason: this.cancelFields[(this.cancel || 1) - 1].reason,
         })
-        .catch(e => {
+        .catch((e) => {
           showSuccess = false;
           this.errorMessage = e.message || "Error cancelling form.";
         });
@@ -463,10 +463,7 @@ export default class Form extends Vue {
     const response = await this.saveFormData(data, SubmissionsBranch.COMPLETED);
     if (response === "error") return;
     if (this.branch === SubmissionsBranch.DRAFTS) {
-      firebase
-        .database()
-        .ref(this.submissionPath(this.branch))
-        .remove();
+      firebase.database().ref(this.submissionPath(this.branch)).remove();
     }
     this.destroyFormErrorWatch();
     this.submitSuccess = true;
@@ -483,7 +480,7 @@ export default class Form extends Vue {
 
   submissionPath(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
     const {
-      params: { fileName, token }
+      params: { fileName, token },
     } = this.$route;
     return `/SQR/submissions/${branch}/${fileName}/${token}`;
   }
@@ -501,7 +498,7 @@ export default class Form extends Vue {
       ...form,
       soundIssues: this.removeId(soundIssues),
       unwantedParts: this.removeId(unwantedParts),
-      changed: firebase.database.ServerValue.TIMESTAMP
+      changed: firebase.database.ServerValue.TIMESTAMP,
     };
     data.created = created || firebase.database.ServerValue.TIMESTAMP;
     return data;

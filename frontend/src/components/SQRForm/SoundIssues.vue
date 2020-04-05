@@ -91,8 +91,8 @@ import _ from "lodash";
     Checkbox,
     TextArea,
     SoundTypeRadioGroup,
-    TextField
-  }
+    TextField,
+  },
 })
 export default class SoundIssues extends Mixins<SoundIssuesMixin>(
   SoundIssuesMixin
@@ -101,7 +101,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
 
   formProps = {
     updateForm: this.updateForm,
-    updatePath: this.updatePath
+    updatePath: this.updatePath,
   };
 
   hideField(value: any, item: any) {
@@ -117,9 +117,9 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
           form: this.form,
           fieldProps: {
             label: "Entire file",
-            hideDetails: true
-          }
-        }
+            hideDetails: true,
+          },
+        },
       },
       type: {
         ...this.componentData.type,
@@ -129,10 +129,10 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
             "Background noise",
             { label: "Low/changing volume", value: "Volume" },
             "Reverberation",
-            { label: "Other...", value: "other" }
-          ]
-        }
-      }
+            { label: "Other...", value: "other" },
+          ],
+        },
+      },
     };
   }
 
@@ -143,7 +143,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
   get mappedHeaders(): any[] {
     return [
       { text: "Entire file", value: "entireFile", width: "10%" },
-      ...this.headers
+      ...this.headers,
     ].map((header: any) => ({ ...header, sortable: false }));
   }
 }

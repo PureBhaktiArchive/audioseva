@@ -3,10 +3,10 @@ module.exports = {
     [
       "@vue/app",
       {
-        useBuiltIns: "entry"
-      }
+        useBuiltIns: "entry",
+      },
     ],
     "@babel/preset-env",
-    "@babel/preset-react"
-  ]
+    "@babel/preset-react",
+  ],
 };

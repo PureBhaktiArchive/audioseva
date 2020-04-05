@@ -55,21 +55,21 @@ import TaskMixin from "@/components/TE/TaskMixin";
 const ranks: any = {
   Given: 3,
   WIP: 2,
-  Done: 1
+  Done: 1,
 };
 
 @Component({
   name: "MyTasks",
   computed: {
-    ...mapState("user", ["currentUser"])
+    ...mapState("user", ["currentUser"]),
   },
   components: {
     DataTable,
     TimestampGiven,
     Resolution,
-    TaskOutput
+    TaskOutput,
   },
-  title: "My Tasks"
+  title: "My Tasks",
 })
 export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
   tasks: any[] = [];
@@ -80,28 +80,28 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
     { text: "Status", value: "status", sortable: false },
     { text: "Date Given", value: "timestampGiven", sortable: false },
     { text: "Output", value: "output", sortable: false },
-    { text: "Resolution", value: "resolution", sortable: false }
+    { text: "Resolution", value: "resolution", sortable: false },
   ];
 
   datatableProps = {
     footerProps: {
-      itemsPerPageOptions: [50, 100, 200]
+      itemsPerPageOptions: [50, 100, 200],
     },
     customSort: (items: any[]) => {
       return _.orderBy(
         items,
-        [o => ranks[o.status], "timestampGiven"],
+        [(o) => ranks[o.status], "timestampGiven"],
         ["desc", "desc"]
       );
     },
-    loading: true
+    loading: true,
   };
 
   classes = {
     ".key": {
       "font-weight-bold": true,
-      "text-no-wrap": true
-    }
+      "text-no-wrap": true,
+    },
   };
 
   mounted() {
@@ -121,7 +121,7 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
   }
 
   get activeTasks() {
-    return this.tasks.filter(task => ["Given", "WIP"].includes(task.status));
+    return this.tasks.filter((task) => ["Given", "WIP"].includes(task.status));
   }
 }
 </script>

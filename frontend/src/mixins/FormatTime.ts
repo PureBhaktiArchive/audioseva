@@ -14,9 +14,7 @@ export default class FormatTime extends Vue {
   }
 
   formatTimestamp(time: moment.MomentInput) {
-    return moment(time)
-      .local()
-      .format(this.getDateFormat(time));
+    return moment(time).local().format(this.getDateFormat(time));
   }
 
   getDateFormat(timestamp: moment.MomentInput) {

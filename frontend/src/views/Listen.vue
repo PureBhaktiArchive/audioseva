@@ -59,7 +59,7 @@ import { Component, Vue } from "vue-property-decorator";
 @Component({
   name: "Listen",
   title: ({ $route }) =>
-    `Audio File Name: ${$route.params.fileName.split(".")[0]}`
+    `Audio File Name: ${$route.params.fileName.split(".")[0]}`,
 })
 export default class ListenAudio extends Vue {
   fileName: string = "";

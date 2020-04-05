@@ -132,7 +132,7 @@
             <v-timeline-item
               v-else-if="
                 index === versionsCount - 1 &&
-                  $can('resolve', $subjects.TE.task)
+                $can('resolve', $subjects.TE.task)
               "
               :key="`resolution-${key}`"
             >
@@ -251,16 +251,16 @@ import VersionDownloadLink from "@/components/TE/VersionDownloadLink.vue";
 enum State {
   LOADING = 0,
   ERROR = 1,
-  LOADED = 2
+  LOADED = 2,
 }
 
 @Component({
   name: "Task",
   components: { TaskDefinition, VersionDownloadLink },
   computed: {
-    ...mapState("user", ["currentUser"])
+    ...mapState("user", ["currentUser"]),
   },
-  title: ({ $route }) => `Track Editing Task ${$route.params.taskId}`
+  title: ({ $route }) => `Track Editing Task ${$route.params.taskId}`,
 })
 export default class Task extends Mixins<TaskMixin, FormatTime>(
   TaskMixin,
@@ -271,7 +271,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   state: State = State.LOADING;
   form = {
     isApproved: false,
-    feedback: ""
+    feedback: "",
   };
   rules: any[] = [];
   approveConfirmation = false;
@@ -298,7 +298,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   async onCancelClick() {
     try {
       await firebase.functions().httpsCallable("TE-cancelAllotment")({
-        taskId: this.task[".key"]
+        taskId: this.task[".key"],
       });
       this.task = _.merge({}, this.task, this.cancelData());
     } catch (e) {
@@ -334,9 +334,9 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
             author: {
               uid: this.currentUser.uid,
               name: this.currentUser.displayName,
-              emailAddress: this.currentUser.email
+              emailAddress: this.currentUser.email,
             },
-            timestamp: firebase.database.ServerValue.TIMESTAMP
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
           });
       }
     });

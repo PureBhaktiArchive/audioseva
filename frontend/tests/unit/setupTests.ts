@@ -6,11 +6,11 @@ jest.mock("firebase/app", () => ({
     currentUser: {
       getIdTokenResult: async () => {
         return {
-          claims: {}
+          claims: {},
         };
-      }
-    }
-  }))
+      },
+    },
+  })),
 }));
 
 Vue.use(Vuetify);

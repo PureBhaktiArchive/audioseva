@@ -19,7 +19,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import moment from "moment";
 
 @Component({
-  name: "SoundIssuesList"
+  name: "SoundIssuesList",
 })
 export default class SoundIssuesList extends Vue {
   @Prop() item!: any;

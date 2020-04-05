@@ -6,7 +6,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "VersionDownloadLink"
+  name: "VersionDownloadLink",
 })
 export default class VersionDownloadLink extends Vue {
   @Prop() taskId!: string;

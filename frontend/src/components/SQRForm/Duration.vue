@@ -21,7 +21,7 @@ import FormField from "@/mixins/FormField";
 import { required, validateDuration } from "@/validation";
 
 @Component({
-  name: "Duration"
+  name: "Duration",
 })
 export default class Duration extends Mixins<FormField>(FormField) {
   fields = ["Beginning", "Ending"];

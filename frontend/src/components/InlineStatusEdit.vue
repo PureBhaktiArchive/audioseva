@@ -29,7 +29,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import _ from "lodash";
 
 @Component({
-  name: "InlineStatusEdit"
+  name: "InlineStatusEdit",
 })
 export default class InlineStatusEdit extends Vue {
   @Prop() item!: any;

@@ -5,7 +5,7 @@ export const mockClaims = async (roles?: { [key: string]: any }) => {
     return await store.dispatch("user/handleUser", null);
   }
   await store.dispatch("user/handleUser", {
-    getIdTokenResult: () => ({ claims: { roles } })
+    getIdTokenResult: () => ({ claims: { roles } }),
   });
   // allow clean up after a test
   return async () => {

@@ -11,7 +11,7 @@ import { Component, Prop, Mixins } from "vue-property-decorator";
 import ItemPath from "@/mixins/ItemPath";
 
 @Component({
-  name: "Checkbox"
+  name: "Checkbox",
 })
 export default class Checkbox extends Mixins<ItemPath>(ItemPath) {
   @Prop({ default: () => ({}) })

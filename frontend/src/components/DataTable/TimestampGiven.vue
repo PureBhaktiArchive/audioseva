@@ -11,7 +11,7 @@ import moment from "moment";
 import FormatTime from "@/mixins/FormatTime";
 
 @Component({
-  name: "TimestampGiven"
+  name: "TimestampGiven",
 })
 export default class TimestampGiven extends Mixins<FormatTime>(FormatTime) {
   @Prop() item!: any;

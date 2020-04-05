@@ -14,7 +14,7 @@ export default {
   name: "auth",
   title: "Login",
   data: () => ({
-    ui: new firebaseui.auth.AuthUI(firebase.auth())
+    ui: new firebaseui.auth.AuthUI(firebase.auth()),
   }),
   mounted() {
     const uiConfig = {
@@ -24,15 +24,15 @@ export default {
         signInSuccessWithAuthResult: () => {
           this.$router.replace(this.$route.query.redirect || "/");
           return false;
-        }
-      }
+        },
+      },
     };
 
     this.ui.start("#firebaseui-auth-container", uiConfig);
   },
   beforeDestroy() {
     this.ui.delete();
-  }
+  },
 };
 </script>
 

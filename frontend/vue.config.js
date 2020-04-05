@@ -1,11 +1,11 @@
 module.exports = {
-  chainWebpack: config => {
+  chainWebpack: (config) => {
     config.plugins.delete("prefetch");
   },
   transpileDependencies: [
     "vue-page-title",
     "vuetify",
     "vue2-dropzone",
-    "firebaseui"
-  ]
+    "firebaseui",
+  ],
 };
