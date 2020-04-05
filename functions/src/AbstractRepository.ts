@@ -110,7 +110,10 @@ export abstract class AbstractRepository<
    * - Adds missing tasks to the spreadsheet.
    * - Updates `status`, `assignee` and `timestampGiven` from the spreadsheet to the database.
    */
-  public async syncAllotments({ createTasksInDatabase = false } = {}) {
+  public async syncAllotments({
+    createTasksInDatabase = false,
+    incomingTaskModifier = undefined,
+  }: SyncParameters<TTask, TId>) {
     const mode = (await this.syncModeRef.once('value')).val();
     if ((mode || 'off') === 'off') {
       console.info('Sync is off, see', this.syncModeRef);
@@ -193,26 +196,14 @@ export abstract class AbstractRepository<
           `to “${taskFromSpreadsheet.status} ${taskFromSpreadsheet.assignee?.emailAddress}”.`
         );
 
+        // Allowing caller to modify the task before saving it into the database
+        incomingTaskModifier?.(taskFromDatabase, taskFromSpreadsheet);
+
         return true;
       })
-      .map(
-        /// Updating only these fields
-        ({
-          [this.idPropertyName]: id,
-          status,
-          assignee,
-          timestampGiven,
-          timestampDone,
-        }) =>
-          ({
-            [this.idPropertyName]: id,
-            status,
-            assignee,
-            timestampGiven,
-            timestampDone,
-          } as RequireOnly<TTask, TId>)
-      )
-      .value();
+      // Type casting is required to pass this successfully to `saveToDatabase`.
+      // Asked question https://stackoverflow.com/q/63216805/3082178
+      .value() as RequireOnly<TTask, TId>[];
 
     if (dryRun) console.log(`DRY RUN, doing nothing.`);
     else {
@@ -223,4 +214,12 @@ export abstract class AbstractRepository<
       ]);
     }
   }
+}
+
+interface SyncParameters<TTask, TId extends keyof TTask> {
+  createTasksInDatabase?: boolean;
+  incomingTaskModifier?: (
+    existingTask: Pick<TTask, TId>,
+    incomingTask: Pick<TTask, TId>
+  ) => void;
 }

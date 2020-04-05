@@ -4,12 +4,8 @@
 
 import { FileResolution } from './FileResolution';
 
-export class FileVersion {
+export interface FileVersion {
   timestamp: number;
   uploadPath: string;
-  resolution: FileResolution;
-
-  constructor(source: Partial<FileVersion>) {
-    Object.assign(this, source);
-  }
+  resolution?: FileResolution;
 }

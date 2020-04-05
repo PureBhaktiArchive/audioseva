@@ -84,8 +84,13 @@ export class TasksRepository extends AbstractRepository<
     });
   }
 
+  public getNewVersionRef(taskId: string) {
+    return this.getTaskRef(taskId).child('versions').push();
+  }
+
   public async saveNewVersion(taskId: string, version: FileVersion) {
-    await this.getTaskRef(taskId).child('versions').push(version);
+    const versionRef = this.getNewVersionRef(taskId);
+    await versionRef.set(version);
 
     const updatedTask = await this.getTask(taskId);
 
@@ -142,5 +147,55 @@ export class TasksRepository extends AbstractRepository<
 
     await this.saveToDatabase(tasks);
     return tasks.length;
+  }
+
+  public async syncAllotments() {
+    return super.syncAllotments({
+      createTasksInDatabase: false,
+      incomingTaskModifier: (
+        existingTask: TrackEditingTask,
+        incomingTask: TrackEditingTask
+      ) => {
+        // Modifying the latest version if the status changed from Done to Recheck
+        if (
+          incomingTask.status === AllotmentStatus.Recheck &&
+          existingTask.status === AllotmentStatus.Done
+        ) {
+          // Adding fake version if none exists
+          if (!existingTask.versions)
+            console.info(
+              `There is no version in task ${existingTask.id}, will add a fake one.`
+            );
+
+          const latestVersionKey =
+            _.findLastKey(existingTask.versions) ||
+            this.getNewVersionRef(existingTask.id).key;
+
+          const latestVersion = existingTask.versions[latestVersionKey] || {
+            timestamp: existingTask.timestampDone,
+            uploadPath: null,
+          };
+
+          const latestResolution = latestVersion?.resolution;
+
+          // Removing the resolution if it exists and is approving
+          if (latestResolution)
+            if (latestResolution.isApproved) {
+              console.info(
+                `Will remove “Approved” resolution from version`,
+                `${existingTask.id}/versions/${latestVersionKey}`,
+                `added by ${latestResolution.author?.name} on ${latestResolution.timestamp}`
+              );
+              latestVersion.resolution = null;
+            } else
+              console.warn(
+                `Will not remove “Disapproved” resolution from version`,
+                `${existingTask.id}/versions/${latestVersionKey}.`
+              );
+
+          incomingTask.versions[latestVersionKey] = latestVersion;
+        }
+      },
+    });
   }
 }

@@ -147,10 +147,10 @@ export const processUpload = functions.storage
         status: AllotmentStatus.WIP,
       });
 
-    const version = new FileVersion({
+    const version: FileVersion = {
       timestamp: DateTime.fromISO(object.timeCreated).toMillis(),
       uploadPath: object.name,
-    });
+    };
 
     task = await repository.saveNewVersion(taskId, version);
 
