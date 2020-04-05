@@ -20,8 +20,8 @@ import { getHomePageRoutes } from "@/router";
 @Component({
   name: "HomePageButtons",
   computed: {
-    ...mapState("user", ["roles"])
-  }
+    ...mapState("user", ["roles"]),
+  },
 })
 export default class HomePageButtons extends Vue {
   routeButtons: any[] = [];
@@ -37,9 +37,9 @@ export default class HomePageButtons extends Vue {
 
   makeButtons(routes: RouteConfig[], parentPath: string = "/") {
     const defaultButtonProps = {
-      color: "primary"
+      color: "primary",
     };
-    routes.forEach(route => {
+    routes.forEach((route) => {
       const fullPath = `${parentPath}${route.path}`;
       if (route.meta.homePageLink) {
         this.routeButtons.push({
@@ -47,8 +47,8 @@ export default class HomePageButtons extends Vue {
           props: {
             ...defaultButtonProps,
             ...route.meta.homePageLink.props,
-            to: fullPath
-          }
+            to: fullPath,
+          },
         });
       }
       if (route.children) {

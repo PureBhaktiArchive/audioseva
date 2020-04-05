@@ -8,7 +8,7 @@ import "firebase/database";
 export default {
   data() {
     return {
-      quotes: []
+      quotes: [],
     };
   },
   mounted() {
@@ -19,9 +19,9 @@ export default {
       await this.$rtdbBind("quotes", firebase.database().ref("quotes"));
       localStorage.setItem(
         "quotes",
-        JSON.stringify(this.quotes.map(quote => quote.text))
+        JSON.stringify(this.quotes.map((quote) => quote.text))
       );
-    }
-  }
+    },
+  },
 };
 </script>

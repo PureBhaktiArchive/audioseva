@@ -8,7 +8,7 @@
 import { Component, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "SQR"
+  name: "SQR",
 })
 export default class SQR extends Vue {}
 </script>

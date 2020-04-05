@@ -66,7 +66,7 @@
                     :style="{
                       display: 'flex',
                       alignItems: 'center',
-                      flexWrap: 'wrap'
+                      flexWrap: 'wrap',
                     }"
                   >
                     <v-checkbox
@@ -163,27 +163,28 @@ export default {
     files: null,
     filter: {
       languages: [],
-      list: null
+      list: null,
     },
     allotment: {
       assignee: null,
       files: [],
-      comment: null
+      comment: null,
     },
-    submissionStatus: null
+    submissionStatus: null,
   }),
-  mounted: function() {
+  mounted: function () {
     // Getting assignees
     firebase
       .functions()
       .httpsCallable("User-getAssignees")({
-        phase: "SQR"
+        phase: "SQR",
       })
-      .then(result => {
+      .then((result) => {
         this.assignees = result.data;
         if (this.$route.query.emailAddress) {
           this.allotment.assignee = this.assignees.find(
-            assignee => assignee.emailAddress === this.$route.query.emailAddress
+            (assignee) =>
+              assignee.emailAddress === this.$route.query.emailAddress
           );
         }
       })
@@ -193,7 +194,7 @@ export default {
     firebase
       .functions()
       .httpsCallable("SQR-getLists")()
-      .then(result => {
+      .then((result) => {
         this.lists = result.data;
       })
       .catch(this.addErrorMessage("getLists"));
@@ -201,14 +202,14 @@ export default {
     this.filter.languages = this.languages;
   },
   watch: {
-    "allotment.assignee": function(newValue) {
+    "allotment.assignee": function (newValue) {
       if (newValue == null) return;
 
       this.filter.languages = this.languages;
     },
     filter: {
       deep: true,
-      handler: _.debounce(async function() {
+      handler: _.debounce(async function () {
         this.files = null;
         this.allotment.files = [];
         if (this.filter.list == null) return;
@@ -219,8 +220,8 @@ export default {
           .catch(this.addErrorMessage("getSpareFiles"));
         if (!result) return;
         this.files = result.data;
-      }, 1000)
-    }
+      }, 1000),
+    },
   },
   methods: {
     async allot() {
@@ -232,7 +233,7 @@ export default {
       try {
         await firebase.functions().httpsCallable("SQR-processAllotment")({
           ...allotment,
-          assignee: { emailAddress, name }
+          assignee: { emailAddress, name },
         });
         this.errors = {};
         this.submissionStatus = "complete";
@@ -246,7 +247,7 @@ export default {
       this.filter = initialAllotmentFilter();
       this.allotment = initialAllotment();
       this.submissionStatus = null;
-    }
-  }
+    },
+  },
 };
 </script>

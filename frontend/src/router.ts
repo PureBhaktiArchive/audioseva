@@ -20,24 +20,24 @@ export const router = new Router({
       children: [
         {
           path: "",
-          component: () => import("@/views/Home.vue")
+          component: () => import("@/views/Home.vue"),
         },
         {
           path: "login",
           component: () => import("@/views/Login.vue"),
-          meta: { auth: { guestOnly: true } }
+          meta: { auth: { guestOnly: true } },
         },
         {
           path: "listen/:fileName",
-          component: () => import("@/views/Listen.vue")
+          component: () => import("@/views/Listen.vue"),
         },
         {
           path: "form/sound-quality-report/:fileName/:token",
-          component: () => import("@/views/SQR/Form.vue")
+          component: () => import("@/views/SQR/Form.vue"),
         },
         {
           path: "form/donation/cash/:token",
-          component: () => import("@/views/DonationReceiptForm.vue")
+          component: () => import("@/views/DonationReceiptForm.vue"),
         },
         {
           path: "sqr/",
@@ -45,7 +45,7 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Sound Quality Reporting",
-            menuIcon: "fas fa-headphones"
+            menuIcon: "fas fa-headphones",
           },
           children: [
             {
@@ -54,11 +54,11 @@ export const router = new Router({
               meta: {
                 menuItem: true,
                 auth: {
-                  ability: { subject: subjects.SQR.tasks, action: "allot" }
-                }
-              }
-            }
-          ]
+                  ability: { subject: subjects.SQR.tasks, action: "allot" },
+                },
+              },
+            },
+          ],
         },
         {
           path: "te/",
@@ -66,7 +66,7 @@ export const router = new Router({
           meta: {
             activator: true,
             activatorName: "Track Editing",
-            menuIcon: "fas fa-cut"
+            menuIcon: "fas fa-cut",
           },
           children: [
             {
@@ -77,11 +77,11 @@ export const router = new Router({
                 auth: {
                   ability: {
                     subject: subjects.TE.tasks,
-                    action: "view"
-                  }
+                    action: "view",
+                  },
                 },
-                homePageLink: { text: "TE" }
-              }
+                homePageLink: { text: "TE" },
+              },
             },
             {
               path: "allot",
@@ -91,10 +91,10 @@ export const router = new Router({
                 auth: {
                   ability: {
                     subject: subjects.TE.tasks,
-                    action: "allot"
-                  }
-                }
-              }
+                    action: "allot",
+                  },
+                },
+              },
             },
             {
               path: "my",
@@ -105,10 +105,10 @@ export const router = new Router({
                 auth: {
                   ability: {
                     subject: subjects.TE.myTasks,
-                    action: "view"
-                  }
-                }
-              }
+                    action: "view",
+                  },
+                },
+              },
             },
             {
               path: "upload",
@@ -118,11 +118,11 @@ export const router = new Router({
                 auth: {
                   ability: {
                     subject: subjects.TE.task,
-                    action: "upload"
-                  }
+                    action: "upload",
+                  },
                 },
-                homePageLink: { text: "Upload" }
-              }
+                homePageLink: { text: "Upload" },
+              },
             },
             {
               path: "tasks/:taskId",
@@ -132,16 +132,16 @@ export const router = new Router({
                 auth: {
                   ability: {
                     subject: subjects.TE.task,
-                    action: "view"
-                  }
-                }
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
+                    action: "view",
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+  ],
 });
 
 const getRootRouteChildren = (): any => {
@@ -235,14 +235,14 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
 
   const {
     meta: {
-      auth: { requireAuth, guestOnly, ability }
-    }
+      auth: { requireAuth, guestOnly, ability },
+    },
   } = restrictedRoute;
 
   if ((requireAuth || ability) && !store.getters["user/isSignedIn"])
     return next({
       path: "/login",
-      query: { redirect: to.fullPath }
+      query: { redirect: to.fullPath },
     });
 
   if (guestOnly && store.getters["user/isSignedIn"]) return next("/");
@@ -262,7 +262,7 @@ export const redirectSections: NavigationGuard = async (to, from, next) => {
   const activatorChildren: RouteConfig[] = getRootRouteChildren().find(
     (route: RouteConfig) => `/${route.path}` === `${to.fullPath}/`
   ).children;
-  const childRedirectRoute = activatorChildren.find(route => {
+  const childRedirectRoute = activatorChildren.find((route) => {
     const ability = _.get(route, "meta.auth.ability");
     return (
       ability &&

@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-node@v1
         with:
-          node-version: 8.x
+          node-version: 10.x
       - run: npm ci
         working-directory: ${{ matrix.project }}
       - run: npm run lint --if-present

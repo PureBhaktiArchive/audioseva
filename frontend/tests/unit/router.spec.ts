@@ -23,8 +23,8 @@ describe("redirectSections", () => {
       to = {
         fullPath: fullPath,
         meta: {
-          activator: true
-        }
+          activator: true,
+        },
       };
       await redirectSections(to, from, next);
       expect(next).toHaveBeenCalledWith(expectedPath);
@@ -54,23 +54,23 @@ describe("checkAuth", () => {
         {},
         {
           meta: {
-            auth: { ability: { action: "view", subject: subjects.TE.task } }
-          }
-        }
-      ]
+            auth: { ability: { action: "view", subject: subjects.TE.task } },
+          },
+        },
+      ],
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith({
       path: "/login",
-      query: { redirect: to.fullPath }
+      query: { redirect: to.fullPath },
     });
   });
 
   it("should redirect to / if guestOnly and currentUser", async () => {
     handleClaims = await mockClaims({ SQR: { coordinator: true } });
     to = {
-      matched: [{ meta: { auth: { guestOnly: true } } }]
+      matched: [{ meta: { auth: { guestOnly: true } } }],
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
@@ -81,19 +81,19 @@ describe("checkAuth", () => {
     await mockClaims();
     to = {
       fullPath: "/sqr",
-      matched: [{ meta: { auth: { requireAuth: true } } }]
+      matched: [{ meta: { auth: { requireAuth: true } } }],
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
     expect(next).toHaveBeenCalledWith({
       path: "/login",
-      query: { redirect: to.fullPath }
+      query: { redirect: to.fullPath },
     });
   });
 
   it("should allow route with no auth meta", async () => {
     to = {
-      matched: [{ meta: {} }]
+      matched: [{ meta: {} }],
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
@@ -107,10 +107,10 @@ describe("checkAuth", () => {
       matched: [
         {
           meta: {
-            auth: { ability: { action: "view", subject: subjects.TE.myTasks } }
-          }
-        }
-      ]
+            auth: { ability: { action: "view", subject: subjects.TE.myTasks } },
+          },
+        },
+      ],
     };
     await checkAuth(to, from, next);
     expect(next).toHaveBeenCalledTimes(1);
@@ -123,10 +123,10 @@ describe("checkAuth", () => {
       matched: [
         {
           meta: {
-            auth: { ability: { action: "view", subject: subjects.TE.task } }
-          }
-        }
-      ]
+            auth: { ability: { action: "view", subject: subjects.TE.task } },
+          },
+        },
+      ],
     };
     const from: any = {};
     const next: any = jest.fn();

@@ -11,7 +11,7 @@
 import { Component, Prop, Vue } from "vue-property-decorator";
 
 @Component({
-  name: "PhoneNumber"
+  name: "PhoneNumber",
 })
 export default class PhoneNumber extends Vue {
   @Prop() item!: any;

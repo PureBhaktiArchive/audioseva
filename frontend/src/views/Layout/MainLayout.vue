@@ -63,7 +63,7 @@
         v-if="currentUser"
       ></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <router-link to="/" tag="span" style="cursor: pointer">{{
+        <router-link to="/" tag="span" style="cursor: pointer;">{{
           appTitle
         }}</router-link>
       </v-toolbar-title>
@@ -93,20 +93,20 @@ const pathMap = {
   cr: "CR",
   sqr: "SQR",
   te: "TE",
-  allot: "Allotment"
+  allot: "Allotment",
 };
 
 @Component({
   name: "MainLayout",
   components: {
-    MenuLinks
+    MenuLinks,
   },
   computed: {
-    ...mapState("user", ["currentUser", "roles"])
+    ...mapState("user", ["currentUser", "roles"]),
   },
   methods: {
-    ...mapActions("user", ["signOut"])
-  }
+    ...mapActions("user", ["signOut"]),
+  },
 })
 export default class MainLayout extends Vue {
   appTitle = "Audio Seva";
@@ -138,7 +138,7 @@ export default class MainLayout extends Vue {
           text: this.getText(item, params),
           disabled: index === pathsLength,
           to: this.getPath(item, index, paths),
-          exact: true
+          exact: true,
         });
       });
     }

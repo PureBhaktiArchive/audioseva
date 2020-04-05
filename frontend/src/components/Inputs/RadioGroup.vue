@@ -19,7 +19,7 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import _ from "lodash";
 
 @Component({
-  name: "RadioGroup"
+  name: "RadioGroup",
 })
 export default class RadioGroup extends Vue {
   @Prop() updateForm!: any;

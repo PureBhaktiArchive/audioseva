@@ -25,7 +25,7 @@ import DataTable from "../DataTable.vue";
 
 @Component({
   name: "FilesByStatus",
-  components: { DataTable }
+  components: { DataTable },
 })
 export default class FilesByStatus extends Vue {
   headers = [
@@ -33,7 +33,7 @@ export default class FilesByStatus extends Vue {
     { text: "WIP", value: "WIP" },
     { text: "Spare", value: "Spare" },
     { text: "Given", value: "Given" },
-    { text: "GRAND", value: "GRAND" }
+    { text: "GRAND", value: "GRAND" },
   ];
 
   @Prop() items: any;

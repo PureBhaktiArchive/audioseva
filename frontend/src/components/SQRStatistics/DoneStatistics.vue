@@ -16,7 +16,7 @@ import { mergeDoneStatistics } from "@/utility";
 
 @Component({
   name: "DoneStatistics",
-  components: { DataTable }
+  components: { DataTable },
 })
 export default class DoneStatistics extends Vue {
   @Prop() doneStatistics!: { [key: string]: number };
@@ -30,7 +30,7 @@ export default class DoneStatistics extends Vue {
   get statistics() {
     return this.statsArray.map(([date, statistic]) => ({
       doneText: this.getDoneText(date),
-      statistic
+      statistic,
     }));
   }
 

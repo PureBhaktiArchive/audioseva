@@ -131,7 +131,7 @@ import RestoredChip from "@/components/TE/RestoredChip.vue";
 @Component({
   name: "Allotment",
   components: { AssigneeSelector, TaskDefinition, RestoredChip },
-  title: "Track Editing Allotment"
+  title: "Track Editing Allotment",
 })
 export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
   allotment: any = Allotment.initialAllotment();
@@ -146,7 +146,7 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
     return {
       assignee: null,
       tasks: [],
-      comment: null
+      comment: null,
     };
   }
 
@@ -181,7 +181,7 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
     const editors = await firebase
       .functions()
       .httpsCallable("User-getAssignees")({
-      phase: "TE"
+      phase: "TE",
     });
     this.trackEditors = editors.data;
     if (this.$route.query.emailAddress) {
@@ -270,7 +270,7 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
 
   get groupedTasks() {
     if (!this.tasks) return {};
-    return _.groupBy(this.tasks, task =>
+    return _.groupBy(this.tasks, (task) =>
       _.split(task[".key"], "-", 2).join("-")
     );
   }
