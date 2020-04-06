@@ -37,6 +37,11 @@ export default {
         },
       });
     },
+    metadataRef: (state: any) => {
+      return state.currentUser
+        ? firebase.database().ref(`users/${state.currentUser.uid}/refreshTime`)
+        : null;
+    }
   },
   mutations: {
     setCurrentUser: (state: any, user: any) => {
@@ -61,9 +66,6 @@ export default {
     ) => {
       state.metadataCallback = callback;
     },
-    setMetadataRef: (state: any, ref: any) => {
-      state.metadataRef = ref;
-    },
     setTimestamp: (state: any, timestamp: number) => {
       state.timestamp = timestamp;
     }
@@ -73,26 +75,14 @@ export default {
       firebase.auth().signOut();
     },
     async onAuthStateChanged(
-      { dispatch, commit }: ActionContext<any, any>,
+      { dispatch, commit, state, getters }: ActionContext<any, any>,
       user: firebase.User | null
     ) {
       commit("setCurrentUser", user);
-      dispatch("handleMetadata");
-    },
-    async updateUserRoles(
-      { commit, getters, state }: ActionContext<any, any>,
-      { forceRefresh = false } = {}
-    ) {
-      const roles = state.currentUser
-        ? (await state.currentUser.getIdTokenResult(forceRefresh)).claims.roles
-        : null;
-      commit("setUserRoles", roles);
-      getters.ability.update(defineAbilities());
-    },
-    handleMetadata({ state, dispatch, commit }: ActionContext<any, any>) {
-      if (state.metadataCallback && state.metadataRef) {
+
+      if (state.metadataCallback && getters.metadataRef) {
         commit("setTimestamp", null);
-        state.metadataRef.off("value", state.metadataCallback);
+        getters.metadataRef.off("value", state.metadataCallback);
       }
       if (!state.currentUser) {
         return;
@@ -105,11 +95,17 @@ export default {
         dispatch("updateUserRoles", { forceRefresh: true });
       };
       commit("setMetadataCallback", callback);
-      commit(
-        "setMetadataRef",
-        firebase.database().ref(`users/${state.currentUser.uid}/refreshTime`)
-      );
-      state.metadataRef.on("value", state.metadataCallback);
+      getters.metadataRef.on("value", state.metadataCallback);
+    },
+    async updateUserRoles(
+      { commit, getters, state }: ActionContext<any, any>,
+      { forceRefresh = false } = {}
+    ) {
+      const roles = state.currentUser
+        ? (await state.currentUser.getIdTokenResult(forceRefresh)).claims.roles
+        : null;
+      commit("setUserRoles", roles);
+      getters.ability.update(defineAbilities());
     }
   },
 };
