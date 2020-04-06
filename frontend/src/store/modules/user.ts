@@ -85,6 +85,9 @@ export default {
         getters.metadataRef.off("value", state.metadataCallback);
       }
       if (!state.currentUser) {
+        commit("setMetadataCallback", null);
+        commit("setTimestamp", null);
+        await dispatch("updateUserRoles");
         return;
       }
       const callback = () => {
