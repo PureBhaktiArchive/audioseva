@@ -79,13 +79,6 @@ export default {
       commit("setCurrentUser", user);
       dispatch("handleMetadata");
     },
-    async handleInitialUserLoad(
-      { commit, dispatch }: ActionContext<any, any>,
-      user: firebase.User | null
-    ) {
-      commit("setCurrentUser", user);
-      await dispatch("updateUserRoles");
-    },
     async updateUserRoles(
       { commit, getters, state }: ActionContext<any, any>,
       { forceRefresh = false } = {}

@@ -64,9 +64,7 @@ getFirebaseConfig().then((config) => {
     store.dispatch("user/onAuthStateChanged", user);
   });
 
-  const unsubscribe: any = firebase.auth().onAuthStateChanged(async (user) => {
-    await store.dispatch("user/handleInitialUserLoad", user);
-
+  const unsubscribe: any = firebase.auth().onAuthStateChanged(() => {
     new Vue({
       router,
       store,
