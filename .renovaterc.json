@@ -4,30 +4,30 @@
     "group:test",
     "group:definitelyTyped",
     "schedule:earlyMondays",
-    ":maintainLockFilesWeekly"
+    ":maintainLockFilesWeekly",
+    ":timezone(Asia/Novokuznetsk)",
+    ":assignAndReview(anantakrishna)"
   ],
   "rebaseStalePrs": false,
   "rebaseConflictedPrs": false,
   "packageRules": [
     {
       "paths": ["frontend"],
-      "extends": [
-        ":timezone(America/New_York)",
-        ":assignAndReview(DadImScared)",
-        "group:all"
-      ],
+      "extends": ["group:all"],
       "managerBranchPrefix": "frontend/",
       "commitMessagePrefix": "Frontend:"
     },
     {
       "paths": ["functions"],
-      "extends": [
-        ":timezone(Asia/Novokuznetsk)",
-        ":assignAndReview(anantakrishna)",
-        "group:all"
-      ],
+      "extends": ["group:all"],
       "managerBranchPrefix": "functions/",
       "commitMessagePrefix": "Functions:"
+    },
+    {
+      "paths": ["CRP"],
+      "extends": ["group:all"],
+      "managerBranchPrefix": "CRP/",
+      "commitMessagePrefix": "CRP:"
     }
   ]
 }
