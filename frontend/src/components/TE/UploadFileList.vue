@@ -4,39 +4,30 @@
       <v-list-item :key="file.upload.uuid">
         <v-list-item-content>
           <v-list-item-title :style="{ display: 'flex', alignItems: 'center' }">
-            {{ file.name }}
+            <v-icon
+              :style="{ width: '30px' }"
+              :color="color(status)"
+              class="align-items-center mr-2"
+            >
+              {{ icon(status) }}
+            </v-icon>
+            <span>{{ file.name }}</span>
             <v-progress-linear
               rounded
-              class="ml-2"
+              class="ml-4"
               :value="status.progress"
-              :color="status.error ? 'red' : 'green'"
+              :color="color(status)"
               height="20"
             >
-              <strong>{{ status.progress || 0 }}%</strong>
+              <strong>
+                {{ status.error ? status.error : `${status.progress || 0}%` }}
+              </strong>
             </v-progress-linear>
           </v-list-item-title>
         </v-list-item-content>
         <v-list-item-action
           :style="{ flexDirection: 'row', alignItems: 'center' }"
         >
-          <v-icon
-            v-if="status.state === 'completed'"
-            color="green"
-            class="align-items-center pr-1"
-          >
-            fa-check-circle
-          </v-icon>
-          <div v-if="status.error">
-            <span
-              class="subtext"
-              :style="{ color: 'red', alignSelf: 'center' }"
-            >
-              {{ status.error }}
-            </span>
-            <v-icon color="red" class="pr-1">
-              {{ $vuetify.icons.values.error }}
-            </v-icon>
-          </div>
           <v-btn
             v-if="status.retry"
             text
@@ -60,7 +51,6 @@
           </div>
         </v-list-item-action>
       </v-list-item>
-      <v-divider :key="`divider-${file.upload.uuid}`"></v-divider>
     </template>
   </v-list>
 </template>
@@ -68,12 +58,38 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import "@/styles/subtext.css";
+import { VuetifyIconComponent } from "vuetify/types/services/icons";
 
 @Component({
   name: "UploadFileList"
 })
 export default class UploadFileList extends Vue {
   @Prop() files!: [File, any][];
+
+  icon(status: any) {
+    let fileIcon: string | VuetifyIconComponent = "";
+    if (status.error) {
+      fileIcon = this.$vuetify.icons.values.error;
+    } else if (status.state === "completed") {
+      fileIcon = "fa-check-circle";
+    } else if (
+      status.state === "uploading" ||
+      status.retry ||
+      status.state === "queued"
+    ) {
+      fileIcon = this.$vuetify.icons.values.upload;
+    }
+    return fileIcon;
+  }
+
+  color(status: any) {
+    let iconColor = "blue";
+    if (status.retry) iconColor = "yellow";
+    else if (status.state === "queued") iconColor = "light-blue";
+    else if (status.state === "completed") iconColor = "green";
+    else if (status.error) iconColor = "red";
+    return iconColor;
+  }
 }
 </script>
 
