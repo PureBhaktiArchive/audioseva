@@ -16,7 +16,6 @@ export default {
     currentUser: null,
     roles: null,
     metadataCallback: null,
-    metadataRef: null,
     timestamp: null,
   },
   getters: {
@@ -41,7 +40,7 @@ export default {
       return state.currentUser
         ? firebase.database().ref(`users/${state.currentUser.uid}/refreshTime`)
         : null;
-    }
+    },
   },
   mutations: {
     setCurrentUser: (state: any, user: any) => {
@@ -68,7 +67,7 @@ export default {
     },
     setTimestamp: (state: any, timestamp: number) => {
       state.timestamp = timestamp;
-    }
+    },
   },
   actions: {
     signOut() {
@@ -109,6 +108,6 @@ export default {
         : null;
       commit("setUserRoles", roles);
       getters.ability.update(defineAbilities());
-    }
+    },
   },
 };
