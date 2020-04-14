@@ -73,7 +73,7 @@ export default {
     signOut() {
       firebase.auth().signOut();
     },
-    async onAuthStateChanged(
+    async handleAuthStateChanged(
       { dispatch, commit, state, getters }: ActionContext<any, any>,
       user: firebase.User | null
     ) {

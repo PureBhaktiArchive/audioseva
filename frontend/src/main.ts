@@ -61,7 +61,7 @@ async function getFirebaseConfig(): Promise<Object> {
 getFirebaseConfig().then((config) => {
   firebase.initializeApp(config);
   firebase.auth().onAuthStateChanged(async user => {
-    store.dispatch("user/onAuthStateChanged", user);
+    store.dispatch("user/handleAuthStateChanged", user);
   });
 
   const unsubscribe: any = firebase.auth().onAuthStateChanged(() => {
