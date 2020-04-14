@@ -16,7 +16,7 @@ export default {
     currentUser: null,
     roles: null,
     metadataCallback: null,
-    timestamp: null,
+    metadataTimestamp: null,
   },
   getters: {
     isSignedIn: (state: any) => state.currentUser !== null,
@@ -65,8 +65,8 @@ export default {
     ) => {
       state.metadataCallback = callback;
     },
-    setTimestamp: (state: any, timestamp: number) => {
-      state.timestamp = timestamp;
+    setMetadataTimestamp: (state: any, timestamp: number) => {
+      state.metadataTimestamp = timestamp;
     },
   },
   actions: {
@@ -80,18 +80,18 @@ export default {
       commit("setCurrentUser", user);
 
       if (state.metadataCallback && getters.metadataRef) {
-        commit("setTimestamp", null);
+        commit("setMetadataTimestamp", null);
         getters.metadataRef.off("value", state.metadataCallback);
       }
       if (!state.currentUser) {
         commit("setMetadataCallback", null);
-        commit("setTimestamp", null);
+        commit("setMetadataTimestamp", null);
         await dispatch("updateUserRoles");
         return;
       }
       const callback = () => {
-        if (!state.timestamp) {
-          commit("setTimestamp", +new Date());
+        if (!state.metadataTimestamp) {
+          commit("setMetadataTimestamp", +new Date());
           return;
         }
         dispatch("updateUserRoles", { forceRefresh: true });
