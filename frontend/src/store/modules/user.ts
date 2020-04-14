@@ -89,14 +89,13 @@ export default {
         await dispatch("updateUserRoles");
         return;
       }
-      const callback = () => {
+      commit("setMetadataCallback", () => {
         if (!state.metadataTimestamp) {
           commit("setMetadataTimestamp", +new Date());
           return;
         }
         dispatch("updateUserRoles", { forceRefresh: true });
-      };
-      commit("setMetadataCallback", callback);
+      });
       getters.metadataRef.on("value", state.metadataCallback);
     },
     async updateUserRoles(
