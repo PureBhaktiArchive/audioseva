@@ -80,7 +80,6 @@ export default {
       commit("setCurrentUser", user);
 
       if (state.metadataCallback && getters.metadataRef) {
-        commit("setMetadataTimestamp", null);
         getters.metadataRef.off("value", state.metadataCallback);
       }
       if (!state.currentUser) {
@@ -89,13 +88,18 @@ export default {
         await dispatch("updateUserRoles");
         return;
       }
-      commit("setMetadataCallback", () => {
-        if (!state.metadataTimestamp) {
-          commit("setMetadataTimestamp", +new Date());
-          return;
+      commit(
+        "setMetadataCallback",
+        (snapshot: firebase.database.DataSnapshot) => {
+          const currentTimestamp = state.metadataTimestamp;
+          const newTimestamp = snapshot.val();
+          commit("setMetadataTimestamp", newTimestamp);
+          if (currentTimestamp && currentTimestamp > newTimestamp) {
+            return;
+          }
+          dispatch("updateUserRoles", { forceRefresh: true });
         }
-        dispatch("updateUserRoles", { forceRefresh: true });
-      });
+      );
       getters.metadataRef.on("value", state.metadataCallback);
     },
     async updateUserRoles(
