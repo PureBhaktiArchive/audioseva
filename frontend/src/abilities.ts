@@ -52,7 +52,7 @@ const handleSQRPermissions = (can: any, cannot: any) => {
 };
 
 export const defineAbilities = () => {
-  const { rules, can, cannot } = AbilityBuilder.extract();
+  const { rules, can, cannot } = new AbilityBuilder;
   handleTEPermissions(can, cannot);
   handleSQRPermissions(can, cannot);
   return rules;
