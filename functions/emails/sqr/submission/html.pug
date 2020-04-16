@@ -26,16 +26,10 @@ p
   |
   | #{ submission.soundQualityRating }
 p
-  b E. Total Duration of the Recording:
-  |
-  |
-  if submission.duration
-    +interval(submission.duration)
-p
-  b F. Comments:
+  b E. Comments:
   |
   | #{ submission.comments }
 p
-  b G. Filled By:
+  b F. Filled By:
   |
   | #{ submission.author.name }, #{ submission.author.emailAddress }

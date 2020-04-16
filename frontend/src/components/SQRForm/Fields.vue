@@ -107,28 +107,7 @@
       </v-col>
 
       <v-col class="my-2" cols="12">
-        <h3>E. Total Duration of the Recording</h3>
-        <duration
-          v-bind="$attrs"
-          :form="form"
-          :updateForm="updateForm"
-          :removeField="removeField"
-        ></duration>
-        <guidelines>
-          <p>
-            Here, we simply want to know how much the tape has relevant
-            recording. In other words, whether any part of the sound file is
-            blank or inaudible and hence to be discarded. Usually such parts are
-            present towards the end of the file. There might be small parts 5-7
-            min long in between two lecture recordings, but these can be
-            ignored. Please write the beginning and ending timings of the
-            overall recording in this field in (h:)mm:ss format.
-          </p>
-        </guidelines>
-      </v-col>
-
-      <v-col class="my-2" cols="12">
-        <h3>F. Comments</h3>
+        <h3>E. Comments</h3>
         <text-area
           :form="form"
           :updateForm="updateForm"
@@ -163,7 +142,6 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
 import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
 import SQRField from "@/components/SQRForm/SQRField.vue";
-import Duration from "@/components/SQRForm/Duration.vue";
 import TextArea from "@/components/Inputs/TextArea.vue";
 import Guidelines from "@/components/SQRForm/Guidelines.vue";
 
@@ -173,7 +151,6 @@ import Guidelines from "@/components/SQRForm/Guidelines.vue";
     SoundIssues,
     UnwantedParts,
     SQRField,
-    Duration,
     TextArea,
     Guidelines,
   },

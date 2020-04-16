@@ -183,8 +183,6 @@ export class SQRWorkflow {
             ? formatAudioAnnotations(...submission.soundIssues)
             : null,
           'Sound Quality Rating': submission.soundQualityRating,
-          Beginning: submission.duration ? submission.duration.beginning : null,
-          Ending: submission.duration ? submission.duration.ending : null,
           Comments: submission.comments,
           Name: submission.author.name,
           'Email Address': submission.author.emailAddress,
