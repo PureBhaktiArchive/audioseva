@@ -88,7 +88,7 @@ export class SQRWorkflow {
       );
 
     const updatedTasks = await repository.save(
-      ...fileNames.map(fileName => ({
+      ...fileNames.map((fileName) => ({
         fileName,
         status: AllotmentStatus.Given,
         timestampGiven: admin.database.ServerValue.TIMESTAMP,
@@ -183,8 +183,6 @@ export class SQRWorkflow {
             ? formatAudioAnnotations(...submission.soundIssues)
             : null,
           'Sound Quality Rating': submission.soundQualityRating,
-          Beginning: submission.duration ? submission.duration.beginning : null,
-          Ending: submission.duration ? submission.duration.ending : null,
           Comments: submission.comments,
           Name: submission.author.name,
           'Email Address': submission.author.emailAddress,
@@ -196,7 +194,7 @@ export class SQRWorkflow {
 
     const currentSet = (
       await repository.getUserAllotments(task.assignee.emailAddress)
-    ).filter(item => item.isActive);
+    ).filter((item) => item.isActive);
 
     const warnings = [];
     if (updated) warnings.push('This is an updated submission!');
@@ -204,7 +202,7 @@ export class SQRWorkflow {
     if (!task.isActive)
       warnings.push(`Status of the allotment is ${task.status}`);
 
-    if (_(currentSet).every(item => item.status !== AllotmentStatus.Given))
+    if (_(currentSet).every((item) => item.status !== AllotmentStatus.Given))
       warnings.push("It's time to allot!");
 
     if (!previousSubmissions.exists())
@@ -271,10 +269,10 @@ export class SQRWorkflow {
 
     const currentSet = (
       await repository.getUserAllotments(task.assignee.emailAddress)
-    ).filter(item => item.isActive);
+    ).filter((item) => item.isActive);
 
     const warnings = [];
-    if (_(currentSet).every(item => item.status !== AllotmentStatus.Given))
+    if (_(currentSet).every((item) => item.status !== AllotmentStatus.Given))
       warnings.push("It's time to allot!");
 
     await admin
