@@ -66,7 +66,7 @@ const currentSet = [
 
 const warnings = ['first warning', 'another!'];
 
-const submission = {
+const sqrSubmission = {
   template: 'sqr/submission',
   message: { to: 'test@audioseva.com' },
   locals: {
@@ -102,10 +102,6 @@ const submission = {
       //   },
       // ],
       soundQualityRating: 'Good',
-      duration: {
-        beginning: '01:13',
-        ending: '05:18',
-      },
       comments: 'Haribol!',
       author: person,
       changed: 123,
@@ -159,7 +155,4 @@ const teUpload = {
   },
 };
 
-email
-  .send(teUpload)
-  .then(console.log)
-  .catch(console.error);
+email.send(teUpload).then(console.log).catch(console.error);
