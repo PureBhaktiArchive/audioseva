@@ -263,11 +263,19 @@ export const download = functions.https.onRequest(
         return;
       }
 
-      const file = StorageManager.getBucket('te.uploads').file(
-        version.uploadPath
+      const file = await StorageManager.findExistingFile(
+        // First always looking for the uploaded file
+        StorageManager.getBucket('te.uploads').file(version.uploadPath),
+        // For the last fake version trying also the final edited file
+        ...(!version.uploadPath && versionId === _.findLastKey(task.versions)
+          ? [
+              StorageManager.getFile('edited', `${task.id}.mp3`),
+              StorageManager.getFile('edited', `${task.id}.flac`),
+            ]
+          : [])
       );
 
-      if (!(await file.exists()).shift()) {
+      if (!file) {
         res
           .status(404)
           .send('File does not exist, please contact the coordinator.');
@@ -285,12 +293,13 @@ export const download = functions.https.onRequest(
       const [url] = await file.getSignedUrl({
         action: 'read',
         expires: DateTime.local().plus({ days: 3 }).toJSDate(),
-        promptSaveAs: `${taskId}.v${versionNumber}${path.extname(
-          version.uploadPath
-        )}`,
+        promptSaveAs: `${taskId}.v${versionNumber}${path.extname(file.name)}`,
       });
 
-      console.log(`Redirecting ${taskId}/${versionId} to ${url}`);
+      console.log(
+        `Redirecting ${taskId}/${versionId} to signed URL for`,
+        `${file.bucket.name}/${file.name}`
+      );
       res.redirect(307, url);
     }
   )
