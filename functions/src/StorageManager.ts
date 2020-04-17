@@ -56,8 +56,8 @@ export class StorageManager {
    * @param files Files to search among.
    * @returns First existing file or `null` if none exists.
    */
-  static async findExistingFile(...files: File[]) {
-    for (const file of files) if ((await file.exists())[0]) return file;
+  static async findExistingFile(files: File[]) {
+    for (const file of files) if ((await file?.exists())?.shift()) return file;
     return null;
   }
 
