@@ -264,15 +264,14 @@ export const download = functions.https.onRequest(
       }
 
       const file = await StorageManager.findExistingFile(
-        // First always looking for the uploaded file
-        StorageManager.getBucket('te.uploads').file(version.uploadPath),
-        // For the last fake version trying also the final edited file
-        ...(!version.uploadPath && versionId === _.findLastKey(task.versions)
+        version.uploadPath
+          ? [StorageManager.getBucket('te.uploads').file(version.uploadPath)]
+          : versionId === _.findLastKey(task.versions)
           ? [
               StorageManager.getFile('edited', `${task.id}.mp3`),
               StorageManager.getFile('edited', `${task.id}.flac`),
             ]
-          : [])
+          : []
       );
 
       if (!file) {
