@@ -186,15 +186,19 @@ export const processResolution = functions.database
     );
 
     if (resolution.val().isApproved) {
-      // Saving the approved file to the final storage bucket
-      await StorageManager.getBucket('te.uploads')
-        .file(task.versions[versionKey].uploadPath)
-        .copy(
-          StorageManager.getFile(
-            'edited',
-            path.basename(task.versions[versionKey].uploadPath)
-          )
-        );
+      // The version may be fake (old task reopened for recheck).
+      // In this case the final edited file already exists.
+      if (task.versions[versionKey].uploadPath) {
+        // Saving the approved file to the final storage bucket
+        await StorageManager.getBucket('te.uploads')
+          .file(task.versions[versionKey].uploadPath)
+          .copy(
+            StorageManager.getFile(
+              'edited',
+              path.basename(task.versions[versionKey].uploadPath)
+            )
+          );
+      }
 
       await repository.save({
         id: taskId,
