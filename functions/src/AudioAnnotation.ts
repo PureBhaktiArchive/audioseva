@@ -19,7 +19,7 @@ export const formatAudioAnnotations = (
     .map(
       ({ entireFile, beginning, ending, type, description }) =>
         `${
-          entireFile ? 'Entire file' : `${beginning}–${ending}`
+        entireFile ? 'Entire file' : `${beginning}–${ending}`
         }: ${type} — ${description}`
     )
     .join('\n');
