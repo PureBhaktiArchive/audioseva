@@ -24,9 +24,19 @@ jobs:
             node: 10
     steps:
       - uses: actions/checkout@master
+
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
+
+      - name: Cache NPM modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - run: npm ci
         working-directory: ${{ matrix.project }}
       - run: npm run lint --if-present
