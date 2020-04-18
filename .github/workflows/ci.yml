@@ -15,12 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [frontend, functions, CRP]
+        include:
+          - project: frontend
+            node: 10
+          - project: functions
+            node: 8
+          - project: CRP
+            node: 10
     steps:
       - uses: actions/checkout@master
       - uses: actions/setup-node@v1
         with:
-          node-version: 10.x
+          node-version: ${{ matrix.node }}
       - run: npm ci
         working-directory: ${{ matrix.project }}
       - run: npm run lint --if-present
