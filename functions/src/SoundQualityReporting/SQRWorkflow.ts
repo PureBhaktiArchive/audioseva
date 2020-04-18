@@ -130,7 +130,7 @@ export class SQRWorkflow {
     fileName: string,
     token: string,
     submission: SQRSubmission,
-    updated: boolean = false
+    updated = false
   ) {
     console.info(`Processing ${fileName}/${token} submission:`, submission);
 

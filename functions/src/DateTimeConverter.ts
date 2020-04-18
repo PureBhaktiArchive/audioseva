@@ -45,7 +45,7 @@ export class DateTimeConverter {
    */
   public static durationFromHuman(timing: string): Duration {
     const patterns = [
-      /^(?:(0?[0-3])\:)?([0-5]?\d)\:([0-5]?\d)$/,
+      /^(?:(0?[0-3]):)?([0-5]?\d):([0-5]?\d)$/,
       /^(?:(0?[0-3])\.)?([0-5]?\d)\.([0-5]?\d)$/,
     ];
     for (const pattern of patterns) {

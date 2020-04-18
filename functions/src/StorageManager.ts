@@ -2,7 +2,6 @@
  * sri sri guru gauranga jayatah
  */
 
-// tslint:disable-next-line: no-implicit-dependencies
 import { File } from '@google-cloud/storage';
 import { URL } from 'url';
 import functions = require('firebase-functions');
@@ -44,9 +43,9 @@ export class StorageManager {
   static getFile(bucketName: BucketName, fileName: string) {
     return this.getBucket(bucketName).file(
       `${this.extractListFromFilename(fileName)}/${
-        bucketName === 'original'
-          ? this.standardizeFileName(fileName)
-          : fileName
+      bucketName === 'original'
+        ? this.standardizeFileName(fileName)
+        : fileName
       }`
     );
   }
@@ -63,6 +62,7 @@ export class StorageManager {
   }
 
   static extractListFromFilename = (fileName: string): string => {
+    // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
     const match = fileName.match(/^\w+(?=-)|Hi(?=\d)/i);
     if (!match) return null;
 
@@ -92,8 +92,6 @@ export class StorageManager {
           serial: string,
           suffix: string,
           extension: string,
-          index,
-          original
         ) =>
           [
             list.toUpperCase(),

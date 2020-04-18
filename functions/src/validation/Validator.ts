@@ -5,12 +5,13 @@
 import { IValidationRule } from './IValidationRule';
 import { ValidationResult } from './ValidationResult';
 
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IValidator<T> {
   validate(entity: T): ValidationResult;
 }
 
 export abstract class Validator<T> implements IValidator<T> {
-  constructor(protected rules: IValidationRule<T>[]) {}
+  constructor(protected rules: IValidationRule<T>[]) { }
 
   validate(entity: T): ValidationResult {
     const errors = this.rules

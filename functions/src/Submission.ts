@@ -9,5 +9,5 @@ export interface Submission {
   created: number;
   changed: number;
   completed?: number;
-  comments?: String;
+  comments?: string;
 }

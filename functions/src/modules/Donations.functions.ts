@@ -8,10 +8,7 @@ import { Spreadsheet } from '../Spreadsheet';
 export const processDonations = functions.database
   .ref('/donations/cash/{donation_id}')
   .onCreate(
-    async (
-      snapshot: functions.database.DataSnapshot,
-      context: functions.EventContext
-    ): Promise<any> => {
+    async (snapshot: functions.database.DataSnapshot) => {
       const donation = snapshot.val();
 
       const sheet = await Spreadsheet.open(
