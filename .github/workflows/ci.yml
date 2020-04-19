@@ -25,10 +25,9 @@ jobs:
     steps:
       - run: |
           echo ${{ env.MODE }}
-          echo ${{ MODE }}
-          echo ${{ ${{$MODE+'BOL'}} }}
-          echo ${{ $MODE+'BOL' }}
-          echo ${{ ${{$MODE}}BOL }}
+          echo ${{ ${{env.MODE+'BOL'}} }}
+          echo ${{ ${{env.MODE}}BOL }}
+          echo ${{ env['HARIBOL'] }}
         env:
           MODE: PRODUCTION
           HARIBOL: Haribol
