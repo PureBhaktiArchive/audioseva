@@ -45,7 +45,7 @@ jobs:
           echo ${!SERVICE_ACCOUNT} > service-account.json
           firebase use ${!FIREBASE_PROJECT}
           firebase target:apply storage uploads te.uploads.${!PROJECT_DOMAIN}
-          firebase deploy --force || firebase deploy --only functions --force
+          firebase deploy --force || firebase deploy --only functions --force || firebase deploy --only functions --force || firebase deploy --only functions --force
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
           DEPLOYMENT_ENVIRONMENT: ${{ github.event.deployment.environment }}
