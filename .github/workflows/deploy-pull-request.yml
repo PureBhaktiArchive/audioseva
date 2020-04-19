@@ -6,6 +6,8 @@ name: Pull Request Deployment
 on:
   issue_comment:
     types: [created]
+  pull_request:
+    types: [labeled]
 
 jobs:
   create-deployment:
@@ -20,11 +22,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create deployment
-        if: steps.check.outputs.BOOL_TRIGGERED == 'true'
+        if: steps.check.outputs.BOOL_TRIGGERED == 'true' || contains( github.event.pull_request.labels.*.name, 'staging')
         uses: maxkomarychev/oction-create-deployment@master
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           ref: ${{ steps.check.outputs.BRANCH_NAME }}
           environment: staging
           required_contexts: <<EMPTY>>
-          state: pending
