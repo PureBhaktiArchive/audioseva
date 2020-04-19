@@ -23,6 +23,17 @@ jobs:
           - project: CRP
             node: 10
     steps:
+      - run: |
+          echo ${{ env.MODE }}
+          echo ${{ $MODE }}
+          echo ${{ MODE }}
+          echo ${{ ${{$MODE+'BOL'}} }}
+          echo ${{ $MODE+'BOL' }}
+          echo ${{ ${{$MODE}}BOL }}
+        env:
+          MODE: PRODUCTION
+          HARIBOL: Haribol
+
       - uses: actions/checkout@master
 
       - uses: actions/setup-node@v1
