@@ -1,10 +1,12 @@
-// tslint:disable no-console
+/*!
+ * sri sri guru gauranga jayatah
+ */
 
-function rowToObject(row: any[], columnNames: string[]): object {
+function rowToObject(row: unknown[], columnNames: string[]): object {
   return Object.assign({}, ...columnNames.map((k, i) => ({ [k]: row[i] })));
 }
 
-function objectToRow(object: object, columnNames: string[]): any[] {
+function objectToRow(object: object, columnNames: string[]): unknown[] {
   return columnNames.map(columnName => object[columnName]);
 }
 
@@ -50,18 +52,18 @@ const watchedColumns = [
 
 interface OnEditEventObject {
   authMode: GoogleAppsScript.Script.AuthMode;
-  oldValue: any;
+  oldValue: unknown;
   range: GoogleAppsScript.Spreadsheet.Range;
   source: GoogleAppsScript.Spreadsheet.Spreadsheet;
   triggerUid: string;
   user: GoogleAppsScript.Base.User;
-  value: any;
+  value: unknown;
 }
 
 const DEBUG = PropertiesService.getScriptProperties().getProperty("DEBUG");
 
 // this script records changes to the spreadsheet on a "Changelog" sheet.
-function trackChanges(e: OnEditEventObject) {
+export function trackChanges(e: OnEditEventObject) {
   const timestamp = new Date();
   const sheet = e.range.getSheet();
 
