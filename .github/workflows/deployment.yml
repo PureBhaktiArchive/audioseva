@@ -35,7 +35,7 @@ jobs:
         run: |
           npm ci --prefix frontend
           npm ci --prefix functions
-          npm install -g firebase-bolt firebase-tools
+          npm install -g firebase-bolt firebase-tools@7.16.2
 
       - name: Deploy to ${{ github.event.deployment.environment }}
         run: |
@@ -45,7 +45,7 @@ jobs:
           echo ${!SERVICE_ACCOUNT} > service-account.json
           firebase use ${!FIREBASE_PROJECT}
           firebase target:apply storage uploads te.uploads.${!PROJECT_DOMAIN}
-          firebase deploy --force || firebase deploy --only functions --force || firebase deploy --only functions --force || firebase deploy --only functions --force
+          firebase deploy --force
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
           DEPLOYMENT_ENVIRONMENT: ${{ github.event.deployment.environment }}
