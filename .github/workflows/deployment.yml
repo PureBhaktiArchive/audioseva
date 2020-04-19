@@ -71,7 +71,7 @@ jobs:
           PROJECT_DOMAIN: ${{ secrets.PRODUCTION_PROJECT_DOMAIN }}
 
       - name: Deploy to ${{ github.event.deployment.environment }}
-        run: firebase deploy --force --only functions
+        run: firebase deploy --force
 
       - name: Report deployment success
         if: success()
