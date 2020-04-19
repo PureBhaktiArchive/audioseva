@@ -51,3 +51,17 @@ jobs:
         working-directory: ${{ matrix.project }}
       - run: npm run test --if-present -- --ci
         working-directory: ${{ matrix.project }}
+
+  create_deployment:
+    name: Create deployment
+    needs: build
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'staging')
+    steps:
+      - name: Create deployment
+        uses: maxkomarychev/oction-create-deployment@master
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          ref: ${{ github.ref }}
+          environment: staging
+          required_contexts: <<EMPTY>>
