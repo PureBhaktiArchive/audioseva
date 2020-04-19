@@ -39,8 +39,8 @@ jobs:
 
       - name: Deploy to ${{ github.event.deployment.environment }}
         run: |
-          FIREBASE_PROJECT=${DEPLOYMENT_ENVIRONMENT}_FIREBASE_PROJECT
-          PROJECT_DOMAIN=${DEPLOYMENT_ENVIRONMENT}_PROJECT_DOMAIN
+          FIREBASE_PROJECT=${DEPLOYMENT_ENVIRONMENT^^}_FIREBASE_PROJECT
+          PROJECT_DOMAIN=${DEPLOYMENT_ENVIRONMENT^^}_PROJECT_DOMAIN
           firebase use ${!FIREBASE_PROJECT} --token "$FIREBASE_TOKEN"
           firebase target:apply storage uploads te.uploads.${!PROJECT_DOMAIN} --token "$FIREBASE_TOKEN"
           firebase deploy --force --token "$FIREBASE_TOKEN"
