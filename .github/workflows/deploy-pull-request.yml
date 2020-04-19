@@ -4,8 +4,6 @@
 
 name: Pull Request Deployment
 on:
-  issue_comment:
-    types: [created]
   pull_request:
     types: [labeled]
 
@@ -13,19 +11,13 @@ jobs:
   create-deployment:
     name: Create deployment
     runs-on: ubuntu-latest
+    if: contains( github.event.pull_request.labels.*.name, 'staging')
     steps:
-      - name: Check trigger word
-        id: check
-        uses: machine-learning-apps/actions-chatops@master
-        with:
-          TRIGGER_PHRASE: /deploy
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create deployment
-        if: steps.check.outputs.BOOL_TRIGGERED == 'true' || contains( github.event.pull_request.labels.*.name, 'staging')
         uses: maxkomarychev/oction-create-deployment@master
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          ref: ${{ steps.check.outputs.BRANCH_NAME }}
+          ref: ${{ github.head_ref }}
           environment: staging
           required_contexts: <<EMPTY>>
+          description: Deploying PR#${{ github.event.number }} from ${{ github.workflow }}
