@@ -39,7 +39,7 @@
       "type": "npm",
       "script": "lint",
       "path": "functions/",
-      "problemMatcher": ["$tslint5"]
+      "problemMatcher": ["$eslint-stylish"]
     },
     {
       "type": "npm",

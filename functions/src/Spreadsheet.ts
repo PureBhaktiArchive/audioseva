@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 import { GaxiosResponse } from 'gaxios';
-import { google, sheets_v4 } from 'googleapis';
+import { google, sheets_v4 as sheets } from 'googleapis';
 import _ = require('lodash');
 
 enum IValueInputOption {
@@ -38,8 +38,8 @@ export class Spreadsheet<T extends object = object> {
   }
 
   protected constructor(
-    private api: sheets_v4.Sheets,
-    private schema: sheets_v4.Schema$Spreadsheet,
+    private api: sheets.Sheets,
+    private schema: sheets.Schema$Spreadsheet,
     private sheetIndex: number
   ) {
     this.columnNames = _(this.sheet.data[0].rowData[0].values)
@@ -192,7 +192,7 @@ export class Spreadsheet<T extends object = object> {
     );
   }
 
-  private columnsCache = new Map<string, any[]>();
+  private columnsCache = new Map<string, unknown[]>();
 
   /**
    * Gets the entire column data values
@@ -224,7 +224,7 @@ export class Spreadsheet<T extends object = object> {
    * @param value Value of the cell to search for
    * @returns Number of the row in the data section, 1-based. 0 if not found
    */
-  public async findDataRowNumber(columnName: string, value: any) {
+  public async findDataRowNumber(columnName: string, value: unknown) {
     const column = await this.getColumn(columnName);
     return column.indexOf(value) + 1;
   }
@@ -234,7 +234,7 @@ export class Spreadsheet<T extends object = object> {
    * - Empty string in the array transforms into `null` in the object.
    * @param values The values array to be transformed into an object
    */
-  protected arrayToObject(values: any[]): T {
+  protected arrayToObject(values: unknown[]): T {
     /* According to https://developers.google.com/sheets/api/samples/reading#read_a_single_range_grouped_by_column,
      * “Empty trailing rows and columns are omitted.”
      * Thus, the values array may be shorter than columnNames, which produces `undefined`.

@@ -47,6 +47,7 @@ export class TasksRepository {
     }),
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private objectToRowSchema = createSchema<any, IdentifyableTask>({
     'File Name': 'fileName',
     Status: ({ status }) => (status === AllotmentStatus.Spare ? null : status),
@@ -76,7 +77,7 @@ export class TasksRepository {
 
   public async getTasks(fileNames: string[]) {
     return await Promise.all(
-      fileNames.map(async fileName => this.getTask(fileName))
+      fileNames.map(async (fileName) => this.getTask(fileName))
     );
   }
 
@@ -92,12 +93,12 @@ export class TasksRepository {
   public async getSpareFiles(list: string, languages: string[], count: number) {
     return _(await this.sheet.getRows())
       .filter(
-        item =>
+        (item) =>
           !item['Status'] &&
           item['List'] === list &&
           languages.includes(item['Language'] || 'None')
       )
-      .map(item => ({
+      .map((item) => ({
         name: item['File Name'],
         list: item['List'],
         serial: item['Serial'],
@@ -143,7 +144,7 @@ export class TasksRepository {
   public async saveToDatabase(tasks: IdentifyableTask[]) {
     await allotmentsRef.update(
       _.chain(tasks)
-        .flatMap(task =>
+        .flatMap((task) =>
           _(task)
             .omit(task, 'fileName')
             .map((value, key) => [`${task.fileName}/${key}`, value])
@@ -157,7 +158,7 @@ export class TasksRepository {
   private async saveToSpreadsheet(tasks: ReportingTask[]) {
     const rows = morphism(this.objectToRowSchema, tasks);
     await this.sheet.updateOrAppendRows(
-      <string>this.rowToObjectSchema.fileName,
+      this.rowToObjectSchema.fileName as string,
       rows
     );
   }
@@ -174,9 +175,10 @@ export class TasksRepository {
       _.chain(tasks)
         .filter(
           ({ fileName, status }) =>
-            !fileName.match(/[\.\[\]$#]/) && status === AllotmentStatus.Done
+            // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+            !fileName.match(/[.[\]$#]/) && status === AllotmentStatus.Done
         )
-        .map(t => _.pick(t, ['fileName', 'status', 'timestampDone']))
+        .map((t) => _.pick(t, ['fileName', 'status', 'timestampDone']))
         .value()
     );
   }

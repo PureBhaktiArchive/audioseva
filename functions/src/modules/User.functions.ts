@@ -52,7 +52,7 @@ export const importUserRegistrationData = functions.https.onCall(
 
     const registrationRows = await sheet.getRows();
 
-    const readyForDatabaseUpdate = registrationRows.map((row: any) => {
+    const readyForDatabaseUpdate = registrationRows.map((row) => {
       return {
         notes: row[RegistrationColumns.Details],
         status: row[RegistrationColumns.Status],
@@ -67,7 +67,7 @@ export const importUserRegistrationData = functions.https.onCall(
         isAvailableOnWhatsApp: row[RegistrationColumns.WhatsApp],
         languages: row[RegistrationColumns.Languages]
           .split(',')
-          .reduce((result: any, language: string) => {
+          .reduce((result, language: string) => {
             result[language.trim()] = true;
             return result;
           }, {}),
@@ -86,7 +86,7 @@ export const importUserRegistrationData = functions.https.onCall(
     });
 
     await Promise.all(
-      readyForDatabaseUpdate.map(async (spreadsheetRecord: any) => {
+      readyForDatabaseUpdate.map(async (spreadsheetRecord) => {
         const usersRef = admin.database().ref('/users');
         const snapshot = await usersRef
           .orderByChild('emailAddress')
@@ -110,7 +110,7 @@ export const importUserRegistrationData = functions.https.onCall(
  */
 export const restructureRegistrationData = functions.database
   .ref('/webforms/registration/{registration_id}')
-  .onCreate(async (snapshot, context) => {
+  .onCreate(async (snapshot) => {
     const webform = snapshot.val();
 
     const oldUser = await admin
@@ -136,7 +136,7 @@ export const restructureRegistrationData = functions.database
     };
 
     // if user email doesn't exists prepare the newUser Object
-    const newUser: any = {
+    const newUser = {
       timestamp: webform.completed,
       emailAddress: webform.email_address,
       phoneNumber: webform.contact_number,
@@ -147,7 +147,7 @@ export const restructureRegistrationData = functions.database
       }, {}),
       location: webform.country,
       name: webform.your_name,
-      services: (<any>Object).values(webform.seva).join(', '),
+      services: Object.values(webform.seva).join(', '),
       experience: webform.experience,
       influencer: webform.where_did_u_hear_about_this_seva,
       recommendedBy: webform.recommended_by,
@@ -159,10 +159,7 @@ export const restructureRegistrationData = functions.database
       }, {}),
     };
 
-    admin
-      .database()
-      .ref(`/users/`)
-      .push(newUser);
+    admin.database().ref(`/users/`).push(newUser);
 
     return true;
   });
@@ -181,20 +178,18 @@ export const updateUserClaims = functions.database
     }
 
     console.info(`Setting claims for ${user.email}:`, change.after.val());
-    await admin.auth().setCustomUserClaims(user.uid, { roles: change.after.val() });
+    await admin
+      .auth()
+      .setCustomUserClaims(user.uid, { roles: change.after.val() });
   });
 
 export const addNewUserToDatabase = functions.auth
   .user()
-  .onCreate(async event => {
+  .onCreate(async (event) => {
     console.info(`User ${event.displayName} (${event.email}) is created.`);
-    await admin
-      .database()
-      .ref(`/users`)
-      .child(event.uid)
-      .set({
-        emailAddress: event.email,
-      });
+    await admin.database().ref(`/users`).child(event.uid).set({
+      emailAddress: event.email,
+    });
   });
 
 export const getAssignees = functions.https.onCall(
@@ -209,8 +204,8 @@ export const getAssignees = functions.https.onCall(
     const rows = await registrationsSheet.getRows();
 
     return rows
-      .filter(item => item[phase || Roles.CR] === Decision.Yes)
-      .map(item => ({
+      .filter((item) => item[phase || Roles.CR] === Decision.Yes)
+      .map((item) => ({
         emailAddress: item['Email Address']?.trim(),
         name: item['Name'],
         location: item['Country'],
