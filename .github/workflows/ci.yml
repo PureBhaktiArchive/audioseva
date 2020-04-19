@@ -25,7 +25,6 @@ jobs:
     steps:
       - run: |
           echo ${{ env.MODE }}
-          echo ${{ $MODE }}
           echo ${{ MODE }}
           echo ${{ ${{$MODE+'BOL'}} }}
           echo ${{ $MODE+'BOL' }}
