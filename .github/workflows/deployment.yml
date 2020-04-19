@@ -29,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v1
         with:
-          node-version: 8
+          node-version: 10
 
       - name: Install dependencies
         run: |
@@ -37,28 +37,20 @@ jobs:
           npm ci --prefix functions
           npm install -g firebase-bolt firebase-tools
 
-      - name: Configure Firebase for staging
-        if: github.event.deployment.environment == 'staging'
-        run: |
-          firebase use $FIREBASE_PROJECT
-          firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN
-        env:
-          FIREBASE_PROJECT: ${{ secrets.STAGING_FIREBASE_PROJECT }}
-          PROJECT_DOMAIN: ${{ secrets.STAGING_PROJECT_DOMAIN }}
-
-      - name: Configure Firebase for production
-        if: github.event.deployment.environment == 'production'
-        run: |
-          firebase use $FIREBASE_PROJECT
-          firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN
-        env:
-          FIREBASE_PROJECT: ${{ secrets.PRODUCTION_FIREBASE_PROJECT }}
-          PROJECT_DOMAIN: ${{ secrets.PRODUCTION_PROJECT_DOMAIN }}
-
       - name: Deploy to ${{ github.event.deployment.environment }}
-        run: firebase deploy --force --token "$FIREBASE_TOKEN"
+        run: |
+          FIREBASE_PROJECT=${DEPLOYMENT_ENVIRONMENT}_FIREBASE_PROJECT
+          PROJECT_DOMAIN=${DEPLOYMENT_ENVIRONMENT}_PROJECT_DOMAIN
+          firebase use ${!FIREBASE_PROJECT} --token "$FIREBASE_TOKEN"
+          firebase target:apply storage uploads te.uploads.${!PROJECT_DOMAIN} --token "$FIREBASE_TOKEN"
+          firebase deploy --force --token "$FIREBASE_TOKEN"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          DEPLOYMENT_ENVIRONMENT: ${{ github.event.deployment.environment }}
+          STAGING_FIREBASE_PROJECT: ${{ secrets.STAGING_FIREBASE_PROJECT }}
+          STAGING_PROJECT_DOMAIN: ${{ secrets.STAGING_PROJECT_DOMAIN }}
+          PRODUCTION_FIREBASE_PROJECT: ${{ secrets.PRODUCTION_FIREBASE_PROJECT }}
+          PRODUCTION_PROJECT_DOMAIN: ${{ secrets.PRODUCTION_PROJECT_DOMAIN }}
 
       - name: Report deployment success
         if: success()
