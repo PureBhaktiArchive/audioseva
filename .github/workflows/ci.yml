@@ -33,15 +33,15 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
-          key: node-${{ runner.os }}-${{ matrix.node }}-${{ matrix.project }}-${{ hashFiles(format('{0}/package-lock.json', matrix.project)) }}
+          key: node-${{ matrix.node }}-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles(format('{0}/package-lock.json', matrix.project)) }}
           restore-keys: |
-            node-${{ runner.os }}-${{ matrix.node }}-
+            node-${{ matrix.node }}-${{ runner.os }}-
 
-      - name: Cache built ${{ matrix.project }}
+      - name: Cache dist
         uses: actions/cache@v1
         with:
           path: ${{ matrix.project }}/dist
-          key: built-frontend-${{ github.sha }}
+          key: dist-${{ matrix.project }}-${{ github.sha }}
 
       - run: npm ci
         working-directory: ${{ matrix.project }}

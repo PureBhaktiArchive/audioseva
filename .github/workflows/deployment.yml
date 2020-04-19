@@ -38,23 +38,23 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
-          key: ${{ runner.os }}-npm-tools
-
-      - name: Restore built frontend
-        uses: actions/cache@v1
-        with:
-          path: frontend/dist
-          key: built-frontend-${{ github.sha }}
-
-      - name: Restore built functions
-        uses: actions/cache@v1
-        with:
-          path: functions/dist
-          key: built-functions-${{ github.sha }}
+          key: ${{ runner.os }}-node
 
       - name: Install tools
         run: |
           npm install -g firebase-bolt firebase-tools
+
+      - name: Restore dist for frontend
+        uses: actions/cache@v1
+        with:
+          path: frontend/dist
+          key: dist-frontend-${{ github.sha }}
+
+      - name: Restore dist for functions
+        uses: actions/cache@v1
+        with:
+          path: functions/dist
+          key: dist-functions-${{ github.sha }}
 
       - name: Save staging service account
         if: github.event.deployment.environment == 'staging'
