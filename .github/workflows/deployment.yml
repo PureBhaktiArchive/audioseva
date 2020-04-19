@@ -32,7 +32,7 @@ jobs:
 
       - uses: actions/setup-node@v1
         with:
-          node-version: 10
+          node-version: 12
 
       - name: Install dependencies
         run: |
@@ -42,13 +42,13 @@ jobs:
 
       - name: Save staging service account
         if: github.event.deployment.environment == 'staging'
-        run: echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
+        run: echo $FIREBASE_SERVICE_ACCOUNT > $GOOGLE_APPLICATION_CREDENTIALS
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Save production service account
         if: github.event.deployment.environment == 'production'
-        run: echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
+        run: echo $FIREBASE_SERVICE_ACCOUNT > $GOOGLE_APPLICATION_CREDENTIALS
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.PRODUCTION_FIREBASE_SERVICE_ACCOUNT }}
 
