@@ -37,12 +37,6 @@ jobs:
           restore-keys: |
             node-${{ matrix.node }}-${{ runner.os }}-
 
-      - name: Cache dist
-        uses: actions/cache@v1
-        with:
-          path: ${{ matrix.project }}/dist
-          key: dist-${{ matrix.project }}-${{ github.sha }}
-
       - run: npm ci
         working-directory: ${{ matrix.project }}
       - run: npm run lint --if-present
