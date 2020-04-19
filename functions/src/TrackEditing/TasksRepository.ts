@@ -42,7 +42,7 @@ export class TasksRepository {
     createSchema<RestorableTask, AllotmentRow>({
       id: 'Task ID',
       status: ({ Status: status }) =>
-        <AllotmentStatus>status?.trim() || AllotmentStatus.Spare,
+        status?.trim() as AllotmentStatus || AllotmentStatus.Spare,
       assignee: ({ Devotee: name, Email: emailAddress }) => ({
         name: name?.trim() || null,
         emailAddress: emailAddress?.trim() || null,
@@ -65,17 +65,17 @@ export class TasksRepository {
           task.status === undefined
             ? undefined
             : task.status === AllotmentStatus.Spare
-            ? null
-            : task.status,
+              ? null
+              : task.status,
         'Date Given': task.timestampGiven
           ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(task.timestampGiven)
-            )
+            DateTime.fromMillis(task.timestampGiven)
+          )
           : null,
         'Date Done': task.timestampDone
           ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(task.timestampDone)
-            )
+            DateTime.fromMillis(task.timestampDone)
+          )
           : null,
         Devotee: task.assignee?.name || null,
         Email: task.assignee?.emailAddress || null,
@@ -84,8 +84,8 @@ export class TasksRepository {
           : null,
         'Upload Date': lastVersionKey
           ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
-            )
+            DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
+          )
           : null,
         'Latest Resolution': lastResolvedVersion
           ? lastResolvedVersion.resolution.isApproved
@@ -94,8 +94,8 @@ export class TasksRepository {
           : null,
         'Resolution Date': lastResolvedVersion
           ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(lastResolvedVersion.resolution.timestamp)
-            )
+            DateTime.fromMillis(lastResolvedVersion.resolution.timestamp)
+          )
           : null,
         'Checked By': lastResolvedVersion
           ? lastResolvedVersion.resolution.author?.name || null
@@ -111,7 +111,7 @@ export class TasksRepository {
   public async getTask(taskId: string) {
     const snapshot = await this.getTaskRef(taskId).once('value');
     return snapshot.exists()
-      ? <TrackEditingTask>{ id: taskId, ...snapshot.val() }
+      ? { id: taskId, ...snapshot.val() } as TrackEditingTask
       : null;
   }
 
@@ -233,7 +233,7 @@ export class TasksRepository {
     );
 
     const tasksFromDatabase = _.chain(snapshot.val())
-      .mapValues((source, id) => <TrackEditingTask>{ id, ...source })
+      .mapValues((source, id) => ({ id, ...source } as TrackEditingTask))
       .value();
 
     /// Adding missing tasks from the database to the spreadsheet
@@ -261,7 +261,7 @@ export class TasksRepository {
         if (
           allotment.status === task.status &&
           (allotment.assignee?.emailAddress || null) ===
-            (task.assignee?.emailAddress || null)
+          (task.assignee?.emailAddress || null)
         )
           return false;
 

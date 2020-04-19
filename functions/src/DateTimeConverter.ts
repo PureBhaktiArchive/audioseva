@@ -33,7 +33,7 @@ export class DateTimeConverter {
     // then calculating the serial date as if the timestamp was specified in UTC
     return (
       datetime.setZone('utc', { keepLocalTime: true }).toSeconds() /
-        secondsInDay +
+      secondsInDay +
       daysBetweenEpochs
     );
   }
@@ -45,7 +45,7 @@ export class DateTimeConverter {
    */
   public static durationFromHuman(timing: string): Duration {
     const patterns = [
-      /^(?:(0?[0-3])\:)?([0-5]?\d)\:([0-5]?\d)$/,
+      /^(?:(0?[0-3]):)?([0-5]?\d):([0-5]?\d)$/,
       /^(?:(0?[0-3])\.)?([0-5]?\d)\.([0-5]?\d)$/,
     ];
     for (const pattern of patterns) {

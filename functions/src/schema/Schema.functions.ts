@@ -22,11 +22,7 @@ export const applyMigrations = functions.pubsub
       .value();
 
     for (const file of migrations) {
-      const migrationName = file
-        .split('/')
-        .pop()
-        .split('.')
-        .shift();
+      const migrationName = file.split('/').pop().split('.').shift();
 
       if (completedMigrations.includes(migrationName)) {
         console.info(
@@ -39,7 +35,7 @@ export const applyMigrations = functions.pubsub
       console.info(`Applying ${migrationName}.`);
 
       for (const stepName in migration) {
-        if (!migration.hasOwnProperty(stepName)) continue;
+        if (!_.has(migration, stepName)) continue;
 
         const step = migration[stepName];
         if (!(step instanceof Function)) continue;

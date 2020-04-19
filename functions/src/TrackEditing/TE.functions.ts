@@ -101,8 +101,7 @@ export const cancelAllotment = functions.https.onCall(
 export const processUpload = functions.storage
   .bucket(StorageManager.getFullBucketName('te.uploads'))
   .object()
-  .onFinalize(async (object, context) => {
-    // tslint:disable-next-line: triple-equals
+  .onFinalize(async (object) => {
     if (object.contentDisposition != null) {
       console.info(
         `Unsetting content disposition. Current value: `,
@@ -182,9 +181,9 @@ export const processResolution = functions.database
 
     console.info(
       `Processing resolution of ${taskId} (version ${versionKey}): ${
-        resolution.val().isApproved
-          ? 'approved'
-          : `disapproved with feedback “${resolution.val().feedback}”`
+      resolution.val().isApproved
+        ? 'approved'
+        : `disapproved with feedback “${resolution.val().feedback}”`
       }.`
     );
 

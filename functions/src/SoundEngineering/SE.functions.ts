@@ -5,7 +5,6 @@
 import functions = require('firebase-functions');
 import { StorageManager } from '../StorageManager';
 import admin = require('firebase-admin');
-import path = require('path');
 
 export const arrangeUploadedFile = functions.storage
   .bucket(StorageManager.getFullBucketName('se.uploads'))

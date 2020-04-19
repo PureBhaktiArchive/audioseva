@@ -10,12 +10,7 @@ import { AllotmentStatus } from '../Allotment';
 import { formatAudioAnnotations } from '../AudioAnnotation';
 import { abortCall } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
-import {
-  listeningPageLink,
-  sqrAllotmentLink,
-  sqrSelfTrackingLink,
-  sqrSubmissionLink,
-} from '../Frontend';
+import { listeningPageLink, sqrAllotmentLink, sqrSelfTrackingLink, sqrSubmissionLink } from '../Frontend';
 import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
@@ -130,7 +125,7 @@ export class SQRWorkflow {
     fileName: string,
     token: string,
     submission: SQRSubmission,
-    updated: boolean = false
+    updated = false
   ) {
     console.info(`Processing ${fileName}/${token} submission:`, submission);
 
