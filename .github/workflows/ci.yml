@@ -38,6 +38,12 @@ jobs:
             ${{ runner.os }}-npm-${{ matrix.node }}-${{ matrix.project }}-
             ${{ runner.os }}-npm-${{ matrix.node }}-
 
+      - name: Cache built ${{ matrix.project }}
+        uses: actions/cache@v1
+        with:
+          path: ${{ matrix.project }}/dist
+          key: built-frontend-${{ github.sha }}
+
       - run: npm ci
         working-directory: ${{ matrix.project }}
       - run: npm run lint --if-present

@@ -32,12 +32,28 @@ jobs:
 
       - uses: actions/setup-node@v1
         with:
-          node-version: 10.x
+          node-version: 8
 
-      - name: Install dependencies
+      - name: Cache NPM modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
+          key: ${{ runner.os }}-npm-tools
+
+      - name: Restore built frontend
+        uses: actions/cache@v1
+        with:
+          path: frontend/dist
+          key: built-frontend-${{ github.sha }}
+
+      - name: Restore built functions
+        uses: actions/cache@v1
+        with:
+          path: functions/dist
+          key: built-functions-${{ github.sha }}
+
+      - name: Install tools
         run: |
-          npm ci --prefix frontend
-          npm ci --prefix functions
           npm install -g firebase-bolt firebase-tools
 
       - name: Save staging service account
