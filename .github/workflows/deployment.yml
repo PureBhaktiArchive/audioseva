@@ -41,16 +41,20 @@ jobs:
         run: |
           FIREBASE_PROJECT=${DEPLOYMENT_ENVIRONMENT^^}_FIREBASE_PROJECT
           PROJECT_DOMAIN=${DEPLOYMENT_ENVIRONMENT^^}_PROJECT_DOMAIN
-          firebase use ${!FIREBASE_PROJECT} --token "$FIREBASE_TOKEN"
-          firebase target:apply storage uploads te.uploads.${!PROJECT_DOMAIN} --token "$FIREBASE_TOKEN"
-          firebase deploy --force --token "$FIREBASE_TOKEN"
+          SERVICE_ACCOUNT=${DEPLOYMENT_ENVIRONMENT^^}_SERVICE_ACCOUNT
+          echo ${!SERVICE_ACCOUNT} > service-account.json
+          firebase use ${!FIREBASE_PROJECT}
+          firebase target:apply storage uploads te.uploads.${!PROJECT_DOMAIN}
+          firebase deploy --force || firebase deploy --only functions --force
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
           DEPLOYMENT_ENVIRONMENT: ${{ github.event.deployment.environment }}
           STAGING_FIREBASE_PROJECT: ${{ secrets.STAGING_FIREBASE_PROJECT }}
           STAGING_PROJECT_DOMAIN: ${{ secrets.STAGING_PROJECT_DOMAIN }}
+          STAGING_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
           PRODUCTION_FIREBASE_PROJECT: ${{ secrets.PRODUCTION_FIREBASE_PROJECT }}
           PRODUCTION_PROJECT_DOMAIN: ${{ secrets.PRODUCTION_PROJECT_DOMAIN }}
+          PRODUCTION_SERVICE_ACCOUNT: ${{ secrets.PRODUCTION_FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Report deployment success
         if: success()
