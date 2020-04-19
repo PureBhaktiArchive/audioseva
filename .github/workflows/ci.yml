@@ -24,13 +24,13 @@ jobs:
             node: 10
     steps:
       - run: |
-          echo ${{ env.MODE }}
-          echo ${{ ${{env.MODE+'BOL'}} }}
-          echo ${{ ${{env.MODE}}BOL }}
-          echo ${{ env['HARIBOL'] }}
+          TEST=${MODE}_FIREBASE_PROJECT
+          echo ${!TEST}
+          echo $FIREBASE_PROJECT_VARIABLE
         env:
           MODE: PRODUCTION
-          HARIBOL: Haribol
+          FIREBASE_PROJECT_VARIABLE: ${MODE}_FIREBASE_PROJECT
+          PRODUCTION_FIREBASE_PROJECT: Haribol
 
       - uses: actions/checkout@master
 
