@@ -13,7 +13,7 @@
   },
   "main": "lib/index.js",
   "engines": {
-    "node": "10"
+    "node": "8"
   },
   "dependencies": {
     "email-templates": "7.0.4",
