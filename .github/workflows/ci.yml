@@ -33,10 +33,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
-          key: ${{ runner.os }}-npm-${{ matrix.node }}-${{ matrix.project }}-${{ hashFiles(matrix.project + '/package-lock.json') }}
+          key: node-${{ runner.os }}-${{ matrix.node }}-${{ matrix.project }}-${{ hashFiles(format('{0}/package-lock.json', matrix.project)) }}
           restore-keys: |
-            ${{ runner.os }}-npm-${{ matrix.node }}-${{ matrix.project }}-
-            ${{ runner.os }}-npm-${{ matrix.node }}-
+            node-${{ runner.os }}-${{ matrix.node }}-
 
       - name: Cache built ${{ matrix.project }}
         uses: actions/cache@v1
