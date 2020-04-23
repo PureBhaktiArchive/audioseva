@@ -35,7 +35,7 @@ jobs:
         run: |
           npm ci --prefix frontend
           npm ci --prefix functions
-          npm install -g firebase-bolt firebase-tools@7.16.2
+          npm install -g firebase-bolt firebase-tools
 
       - name: Deploy to ${{ github.event.deployment.environment }}
         run: |
