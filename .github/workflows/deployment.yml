@@ -39,7 +39,7 @@ jobs:
 
       - name: Build
         run: |
-          npm run build --prefix frontend --skip-plugins eslint
+          npm run build --prefix frontend
           npm run build --prefix functions
 
       - name: Deploy to ${{ github.event.deployment.environment }}
