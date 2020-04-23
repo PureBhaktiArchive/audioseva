@@ -1,6 +1,7 @@
 <template>
   <div class="height-100">
     <h2>{{ $title }}</h2>
+    <full-screen-file-drop @drop="onDrop"></full-screen-file-drop>
     <vue-dropzone
       v-if="!files.size"
       class="height-100"
@@ -66,6 +67,7 @@ import * as Spark from "spark-md5";
 import _ from "lodash";
 import VueDropzone from "vue2-dropzone";
 import "vue2-dropzone/dist/vue2Dropzone.min.css";
+import FullScreenFileDrop from "vue-full-screen-file-drop";
 import moment from "moment";
 import Promise from "bluebird";
 import firebase from "firebase/app";
@@ -103,6 +105,7 @@ const sortOrder = {
   components: {
     VueDropzone,
     UploadFileList,
+    FullScreenFileDrop,
   },
   computed: {
     ...mapState("user", ["currentUser"]),
@@ -156,6 +159,15 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     }
     this.files.set(file, newFile);
     this.$forceUpdate();
+  }
+
+  onDrop(formData: any, fileList: FileList) {
+    this.filesAdded(
+      [...fileList].map((file) => {
+        _.set(file, "upload.uuid", _.uniqueId());
+        return file;
+      })
+    );
   }
 
   cancelFile({ uploadTask, retry, state }: IFileStatus = {}, file: File) {
