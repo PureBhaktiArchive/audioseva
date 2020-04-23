@@ -131,7 +131,8 @@ export const processUpload = functions.storage
     }
 
     if (
-      !user.customClaims?.roles?.TE?.coordinator &&
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      !(user.customClaims as any)?.roles?.TE?.coordinator &&
       task.assignee.emailAddress.trim() !== user.email
     ) {
       console.error(
@@ -267,11 +268,11 @@ export const download = functions.https.onRequest(
         version.uploadPath
           ? [StorageManager.getBucket('te.uploads').file(version.uploadPath)]
           : versionId === _.findLastKey(task.versions)
-          ? [
+            ? [
               StorageManager.getFile('edited', `${task.id}.mp3`),
               StorageManager.getFile('edited', `${task.id}.flac`),
             ]
-          : []
+            : []
       );
 
       if (!file) {
