@@ -51,7 +51,8 @@ export const processAllotment = functions.https.onCall(
         id,
         assignee,
         status: AllotmentStatus.Given,
-        timestampGiven: admin.database.ServerValue.TIMESTAMP,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        timestampGiven: admin.database.ServerValue.TIMESTAMP as any,
         versions: null, // Removing old versions
       }))
     );
@@ -201,7 +202,8 @@ export const processResolution = functions.database
       await repository.save({
         id: taskId,
         status: AllotmentStatus.Done,
-        timestampDone: admin.database.ServerValue.TIMESTAMP,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        timestampDone: admin.database.ServerValue.TIMESTAMP as any,
       });
     } else {
       await repository.saveToSpreadsheet([task]);
@@ -279,7 +281,7 @@ export const download = functions.https.onRequest(
         key => key <= versionId
       ).length;
 
-      const url = await file.getSignedUrl({
+      const [url] = await file.getSignedUrl({
         action: 'read',
         expires: DateTime.local()
           .plus({ days: 3 })
