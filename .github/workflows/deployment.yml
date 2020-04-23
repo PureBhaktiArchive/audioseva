@@ -10,9 +10,6 @@ jobs:
     name: Deployment to Firebase
     runs-on: ubuntu-latest
 
-    env:
-      GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
-
     steps:
       - name: Turnstyle
         uses: softprops/turnstyle@master
@@ -32,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v1
         with:
-          node-version: 10.x
+          node-version: 10
 
       - name: Install dependencies
         run: |
@@ -40,38 +37,29 @@ jobs:
           npm ci --prefix functions
           npm install -g firebase-bolt firebase-tools
 
-      - name: Save staging service account
-        if: github.event.deployment.environment == 'staging'
-        run: echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
-
-      - name: Save production service account
-        if: github.event.deployment.environment == 'production'
-        run: echo $FIREBASE_SERVICE_ACCOUNT > service-account.json
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.PRODUCTION_FIREBASE_SERVICE_ACCOUNT }}
-
-      - name: Configure Firebase for staging
-        if: github.event.deployment.environment == 'staging'
+      - name: Build
         run: |
-          firebase use $FIREBASE_PROJECT
-          firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN
-        env:
-          FIREBASE_PROJECT: ${{ secrets.STAGING_FIREBASE_PROJECT }}
-          PROJECT_DOMAIN: ${{ secrets.STAGING_PROJECT_DOMAIN }}
-
-      - name: Configure Firebase for production
-        if: github.event.deployment.environment == 'production'
-        run: |
-          firebase use $FIREBASE_PROJECT
-          firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN
-        env:
-          FIREBASE_PROJECT: ${{ secrets.PRODUCTION_FIREBASE_PROJECT }}
-          PROJECT_DOMAIN: ${{ secrets.PRODUCTION_PROJECT_DOMAIN }}
+          npm run build --prefix frontend
+          npm run build --prefix functions
 
       - name: Deploy to ${{ github.event.deployment.environment }}
-        run: firebase deploy --force
+        run: |
+          FIREBASE_PROJECT=${DEPLOYMENT_ENVIRONMENT^^}_FIREBASE_PROJECT
+          PROJECT_DOMAIN=${DEPLOYMENT_ENVIRONMENT^^}_PROJECT_DOMAIN
+          SERVICE_ACCOUNT=${DEPLOYMENT_ENVIRONMENT^^}_SERVICE_ACCOUNT
+          echo ${!SERVICE_ACCOUNT} > service-account.json
+          firebase use ${!FIREBASE_PROJECT}
+          firebase target:apply storage uploads te.uploads.${!PROJECT_DOMAIN}
+          firebase deploy --non-interactive --force
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
+          DEPLOYMENT_ENVIRONMENT: ${{ github.event.deployment.environment }}
+          STAGING_FIREBASE_PROJECT: ${{ secrets.STAGING_FIREBASE_PROJECT }}
+          STAGING_PROJECT_DOMAIN: ${{ secrets.STAGING_PROJECT_DOMAIN }}
+          STAGING_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
+          PRODUCTION_FIREBASE_PROJECT: ${{ secrets.PRODUCTION_FIREBASE_PROJECT }}
+          PRODUCTION_PROJECT_DOMAIN: ${{ secrets.PRODUCTION_PROJECT_DOMAIN }}
+          PRODUCTION_SERVICE_ACCOUNT: ${{ secrets.PRODUCTION_FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Report deployment success
         if: success()
