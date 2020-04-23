@@ -75,7 +75,7 @@
           :items="breadcrumbs"
           divider=">"
         ></v-breadcrumbs>
-        <router-view></router-view>
+        <router-view class="full-height"></router-view>
       </v-container>
     </v-content>
   </v-app>
@@ -179,5 +179,15 @@ export default class MainLayout extends Vue {
 
 >>> .v-content__wrap {
   display: flex;
+}
+
+.full-height {
+  height: calc(100% - 81px);
+}
+
+@media screen and (min-width: 968px) {
+  .full-height {
+    height: calc(100% - 88px);
+  }
 }
 </style>

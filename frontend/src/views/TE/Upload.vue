@@ -1,28 +1,28 @@
 <template>
-  <div>
+  <div class="height-100">
     <h2>{{ $title }}</h2>
-    <div>
-      <vue-dropzone
-        ref="myDropzone"
-        id="dropzone"
-        :options="dropzoneOptions"
-        @vdropzone-files-added="filesAdded"
-        :useCustomSlot="true"
-      >
-        <div>
-          <p>
-            Drop files here to upload or click here to pick the files from your
-            computer.
-          </p>
-        </div>
-      </vue-dropzone>
-    </div>
-    <div>
+    <vue-dropzone
+      v-if="!files.size"
+      class="height-100"
+      ref="myDropzone"
+      id="dropzone"
+      :options="dropzoneOptions"
+      @vdropzone-files-added="filesAdded"
+      :useCustomSlot="true"
+    >
+      <div>
+        <p>
+          Drop files here to upload or click here to pick the files from your
+          computer.
+        </p>
+      </div>
+    </vue-dropzone>
+    <div v-if="files.size">
       <div
         :style="{
           alignItems: 'center',
           justifyContent: 'space-between',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
         }"
         class="d-flex pa-2"
       >
@@ -34,7 +34,7 @@
         <div
           :style="{
             justifyContent: 'flex-end',
-            display: 'flex'
+            display: 'flex',
           }"
           class="pl-2"
         >
@@ -102,7 +102,7 @@ const sortOrder = {
   name: "Upload",
   components: {
     VueDropzone,
-    UploadFileList
+    UploadFileList,
   },
   computed: {
     ...mapState("user", ["currentUser"]),
@@ -279,7 +279,11 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   filesAdded(selectedFiles: File[] | FileList) {
     // when a file is selected by clicking the box "selectedFiles" is an object
     // when files are dropped selectedFiles is an array
-    setTimeout(() => this.$refs.myDropzone.removeAllFiles(), 100);
+    setTimeout(() => {
+      if (this.$refs.myDropzone) {
+        this.$refs.myDropzone.removeAllFiles();
+      }
+    }, 100);
     const timestamp = new Date().valueOf();
     let files = Array.isArray(selectedFiles)
       ? [...selectedFiles]
@@ -399,5 +403,8 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
 <style scoped>
 >>> .dropzone .fileWrapper {
   display: none;
+}
+.height-100 {
+  height: 100%;
 }
 </style>
