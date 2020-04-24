@@ -35,12 +35,16 @@
           }"
           class="pl-2"
         >
-          <v-btn v-if="completedCount" @click="clearCompletedFiles">
-            Clear completed
-          </v-btn>
-          <v-btn class="ml-2" v-if="totalUploadCount" @click="cancelAllFiles"
+          <v-btn v-if="totalUploadCount" @click="cancelAllFiles"
             >Cancel all</v-btn
           >
+          <v-btn
+            class="ml-2"
+            v-if="completedCount"
+            @click="clearCompletedFiles"
+          >
+            Clear completed
+          </v-btn>
         </div>
       </div>
       <v-divider v-if="files.size"></v-divider>
