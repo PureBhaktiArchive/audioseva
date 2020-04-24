@@ -27,11 +27,7 @@
         }"
         class="d-flex pa-2"
       >
-        <span v-if="totalUploadCount" class="pl-2">
-          Uploading
-          {{ `${totalUploadCount} item${totalUploadCount > 1 ? "s" : ""}` }} |
-          {{ getTotalUploadTime() }}
-        </span>
+        <div></div>
         <div
           :style="{
             justifyContent: 'flex-end',
@@ -312,16 +308,6 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
 
   emitFileError(file: File, message: string) {
     this.updateFileFields(file, { error: message });
-  }
-
-  getTotalUploadTime() {
-    let totalUploadTime = 0;
-    this.files.forEach(({ uploadRemainingTime: uploadTime = 0 }) => {
-      totalUploadTime += uploadTime === Infinity ? 0 : uploadTime;
-    });
-    return totalUploadTime < 60
-      ? "Less than a minute left"
-      : moment.duration(totalUploadTime, "seconds").humanize();
   }
 
   retryFile(file: File) {
