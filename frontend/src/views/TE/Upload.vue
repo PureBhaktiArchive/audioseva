@@ -35,12 +35,12 @@
           }"
           class="pl-2"
         >
-          <v-btn v-if="totalUploadCount" @click="cancelAllFiles"
+          <v-btn :disabled="!totalUploadCount" @click="cancelAllFiles"
             >Cancel all</v-btn
           >
           <v-btn
             class="ml-2"
-            v-if="completedCount"
+            :disabled="!completedCount"
             @click="clearCompletedFiles"
           >
             Clear completed
