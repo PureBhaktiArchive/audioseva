@@ -2,13 +2,7 @@
 
 import { countriesOptions } from 'public/countries';
 
-const services = {
-  CR: 'Content Reporting',
-  TE: 'Track Editing',
-  SE: 'Sound Engineering',
-  FC: 'Backend help',
-};
-
+const services = ['CR', 'TE', 'SE', 'BH'];
 const languages = ['English', 'Hindi', 'Bengali'];
 
 $w.onReady(function () {
@@ -33,8 +27,8 @@ $w.onReady(function () {
 
   dataset.onBeforeSave(() => {
     dataset.setFieldValues({
-      seva: Object.keys(services).reduce((result, service) => {
-        if ($w(`#${service}`).checked) result.push(services[service]);
+      seva: services.reduce((result, service) => {
+        if ($w(`#${service}`).checked) result.push($w(`#${service}`).value);
         return result;
       }, []),
       languages: languages.reduce((result, language) => {
@@ -51,7 +45,7 @@ $w.onReady(function () {
   });
 
   dataset.onAfterSave(() => {
-    Object.keys(services).forEach((service) => {
+    services.forEach((service) => {
       $w(`#${service}`).cheched = false;
     });
 
