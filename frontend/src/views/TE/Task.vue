@@ -80,7 +80,7 @@
                     :versionId="key"
                     :taskId="$route.params.taskId"
                   >
-                    {{ task[".key"] }}
+                    {{ task['.key'] }}
                   </version-download-link>
                 </v-col>
                 <v-col class="text-right" sm="3" v-if="version.timestamp">{{
@@ -132,6 +132,7 @@
             <v-timeline-item
               v-else-if="
                 index === versionsCount - 1 &&
+                task.status === 'WIP' &&
                 $can('resolve', $subjects.TE.task)
               "
               :key="`resolution-${key}`"
@@ -237,16 +238,16 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Watch } from "vue-property-decorator";
-import { mapState } from "vuex";
-import firebase from "firebase/app";
-import "firebase/database";
-import "firebase/functions";
-import _ from "lodash";
-import TaskDefinition from "@/components/TE/TaskDefinition.vue";
-import TaskMixin from "@/components/TE/TaskMixin";
-import FormatTime from "@/mixins/FormatTime";
-import VersionDownloadLink from "@/components/TE/VersionDownloadLink.vue";
+import { Component, Mixins, Watch } from 'vue-property-decorator';
+import { mapState } from 'vuex';
+import firebase from 'firebase/app';
+import 'firebase/database';
+import 'firebase/functions';
+import _ from 'lodash';
+import TaskDefinition from '@/components/TE/TaskDefinition.vue';
+import TaskMixin from '@/components/TE/TaskMixin';
+import FormatTime from '@/mixins/FormatTime';
+import VersionDownloadLink from '@/components/TE/VersionDownloadLink.vue';
 
 enum State {
   LOADING = 0,
@@ -255,10 +256,10 @@ enum State {
 }
 
 @Component({
-  name: "Task",
+  name: 'Task',
   components: { TaskDefinition, VersionDownloadLink },
   computed: {
-    ...mapState("user", ["currentUser"]),
+    ...mapState('user', ['currentUser']),
   },
   title: ({ $route }) => `Track Editing Task ${$route.params.taskId}`,
 })
@@ -271,7 +272,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   state: State = State.LOADING;
   form = {
     isApproved: false,
-    feedback: "",
+    feedback: '',
   };
   rules: any[] = [];
   approveConfirmation = false;
@@ -286,7 +287,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   async getTask() {
     try {
       await this.$rtdbBind(
-        "task",
+        'task',
         firebase.database().ref(`/TE/tasks/${this.$route.params.taskId}`)
       );
       this.state = State.LOADED;
@@ -297,8 +298,8 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
 
   async onCancelClick() {
     try {
-      await firebase.functions().httpsCallable("TE-cancelAllotment")({
-        taskId: this.task[".key"],
+      await firebase.functions().httpsCallable('TE-cancelAllotment')({
+        taskId: this.task['.key'],
       });
       this.task = _.merge({}, this.task, this.cancelData());
     } catch (e) {
@@ -307,7 +308,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
     }
   }
 
-  @Watch("form.feedback")
+  @Watch('form.feedback')
   resetRules() {
     this.rules = [];
   }
@@ -343,18 +344,18 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
   }
 
   getAuthor(version: any) {
-    return _.get(version, "resolution.author.name", "");
+    return _.get(version, 'resolution.author.name', '');
   }
 
   get fieldRules() {
-    return this.form.isApproved ? [] : [(v: string) => !!v || "Required"];
+    return this.form.isApproved ? [] : [(v: string) => !!v || 'Required'];
   }
 
   get versionsCount() {
     return this.getVersionsCount(this.task);
   }
 
-  @Watch("form.feedback")
+  @Watch('form.feedback')
   handleFeedback(newValue: string) {
     if (!newValue) {
       (this.$refs as any).form[0].resetValidation();
