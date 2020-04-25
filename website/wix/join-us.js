@@ -6,7 +6,7 @@ const services = {
   CR: 'Content Reporting',
   TE: 'Track Editing',
   SE: 'Sound Engineering',
-  FC: 'Fidelity Checking',
+  FC: 'Backend help',
 };
 
 const languages = ['English', 'Hindi', 'Bengali'];
