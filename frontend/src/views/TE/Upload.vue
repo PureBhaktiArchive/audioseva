@@ -27,13 +27,33 @@
         }"
         class="d-flex pa-2"
       >
-        <div></div>
+        <div class="pb-2">
+          <v-btn class="mr-2" @click="handleButtonUpload('selectFile')">
+            Select file
+            <input
+              type="file"
+              class="d-none"
+              ref="selectFile"
+              @change="onDrop(null, $event.target.files)"
+            />
+          </v-btn>
+          <v-btn @click="handleButtonUpload('selectDirectory')">
+            Select directory
+            <input
+              type="file"
+              webkitdirectory
+              class="d-none"
+              ref="selectDirectory"
+              @change="onDrop(null, $event.target.files)"
+            />
+          </v-btn>
+        </div>
         <div
           :style="{
             justifyContent: 'flex-end',
             display: 'flex',
           }"
-          class="pl-2"
+          class="pb-2"
         >
           <v-btn :disabled="!totalUploadCount" @click="cancelAllFiles"
             >Cancel all</v-btn
@@ -124,6 +144,8 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
 
   $refs!: {
     myDropzone: any;
+    selectFile: any;
+    selectDirectory: any;
   };
 
   dropzoneOptions = {
@@ -145,6 +167,10 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   deleteFile(file: File) {
     this.files.delete(file);
     this.$forceUpdate();
+  }
+
+  handleButtonUpload(buttonRef: "selectFile" | "selectDirectory") {
+    this.$refs[buttonRef] && this.$refs[buttonRef].click();
   }
 
   updateFileStatus(file: File, path: any, value: any) {
