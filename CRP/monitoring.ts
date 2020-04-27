@@ -175,3 +175,22 @@ export function trackChanges(e: OnEditEventObject) {
     });
   }
 }
+
+export function onEdit(e) {
+  if (!e)
+    return;
+  const ss = e.range.getSheet();
+
+  // do not work in system sheets
+  if (ss.getName() == "Guidelines" || ss.getName() == "Progress")
+    return;
+
+  if (e.range.getRow() == 1)
+    return;
+
+  // The single cell was empty, don't highlight.
+  if (e.range.getNumRows() == 1 && e.range.getNumColumns() == 1 && e.oldValue == undefined)
+    return;
+
+  e.range.setBackground('#f6f6f6');
+}
