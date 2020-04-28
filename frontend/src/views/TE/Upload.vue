@@ -252,6 +252,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
 
   async validateFile(file: File) {
     const taskId = getTaskId(file.name);
+    const baseName = file.name.split(".").slice(0, -1).join(".");
 
     if (!taskId) throw new Error("The file name is not a correct task ID");
 
@@ -283,7 +284,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     }
     if (task.status === "Done") {
       throw new Error(
-        `The task ${taskId} is marked as Done. Uploads are not allowed.`
+        `The task ${baseName} is marked as Done. Uploads are not allowed.`
       );
     }
     if (!task.versions) return;
