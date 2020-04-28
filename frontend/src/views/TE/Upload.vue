@@ -197,7 +197,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   cancelFile({ uploadTask, retry, state }: IFileStatus = {}, file: File) {
-    this.updateFileFields(file, { canceled: true });
+    this.updateFileFields(file, { canceled: true, retry: true });
     if (retry || state === "queued") {
       this.emitFileError(file, "Canceled upload");
       return;
@@ -341,7 +341,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   }
 
   retryFile(file: File) {
-    this.updateFileFields(file, { retry: false, error: "" });
+    this.updateFileFields(file, { retry: false, error: "", canceled: false });
     this.handleFile(file, new Date().valueOf());
   }
 
