@@ -181,7 +181,11 @@ export const updateUserClaims = functions.database
     await admin
       .auth()
       .setCustomUserClaims(user.uid, { roles: change.after.val() });
-    await change.after.ref.parent.child("refreshTime").set(+new Date());
+
+    /// Triggering refresh on the client.
+    await change.after.ref.parent
+      .child('refreshTime')
+      .set(admin.database.ServerValue.TIMESTAMP);
   });
 
 export const addNewUserToDatabase = functions.auth
