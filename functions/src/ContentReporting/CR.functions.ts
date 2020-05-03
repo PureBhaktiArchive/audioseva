@@ -3,9 +3,9 @@
  */
 
 import { config, https } from 'firebase-functions';
+import { clusterize } from '../Clustering';
+import { DigitalRecordingRow } from '../DigitalRecordingRow';
 import { Spreadsheet } from '../Spreadsheet';
-import { clusterize } from './Clustering';
-import { DigitalRecordingRow } from './DigitalRecordingRow';
 
 export const clusterizeDigitalRecordings = https.onCall(async () => {
   const spreadsheet = await Spreadsheet.open<DigitalRecordingRow>(
