@@ -67,16 +67,23 @@ export class Spreadsheet<T extends object = object> {
    * @param lastColumnLetter Last column letter, optional
    * @param lastRowNumber Last row number, optional
    */
-  protected static toA1Notation(
+  public static toA1Notation(
     sheetName: string,
     firstColumnLetter?: string,
     firstRowNumber?: number,
     lastColumnLetter?: string,
     lastRowNumber?: number
   ) {
-    return `${sheetName}!${firstColumnLetter || ''}${firstRowNumber || ''}:${
-      lastColumnLetter || ''
-    }${lastRowNumber || ''}`;
+    return (
+      sheetName +
+      '!' +
+      (firstColumnLetter || '') +
+      (firstRowNumber || '') +
+      /// Second part can be absent altogether
+      (lastColumnLetter || lastRowNumber
+        ? ':' + (lastColumnLetter || '') + (lastRowNumber || '')
+        : '')
+    );
   }
 
   protected toA1Notation(
@@ -108,7 +115,7 @@ export class Spreadsheet<T extends object = object> {
    * @param rowNumber Row number on the sheet
    */
   protected rowToA1Notation(rowNumber: number) {
-    return this.toA1Notation(null, rowNumber, null, rowNumber);
+    return this.rowsToA1Notation(rowNumber, rowNumber);
   }
 
   protected getColumnLetter(columnName: string) {
