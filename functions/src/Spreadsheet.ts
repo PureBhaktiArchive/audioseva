@@ -234,7 +234,7 @@ export class Spreadsheet<T extends object = object> {
    */
   public async updateColumn(
     columnName: Extract<keyof T, string>,
-    values: unknown[]
+    values: (string | number | boolean)[]
   ) {
     Spreadsheet.getResponse(
       await this.api.spreadsheets.values.update({
