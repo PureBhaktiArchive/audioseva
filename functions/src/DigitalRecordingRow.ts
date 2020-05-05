@@ -5,7 +5,7 @@
 export interface DigitalRecordingRow {
   'File Name': string;
   Extension: string;
-  Size: number;
+  Size?: number;
   Directory: string;
   Source: string;
   'DIGI Code': string;
@@ -14,6 +14,5 @@ export interface DigitalRecordingRow {
   'Date (yyyymmdd)': string;
   'Structured?': boolean;
   Comments: string;
-  'Size Key': string;
   'Cluster Key': string;
 }

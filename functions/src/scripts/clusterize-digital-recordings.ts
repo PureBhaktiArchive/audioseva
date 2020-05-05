@@ -29,7 +29,7 @@ const clusterizeDigitalRecordings = async (spreadsheetId) => {
     a['File Name'].startsWith(b['File Name']) ||
     b['File Name'].startsWith(a['File Name']) ||
     (!!a['Date (yyyymmdd)'] && a['Date (yyyymmdd)'] === b['Date (yyyymmdd)']) ||
-    (!!a['Size Key'] && a['Size Key'] === b['Size Key']);
+    (!!a.Size && a.Size === b.Size);
 
   const set = new DisjointSet<number>();
 
