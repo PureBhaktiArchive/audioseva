@@ -3,6 +3,7 @@
  */
 
 export interface DigitalRecordingRow {
+  'Serial Number': number;
   'File Name': string;
   Extension: string;
   Size?: number;

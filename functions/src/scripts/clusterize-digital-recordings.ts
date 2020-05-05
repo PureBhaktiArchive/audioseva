@@ -31,21 +31,23 @@ const clusterizeDigitalRecordings = async (spreadsheetId) => {
     (!!a['Date (yyyymmdd)'] && a['Date (yyyymmdd)'] === b['Date (yyyymmdd)']) ||
     (!!a.Size && a.Size === b.Size);
 
-  const set = new DisjointSet<number>();
+  const set = new DisjointSet<DigitalRecordingRow, number>(
+    (r) => r['Serial Number']
+  );
 
   _.forEach(rows, (row, index) => {
-    // Adding the current row index as a new set.
-    set.makeSet(index);
+    // Adding the current row as a new set.
+    set.makeSet(row);
 
     // Connecting the current row to the other rows before this one.
     _(rows)
       .take(index)
-      .forEach((previousRow, previousIndex) => {
+      .forEach((previousRow) => {
         if (
-          !set.areConnected(index, previousIndex) &&
+          !set.areConnected(row, previousRow) &&
           equivalence(row, previousRow)
         )
-          set.union(previousIndex, index);
+          set.union(previousRow, row);
       });
   });
 
@@ -54,13 +56,10 @@ const clusterizeDigitalRecordings = async (spreadsheetId) => {
   );
 
   const clusterKeys = rows.map(
-    (item, i) =>
-      `CK${
-        // Adding 2 to match with the row number in the spreadsheet
-        (set.findSet(i) + 1 + spreadsheet.frozenRowCount)
-          .toString()
-          .padStart(Math.log10(rows.length) + 1, '0')
-      }`
+    (row) =>
+      set.setSize(row) > 1
+        ? `CK${set.findSet(row)['Serial Number'].toString().padStart(5, '0')}`
+        : null // Empty cluster key for singleton rows
   );
 
   await spreadsheet.updateColumn('Cluster Key', clusterKeys);
