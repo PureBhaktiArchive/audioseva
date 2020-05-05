@@ -26,6 +26,8 @@ const clusterizeDigitalRecordings = async (spreadsheetId) => {
 
   const equivalence = (a: DigitalRecordingRow, b: DigitalRecordingRow) =>
     a['File Name'] === b['File Name'] ||
+    a['File Name'].startsWith(b['File Name']) ||
+    b['File Name'].startsWith(a['File Name']) ||
     (!!a['Date (yyyymmdd)'] && a['Date (yyyymmdd)'] === b['Date (yyyymmdd)']) ||
     (!!a['Size Key'] && a['Size Key'] === b['Size Key']);
 
