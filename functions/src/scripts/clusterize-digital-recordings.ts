@@ -22,7 +22,7 @@ const clusterizeDigitalRecordings = async (spreadsheetId) => {
   );
 
   const rows = await spreadsheet.getRows();
-  console.log('Rows are here');
+  console.log(`Fetched ${rows.length} rows`);
 
   const equivalence = (a: DigitalRecordingRow, b: DigitalRecordingRow) =>
     a['File Name'] === b['File Name'] ||
@@ -49,7 +49,10 @@ const clusterizeDigitalRecordings = async (spreadsheetId) => {
       });
   });
 
-  console.log(`Found ${set.forestSets} sets`);
+  console.log(
+    `Found ${set.forestSets} clusters among ${set.forestElements} elements`
+  );
+
   const clusterKeys = rows.map(
     (item, i) =>
       `CK${
@@ -59,13 +62,12 @@ const clusterizeDigitalRecordings = async (spreadsheetId) => {
           .padStart(Math.log10(rows.length) + 1, '0')
       }`
   );
-  console.log(`Calculated cluster keys`);
 
   await spreadsheet.updateColumn('Cluster Key', clusterKeys);
 };
 
-const args = process.argv.slice(2);
-console.log('args: ', args);
+// First two arguments are node and the script name
+const spreadsheetId = process.argv.slice(2).shift();
+console.log(`Working with spreadsheet ${spreadsheetId}`);
 
-clusterizeDigitalRecordings(args[0]);
-console.log('Called the function');
+clusterizeDigitalRecordings(spreadsheetId);
