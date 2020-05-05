@@ -64,7 +64,6 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 | `cr.submissions.spreadsheet.id`   | Content Reporting submissions spreadsheet id       |
 | `cr.processing.spreadsheet.id`    | Content Reporting Processing spreadsheet id        |
 | `cr.allotments.spreadsheet.id`    | Content Reporting allotments spreadsheet id        |
-| `cr.digital.spreadsheet.id`       | Digital Recordings spreadsheet id                  |
 | `donations.cash.spreadsheet.id`   | Donations spreadsheet id                           |
 | `donations.cash.spreadsheet.name` | Donations sheet name                               |
 | `donations.contact.email_address` | Email address used in donations communication      |

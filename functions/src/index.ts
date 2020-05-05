@@ -26,12 +26,11 @@ DateTimeSettings.defaultZoneName = functions.config().coordinator.timezone;
 const functionFiles = glob.sync('./**/*.functions.js', { cwd: __dirname });
 
 functionFiles.forEach((file: string) => {
-  const moduleName = file.split('/').pop().split('.').shift();
-
-  // Don't deploy Local functions.
-  // They are meant only for local execution in `firebase functions:shell`.
-  if (!process.env.FUNCTIONS_EMULATOR && moduleName === 'Local') return;
-
+  const moduleName = file
+    .split('/')
+    .pop()
+    .split('.')
+    .shift();
   if (
     !process.env.FUNCTION_NAME ||
     process.env.FUNCTION_NAME.startsWith(moduleName)
