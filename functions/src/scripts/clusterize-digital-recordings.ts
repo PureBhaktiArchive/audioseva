@@ -36,6 +36,9 @@ const clusterizeDigitalRecordings = async (spreadsheetId) => {
   );
 
   _.forEach(rows, (row, index) => {
+    // Ignoring dates after 2010
+    if (row.Year > 2010) return;
+
     // Adding the current row as a new set.
     set.makeSet(row);
 
@@ -44,6 +47,7 @@ const clusterizeDigitalRecordings = async (spreadsheetId) => {
       .take(index)
       .forEach((previousRow) => {
         if (
+          set.includes(previousRow) &&
           !set.areConnected(row, previousRow) &&
           equivalence(row, previousRow)
         )
