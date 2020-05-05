@@ -37,7 +37,7 @@
             <v-icon dark>{{ $vuetify.icons.values.retry }}</v-icon>
           </v-btn>
           <v-btn
-            v-else-if="status.error || status.state === 'completed'"
+            v-if="status.error || status.state === 'completed' || status.retry"
             text
             icon
             @click="$emit('delete-file', file)"
