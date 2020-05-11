@@ -85,9 +85,9 @@ export default class UploadFileList extends Vue {
   color(status: any) {
     let iconColor = "blue";
     if (status.retry) iconColor = "yellow";
+    else if (status.error) iconColor = "red";
     else if (status.state === "queued") iconColor = "light-blue";
     else if (status.state === "completed") iconColor = "green";
-    else if (status.error) iconColor = "red";
     return iconColor;
   }
 }
