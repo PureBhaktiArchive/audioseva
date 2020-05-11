@@ -1,7 +1,12 @@
 <template>
   <div class="height-100" :style="{ display: 'flex', flexDirection: 'column' }">
     <h2>{{ $title }}</h2>
-    <full-screen-file-drop @drop="onDrop"></full-screen-file-drop>
+    <full-screen-file-drop
+      text="Drop files here to upload."
+      @enter="onDragEnter"
+      @leave="onDragEnd"
+      @drop="onDrop"
+    ></full-screen-file-drop>
     <div
       :style="{ flex: '1 1 auto', display: 'flex', flexDirection: 'column' }"
     >
@@ -55,7 +60,6 @@
       </div>
       <vue-dropzone
         v-if="!files.size"
-        :style="{ flex: '1 1 auto' }"
         ref="myDropzone"
         id="dropzone"
         :options="dropzoneOptions"
@@ -63,9 +67,8 @@
         :useCustomSlot="true"
       >
         <div>
-          <p>
-            Drop files here to upload or click here to pick the files from your
-            computer.
+          <p class="title" v-show="!hideDropzoneText">
+            Drop files here to upload.
           </p>
         </div>
       </vue-dropzone>
@@ -89,7 +92,7 @@ import * as Spark from 'spark-md5';
 import _ from 'lodash';
 import VueDropzone from 'vue2-dropzone';
 import 'vue2-dropzone/dist/vue2Dropzone.min.css';
-import FullScreenFileDrop from 'vue-full-screen-file-drop';
+import FullScreenFileDrop from '@/components/FullScreenFileDrop.vue';
 import moment from 'moment';
 import Promise from 'bluebird';
 import firebase from 'firebase/app';
@@ -143,6 +146,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   uploadsBucket = firebase.app().storage(`te.uploads.${getProjectDomain()}`);
   pQueue = new Pqueue({ concurrency: 3 });
   maxRetryAttempts = 5;
+  hideDropzoneText = false;
 
   $refs!: {
     myDropzone: any;
@@ -152,11 +156,20 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
 
   dropzoneOptions = {
     previewTemplate: this.template(),
+    clickable: false,
     url: 'localhost',
     autoProcessQueue: false,
     acceptedFiles: '.mp3,.flac',
     uploadMultiple: true,
   };
+
+  onDragEnter() {
+    this.hideDropzoneText = true;
+  }
+
+  onDragEnd() {
+    this.hideDropzoneText = false;
+  }
 
   getFile(file: File): IFileStatus {
     return this.files.get(file) || {};
@@ -437,5 +450,12 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
 }
 .height-100 {
   height: 100%;
+}
+
+>>> .dropzone {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
