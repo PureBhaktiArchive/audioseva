@@ -16,12 +16,10 @@
     "node": "8"
   },
   "dependencies": {
-    "dsforest": "1.0.0",
     "email-templates": "7.0.4",
     "express": "4.17.1",
     "firebase-admin": "8.11.0",
     "firebase-functions": "3.6.1",
-    "get-audio-duration": "1.0.0",
     "glob": "7.1.6",
     "googleapis": "49.0.0",
     "lodash": "4.17.15",

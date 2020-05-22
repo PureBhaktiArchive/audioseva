@@ -3,8 +3,8 @@
  */
 
 import { DisjointSet } from 'dsforest';
-import { DigitalRecordingRow } from '../DigitalRecordingRow';
-import { Spreadsheet } from '../Spreadsheet';
+import { DigitalRecordingRow } from '../functions/src/DigitalRecordingRow';
+import { Spreadsheet } from '../functions/src/Spreadsheet';
 import _ = require('lodash');
 
 /**
