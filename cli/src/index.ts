@@ -3,12 +3,12 @@
  * sri sri guru gauranga jayatah
  */
 
-import ora from 'ora';
 import yargs from 'yargs';
 
-const args = yargs.options({}).argv;
-
-console.log(args);
-
-const spinner = ora(`Scanning folder`).start();
-setInterval(() => spinner.stop(), 3000);
+yargs
+  .env('AUDIOSEVA')
+  .scriptName('audioseva')
+  .commandDir('commands')
+  .demandCommand()
+  .showHelpOnFail(false)
+  .help().argv;
