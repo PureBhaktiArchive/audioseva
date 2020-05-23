@@ -48,6 +48,19 @@
       "problemMatcher": ["$tsc-watch"],
       "group": "build",
       "isBackground": true
+    },
+    {
+      "type": "typescript",
+      "tsconfig": "cli/tsconfig.json",
+      "option": "watch",
+      "options": {
+        "shell": {
+          "executable": "powershell.exe"
+        }
+      },
+      "problemMatcher": ["$tsc-watch"],
+      "group": "build",
+      "label": "tsc: watch - cli"
     }
   ]
 }

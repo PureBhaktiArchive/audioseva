@@ -4,8 +4,8 @@
 
 import { getAudioDurationInSeconds } from 'get-audio-duration';
 import * as glob from 'glob';
-import { DigitalRecordingRow } from '../functions/src/DigitalRecordingRow';
-import { Spreadsheet } from '../functions/src/Spreadsheet';
+import { DigitalRecordingRow } from './DigitalRecordingRow';
+import { Spreadsheet } from './Spreadsheet';
 import fs = require('fs');
 import path = require('path');
 import _ = require('lodash');

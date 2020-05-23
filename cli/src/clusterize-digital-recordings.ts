@@ -3,8 +3,8 @@
  */
 
 import { DisjointSet } from 'dsforest';
-import { DigitalRecordingRow } from '../functions/src/DigitalRecordingRow';
-import { Spreadsheet } from '../functions/src/Spreadsheet';
+import { DigitalRecordingRow } from './DigitalRecordingRow';
+import { Spreadsheet } from './Spreadsheet';
 import _ = require('lodash');
 
 /**
@@ -15,7 +15,7 @@ import _ = require('lodash');
  * Updates the 'Cluster Key' column in the spreadsheet.
  * @param spreadsheetId Id of the Digital Recordings spreadsheet
  */
-const clusterizeDigitalRecordings = async (spreadsheetId) => {
+const clusterizeDigitalRecordings = async (spreadsheetId: string) => {
   const spreadsheet = await Spreadsheet.open<DigitalRecordingRow>(
     spreadsheetId,
     'Consolidated'
@@ -62,7 +62,7 @@ const clusterizeDigitalRecordings = async (spreadsheetId) => {
   const clusterKeys = rows.map(
     (row) =>
       set.setSize(row) > 1
-        ? `CK${set.findSet(row)['Serial Number'].toString().padStart(5, '0')}`
+        ? `CK${set.findSet(row)?.['Serial Number'].toString().padStart(5, '0')}`
         : null // Empty cluster key for singleton rows
   );
 
