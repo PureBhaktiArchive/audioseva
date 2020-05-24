@@ -121,35 +121,31 @@ exports.handler = async ({ path: rootDirectory, spreadsheetId }) => {
     fs.mkdirSync(targetFolderPath, { recursive: true });
     const targetFilePath = path.join(targetFolderPath, `${code}.mp3`);
 
-    if (!fs.existsSync(targetFilePath)) {
-      // TODO: check which file was renamed earlier / CBR
+    // Finding the most appropriate file among all with the same name
+    const bestSuitableFile = _(found)
+      .sortBy(
+        /**
+         * Some folders are more likely to contain the original files,
+         * whereas some are likely to contain derivatives like cleaned ones.
+         * */
+        (fileName) =>
+          fileName.includes('from Brajanath Prabhu')
+            ? -1
+            : fileName.includes('clean')
+            ? 100
+            : 0,
+        /**
+         * WMA are more likely to be the originals
+         */
+        (fileName) => (path.extname(fileName).toLowerCase() === '.wma' ? -1 : 0)
+      )
+      .first();
 
-      // Finding the most appropriate file among all with the same name
-      const fileToConvert = _(found)
-        .sortBy(
-          /**
-           * Some folders are more likely to contain the original files,
-           * whereas some are likely to contain derivatives like cleaned ones.
-           * */
-          (fileName) =>
-            fileName.includes('from Brajanath Prabhu')
-              ? -1
-              : fileName.includes('clean')
-              ? 100
-              : 0,
-          /**
-           * WMA are more likely to be the originals
-           */
-          (fileName) =>
-            path.extname(fileName).toLowerCase() === '.wma' ? -1 : 0
-        )
-        .first();
-
+    if (!fs.existsSync(targetFilePath))
       conversionQueue.push({
-        source: fileToConvert,
+        source: bestSuitableFile,
         destination: targetFilePath,
       });
-    }
 
     return 'FOUND';
   }
