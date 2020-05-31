@@ -10,37 +10,65 @@ const email = new Email({
   transport: functions.config().email.connection,
 });
 
+async function sendNotificationEmailSnapshot(
+  snapshot: admin.database.DataSnapshot
+) {
+  const data = snapshot.val();
+
+  if (data.sentTimestamp) return;
+
+  console.log(
+    `Sending email ${snapshot.key} to ${data.to} with template "${data.template}" and params`,
+    data.params
+  );
+
+  await email.send({
+    template: data.template,
+    message: {
+      to: data.to,
+      bcc: data.bcc,
+      replyTo: data.replyTo,
+    },
+    locals: {
+      settings: {
+        project: {
+          domain: functions.config().project.domain,
+        },
+      },
+      DateTime,
+      ...data.params,
+    },
+  });
+
+  await snapshot.ref.update({
+    sentTimestamp: admin.database.ServerValue.TIMESTAMP,
+  });
+}
+
 export const sendNotificationEmail = functions.database
   .ref('/email/notifications/{pushId}')
-  .onCreate(async (snapshot, { params }) => {
-    const data = snapshot.val();
+  .onCreate(async (snapshot) => {
+    await sendNotificationEmailSnapshot(snapshot);
+  });
 
-    if (data.sentTimestamp) return;
+export const retryFailedEmails = functions.pubsub
+  .topic('retry-failed-emails')
+  .onPublish(async () => {
+    const failedNotifications = await admin
+      .database()
+      .ref('/email/notifications/')
+      .orderByChild('sentTimestamp')
+      .equalTo(null)
+      .once('value');
 
     console.log(
-      `Sending email ${params.pushId} to ${data.to} with template "${data.template}" and params`,
-      data.params
+      `Found ${failedNotifications.numChildren()} failed notifications`
     );
 
-    await email.send({
-      template: data.template,
-      message: {
-        to: data.to,
-        bcc: data.bcc,
-        replyTo: data.replyTo,
-      },
-      locals: {
-        settings: {
-          project: {
-            domain: functions.config().project.domain,
-          },
-        },
-        DateTime,
-        ...data.params,
-      },
-    });
-
-    await snapshot.ref.update({
-      sentTimestamp: admin.database.ServerValue.TIMESTAMP,
-    });
+    const keys = Object.keys(failedNotifications.val());
+    for (const key of keys) {
+      await sendNotificationEmailSnapshot(
+        failedNotifications.child(key)
+      ).catch((reason) => console.warn(reason));
+    }
   });
