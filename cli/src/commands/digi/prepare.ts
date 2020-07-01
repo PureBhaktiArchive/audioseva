@@ -177,7 +177,7 @@ export const handler = async ({
 
   spinner.start('Saving statuses into the spreadsheet');
   await spreadsheet.updateColumn(
-    'Processing Status',
+    'File Status',
     rows.map((row) => resolutions.get(row['DIGI Code']) || null)
   );
   spinner.succeed();
