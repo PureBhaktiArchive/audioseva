@@ -98,14 +98,15 @@ export class TasksRepository {
           item['List'] === list &&
           languages.includes(item['Language'] || 'None')
       )
-      .map((item) => ({
+      .map<SpareFile>((item) => ({
         name: item['File Name'],
         list: item['List'],
         serial: item['Serial'],
         notes:
-          item['Notes'] + item['Devotee']
+          (item['Notes'] as string) +
+          (item['Devotee']
             ? ` Devotee column is not empty: ${item['Devotee']}`
-            : '',
+            : ''),
         language: item['Language'],
         date: item['Serial'],
       }))

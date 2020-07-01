@@ -15,21 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - project: frontend
-            node: 10
-          - project: functions
-            node: 8
-          - project: CRP
-            node: 10
-          - project: cli
-            node: 10
+        project: [frontend, functions, CRP, cli]
     steps:
       - uses: actions/checkout@master
 
       - uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 10
 
       - name: Cache NPM modules
         uses: actions/cache@v1
