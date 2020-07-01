@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "lib": ["es2017"],
+    "lib": ["ES2018"],
     "module": "commonjs",
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "outDir": "lib",
     "sourceMap": true,
-    "target": "es2017"
+    "target": "ES2018"
   },
   "compileOnSave": true,
   "include": ["src"]
