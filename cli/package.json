@@ -1,0 +1,41 @@
+{
+  "name": "cli",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "bin": {
+    "audioseva": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/index.ts",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx"
+  },
+  "dependencies": {
+    "async": "3.2.0",
+    "dsforest": "1.0.0",
+    "fluent-ffmpeg": "2.1.2",
+    "get-audio-duration": "1.0.0",
+    "glob": "7.1.6",
+    "googleapis": "49.0.0",
+    "lodash": "4.17.15",
+    "ora": "4.0.4",
+    "yargs": "15.3.1"
+  },
+  "devDependencies": {
+    "@types/async": "3.2.3",
+    "@types/fluent-ffmpeg": "2.1.14",
+    "@types/glob": "7.1.1",
+    "@types/lodash": "4.14.150",
+    "@types/node": "14.0.5",
+    "@types/yargs": "15.0.5",
+    "@typescript-eslint/eslint-plugin": "3.5.0",
+    "@typescript-eslint/parser": "3.5.0",
+    "eslint": "6.8.0",
+    "eslint-config-prettier": "6.11.0",
+    "nodemon": "2.0.4",
+    "prettier": "2.0.5",
+    "ts-node": "8.10.1",
+    "typescript": "3.8.3"
+  },
+  "private": true
+}

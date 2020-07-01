@@ -16,4 +16,5 @@ export interface DigitalRecordingRow {
   'Structured?': boolean;
   Comments: string;
   'Cluster Key': string;
+  'File Status': string;
 }
