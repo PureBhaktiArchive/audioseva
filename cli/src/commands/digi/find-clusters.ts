@@ -3,26 +3,37 @@
  */
 
 import { DisjointSet } from 'dsforest';
-import { DigitalRecordingRow } from './DigitalRecordingRow';
-import { Spreadsheet } from './Spreadsheet';
+import { Argv } from 'yargs';
+import { DigitalRecordingRow } from '../../DigitalRecordingRow';
+import { Spreadsheet } from '../../Spreadsheet';
 import _ = require('lodash');
+import ora = require('ora');
 
-/**
- * Extracts the cluster keys for the rows based on the:
- * - File Name
- * - Date
- * - Size Key
- * Updates the 'Cluster Key' column in the spreadsheet.
- * @param spreadsheetId Id of the Digital Recordings spreadsheet
- */
-const clusterizeDigitalRecordings = async (spreadsheetId: string) => {
+exports.desc = `Find clusters in the DIGI rows based on the:
+  - File Name
+  - Date
+  - Size Key
+  Update the 'Cluster Key' column in the spreadsheet.`;
+
+exports.builder = (yargs: Argv) =>
+  yargs.options({
+    spreadsheetId: {
+      alias: 's',
+      describe: 'Digital Recordings spreadsheet id',
+      demandOption: true,
+    },
+  });
+
+exports.handler = async ({ spreadsheetId }) => {
+  const spinner = ora();
+
+  spinner.start('Fetching rows');
   const spreadsheet = await Spreadsheet.open<DigitalRecordingRow>(
     spreadsheetId,
     'Consolidated'
   );
-
   const rows = await spreadsheet.getRows();
-  console.log(`Fetched ${rows.length} rows`);
+  spinner.succeed(`Fetched ${rows.length} rows`);
 
   const equivalence = (a: DigitalRecordingRow, b: DigitalRecordingRow) =>
     a['File Name'] === b['File Name'] ||
@@ -35,6 +46,7 @@ const clusterizeDigitalRecordings = async (spreadsheetId: string) => {
     (r) => r['Serial Number']
   );
 
+  spinner.start('Finding clusters');
   _.forEach(rows, (row, index) => {
     // Ignoring dates after 2010
     if (row.Year > 2010) return;
@@ -55,10 +67,11 @@ const clusterizeDigitalRecordings = async (spreadsheetId: string) => {
       });
   });
 
-  console.log(
+  spinner.succeed(
     `Found ${set.forestSets} clusters among ${set.forestElements} elements`
   );
 
+  spinner.start('Updating spreadsheet');
   const clusterKeys = rows.map(
     (row) =>
       set.setSize(row) > 1
@@ -67,10 +80,5 @@ const clusterizeDigitalRecordings = async (spreadsheetId: string) => {
   );
 
   await spreadsheet.updateColumn('Cluster Key', clusterKeys);
+  spinner.succeed();
 };
-
-// First two arguments are node and the script name
-const spreadsheetId = process.argv.slice(2).shift();
-console.log(`Working with spreadsheet ${spreadsheetId}`);
-
-clusterizeDigitalRecordings(spreadsheetId);
