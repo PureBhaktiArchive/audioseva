@@ -16,7 +16,6 @@ import { Argv } from 'yargs';
 import { DigitalRecordingRow } from '../../DigitalRecordingRow';
 import { Spreadsheet } from '../../Spreadsheet';
 
-exports.command = 'process';
 exports.desc =
   'Convert and rename local files according to the codes in the spreadsheet';
 
