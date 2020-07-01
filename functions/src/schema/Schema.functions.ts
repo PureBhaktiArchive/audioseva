@@ -7,8 +7,6 @@ import * as functions from 'firebase-functions';
 import glob = require('glob');
 import _ = require('lodash');
 
-type Step = () => Promise<void>;
-
 export const applyMigrations = functions.pubsub
   .topic('database-migration')
   .onPublish(async () => {
@@ -33,7 +31,7 @@ export const applyMigrations = functions.pubsub
         continue;
       }
 
-      const migration = (await import(file)) as Record<string, Step>;
+      const migration = await import(file);
       console.info(`Applying ${migrationName}.`);
 
       for (const stepName in migration) {

@@ -4,7 +4,6 @@
 
 import * as functions from 'firebase-functions';
 import { abortCall, authorize } from '../auth';
-import { Person } from '../Person';
 import { SQRWorkflow } from './SQRWorkflow';
 import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
@@ -13,14 +12,7 @@ import _ = require('lodash');
  * SQR allotment processing
  */
 export const processAllotment = functions.https.onCall(
-  async (
-    {
-      assignee,
-      files,
-      comment,
-    }: { assignee: Person; files: SpareFile[]; comment: string },
-    context
-  ) => {
+  async ({ assignee, files, comment }, context) => {
     authorize(context, ['SQR.coordinator']);
 
     if (!assignee || !files || files.length === 0)

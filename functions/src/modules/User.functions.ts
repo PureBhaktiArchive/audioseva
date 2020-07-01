@@ -65,7 +65,7 @@ export const importUserRegistrationData = functions.https.onCall(
         emailAddress: row[RegistrationColumns.EmailAddress],
         phoneNumber: row[RegistrationColumns.PhoneNumber],
         isAvailableOnWhatsApp: row[RegistrationColumns.WhatsApp],
-        languages: (row[RegistrationColumns.Languages] as string)
+        languages: row[RegistrationColumns.Languages]
           .split(',')
           .reduce((result, language: string) => {
             result[language.trim()] = true;
@@ -141,7 +141,7 @@ export const restructureRegistrationData = functions.database
       emailAddress: webform.email_address,
       phoneNumber: webform.contact_number,
       isAvailableOnWhatsApp: webform.i_am_available_on_whatsapp === 1,
-      languages: (webform.languages as string[]).reduce((result, language) => {
+      languages: webform.languages.reduce((result, language) => {
         result[language] = true;
         return result;
       }, {}),
@@ -151,7 +151,7 @@ export const restructureRegistrationData = functions.database
       experience: webform.experience,
       influencer: webform.where_did_u_hear_about_this_seva,
       recommendedBy: webform.recommended_by,
-      roles: (webform.seva as string[]).reduce((result, service) => {
+      roles: webform.seva.reduce((result, service) => {
         const code = serviceRoles[service];
         result[code] = true;
 
@@ -159,7 +159,7 @@ export const restructureRegistrationData = functions.database
       }, {}),
     };
 
-    await admin.database().ref(`/users/`).push(newUser);
+    admin.database().ref(`/users/`).push(newUser);
 
     return true;
   });
@@ -206,14 +206,12 @@ export const getAssignees = functions.https.onCall(
     return rows
       .filter((item) => item[phase || Roles.CR] === Decision.Yes)
       .map((item) => ({
-        emailAddress: (item['Email Address'] as string)?.trim(),
+        emailAddress: item['Email Address']?.trim(),
         name: item['Name'],
         location: item['Country'],
-        languages: item['Languages']
-          ? (item['Languages'] as string).split(/,\s?/)
-          : [],
+        languages: item['Languages'] ? item['Languages'].split(/,\s?/) : [],
         phone: item['Phone Number'],
-        id: (item['Email Address'] as string)?.trim(),
+        id: item['Email Address']?.trim(),
       }));
   }
 );
