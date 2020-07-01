@@ -16,17 +16,19 @@ import { Argv } from 'yargs';
 import { DigitalRecordingRow } from '../../DigitalRecordingRow';
 import { Spreadsheet } from '../../Spreadsheet';
 
-exports.desc =
+export const desc =
   'Convert and rename local files according to the codes in the spreadsheet';
 
-exports.builder = (yargs: Argv) =>
+export const builder = (yargs: Argv<Arguments>): Argv<Arguments> =>
   yargs.options({
     path: {
+      type: 'string',
       alias: 'p',
       describe: 'root path of the audio files folder',
       demandOption: true,
     },
     spreadsheetId: {
+      type: 'string',
       alias: 's',
       describe: 'Digital Recordings spreadsheet id',
       demandOption: true,
@@ -39,7 +41,15 @@ interface ConversionTask {
   destination: string;
 }
 
-exports.handler = async ({ path: rootDirectory, spreadsheetId }) => {
+interface Arguments {
+  path: string;
+  spreadsheetId: string;
+}
+
+export const handler = async ({
+  path: rootDirectory,
+  spreadsheetId,
+}: Arguments): Promise<void> => {
   const spinner = ora();
 
   spinner.start('Fetching rows');
@@ -68,11 +78,11 @@ exports.handler = async ({ path: rootDirectory, spreadsheetId }) => {
       .withAudioCodec('libmp3lame')
       .withAudioBitrate(64)
       .output(task.destination)
-      .on('start', function (commandLine) {
+      .on('start', function () {
         console.log(`Converting ${task.source}`);
       })
       .on('error', callback)
-      .on('end', function (stdout, stderr) {
+      .on('end', function () {
         callback();
       })
       .run();
@@ -82,7 +92,7 @@ exports.handler = async ({ path: rootDirectory, spreadsheetId }) => {
   });
 
   const durationsCacheFile = path.join(rootDirectory, 'durations.txt');
-  // Relative file path → Duration
+  // Relative file path to Duration
   const durationsCache = new Map<string, number>(
     fs.existsSync(durationsCacheFile)
       ? JSON.parse(fs.readFileSync(durationsCacheFile, 'utf8'))
@@ -111,7 +121,8 @@ exports.handler = async ({ path: rootDirectory, spreadsheetId }) => {
     const found = filesByBaseName[fileName];
     if (!found?.length) return 'MISSING';
 
-    const durations = await async.map<string, number>(found, getDuration);
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    const durations = await async.map(found, getDuration);
 
     // Checking that all the files have the same duration, truncated to integer seconds
     if (_.uniqBy(durations, Math.floor).length > 1) return 'CONTROVERSIAL';

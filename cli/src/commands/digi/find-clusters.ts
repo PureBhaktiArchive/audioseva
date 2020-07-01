@@ -9,13 +9,13 @@ import { Spreadsheet } from '../../Spreadsheet';
 import _ = require('lodash');
 import ora = require('ora');
 
-exports.desc = `Find clusters in the DIGI rows based on the:
+export const desc = `Find clusters in the DIGI rows based on the:
   - File Name
   - Date
   - Size Key
   Update the 'Cluster Key' column in the spreadsheet.`;
 
-exports.builder = (yargs: Argv) =>
+export const builder = (yargs: Argv): Argv =>
   yargs.options({
     spreadsheetId: {
       alias: 's',
@@ -24,7 +24,11 @@ exports.builder = (yargs: Argv) =>
     },
   });
 
-exports.handler = async ({ spreadsheetId }) => {
+interface Arguments {
+  spreadsheetId: string;
+}
+
+export const handler = async ({ spreadsheetId }: Arguments): Promise<void> => {
   const spinner = ora();
 
   spinner.start('Fetching rows');

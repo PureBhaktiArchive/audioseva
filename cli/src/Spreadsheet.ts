@@ -10,13 +10,13 @@ enum IValueInputOption {
   RAW = 'RAW',
 }
 
-export class Spreadsheet<T extends object = object> {
+export class Spreadsheet<T> {
   public columnNames: string[];
 
-  public static async open<T extends object = object>(
+  public static async open<T>(
     spreadsheetId: string,
     sheetName: string
-  ) {
+  ): Promise<Spreadsheet<T>> {
     const auth = await google.auth.getClient({
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
@@ -28,7 +28,7 @@ export class Spreadsheet<T extends object = object> {
         ranges: [this.toA1Notation(sheetName, undefined, 1, undefined, 1)],
       })
     );
-    const sheetIndex = schema.sheets!.findIndex(
+    const sheetIndex = schema.sheets.findIndex(
       (s) => s.properties?.title === sheetName
     );
     if (sheetIndex < 0)
@@ -50,7 +50,7 @@ export class Spreadsheet<T extends object = object> {
       .value();
   }
 
-  protected static getResponse<T>(response: GaxiosResponse<T>) {
+  protected static getResponse<T>(response: GaxiosResponse<T>): T {
     const { statusText, status, data } = response;
     if (statusText !== 'OK' || status !== 200)
       throw new Error(
@@ -73,15 +73,15 @@ export class Spreadsheet<T extends object = object> {
     firstRowNumber?: number,
     lastColumnLetter?: string,
     lastRowNumber?: number
-  ) {
+  ): string {
     return (
       sheetName +
       '!' +
       (firstColumnLetter || '') +
-      (firstRowNumber || '') +
+      (firstRowNumber?.toString() || '') +
       /// Second part can be absent altogether
       (lastColumnLetter || lastRowNumber
-        ? ':' + (lastColumnLetter || '') + (lastRowNumber || '')
+        ? ':' + (lastColumnLetter || '') + (lastRowNumber?.toString() || '')
         : '')
     );
   }
@@ -91,7 +91,7 @@ export class Spreadsheet<T extends object = object> {
     firstRowNumber: number,
     lastColumnLetter?: string,
     lastRowNumber?: number
-  ) {
+  ): string {
     return Spreadsheet.toA1Notation(
       this.title,
       firstColumnLetter,
@@ -106,7 +106,10 @@ export class Spreadsheet<T extends object = object> {
    * @param firstRowNumber First row number
    * @param lastRowNumber Last row number
    */
-  protected rowsToA1Notation(firstRowNumber: number, lastRowNumber: number) {
+  protected rowsToA1Notation(
+    firstRowNumber: number,
+    lastRowNumber: number
+  ): string {
     return this.toA1Notation(null, firstRowNumber, null, lastRowNumber);
   }
 
@@ -114,11 +117,11 @@ export class Spreadsheet<T extends object = object> {
    * Returns A1 notation for the row. For example: 1:1.
    * @param rowNumber Row number on the sheet
    */
-  protected rowToA1Notation(rowNumber: number) {
+  protected rowToA1Notation(rowNumber: number): string {
     return this.rowsToA1Notation(rowNumber, rowNumber);
   }
 
-  protected getColumnLetter(columnName: string) {
+  protected getColumnLetter(columnName: string): string {
     let index = this.columnNames.indexOf(columnName);
     if (index < 0) {
       throw Error(`Column ${columnName} not found`);
@@ -134,7 +137,7 @@ export class Spreadsheet<T extends object = object> {
     return encoded;
   }
 
-  protected get sheet() {
+  protected get sheet(): sheets.Schema$Sheet {
     return this.schema.sheets[this.sheetIndex];
   }
 
@@ -142,7 +145,7 @@ export class Spreadsheet<T extends object = object> {
    * Converts data row number into the sheet row number.
    * @param dataRowNumber Number of the row in the data section, 1-based
    */
-  protected fromDataRowNumber(dataRowNumber: number) {
+  protected fromDataRowNumber(dataRowNumber: number): number {
     return dataRowNumber + Math.min(this.frozenRowCount, 1);
   }
 
@@ -153,28 +156,28 @@ export class Spreadsheet<T extends object = object> {
   /**
    * Returns the title of the sheet
    */
-  public get title() {
+  public get title(): string {
     return this.sheet.properties.title;
   }
 
   /**
    * Returns count of the frozen rows in the sheet
    */
-  public get frozenRowCount() {
+  public get frozenRowCount(): number {
     return this.sheet.properties.gridProperties.frozenRowCount || 0;
   }
 
   /**
    * Returns count of the total rows in the sheet
    */
-  public get rowCount() {
+  public get rowCount(): number {
     return this.sheet.properties.gridProperties.rowCount;
   }
 
   /**
    * Returns the timezone of the spreadsheet
    */
-  public get timeZone() {
+  public get timeZone(): string {
     return this.schema.properties.timeZone;
   }
 
@@ -186,7 +189,7 @@ export class Spreadsheet<T extends object = object> {
   protected async getValues(
     range: string,
     majorDimension: 'COLUMNS' | 'ROWS' = 'ROWS'
-  ) {
+  ): Promise<unknown[][]> {
     return (
       Spreadsheet.getResponse(
         await this.api.spreadsheets.values.get({
@@ -206,7 +209,7 @@ export class Spreadsheet<T extends object = object> {
    * Gets the entire column data values
    * @param columnName Name of the column to get
    */
-  public async getColumn(columnName: string) {
+  public async getColumn(columnName: string): Promise<unknown[]> {
     if (!this.columnsCache.has(columnName)) {
       const columnLetter = this.getColumnLetter(columnName);
 
@@ -235,7 +238,7 @@ export class Spreadsheet<T extends object = object> {
   public async updateColumn(
     columnName: Extract<keyof T, string>,
     values: (string | number | boolean)[]
-  ) {
+  ): Promise<void> {
     Spreadsheet.getResponse(
       await this.api.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
@@ -258,7 +261,10 @@ export class Spreadsheet<T extends object = object> {
    * @param value Value of the cell to search for
    * @returns Number of the row in the data section, 1-based. 0 if not found
    */
-  public async findDataRowNumber(columnName: string, value: unknown) {
+  public async findDataRowNumber(
+    columnName: string,
+    value: unknown
+  ): Promise<number> {
     const column = await this.getColumn(columnName);
     return column.indexOf(value) + 1;
   }
@@ -287,9 +293,9 @@ export class Spreadsheet<T extends object = object> {
    * - `null` in the object transforms into empty string in the array.
    * @param object Source object to be transformed into an array
    */
-  protected objectToArray(object: T) {
+  protected objectToArray(object: T): unknown[] {
     return _(this.columnNames)
-      .map((columnName) => object[columnName])
+      .map((columnName) => <unknown>object[columnName])
       .map((value) =>
         value === undefined ? null : value === null ? '' : value
       )
@@ -300,7 +306,7 @@ export class Spreadsheet<T extends object = object> {
    * Gets row at specified row number
    * @param dataRowNumber Number of the row in the data section, 1-based
    */
-  public async getRow(dataRowNumber: number) {
+  public async getRow(dataRowNumber: number): Promise<T> {
     const values = await this.getValues(
       this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber))
     );
@@ -327,7 +333,7 @@ export class Spreadsheet<T extends object = object> {
    * @param object Object to be saved into the row
    * Nulls are skipped. To clear data, use an empty string ("") in the property value.
    */
-  public async updateRow(dataRowNumber: number, object: T) {
+  public async updateRow(dataRowNumber: number, object: T): Promise<void> {
     Spreadsheet.getResponse(
       await this.api.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
@@ -344,7 +350,7 @@ export class Spreadsheet<T extends object = object> {
    * Update rows at specified row numbers.
    * @param objects Map of objects by data row number
    */
-  public async updateRows(objects: Map<number, T>) {
+  public async updateRows(objects: Map<number, T>): Promise<void> {
     if (objects.size === 0) return;
 
     Spreadsheet.getResponse(
@@ -365,7 +371,7 @@ export class Spreadsheet<T extends object = object> {
    * Appends new rows
    * @param objects Data values to add to Google Sheets
    */
-  public async appendRows(objects: T[]) {
+  public async appendRows(objects: T[]): Promise<void> {
     Spreadsheet.getResponse(
       await this.api.spreadsheets.values.append({
         spreadsheetId: this.spreadsheetId,
@@ -383,7 +389,10 @@ export class Spreadsheet<T extends object = object> {
    * @param columnName Name of the column to search in
    * @param objects Objects to be saved into the spreadsheet
    */
-  public async updateOrAppendRows(columnName: string, objects: T[]) {
+  public async updateOrAppendRows(
+    columnName: string,
+    objects: T[]
+  ): Promise<void> {
     const column = await this.getColumn(columnName);
     const indexedByDataRowNumber = objects.map<[number, T]>((object) => [
       column.indexOf(object[columnName]) + 1,
