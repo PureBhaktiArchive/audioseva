@@ -22,6 +22,8 @@ jobs:
             node: 8
           - project: CRP
             node: 10
+          - project: cli
+            node: 10
     steps:
       - uses: actions/checkout@master
 

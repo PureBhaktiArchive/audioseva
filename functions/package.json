@@ -16,7 +16,6 @@
     "node": "8"
   },
   "dependencies": {
-    "dsforest": "1.0.0",
     "email-templates": "7.0.4",
     "express": "4.17.1",
     "firebase-admin": "8.11.0",
