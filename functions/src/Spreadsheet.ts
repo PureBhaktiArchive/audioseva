@@ -10,10 +10,10 @@ enum IValueInputOption {
   RAW = 'RAW',
 }
 
-export class Spreadsheet<T extends object = object> {
+export class Spreadsheet<T = unknown> {
   public columnNames: string[];
 
-  public static async open<T extends object = object>(
+  public static async open<T = unknown>(
     spreadsheetId: string,
     sheetName: string
   ) {
@@ -25,11 +25,11 @@ export class Spreadsheet<T extends object = object> {
       await api.spreadsheets.get({
         spreadsheetId: spreadsheetId,
         includeGridData: true,
-        ranges: [this.toA1Notation(sheetName, null, 1, null, 1)],
+        ranges: [this.toA1Notation(sheetName, undefined, 1, undefined, 1)],
       })
     );
     const sheetIndex = schema.sheets.findIndex(
-      (s) => s.properties.title === sheetName
+      (s) => s.properties?.title === sheetName
     );
     if (sheetIndex < 0)
       throw new Error(`No "${sheetName}" sheet in the spreadsheet.`);
@@ -78,10 +78,10 @@ export class Spreadsheet<T extends object = object> {
       sheetName +
       '!' +
       (firstColumnLetter || '') +
-      (firstRowNumber || '') +
+      (firstRowNumber?.toString() || '') +
       /// Second part can be absent altogether
       (lastColumnLetter || lastRowNumber
-        ? ':' + (lastColumnLetter || '') + (lastRowNumber || '')
+        ? ':' + (lastColumnLetter || '') + (lastRowNumber?.toString() || '')
         : '')
     );
   }
@@ -289,7 +289,7 @@ export class Spreadsheet<T extends object = object> {
    */
   protected objectToArray(object: T) {
     return _(this.columnNames)
-      .map((columnName) => object[columnName])
+      .map((columnName) => <unknown>object[columnName])
       .map((value) =>
         value === undefined ? null : value === null ? '' : value
       )

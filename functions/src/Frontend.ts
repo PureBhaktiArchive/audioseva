@@ -6,7 +6,7 @@ import * as functions from 'firebase-functions';
 import { URL } from 'url';
 
 export const frontendUrl = new URL(
-  `https://app.${functions.config().project.domain}`
+  `https://app.${functions.config().project.domain as string}`
 );
 
 export const listeningPageLink = (fileName: string) =>

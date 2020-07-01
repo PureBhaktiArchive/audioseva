@@ -14,7 +14,7 @@ describe('Spreadsheet.toA1Notation', () => {
     ${'M'}       | ${4}         | ${undefined} | ${undefined} | ${'M4'}
   `('Sheet $c1 $r1 $c2 $r2 → $result', ({ c1, r1, c2, r2, result }) => {
     expect(Spreadsheet.toA1Notation('Sheet', c1, r1, c2, r2)).toEqual(
-      `Sheet!${result}`
+      `Sheet!${result as string}`
     );
   });
 });
