@@ -2,52 +2,55 @@
  * sri sri guru gauranga jayatah
  */
 
-function rowToObject(row: unknown[], columnNames: string[]): object {
-  return Object.assign({}, ...columnNames.map((k, i) => ({ [k]: row[i] })));
+function rowToObject(row: unknown[], columnNames: string[]): unknown {
+  return Object.assign(
+    {},
+    ...columnNames.map((k, i) => ({ [k]: row[i] }))
+  ) as unknown;
 }
 
-function objectToRow(object: object, columnNames: string[]): unknown[] {
-  return columnNames.map(columnName => object[columnName]);
+function objectToRow(object: unknown, columnNames: string[]): unknown[] {
+  return columnNames.map((columnName) => <unknown>object[columnName]);
 }
 
 const standardColumns = [
-  "Audio File Name",
-  "Fused Lectures",
-  "Timing For Fused Lecture",
-  "Beginning",
-  "Ending",
-  "Continuation From",
-  "Date",
-  "Location",
-  "Category",
-  "Topics",
-  "Gurudeva Timings",
-  "Other Speakers",
-  "Kirtan",
-  "Abrupt Lecture",
-  "Suggested Title",
-  "Languages",
-  "Sound Quality",
-  "Sound Issues",
-  "Comments",
-  "Filled by",
-  "Email Address",
-  "Timestamp",
-  "Updated",
-  "Source",
-  "Submission Serial",
-  "Resolution",
-  "Processing Comments",
-  "Fidelity Check Resolution"
+  'Audio File Name',
+  'Fused Lectures',
+  'Timing For Fused Lecture',
+  'Beginning',
+  'Ending',
+  'Continuation From',
+  'Date',
+  'Location',
+  'Category',
+  'Topics',
+  'Gurudeva Timings',
+  'Other Speakers',
+  'Kirtan',
+  'Abrupt Lecture',
+  'Suggested Title',
+  'Languages',
+  'Sound Quality',
+  'Sound Issues',
+  'Comments',
+  'Filled by',
+  'Email Address',
+  'Timestamp',
+  'Updated',
+  'Source',
+  'Submission Serial',
+  'Resolution',
+  'Processing Comments',
+  'Fidelity Check Resolution',
 ];
 
 const watchedColumns = [
-  "Audio File Name",
-  "Beginning",
-  "Ending",
-  "Continuation From",
-  "Resolution",
-  "Fidelity Check Resolution"
+  'Audio File Name',
+  'Beginning',
+  'Ending',
+  'Continuation From',
+  'Resolution',
+  'Fidelity Check Resolution',
 ];
 
 interface OnEditEventObject {
@@ -60,7 +63,7 @@ interface OnEditEventObject {
   value: unknown;
 }
 
-const DEBUG = PropertiesService.getScriptProperties().getProperty("DEBUG");
+const DEBUG = PropertiesService.getScriptProperties().getProperty('DEBUG');
 
 // this script records changes to the spreadsheet on a "Changelog" sheet.
 export function trackChanges(e: OnEditEventObject) {
@@ -71,13 +74,13 @@ export function trackChanges(e: OnEditEventObject) {
 
   const changelogSpreadsheetId =
     PropertiesService.getScriptProperties().getProperty(
-      "Changelog.SpreadsheetId"
+      'Changelog.SpreadsheetId'
     ) || e.source.getId();
 
   const changelogSheetName =
     PropertiesService.getScriptProperties().getProperty(
-      "Changelog.SheetName"
-    ) || "Changelog";
+      'Changelog.SheetName'
+    ) || 'Changelog';
 
   const changelogSheet = SpreadsheetApp.openById(
     changelogSpreadsheetId
@@ -89,7 +92,7 @@ export function trackChanges(e: OnEditEventObject) {
 
   /// skipping sheets not having any of the standard columns
   if (
-    headers.filter(header => standardColumns.includes(header)).length <
+    headers.filter((header) => standardColumns.includes(header)).length <
     standardColumns.length
   ) {
     return;
@@ -99,7 +102,7 @@ export function trackChanges(e: OnEditEventObject) {
   if (e.range.getNumColumns() > sheet.getMaxColumns() / 2) {
     if (DEBUG)
       console.log(
-        "Skipping full row change",
+        'Skipping full row change',
         e.range.getSheet().getName(),
         e.range.getA1Notation()
       );
@@ -107,17 +110,17 @@ export function trackChanges(e: OnEditEventObject) {
   }
 
   const massEdit = e.range.getNumRows() > 1 || e.range.getNumColumns() > 1;
-  const oldValue = massEdit ? "=NA()" : e.oldValue;
+  const oldValue = massEdit ? '=NA()' : e.oldValue;
 
   const editedColumns = headers
     .slice(e.range.getColumn() - 1, e.range.getLastColumn())
-    .filter(value => watchedColumns.includes(value));
+    .filter((value) => watchedColumns.includes(value));
 
   /// skipping changes besides watched columns
   if (editedColumns.length === 0) {
     if (DEBUG)
       console.log(
-        "Skipping changes to secondary columns",
+        'Skipping changes to secondary columns',
         e.range.getSheet().getName(),
         e.range.getA1Notation()
       );
@@ -135,15 +138,15 @@ export function trackChanges(e: OnEditEventObject) {
 
     const object = rowToObject(row, headers);
 
-    const previousFCR = editedColumns.includes("Fidelity Check Resolution")
+    const previousFCR = editedColumns.includes('Fidelity Check Resolution')
       ? oldValue
-      : object["Fidelity Check Resolution"];
+      : object['Fidelity Check Resolution'];
 
     /// skipping not resolved rows
     if (!previousFCR) {
       if (DEBUG)
         console.log(
-          "Skipping rows without FCR",
+          'Skipping rows without FCR',
           e.range.getSheet().getName(),
           e.range.getA1Notation()
         );
@@ -154,20 +157,20 @@ export function trackChanges(e: OnEditEventObject) {
       .getRange(1, 1, 1, changelogSheet.getLastColumn())
       .getValues();
 
-    editedColumns.forEach(columnName => {
+    editedColumns.forEach((columnName) => {
       changelogSheet.appendRow(
         objectToRow(
           {
             Timestamp: timestamp,
             Sheet: sheet.getName(),
             Range: `=HYPERLINK("https://docs.google.com/spreadsheets/d/${e.source.getId()}/edit#gid=${sheet.getSheetId()}&range=${e.range.getA1Notation()}", "${e.range.getA1Notation()}")`,
-            "Row Number": `=HYPERLINK("https://docs.google.com/spreadsheets/d/${e.source.getId()}/edit#gid=${sheet.getSheetId()}&range=${rowIndex}:${rowIndex}", ${rowIndex})`,
-            "Audio File Name": object["Audio File Name"],
-            "FCR (before)": previousFCR,
+            'Row Number': `=HYPERLINK("https://docs.google.com/spreadsheets/d/${e.source.getId()}/edit#gid=${sheet.getSheetId()}&range=${rowIndex}:${rowIndex}", ${rowIndex})`,
+            'Audio File Name': object['Audio File Name'],
+            'FCR (before)': previousFCR,
             Column: columnName,
-            "Old Value": oldValue,
-            "New Value": object[columnName],
-            Checked: false
+            'Old Value': oldValue,
+            'New Value': object[columnName],
+            Checked: false,
           },
           changelogHeaders
         )
