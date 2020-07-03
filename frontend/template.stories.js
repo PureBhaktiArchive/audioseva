@@ -1,10 +1,10 @@
 // Utilities
-import { storyFactory } from "../util/helpers";
+import { storyFactory } from '../util/helpers';
 
-export default { title: "ComponentName" };
+export default { title: 'ComponentName' };
 
 const story = storyFactory({
-  ComponentName: () => import("../../src/ComponentPath"),
+  ComponentName: () => import('../../src/ComponentPath'),
 });
 
 export const asDefault = () =>

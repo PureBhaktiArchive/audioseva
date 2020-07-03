@@ -82,39 +82,39 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Watch } from "vue-property-decorator";
-import _ from "lodash";
-import { mapState, mapActions } from "vuex";
-import { RouteConfig } from "vue-router";
-import { getMenuItems } from "@/router";
-import MenuLinks from "@/components/MenuLinks";
+import { Component, Vue, Watch } from 'vue-property-decorator';
+import _ from 'lodash';
+import { mapState, mapActions } from 'vuex';
+import { RouteConfig } from 'vue-router';
+import { getMenuItems } from '@/router';
+import MenuLinks from '@/components/MenuLinks';
 
 const pathMap = {
-  cr: "CR",
-  sqr: "SQR",
-  te: "TE",
-  allot: "Allotment",
+  cr: 'CR',
+  sqr: 'SQR',
+  te: 'TE',
+  allot: 'Allotment',
 };
 
 @Component({
-  name: "MainLayout",
+  name: 'MainLayout',
   components: {
     MenuLinks,
   },
   computed: {
-    ...mapState("user", ["currentUser", "roles"]),
+    ...mapState('user', ['currentUser', 'roles']),
   },
   methods: {
-    ...mapActions("user", ["signOut"]),
+    ...mapActions('user', ['signOut']),
   },
 })
 export default class MainLayout extends Vue {
-  appTitle = "Audio Seva";
+  appTitle = 'Audio Seva';
   sidebar = false;
   menuItems: RouteConfig[] = [];
   breadcrumbs: any[] = [];
 
-  @Watch("roles", { immediate: true })
+  @Watch('roles', { immediate: true })
   handleUserRolesChange(newRoles: { [key: string]: any } | null) {
     if (newRoles) {
       this.menuItems = getMenuItems();
@@ -123,15 +123,15 @@ export default class MainLayout extends Vue {
     }
   }
 
-  @Watch("$route", { immediate: true, deep: true })
+  @Watch('$route', { immediate: true, deep: true })
   getBreadcrumbs({ path, params, matched }: any) {
     const breadcrumbs: any[] = [];
     const auth = _.get(
       [...matched].reverse().find(({ meta }) => meta.auth),
-      "meta.auth"
+      'meta.auth'
     );
-    if (path !== "/" && auth && (auth.ability || auth.requireAuth)) {
-      const paths = path.split("/");
+    if (path !== '/' && auth && (auth.ability || auth.requireAuth)) {
+      const paths = path.split('/');
       const pathsLength = paths.length - 1;
       paths.forEach((item: string, index: number) => {
         breadcrumbs.push({
@@ -146,7 +146,7 @@ export default class MainLayout extends Vue {
   }
 
   getPath(item: string, index: number, paths: string[]) {
-    return `${paths.slice(0, index).join("/")}/${item}`;
+    return `${paths.slice(0, index).join('/')}/${item}`;
   }
 
   getText(path: string, params: any) {
@@ -156,18 +156,18 @@ export default class MainLayout extends Vue {
         path,
         path[0].toUpperCase() + path.substring(1)
       );
-      if (typeof customText === "function") {
+      if (typeof customText === 'function') {
         customText = customText(params);
       }
       return customText;
     }
-    return "Home";
+    return 'Home';
   }
 
   getActiveClass(path: string) {
     return this.$route.path.includes(path.substring(0, path.length - 1))
-      ? "primary--text"
-      : "inactive-menu";
+      ? 'primary--text'
+      : 'inactive-menu';
   }
 }
 </script>

@@ -24,7 +24,7 @@ export function authorize(
 ) {
   if (
     !functions.config().emulator &&
-    !_.some(roles, role => _.get(context.auth?.token?.roles, role))
+    !_.some(roles, (role) => _.get(context.auth?.token?.roles, role))
   )
     abortCall(
       'permission-denied',

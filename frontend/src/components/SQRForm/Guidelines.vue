@@ -12,10 +12,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue } from 'vue-property-decorator';
 
 @Component({
-  name: "Guidelines",
+  name: 'Guidelines',
 })
 export default class GuideLines extends Vue {}
 </script>

@@ -7,11 +7,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Mixins } from "vue-property-decorator";
-import ItemPath from "@/mixins/ItemPath";
+import { Component, Prop, Mixins } from 'vue-property-decorator';
+import ItemPath from '@/mixins/ItemPath';
 
 @Component({
-  name: "TextArea",
+  name: 'TextArea',
 })
 export default class TextArea extends Mixins<ItemPath>(ItemPath) {
   @Prop({ default: () => ({}) })

@@ -6,7 +6,7 @@ global-styling:
       css/legacy.css: {}
 
 circliful:
-  version: "1.0.x"
+  version: '1.0.x'
   css:
     # The SMACSS category.
     theme:

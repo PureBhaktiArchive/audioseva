@@ -1,1 +1,1 @@
-declare module "vue-phone-number-input";
+declare module 'vue-phone-number-input';

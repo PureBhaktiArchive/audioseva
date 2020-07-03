@@ -29,7 +29,7 @@
       <!-- eslint-disable vue/no-parsing-error -->
       <template v-slot:.key="{ item }">
         <router-link @click.native.stop :to="getTaskLink(item)">
-          {{ item[".key"] }}
+          {{ item['.key'] }}
         </router-link>
       </template>
       <template v-slot:timestampGiven="{ item, value }">
@@ -72,23 +72,23 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins } from "vue-property-decorator";
-import "@/styles/subtext.css";
-import _ from "lodash";
-import DataTable from "@/components/DataTable.vue";
-import PaginationControls from "@/components/TE/PaginationControls.vue";
-import TaskDefinition from "@/components/TE/TaskDefinition.vue";
-import TaskOutput from "@/components/TE/Output.vue";
-import Resolution from "@/components/TE/Resolution.vue";
-import DateGiven from "@/components/DataTable/TimestampGiven.vue";
-import Assignee from "@/components/Assignee.vue";
-import TaskMixin from "@/components/TE/TaskMixin";
-import firebase from "firebase/app";
-import "firebase/database";
-import "firebase/functions";
+import { Component, Mixins } from 'vue-property-decorator';
+import '@/styles/subtext.css';
+import _ from 'lodash';
+import DataTable from '@/components/DataTable.vue';
+import PaginationControls from '@/components/TE/PaginationControls.vue';
+import TaskDefinition from '@/components/TE/TaskDefinition.vue';
+import TaskOutput from '@/components/TE/Output.vue';
+import Resolution from '@/components/TE/Resolution.vue';
+import DateGiven from '@/components/DataTable/TimestampGiven.vue';
+import Assignee from '@/components/Assignee.vue';
+import TaskMixin from '@/components/TE/TaskMixin';
+import firebase from 'firebase/app';
+import 'firebase/database';
+import 'firebase/functions';
 
 @Component({
-  name: "Tasks",
+  name: 'Tasks',
   components: {
     TaskOutput,
     PaginationControls,
@@ -98,16 +98,16 @@ import "firebase/functions";
     Resolution,
     Assignee,
   },
-  title: "Track Editing Tasks",
+  title: 'Track Editing Tasks',
 })
 export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   headers = [
-    { text: "Task ID", value: ".key", sortable: false },
-    { text: "Status", value: "status", sortable: false },
-    { text: "Date Given", value: "timestampGiven", sortable: false },
-    { text: "Assignee", value: "assignee", sortable: false },
-    { text: "Output", value: "output", sortable: false },
-    { text: "Resolution", value: "resolution", sortable: false },
+    { text: 'Task ID', value: '.key', sortable: false },
+    { text: 'Status', value: 'status', sortable: false },
+    { text: 'Date Given', value: 'timestampGiven', sortable: false },
+    { text: 'Assignee', value: 'assignee', sortable: false },
+    { text: 'Output', value: 'output', sortable: false },
+    { text: 'Resolution', value: 'resolution', sortable: false },
   ];
 
   pagination = {
@@ -124,13 +124,13 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   lastPageNumber: number = 0;
   flattenedPages: any[] = [];
 
-  itemsKey = "flattenedPages";
-  itemComparePath = ".key";
+  itemsKey = 'flattenedPages';
+  itemComparePath = '.key';
 
   classes = {
-    ".key": {
-      "font-weight-bold": true,
-      "text-no-wrap": true,
+    '.key': {
+      'font-weight-bold': true,
+      'text-no-wrap': true,
     },
   };
 
@@ -139,19 +139,19 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   }
 
   onRowClicked(item: any) {
-    this.$router.push(`/te/tasks/${item[".key"]}`);
+    this.$router.push(`/te/tasks/${item['.key']}`);
   }
 
   private paginationHandler() {
     const entries = [...this.currentPage];
     const isLastPage = entries.length < this.pagination.itemsPerPage;
-    const id = !isLastPage ? entries.splice(0, 1)[0][".key"] : "__lastPage__";
+    const id = !isLastPage ? entries.splice(0, 1)[0]['.key'] : '__lastPage__';
     if (isLastPage) {
       this.lastPageNumber = this.pagination.page;
     }
     const reversedEntries = entries.reverse();
     this.$set(this.pages, id, reversedEntries);
-    this.$set(this.datatableProps, "loading", false);
+    this.$set(this.datatableProps, 'loading', false);
     this.flattenedPages = [...this.flattenedPages, ...reversedEntries];
   }
 
@@ -165,13 +165,13 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   }
 
   handlePreviousPage() {
-    const currentPage = _.get(this.pagination, "page", 1);
+    const currentPage = _.get(this.pagination, 'page', 1);
     if (currentPage < 2) return;
     this.pagination.page -= 1;
   }
 
   handleNextPage() {
-    const nextPage = _.get(this.pagination, "page", 0) + 1;
+    const nextPage = _.get(this.pagination, 'page', 0) + 1;
     const pageKeys = Object.keys(this.pages);
     this.datatableProps.loading = true;
     if (!pageKeys[nextPage - 1]) {
@@ -183,14 +183,14 @@ export default class Tasks extends Mixins<TaskMixin>(TaskMixin) {
   }
 
   async loadNewPage(page: number) {
-    let query: any = firebase.database().ref("/TE/tasks").orderByKey();
+    let query: any = firebase.database().ref('/TE/tasks').orderByKey();
     const pageKeys = Object.keys(this.pages);
     if (pageKeys.length > 0) {
       query = query.endAt(_.last(pageKeys));
     }
-    this.$set(this.datatableProps, "loading", true);
+    this.$set(this.datatableProps, 'loading', true);
     await this.$rtdbBind(
-      "currentPage",
+      'currentPage',
       query.limitToLast(this.pagination.itemsPerPage + 1)
     );
     this.pagination.page = page;

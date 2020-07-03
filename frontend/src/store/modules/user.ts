@@ -2,13 +2,13 @@
  * sri sri guru gauranga jayatah
  */
 
-import { router } from "@/router";
-import firebase from "firebase/app";
-import "firebase/auth";
-import { ActionContext } from "vuex";
-import _ from "lodash";
-import { Ability } from "@casl/ability";
-import { defineAbilities } from "@/abilities";
+import { defineAbilities } from '@/abilities';
+import { router } from '@/router';
+import { Ability } from '@casl/ability';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import _ from 'lodash';
+import { ActionContext } from 'vuex';
 
 export default {
   namespaced: true,
@@ -20,7 +20,7 @@ export default {
     isSignedIn: (state: any) => state.currentUser !== null,
     hasRole: (state: any) => (roles: string | string[]) => {
       if (!state.roles) return false;
-      if (typeof roles === "string") {
+      if (typeof roles === 'string') {
         return _.get(state.roles, roles);
       }
       return roles.some((role) => _.get(state.roles, role));
@@ -28,7 +28,7 @@ export default {
     ability: () => {
       return new Ability([], {
         subjectName(subject) {
-          if (!subject || typeof subject === "string") return subject;
+          if (!subject || typeof subject === 'string') return subject;
 
           return subject.modelName;
         },
@@ -41,7 +41,7 @@ export default {
       if (!user) {
         router
           .push({
-            path: "/login",
+            path: '/login',
             query: { redirect: router.currentRoute.fullPath },
           })
           .catch(() => {
@@ -61,21 +61,21 @@ export default {
       { commit, dispatch }: ActionContext<any, any>,
       user: firebase.User | null
     ) {
-      commit("setCurrentUser", user);
+      commit('setCurrentUser', user);
       if (user) {
         await dispatch(
-          "updateUserRoles",
+          'updateUserRoles',
           (await user.getIdTokenResult()).claims.roles
         );
       } else {
-        await dispatch("updateUserRoles", null);
+        await dispatch('updateUserRoles', null);
       }
     },
     updateUserRoles(
       { commit, getters }: ActionContext<any, any>,
       roles: { [key: string]: any } | null
     ) {
-      commit("setUserRoles", roles);
+      commit('setUserRoles', roles);
       getters.ability.update(defineAbilities());
     },
   },

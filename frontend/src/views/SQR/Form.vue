@@ -109,17 +109,17 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import _ from "lodash";
-import moment from "moment";
-import "moment-timezone/builds/moment-timezone-with-data-10-year-range.min.js";
-import firebase from "firebase/app";
-import "firebase/database";
-import "firebase/functions";
-import Fields from "@/components/SQRForm/Fields.vue";
-import CancelListItem from "@/components/SQRForm/CancelListItem.vue";
-import { updateObject, removeObjectKey, getPathAndKey } from "@/utility";
-import { required } from "@/validation";
+import { Component, Vue } from 'vue-property-decorator';
+import _ from 'lodash';
+import moment from 'moment';
+import 'moment-timezone/builds/moment-timezone-with-data-10-year-range.min.js';
+import firebase from 'firebase/app';
+import 'firebase/database';
+import 'firebase/functions';
+import Fields from '@/components/SQRForm/Fields.vue';
+import CancelListItem from '@/components/SQRForm/CancelListItem.vue';
+import { updateObject, removeObjectKey, getPathAndKey } from '@/utility';
+import { required } from '@/validation';
 
 enum FormState {
   SAVING = 0,
@@ -131,66 +131,66 @@ enum FormState {
 }
 
 enum SubmissionsBranch {
-  COMPLETED = "completed",
-  DRAFTS = "drafts",
-  MIGRATED = "migrated",
+  COMPLETED = 'completed',
+  DRAFTS = 'drafts',
+  MIGRATED = 'migrated',
 }
 
 @Component({
-  name: "Form",
+  name: 'Form',
   components: { Fields, CancelListItem },
   title: ({ $route }) => `Sound Quality Report for ${$route.params.fileName}`,
 })
 export default class Form extends Vue {
   cancelFields = [
     {
-      header: "CLICK HERE if you are unable to play or download the audio",
+      header: 'CLICK HERE if you are unable to play or download the audio',
       label: "I'm unable to play or download the audio",
       placeholder:
-        "Please describe the problem here, we will allot you new lectures shortly",
-      reason: "unable to play",
+        'Please describe the problem here, we will allot you new lectures shortly',
+      reason: 'unable to play',
       styles: {
-        backgroundColor: "#fcf8e3",
-        color: "#8a6d3b",
-        border: "solid .2rem #faebcc",
-        whiteSpace: "none",
-        width: "100%",
+        backgroundColor: '#fcf8e3',
+        color: '#8a6d3b',
+        border: 'solid .2rem #faebcc',
+        whiteSpace: 'none',
+        width: '100%',
       },
     },
     {
       header:
-        "CLICK HERE if the allotted lecture is not in your preferred language",
-      label: "The alloted lecture is not in my preferred language",
+        'CLICK HERE if the allotted lecture is not in your preferred language',
+      label: 'The alloted lecture is not in my preferred language',
       placeholder:
-        "Please let us know which language it is in here, we will allot you new lectures shortly.",
-      reason: "not in my preferred language",
+        'Please let us know which language it is in here, we will allot you new lectures shortly.',
+      reason: 'not in my preferred language',
       styles: {
-        backgroundColor: "#d9edf7",
-        color: "#31708f",
-        border: "solid .2rem #bce8f1",
-        whiteSpace: "none",
-        width: "100%",
+        backgroundColor: '#d9edf7',
+        color: '#31708f',
+        border: 'solid .2rem #bce8f1',
+        whiteSpace: 'none',
+        width: '100%',
       },
     },
   ];
   cancel: number | null = null;
-  cancelComment = "";
+  cancelComment = '';
   cancelCheck = {};
   form: { [key: string]: any } = {};
   guidelines: any = {};
   isLoadingForm = true;
   cancelComplete = false;
   formStateMessages = {
-    [FormState.SAVING]: "Saving...",
-    [FormState.SUBMITTING]: "Submitting...",
-    [FormState.UNSAVED_CHANGES]: "Unsaved changes",
-    [FormState.INITIAL_LOAD]: "",
-    [FormState.SAVED]: "All changes saved",
-    [FormState.ERROR]: "Permission denied",
+    [FormState.SAVING]: 'Saving...',
+    [FormState.SUBMITTING]: 'Submitting...',
+    [FormState.UNSAVED_CHANGES]: 'Unsaved changes',
+    [FormState.INITIAL_LOAD]: '',
+    [FormState.SAVED]: 'All changes saved',
+    [FormState.ERROR]: 'Permission denied',
   };
   formStateMessagesColor: { [key: string]: string } = {
-    [FormState.UNSAVED_CHANGES]: "red",
-    [FormState.ERROR]: "red",
+    [FormState.UNSAVED_CHANGES]: 'red',
+    [FormState.ERROR]: 'red',
   };
   formState = FormState.INITIAL_LOAD;
   initialData!: {
@@ -203,17 +203,17 @@ export default class Form extends Vue {
   };
   submitSuccess = false;
   formHasError = false;
-  errorMessage = "";
+  errorMessage = '';
   showValidationSummary = false;
   rules = [required];
   destroyFormErrorWatch!: any;
   branch: SubmissionsBranch | null = null;
   isMarkedDone!: boolean;
-  finalizedSubmissionError = "";
+  finalizedSubmissionError = '';
 
   handleListClick(cancelField: number) {
     this.cancelCheck = {};
-    this.cancelComment = "";
+    this.cancelComment = '';
     this.cancel = this.cancel === cancelField ? null : cancelField;
   }
 
@@ -262,23 +262,23 @@ export default class Form extends Vue {
       await firebase
         .database()
         .ref(`SQR/allotments`)
-        .orderByChild("token")
+        .orderByChild('token')
         .equalTo(token)
-        .once("value")
+        .once('value')
     ).val();
-    const allotmentStatus = _.get<string>(response, `${fileName}.status`, "");
-    this.isMarkedDone = allotmentStatus.toLowerCase() === "done";
+    const allotmentStatus = _.get<string>(response, `${fileName}.status`, '');
+    this.isMarkedDone = allotmentStatus.toLowerCase() === 'done';
     if (!allotmentStatus) {
       this.errorMessage =
-        "This allotment is not valid, please contact coordinator.";
+        'This allotment is not valid, please contact coordinator.';
     } else if (
-      this.$ability.cannot("submit", {
+      this.$ability.cannot('submit', {
         modelName: this.$subjects.SQR.form,
         isMarkedDone: this.isMarkedDone,
       })
     ) {
       this.finalizedSubmissionError =
-        "This submission is finalized and cannot be updated, please contact the coordinator.";
+        'This submission is finalized and cannot be updated, please contact the coordinator.';
     }
     if (this.errorMessage) this.isLoadingForm = false;
   }
@@ -293,7 +293,7 @@ export default class Form extends Vue {
       return;
     }
 
-    const [updateFieldPath] = field.split(".");
+    const [updateFieldPath] = field.split('.');
     await firebase
       .database()
       .ref(
@@ -318,7 +318,7 @@ export default class Form extends Vue {
     }
     window.onbeforeunload = () => {
       if (this.formState === FormState.UNSAVED_CHANGES) {
-        return "Changes are not saved!";
+        return 'Changes are not saved!';
       }
       return;
     };
@@ -327,11 +327,11 @@ export default class Form extends Vue {
   async getSavedData(branch: SubmissionsBranch = SubmissionsBranch.COMPLETED) {
     try {
       await this.$rtdbBind(
-        "initialData",
+        'initialData',
         firebase.database().ref(this.submissionPath(branch))
       );
       if (
-        this.initialData[".value"] !== null ||
+        this.initialData['.value'] !== null ||
         branch === SubmissionsBranch.DRAFTS
       ) {
         this.branch = branch;
@@ -345,7 +345,7 @@ export default class Form extends Vue {
       }
     } catch (e) {
       this.isLoadingForm = false;
-      this.errorMessage = "Error loading form data.";
+      this.errorMessage = 'Error loading form data.';
     }
   }
 
@@ -366,17 +366,17 @@ export default class Form extends Vue {
       unwantedParts: this.addId([{}]),
       soundIssues: this.addId([{}]),
     };
-    if (this.initialData[".value"] !== null) {
-      const { [".key"]: token, ...initialData } = this.initialData;
+    if (this.initialData['.value'] !== null) {
+      const { ['.key']: token, ...initialData } = this.initialData;
       if (initialData.changed || initialData.completed) {
         this.formStateMessages[FormState.INITIAL_LOAD] = `${
-          initialData.completed ? "Form was submitted" : "Last edit was"
+          initialData.completed ? 'Form was submitted' : 'Last edit was'
         } on ${(moment as any)
           .tz(
-            initialData[initialData.completed ? "completed" : "changed"],
+            initialData[initialData.completed ? 'completed' : 'changed'],
             (moment as any).tz.guess()
           )
-          .format("MM/DD/YYYY [at] h:mm a")}`;
+          .format('MM/DD/YYYY [at] h:mm a')}`;
       }
       if (initialData.unwantedParts) {
         initialData.unwantedParts = this.addId(initialData.unwantedParts);
@@ -405,7 +405,7 @@ export default class Form extends Vue {
       let showSuccess = true;
       await firebase
         .functions()
-        .httpsCallable("SQR-cancelAllotment")({
+        .httpsCallable('SQR-cancelAllotment')({
           fileName,
           token,
           comments: this.cancelComment,
@@ -414,7 +414,7 @@ export default class Form extends Vue {
         })
         .catch((e) => {
           showSuccess = false;
-          this.errorMessage = e.message || "Error cancelling form.";
+          this.errorMessage = e.message || 'Error cancelling form.';
         });
       if (!showSuccess) return;
       this.cancelComplete = true;
@@ -426,8 +426,8 @@ export default class Form extends Vue {
       .database()
       .ref(this.submissionPath(sqrSubmissionBranch))
       .update(data)
-      .catch(() => "error");
-    if (response === "error") this.formState = FormState.ERROR;
+      .catch(() => 'error');
+    if (response === 'error') this.formState = FormState.ERROR;
     return response;
   }
 
@@ -436,17 +436,17 @@ export default class Form extends Vue {
     const data = this.formData;
     this.formState = FormState.SAVING;
     const response = await this.saveFormData(data, SubmissionsBranch.DRAFTS);
-    if (response !== "error") this.formState = FormState.SAVED;
+    if (response !== 'error') this.formState = FormState.SAVED;
     // check for first time created
     if (this.form.created) return;
     const newFormData = (
       await firebase
         .database()
         .ref(`${this.submissionPath(SubmissionsBranch.DRAFTS)}`)
-        .once("value")
+        .once('value')
     ).val();
     if (newFormData.created) {
-      this.$set(this.form, "created", newFormData.created);
+      this.$set(this.form, 'created', newFormData.created);
     }
   }
 
@@ -461,7 +461,7 @@ export default class Form extends Vue {
     data.completed =
       this.form.completed || firebase.database.ServerValue.TIMESTAMP;
     const response = await this.saveFormData(data, SubmissionsBranch.COMPLETED);
-    if (response === "error") return;
+    if (response === 'error') return;
     if (this.branch === SubmissionsBranch.DRAFTS) {
       firebase.database().ref(this.submissionPath(this.branch)).remove();
     }
@@ -506,7 +506,7 @@ export default class Form extends Vue {
 
   get formStateMessageColor() {
     const color = this.formStateMessagesColor[this.formState];
-    return color ? color : "#000";
+    return color ? color : '#000';
   }
 
   get isCancelChecked() {

@@ -30,11 +30,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import _ from "lodash";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import _ from 'lodash';
 
 @Component({
-  name: "InlineRolesEdit",
+  name: 'InlineRolesEdit',
 })
 export default class InlineRolesEdit extends Vue {
   @Prop() item!: any;
@@ -46,7 +46,7 @@ export default class InlineRolesEdit extends Vue {
 
     //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
-    path["itemPath"] = `${this.value}/${role}`;
+    path['itemPath'] = `${this.value}/${role}`;
 
     const updatedRoles = { ...item.roles };
     const addedRole = !!e;
@@ -55,8 +55,8 @@ export default class InlineRolesEdit extends Vue {
     } else {
       delete updatedRoles[role];
     }
-    this.$emit("save", item, path, addedRole === true ? addedRole : null, {
-      itemPath: "roles",
+    this.$emit('save', item, path, addedRole === true ? addedRole : null, {
+      itemPath: 'roles',
       newValue: updatedRoles,
     });
   }

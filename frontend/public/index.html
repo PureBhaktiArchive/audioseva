@@ -37,19 +37,21 @@
           </div>
         </div>
         <script>
-        function getRandomQuote(quotes) {
-          return quotes[Math.floor(Math.random() * quotes.length)];
-        }
+          function getRandomQuote(quotes) {
+            return quotes[Math.floor(Math.random() * quotes.length)];
+          }
 
-        function showQuote(quote) {
-          document.querySelector(".quote").appendChild(document.createTextNode(quote))
-        }
-        const quotes = localStorage.getItem("quotes");
-        if (quotes) {
-          showQuote(getRandomQuote(JSON.parse(quotes)));
-        } else {
-          showQuote("I am closer to you than the air you breathe.");
-        }
+          function showQuote(quote) {
+            document
+              .querySelector('.quote')
+              .appendChild(document.createTextNode(quote));
+          }
+          const quotes = localStorage.getItem('quotes');
+          if (quotes) {
+            showQuote(getRandomQuote(JSON.parse(quotes)));
+          } else {
+            showQuote('I am closer to you than the air you breathe.');
+          }
         </script>
       </div>
     </div>

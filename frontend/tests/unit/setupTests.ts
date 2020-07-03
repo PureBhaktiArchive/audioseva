@@ -1,7 +1,7 @@
-import Vue from "vue";
-import Vuetify from "vuetify";
+import Vue from 'vue';
+import Vuetify from 'vuetify';
 
-jest.mock("firebase/app", () => ({
+jest.mock('firebase/app', () => ({
   auth: jest.fn(() => ({
     currentUser: {
       getIdTokenResult: async () => {

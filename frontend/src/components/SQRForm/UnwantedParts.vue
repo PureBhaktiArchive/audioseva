@@ -71,15 +71,15 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins } from "vue-property-decorator";
-import TextField from "@/components/Inputs/TextField.vue";
-import TextArea from "@/components/Inputs/TextArea.vue";
-import DeleteButton from "@/components/SQRForm/DeleteButton.vue";
-import SoundIssuesMixin from "@/components/SQRForm/SoundIssuesMixin";
-import SoundTypeRadioGroup from "@/components/SQRForm/SoundTypeRadioGroup.vue";
+import { Component, Mixins } from 'vue-property-decorator';
+import TextField from '@/components/Inputs/TextField.vue';
+import TextArea from '@/components/Inputs/TextArea.vue';
+import DeleteButton from '@/components/SQRForm/DeleteButton.vue';
+import SoundIssuesMixin from '@/components/SQRForm/SoundIssuesMixin';
+import SoundTypeRadioGroup from '@/components/SQRForm/SoundTypeRadioGroup.vue';
 
 @Component({
-  name: "UnwantedParts",
+  name: 'UnwantedParts',
   components: {
     TextField,
     TextArea,
@@ -90,7 +90,7 @@ import SoundTypeRadioGroup from "@/components/SQRForm/SoundTypeRadioGroup.vue";
 export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
   SoundIssuesMixin
 ) {
-  updatePath = "unwantedParts";
+  updatePath = 'unwantedParts';
 
   formProps = {
     updateForm: this.updateForm,
@@ -105,10 +105,10 @@ export default class UnwantedParts extends Mixins<SoundIssuesMixin>(
         props: {
           ...this.componentData.type.props,
           fields: [
-            { label: "Blank space", value: "blank space" },
-            { label: "Glitch", value: "glitch" },
-            { label: "Irrelevant part", value: "irrelevant" },
-            { label: "Other...", value: "other" },
+            { label: 'Blank space', value: 'blank space' },
+            { label: 'Glitch', value: 'glitch' },
+            { label: 'Irrelevant part', value: 'irrelevant' },
+            { label: 'Other...', value: 'other' },
           ],
         },
       },

@@ -25,10 +25,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component({
-  name: "PaginationControls",
+  name: 'PaginationControls',
 })
 export default class PaginationControls extends Vue {
   @Prop() pagination!: { [key: string]: any };
@@ -36,13 +36,13 @@ export default class PaginationControls extends Vue {
   @Prop() value!: number;
 
   handlePageSizeChange(e: any) {
-    this.$emit("input", e);
+    this.$emit('input', e);
   }
   handlePreviousPage(e: any) {
-    this.$emit("previousPage", e);
+    this.$emit('previousPage', e);
   }
   handleNextPage(e: any) {
-    this.$emit("nextPage", e);
+    this.$emit('nextPage', e);
   }
 }
 </script>

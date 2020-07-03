@@ -3,8 +3,8 @@
 </template>
 
 <script>
-import firebase from "firebase/app";
-import "firebase/database";
+import firebase from 'firebase/app';
+import 'firebase/database';
 export default {
   data() {
     return {
@@ -16,9 +16,9 @@ export default {
   },
   methods: {
     async getQuotes() {
-      await this.$rtdbBind("quotes", firebase.database().ref("quotes"));
+      await this.$rtdbBind('quotes', firebase.database().ref('quotes'));
       localStorage.setItem(
-        "quotes",
+        'quotes',
         JSON.stringify(this.quotes.map((quote) => quote.text))
       );
     },

@@ -6,10 +6,9 @@ import * as admin from 'firebase-admin';
 import _ = require('lodash');
 
 export const copyCompletedSubmissionsToMigratedBranch = async () => {
-  const existingSubmissions = (await admin
-    .database()
-    .ref('/submissions/SQR')
-    .once('value')).val();
+  const existingSubmissions = (
+    await admin.database().ref('/submissions/SQR').once('value')
+  ).val();
 
   await admin
     .database()
