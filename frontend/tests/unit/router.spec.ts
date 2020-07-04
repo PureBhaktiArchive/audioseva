@@ -4,7 +4,7 @@ import { mockClaims } from './helpers';
 
 describe('redirectSections', () => {
   let to: any;
-  let from: any = {};
+  const from: any = {};
   let next: any;
 
   beforeEach(() => {
@@ -33,7 +33,7 @@ describe('redirectSections', () => {
 
 describe('checkAuth', () => {
   let to: any;
-  let from: any = {};
+  const from: any = {};
   let next: any;
   let handleClaims: any;
 
