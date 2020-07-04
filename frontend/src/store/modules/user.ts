@@ -66,6 +66,7 @@ export default {
     signOut() {
       firebase.auth().signOut();
     },
+
     async handleAuthStateChanged(
       { dispatch, commit, state, getters }: ActionContext<any, any>,
       user: firebase.User | null
@@ -83,20 +84,21 @@ export default {
         return;
       }
 
-      commit(
-        'setMetadataCallback',
-        (snapshot: firebase.database.DataSnapshot) => {
-          const currentTimestamp = state.metadataTimestamp;
-          const newTimestamp = snapshot.val();
-          commit('setMetadataTimestamp', newTimestamp);
-          if (currentTimestamp && currentTimestamp > newTimestamp) {
-            return;
-          }
-          dispatch('updateUserRoles', { forceRefresh: true });
+      const metadataCallback = (snapshot: firebase.database.DataSnapshot) => {
+        const currentTimestamp = state.metadataTimestamp;
+        const newTimestamp = snapshot.val();
+        commit('setMetadataTimestamp', newTimestamp);
+        if (currentTimestamp && currentTimestamp > newTimestamp) {
+          return;
         }
-      );
-      getters.metadataRef.on('value', state.metadataCallback);
+        dispatch('updateUserRoles', { forceRefresh: true });
+      };
+      commit('setMetadataCallback', metadataCallback);
+      // After setting the callback, it will be called once initially.
+      // So, there is no need to explicitly update roles here.
+      getters.metadataRef.on('value', metadataCallback);
     },
+
     async updateUserRoles(
       { commit, getters, state }: ActionContext<any, any>,
       { forceRefresh = false } = {}

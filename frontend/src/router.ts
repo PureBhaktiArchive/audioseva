@@ -277,8 +277,8 @@ export const redirectSections: NavigationGuard = async (to, from, next) => {
 router.beforeEach(async (to, from, next) => {
   // Make sure roles exist before "checkAuth" is run
   // This prevents "checkAuth" from redirecting to home page falsely
-  if (store.getters["user/isSignedIn"] && from.name === null) {
-    await store.dispatch("user/updateUserRoles");
+  if (store.getters['user/isSignedIn'] && from.name === null) {
+    await store.dispatch('user/updateUserRoles');
   }
   next();
 });

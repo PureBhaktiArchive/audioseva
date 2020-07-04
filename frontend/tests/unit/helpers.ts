@@ -5,14 +5,14 @@ const setUserAndRoles = async (
   roles?: { [key: string]: any } | null
 ) => {
   store.commit(
-    "user/setCurrentUser",
+    'user/setCurrentUser',
     user
       ? {
-          getIdTokenResult: () => ({ claims: { roles } })
+          getIdTokenResult: () => ({ claims: { roles } }),
         }
       : null
   );
-  await store.dispatch("user/updateUserRoles");
+  await store.dispatch('user/updateUserRoles');
 };
 
 export const mockClaims = async (roles?: { [key: string]: any }) => {
