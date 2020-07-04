@@ -1,12 +1,12 @@
-import Vue from "vue";
-import { mount, createLocalVue } from "@vue/test-utils";
-import Vuetify from "vuetify";
-import vuetifyOptions from "@/vuetifyOptions";
-import CancelListItem from "@/components/SQRForm/CancelListItem.vue";
+import CancelListItem from '@/components/SQRForm/CancelListItem.vue';
+import vuetifyOptions from '@/vuetifyOptions';
+import { createLocalVue, mount } from '@vue/test-utils';
+import Vue from 'vue';
+import Vuetify from 'vuetify';
 
 const localVue = createLocalVue();
 
-describe("SQRFormCancelListItem", () => {
+describe('SQRFormCancelListItem', () => {
   let vuetify: typeof Vuetify;
   let propsData: { [key: string]: any };
 
@@ -19,64 +19,64 @@ describe("SQRFormCancelListItem", () => {
     });
 
   const clickListItem = (wrapper: any) => {
-    wrapper.find("[role='button']").trigger("click");
+    wrapper.find("[role='button']").trigger('click');
     return Vue.nextTick();
   };
 
   beforeEach(() => {
     vuetify = new Vuetify(vuetifyOptions);
     propsData = {
-      header: "CLICK HERE if you are unable to play or download the audio",
+      header: 'CLICK HERE if you are unable to play or download the audio',
       label: "I'm unable to play or download the audio",
       placeholder:
-        "Please describe the problem here, we will allot you new lectures shortly",
+        'Please describe the problem here, we will allot you new lectures shortly',
       styles: {
-        backgroundColor: "#fcf8e3",
-        color: "#8a6d3b",
-        border: "solid .2rem #faebcc",
-        whiteSpace: "none",
-        width: "100%",
+        backgroundColor: '#fcf8e3',
+        color: '#8a6d3b',
+        border: 'solid .2rem #faebcc',
+        whiteSpace: 'none',
+        width: '100%',
       },
       selected: false,
     };
   });
 
-  it("should render", () => {
+  it('should render', () => {
     const wrapper = getWrapper();
     expect(wrapper.html()).toMatchSnapshot();
   });
 
-  it("should emit click on list-group click", () => {
+  it('should emit click on list-group click', () => {
     const wrapper = getWrapper();
     clickListItem(wrapper);
     expect(wrapper.emitted().click).toBeTruthy();
   });
 
-  it("should emit update:selected on checkbox selected", async () => {
+  it('should emit update:selected on checkbox selected', async () => {
     const wrapper = getWrapper();
     await clickListItem(wrapper);
     wrapper.find("input[type='checkbox']").setChecked();
-    expect(wrapper.emitted()["update:selected"]).toBeTruthy();
+    expect(wrapper.emitted()['update:selected']).toBeTruthy();
   });
 
-  it("should show cancel inputs when checkbox is selected", async () => {
+  it('should show cancel inputs when checkbox is selected', async () => {
     const wrapper = getWrapper();
     await clickListItem(wrapper);
-    expect(wrapper.find("textarea").exists()).toBe(false);
-    expect(wrapper.find("button").exists()).toBe(false);
+    expect(wrapper.find('textarea').exists()).toBe(false);
+    expect(wrapper.find('button').exists()).toBe(false);
     wrapper.setProps({ selected: true });
     await Vue.nextTick();
-    expect(wrapper.find("textarea").exists()).toBe(true);
-    expect(wrapper.find("button").exists()).toBe(true);
+    expect(wrapper.find('textarea').exists()).toBe(true);
+    expect(wrapper.find('button').exists()).toBe(true);
   });
 
-  it("should emit input event on textarea input", async () => {
+  it('should emit input event on textarea input', async () => {
     const wrapper = getWrapper();
     await clickListItem(wrapper);
     wrapper.setProps({ selected: true });
     await Vue.nextTick();
-    wrapper.find("textarea").setValue("new text");
+    wrapper.find('textarea').setValue('new text');
     // @ts-ignore
-    expect(wrapper.emitted().input[0][0]).toEqual("new text");
+    expect(wrapper.emitted().input[0][0]).toEqual('new text');
   });
 });

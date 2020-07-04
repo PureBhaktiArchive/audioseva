@@ -1,7 +1,7 @@
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component({
-  name: "MenuLinks",
+  name: 'MenuLinks',
 })
 export default class MenuLinks extends Vue {
   @Prop() parentRoute!: any;
@@ -10,7 +10,7 @@ export default class MenuLinks extends Vue {
   getMenuLink({ meta, path }: any) {
     if (meta && meta.menuLinkName) return meta.menuLinkName;
 
-    return path === "" ? "List" : `${path[0].toUpperCase()}${path.slice(1)}`;
+    return path === '' ? 'List' : `${path[0].toUpperCase()}${path.slice(1)}`;
   }
 
   renderMenuLinks(
@@ -20,9 +20,9 @@ export default class MenuLinks extends Vue {
     subGroup: boolean,
     fullPath: string
   ) {
-    const id = `${fullPath || ""}-${index}-${route.path}`;
+    const id = `${fullPath || ''}-${index}-${route.path}`;
     return createElement(
-      "v-list-group",
+      'v-list-group',
       {
         props: {
           noAction: true,
@@ -43,13 +43,13 @@ export default class MenuLinks extends Vue {
 
   static renderActivator(createElement: any, item: any) {
     return createElement(
-      "v-list-item",
+      'v-list-item',
       {
-        slot: "activator",
+        slot: 'activator',
       },
       [
-        createElement("v-list-item-content", [
-          createElement("v-list-item-title", item.meta.activatorName),
+        createElement('v-list-item-content', [
+          createElement('v-list-item-title', item.meta.activatorName),
         ]),
       ]
     );
@@ -72,18 +72,18 @@ export default class MenuLinks extends Vue {
       }
       if (route.meta.menuItem) {
         return createElement(
-          "v-list-item",
+          'v-list-item',
           {
             props: {
-              to: `/${fullPath}${route.path ? `/${route.path}` : ""}`,
+              to: `/${fullPath}${route.path ? `/${route.path}` : ''}`,
               exact: true,
               link: true,
             },
             key: `menu-link-${index}-${fullPath}${
-              route.path ? `/${route.path}` : ""
+              route.path ? `/${route.path}` : ''
             }`,
           },
-          [createElement("v-list-item-title", this.getMenuLink(route))]
+          [createElement('v-list-item-title', this.getMenuLink(route))]
         );
       }
     });
@@ -91,14 +91,14 @@ export default class MenuLinks extends Vue {
 
   renderMenuIcon(createElement: any) {
     return createElement(
-      "v-icon",
+      'v-icon',
       {
-        slot: "prependIcon",
+        slot: 'prependIcon',
         props: {
           color:
-            this.activeClass === "inactive-menu"
-              ? "rgba(0,0,0,.54)"
-              : "inherit",
+            this.activeClass === 'inactive-menu'
+              ? 'rgba(0,0,0,.54)'
+              : 'inherit',
         },
       },
       this.parentRoute.meta.menuIcon
@@ -108,8 +108,8 @@ export default class MenuLinks extends Vue {
   renderTopLevelActivators(createElement: any) {
     return [
       createElement(
-        "v-list-item-title",
-        { slot: "activator" },
+        'v-list-item-title',
+        { slot: 'activator' },
         this.parentRoute.meta.activatorName
       ),
       this.renderMenuIcon(createElement),
@@ -123,7 +123,7 @@ export default class MenuLinks extends Vue {
 
   render(createElement: any) {
     return createElement(
-      "v-list-group",
+      'v-list-group',
       {
         props: {
           noAction: true,

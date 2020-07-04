@@ -85,8 +85,8 @@
                       <code slot="label">{{ file.filename }}</code>
                     </v-checkbox>
                     <span
-                      >{{ file.date || "No date" }}
-                      {{ file.language || "No language" }}
+                      >{{ file.date || 'No date' }}
+                      {{ file.language || 'No language' }}
                       {{ file.notes }}</span
                     >
                   </v-col>
@@ -136,20 +136,20 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Watch } from "vue-property-decorator";
-import "firebase/functions";
-import _ from "lodash";
+import { Component, Mixins, Watch } from 'vue-property-decorator';
+import 'firebase/functions';
+import _ from 'lodash';
 
-import ErrorMessages from "@/mixins/ErrorMessages";
-import { initialAllotment, initialAllotmentFilter } from "@/utility";
+import ErrorMessages from '@/mixins/ErrorMessages';
+import { initialAllotment, initialAllotmentFilter } from '@/utility';
 
 @Component({
-  name: "CRAllotment",
-  title: "Content Reporting",
+  name: 'CRAllotment',
+  title: 'Content Reporting',
 })
 export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
   assignees: any = null;
-  languages: string[] = ["English", "Hindi", "Bengali", "None"];
+  languages: string[] = ['English', 'Hindi', 'Bengali', 'None'];
   lists = null;
   files: any = null;
   filter = initialAllotmentFilter();
@@ -188,12 +188,12 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
   }
 
   get assigneeHint() {
-    const languages = _.get(this.allotment, "assignee.languages", []);
-    const hint = languages.join(", ");
-    return hint ? `Languages: ${hint}` : "";
+    const languages = _.get(this.allotment, 'assignee.languages', []);
+    const hint = languages.join(', ');
+    return hint ? `Languages: ${hint}` : '';
   }
 
-  @Watch("allotment.assignee")
+  @Watch('allotment.assignee')
   handleAllotmentAssignee(newValue: any) {
     if (newValue === null) return;
 
@@ -213,23 +213,23 @@ export default class CRAllotment extends Mixins<ErrorMessages>(ErrorMessages) {
     this.files = spareFiles.data;
   }, 1000);
 
-  @Watch("filter", { deep: true })
+  @Watch('filter', { deep: true })
   handleFilter() {
     this.debouncedFilter();
   }
 
   async allot() {
-    this.submissionStatus = "inProgress";
+    this.submissionStatus = 'inProgress';
     try {
       await this.$http.post(
         process.env.VUE_APP_CR_ALLOT_URL as string,
         this.allotment
       );
       this.errors = {};
-      this.submissionStatus = "complete";
+      this.submissionStatus = 'complete';
     } catch (error) {
-      this.addErrorMessage("processAllotment")(error);
-      this.submissionStatus = "error";
+      this.addErrorMessage('processAllotment')(error);
+      this.submissionStatus = 'error';
     }
   }
 

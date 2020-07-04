@@ -11,14 +11,14 @@
 @brand-info: rgb(91, 192, 222);
 @brand-warning: rgb(240, 173, 78);
 @brand-danger: rgb(217, 83, 79);
-@body-bg: #F7F5F4;
+@body-bg: #f7f5f4;
 @text-color: @gray-dark;
 @link-color: @brand-primary;
 @link-hover-color: darken(@link-color, 15%);
 @link-hover-decoration: none;
 @font-family-sans-serif: Verdana, sans-serif;
-@font-family-serif: Georgia, "Times New Roman", Times, serif;
-@font-family-monospace: Menlo, Monaco, Consolas, "Courier New", monospace;
+@font-family-serif: Georgia, 'Times New Roman', Times, serif;
+@font-family-monospace: Menlo, Monaco, Consolas, 'Courier New', monospace;
 @font-family-base: @font-family-sans-serif;
 @font-size-base: 12pt;
 @font-size-large: ceil((@font-size-base * 1.25));
@@ -35,9 +35,9 @@
 @headings-font-weight: 500;
 @headings-line-height: 1.1;
 @headings-color: #880000;
-@icon-font-path: "../fonts/";
-@icon-font-name: "glyphicons-halflings-regular";
-@icon-font-svg-id: "glyphicons_halflingsregular";
+@icon-font-path: '../fonts/';
+@icon-font-name: 'glyphicons-halflings-regular';
+@icon-font-svg-id: 'glyphicons_halflingsregular';
 @padding-base-vertical: 6px;
 @padding-base-horizontal: 12px;
 @padding-large-vertical: 10px;
@@ -95,8 +95,14 @@
 @input-border-focus: rgb(102, 175, 233);
 @input-color-placeholder: rgb(153, 153, 153);
 @input-height-base: (@line-height-computed + (@padding-base-vertical * 2) + 2);
-@input-height-large: (ceil(@font-size-large * @line-height-large) + (@padding-large-vertical * 2) + 2);
-@input-height-small: (floor(@font-size-small * @line-height-small) + (@padding-small-vertical * 2) + 2);
+@input-height-large: (
+  ceil(@font-size-large * @line-height-large) + (@padding-large-vertical * 2) +
+    2
+);
+@input-height-small: (
+  floor(@font-size-small * @line-height-small) + (@padding-small-vertical * 2) +
+    2
+);
 @form-group-margin-bottom: 15px;
 @legend-color: @gray-dark;
 @legend-border-color: rgb(229, 229, 229);
@@ -239,7 +245,7 @@
 @tooltip-max-width: 200px;
 @tooltip-color: rgb(255, 255, 255);
 @tooltip-bg: rgb(0, 0, 0);
-@tooltip-opacity: .9;
+@tooltip-opacity: 0.9;
 @tooltip-arrow-width: 5px;
 @tooltip-arrow-color: @tooltip-bg;
 @popover-bg: rgb(255, 255, 255);
@@ -251,7 +257,10 @@
 @popover-arrow-color: @popover-bg;
 @popover-arrow-outer-width: (@popover-arrow-width + 1);
 @popover-arrow-outer-color: fadein(@popover-border-color, 5%);
-@popover-arrow-outer-fallback-color: darken(@popover-fallback-border-color, 20%);
+@popover-arrow-outer-fallback-color: darken(
+  @popover-fallback-border-color,
+  20%
+);
 @label-default-bg: @gray-light;
 @label-primary-bg: @brand-primary;
 @label-success-bg: @brand-success;
@@ -267,7 +276,7 @@
 @modal-content-border-color: rgba(0, 0, 0, 0.2);
 @modal-content-fallback-border-color: rgb(153, 153, 153);
 @modal-backdrop-bg: rgb(0, 0, 0);
-@modal-backdrop-opacity: .5;
+@modal-backdrop-opacity: 0.5;
 @modal-header-border-color: rgb(229, 229, 229);
 @modal-footer-border-color: @modal-header-border-color;
 @modal-lg: 900px;
@@ -356,11 +365,11 @@
 @breadcrumb-bg: rgb(245, 245, 245);
 @breadcrumb-color: rgb(204, 204, 204);
 @breadcrumb-active-color: @gray-light;
-@breadcrumb-separator: "/";
-@carousel-text-shadow: 0 1px 2px rgba(0,0,0,.6);
+@breadcrumb-separator: '/';
+@carousel-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 @carousel-control-color: rgb(255, 255, 255);
 @carousel-control-width: 15%;
-@carousel-control-opacity: .5;
+@carousel-control-opacity: 0.5;
 @carousel-control-font-size: 20px;
 @carousel-indicator-active-bg: rgb(255, 255, 255);
 @carousel-indicator-border-color: rgb(255, 255, 255);
@@ -387,4 +396,3 @@
 @dl-horizontal-offset: @component-offset-horizontal;
 @dl-horizontal-breakpoint: @grid-float-breakpoint;
 @hr-border: @gray-lighter;
-

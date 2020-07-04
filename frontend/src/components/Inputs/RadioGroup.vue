@@ -15,11 +15,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import _ from "lodash";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import _ from 'lodash';
 
 @Component({
-  name: "RadioGroup",
+  name: 'RadioGroup',
 })
 export default class RadioGroup extends Vue {
   @Prop() updateForm!: any;
@@ -32,11 +32,11 @@ export default class RadioGroup extends Vue {
   }
 
   getLabel(field: any) {
-    return typeof field === "string" ? field : field.label;
+    return typeof field === 'string' ? field : field.label;
   }
 
   getValue(field: any) {
-    return typeof field === "string" ? field : field.value;
+    return typeof field === 'string' ? field : field.value;
   }
 
   formData() {

@@ -12,21 +12,21 @@
 </template>
 
 <script lang="ts">
-import { Component, Watch, Vue } from "vue-property-decorator";
-import { RouteConfig } from "vue-router";
-import { mapState } from "vuex";
-import { getHomePageRoutes } from "@/router";
+import { Component, Watch, Vue } from 'vue-property-decorator';
+import { RouteConfig } from 'vue-router';
+import { mapState } from 'vuex';
+import { getHomePageRoutes } from '@/router';
 
 @Component({
-  name: "HomePageButtons",
+  name: 'HomePageButtons',
   computed: {
-    ...mapState("user", ["roles"]),
+    ...mapState('user', ['roles']),
   },
 })
 export default class HomePageButtons extends Vue {
   routeButtons: any[] = [];
 
-  @Watch("roles", { immediate: true })
+  @Watch('roles', { immediate: true })
   handleUserRoles(newRoles: { [key: string]: any } | null) {
     if (newRoles) {
       this.makeButtons(getHomePageRoutes());
@@ -35,9 +35,9 @@ export default class HomePageButtons extends Vue {
     }
   }
 
-  makeButtons(routes: RouteConfig[], parentPath: string = "/") {
+  makeButtons(routes: RouteConfig[], parentPath: string = '/') {
     const defaultButtonProps = {
-      color: "primary",
+      color: 'primary',
     };
     routes.forEach((route) => {
       const fullPath = `${parentPath}${route.path}`;

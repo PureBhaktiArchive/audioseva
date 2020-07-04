@@ -24,7 +24,7 @@
       >
         <span v-if="totalUploadCount" class="pl-2">
           Uploading
-          {{ `${totalUploadCount} item${totalUploadCount > 1 ? "s" : ""}` }} |
+          {{ `${totalUploadCount} item${totalUploadCount > 1 ? 's' : ''}` }} |
           {{ getTotalUploadTime() }}
         </span>
         <div
@@ -96,21 +96,21 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins } from "vue-property-decorator";
-import { mapState } from "vuex";
-import * as Spark from "spark-md5";
-import _ from "lodash";
-import VueDropzone from "vue2-dropzone";
-import "vue2-dropzone/dist/vue2Dropzone.min.css";
-import moment from "moment";
-import Promise from "bluebird";
-import firebase from "firebase/app";
-import "firebase/database";
-import "firebase/storage";
-import Pqueue from "p-queue";
-import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
+import { Component, Mixins } from 'vue-property-decorator';
+import { mapState } from 'vuex';
+import * as Spark from 'spark-md5';
+import _ from 'lodash';
+import VueDropzone from 'vue2-dropzone';
+import 'vue2-dropzone/dist/vue2Dropzone.min.css';
+import moment from 'moment';
+import Promise from 'bluebird';
+import firebase from 'firebase/app';
+import 'firebase/database';
+import 'firebase/storage';
+import Pqueue from 'p-queue';
+import BaseTaskMixin from '@/components/TE/BaseTaskMixin';
 
-import { getTaskId, getProjectDomain } from "@/utility";
+import { getTaskId, getProjectDomain } from '@/utility';
 
 Promise.config({ cancellation: true });
 
@@ -121,7 +121,7 @@ interface IFileStatus {
   uploadStartedAt?: Date;
   uploadRemainingTime?: number;
   downloadUrl?: string;
-  state?: "uploading" | "completed" | "queued";
+  state?: 'uploading' | 'completed' | 'queued';
   canceled?: boolean;
   timestamp?: number;
   retrying?: boolean;
@@ -137,14 +137,14 @@ const sortOrder = {
 };
 
 @Component({
-  name: "Upload",
+  name: 'Upload',
   components: {
     VueDropzone,
   },
   computed: {
-    ...mapState("user", ["currentUser"]),
+    ...mapState('user', ['currentUser']),
   },
-  title: "Track Editing Upload",
+  title: 'Track Editing Upload',
 })
 export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   user: any = null;
@@ -162,9 +162,9 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
 
   dropzoneOptions = {
     previewTemplate: this.template(),
-    url: "localhost",
+    url: 'localhost',
     autoProcessQueue: false,
-    acceptedFiles: ".mp3,.flac",
+    acceptedFiles: '.mp3,.flac',
     uploadMultiple: true,
   };
 
@@ -200,9 +200,9 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     file: File
   ) {
     this.updateFileFields(file, { canceled: true });
-    if (retrying || state === "queued") {
+    if (retrying || state === 'queued') {
       retryTimer && retryTimer.cancel();
-      this.emitFileError(file, "Canceled upload");
+      this.emitFileError(file, 'Canceled upload');
       return;
     }
     uploadTask && uploadTask.cancel();
@@ -216,7 +216,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
 
   clearCompletedFiles() {
     for (let [file, status] of this.files) {
-      if (status.state === "completed") {
+      if (status.state === 'completed') {
         this.files.delete(file);
       }
     }
@@ -230,7 +230,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
         .add(() =>
           this.uploadFile(
             `${this.currentUser.uid}/${timestamp}/${taskId}.${file.name
-              .split(".")
+              .split('.')
               .pop()}`,
             file
           )
@@ -256,26 +256,26 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
   async validateFile(file: File) {
     const taskId = getTaskId(file.name);
 
-    if (!taskId) throw new Error("The file name is not a correct task ID");
+    if (!taskId) throw new Error('The file name is not a correct task ID');
 
-    if (!file.type.startsWith("audio/"))
-      throw new Error("File is not an audio file.");
+    if (!file.type.startsWith('audio/'))
+      throw new Error('File is not an audio file.');
 
     if (
       !file.name
         .toUpperCase()
-        .endsWith(taskId.startsWith("DIGI") ? ".MP3" : ".FLAC")
+        .endsWith(taskId.startsWith('DIGI') ? '.MP3' : '.FLAC')
     )
       throw new Error(
-        `File type must be ${taskId.startsWith("DIGI") ? "MP3" : "FLAC"}`
+        `File type must be ${taskId.startsWith('DIGI') ? 'MP3' : 'FLAC'}`
       );
 
     const taskSnapshot = await firebase
       .database()
       .ref(`/TE/tasks/${taskId}`)
-      .once("value")
-      .catch(() => "error");
-    if (typeof taskSnapshot === "string") {
+      .once('value')
+      .catch(() => 'error');
+    if (typeof taskSnapshot === 'string') {
       throw new Error(
         `The task ${taskId} does not exist or is not assigned to you.`
       );
@@ -284,7 +284,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     if (!task) {
       throw new Error(`The task ${taskId} does not exist.`);
     }
-    if (task.status === "Done") {
+    if (task.status === 'Done') {
       throw new Error(
         `The task ${taskId} is marked as Done. Uploads are not allowed.`
       );
@@ -292,26 +292,26 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     if (!task.versions) return;
     const lastVersionResolutionTimestamp = _.get(
       this.getLastVersion(task),
-      "resolution.timestamp"
+      'resolution.timestamp'
     );
     if (
       lastVersionResolutionTimestamp &&
       lastVersionResolutionTimestamp > file.lastModified
     ) {
-      throw new Error("File is older than the latest feedback on the task.");
+      throw new Error('File is older than the latest feedback on the task.');
     }
     const fileHash = await this.getFileHash(file);
     const versions = Object.values<any>(task.versions);
     for (const i in versions) {
       const version = versions[i];
       const ref = this.uploadsBucket.ref().child(version.uploadPath);
-      const metadata = await ref.getMetadata().catch((e) => "error");
-      if (metadata === "error") continue;
+      const metadata = await ref.getMetadata().catch((e) => 'error');
+      if (metadata === 'error') continue;
       if (fileHash === metadata.md5Hash) {
         throw new Error(
           `You had uploaded the same file earlier. Version: ${
             parseInt(i) + 1
-          } on ${moment(version.timestamp).local().format("LLL")}`
+          } on ${moment(version.timestamp).local().format('LLL')}`
         );
       }
     }
@@ -327,7 +327,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       : Object.values(selectedFiles);
     for (const file of files) {
       this.updateFileFields(file, {
-        state: "queued",
+        state: 'queued',
       });
       this.validateFile(file)
         .then(() => this.handleFile(file, timestamp))
@@ -345,8 +345,8 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       totalUploadTime += uploadTime === Infinity ? 0 : uploadTime;
     });
     return totalUploadTime < 60
-      ? "Less than a minute left"
-      : moment.duration(totalUploadTime, "seconds").humanize();
+      ? 'Less than a minute left'
+      : moment.duration(totalUploadTime, 'seconds').humanize();
   }
 
   backOff(delay: number) {
@@ -371,13 +371,13 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
       }
       const uploadTask = this.uploadsBucket.ref().child(path).put(file);
       this.updateFileFields(file, {
-        state: "uploading",
+        state: 'uploading',
         uploadTask: uploadTask,
         uploadStartedAt: new Date(),
         retrying: false,
       });
       uploadTask.on(
-        "state_changed",
+        'state_changed',
         ({ bytesTransferred, totalBytes }: any) => {
           const { uploadStartedAt } = this.getFile(file);
           const startedAt = uploadStartedAt ? uploadStartedAt.getTime() : 0;
@@ -395,7 +395,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
           });
         },
         async (error: any) => {
-          if (error.code === "storage/retry-limit-exceeded") {
+          if (error.code === 'storage/retry-limit-exceeded') {
             const { retryAttempts = 0, retryDuration = 1000 } = this.getFile(
               file
             );
@@ -411,18 +411,18 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
               await this.uploadFile(path, file).catch((e) => reject(e));
             } else {
               this.totalUploadCount -= 1;
-              reject(new Error("Max retry limit has been reached."));
+              reject(new Error('Max retry limit has been reached.'));
             }
             return;
           }
           this.totalUploadCount -= 1;
           let errorMessage: string;
           switch (error.code) {
-            case "storage/canceled":
-              errorMessage = "Canceled upload";
+            case 'storage/canceled':
+              errorMessage = 'Canceled upload';
               break;
-            case "storage/unauthorized":
-              errorMessage = "You are not authorized to upload this file";
+            case 'storage/unauthorized':
+              errorMessage = 'You are not authorized to upload this file';
               break;
             default:
               errorMessage = error.message;
@@ -430,7 +430,7 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
           reject(new Error(errorMessage));
         },
         () => {
-          this.updateFileFields(file, { state: "completed" });
+          this.updateFileFields(file, { state: 'completed' });
           this.totalUploadCount -= 1;
           this.completedCount += 1;
           resolve();

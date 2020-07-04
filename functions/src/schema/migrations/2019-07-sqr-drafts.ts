@@ -6,10 +6,9 @@ import * as admin from 'firebase-admin';
 import _ = require('lodash');
 
 export const moveSubmissions = async () => {
-  const existingSubmissions = (await admin
-    .database()
-    .ref('/submissions/SQR')
-    .once('value')).val();
+  const existingSubmissions = (
+    await admin.database().ref('/submissions/SQR').once('value')
+  ).val();
 
   await Promise.all([
     admin
@@ -34,13 +33,9 @@ export const moveSubmissions = async () => {
 };
 
 export const moveAllotments = async () => {
-  const existing = (await admin
-    .database()
-    .ref('/allotments/SQR')
-    .once('value')).val();
+  const existing = (
+    await admin.database().ref('/allotments/SQR').once('value')
+  ).val();
 
-  await admin
-    .database()
-    .ref('/SQR/allotments')
-    .set(existing);
+  await admin.database().ref('/SQR/allotments').set(existing);
 };

@@ -36,10 +36,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component({
-  name: "CancelListItem",
+  name: 'CancelListItem',
 })
 export default class CancelListItem extends Vue {
   @Prop() header!: string;
@@ -52,11 +52,11 @@ export default class CancelListItem extends Vue {
   @Prop() value!: any;
 
   handleChange(selected: boolean) {
-    this.$emit("update:selected", selected);
+    this.$emit('update:selected', selected);
   }
 
   handleTextChange(text: string) {
-    this.$emit("input", text);
+    this.$emit('input', text);
   }
 }
 </script>

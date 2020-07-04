@@ -33,7 +33,7 @@ export class DateTimeConverter {
     // then calculating the serial date as if the timestamp was specified in UTC
     return (
       datetime.setZone('utc', { keepLocalTime: true }).toSeconds() /
-      secondsInDay +
+        secondsInDay +
       daysBetweenEpochs
     );
   }

@@ -20,20 +20,20 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import DataTable from "../DataTable.vue";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import DataTable from '../DataTable.vue';
 
 @Component({
-  name: "FilesByStatus",
+  name: 'FilesByStatus',
   components: { DataTable },
 })
 export default class FilesByStatus extends Vue {
   headers = [
-    { text: "List", value: "list" },
-    { text: "WIP", value: "WIP" },
-    { text: "Spare", value: "Spare" },
-    { text: "Given", value: "Given" },
-    { text: "GRAND", value: "GRAND" },
+    { text: 'List', value: 'list' },
+    { text: 'WIP', value: 'WIP' },
+    { text: 'Spare', value: 'Spare' },
+    { text: 'Given', value: 'Given' },
+    { text: 'GRAND', value: 'GRAND' },
   ];
 
   @Prop() items: any;
@@ -45,7 +45,7 @@ export default class FilesByStatus extends Vue {
   }
 
   getFooterData({ value }: { value: string }) {
-    if (value === "list") return "GRAND";
+    if (value === 'list') return 'GRAND';
     return this.countByStatus[value] || 0;
   }
 }

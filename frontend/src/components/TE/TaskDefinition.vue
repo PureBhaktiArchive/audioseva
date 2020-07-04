@@ -10,8 +10,8 @@
         </v-col>
         <v-col v-bind="layout.duration">
           <span
-            >{{ formatDurationUtc(chunk.beginning, "HH:mm:ss") }}&ndash;{{
-              formatDurationUtc(chunk.ending, "HH:mm:ss")
+            >{{ formatDurationUtc(chunk.beginning, 'HH:mm:ss') }}&ndash;{{
+              formatDurationUtc(chunk.ending, 'HH:mm:ss')
             }}</span
           >
         </v-col>
@@ -37,12 +37,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Mixins } from "vue-property-decorator";
-import FormatTime from "@/mixins/FormatTime";
-import RestoredChip from "@/components/TE/RestoredChip.vue";
+import { Component, Prop, Mixins } from 'vue-property-decorator';
+import FormatTime from '@/mixins/FormatTime';
+import RestoredChip from '@/components/TE/RestoredChip.vue';
 
 @Component({
-  name: "TaskDefinition",
+  name: 'TaskDefinition',
   components: { RestoredChip },
 })
 export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
@@ -50,21 +50,21 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
   @Prop({
     default: () => ({
       link: {
-        cols: "4",
-        sm: "2",
-        md: "2",
-        xl: "1",
+        cols: '4',
+        sm: '2',
+        md: '2',
+        xl: '1',
       },
       duration: {
-        cols: "8",
-        sm: "4",
-        md: "2",
-        xl: "1",
+        cols: '8',
+        sm: '4',
+        md: '2',
+        xl: '1',
       },
       unwantedParts: {
-        cols: "12",
-        md: "8",
-        xl: "9",
+        cols: '12',
+        md: '8',
+        xl: '9',
       },
     }),
   })
@@ -72,8 +72,8 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
 
   getLink(fileName: string) {
     return `/download/${
-      this.item.isRestored ? "restored" : "original"
-    }/${fileName}.${fileName.startsWith("DIGI") ? "mp3" : "flac"}`;
+      this.item.isRestored ? 'restored' : 'original'
+    }/${fileName}.${fileName.startsWith('DIGI') ? 'mp3' : 'flac'}`;
   }
 }
 </script>

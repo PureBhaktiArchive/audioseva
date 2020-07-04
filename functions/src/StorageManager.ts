@@ -43,9 +43,9 @@ export class StorageManager {
   static getFile(bucketName: BucketName, fileName: string) {
     return this.getBucket(bucketName).file(
       `${this.extractListFromFilename(fileName)}/${
-      bucketName === 'original'
-        ? this.standardizeFileName(fileName)
-        : fileName
+        bucketName === 'original'
+          ? this.standardizeFileName(fileName)
+          : fileName
       }`
     );
   }
@@ -91,7 +91,7 @@ export class StorageManager {
           list: string,
           serial: string,
           suffix: string,
-          extension: string,
+          extension: string
         ) =>
           [
             list.toUpperCase(),

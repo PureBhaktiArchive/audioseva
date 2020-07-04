@@ -81,8 +81,8 @@
                       </code>
                     </v-checkbox>
                     <span
-                      >{{ file.date || "No date" }}
-                      {{ file.language || "No language" }}
+                      >{{ file.date || 'No date' }}
+                      {{ file.language || 'No language' }}
                       {{ file.notes }}</span
                     >
                   </v-col>
@@ -143,22 +143,22 @@
 </style>
 
 <script>
-import firebase from "firebase/app";
-import "firebase/functions";
-import * as _ from "lodash";
+import firebase from 'firebase/app';
+import 'firebase/functions';
+import * as _ from 'lodash';
 
-import { initialAllotment, initialAllotmentFilter } from "../utility";
-import ErrorMessages from "../mixins/ErrorMessages";
-import AssigneeSelector from "../components/AssigneeSelector";
+import { initialAllotment, initialAllotmentFilter } from '../utility';
+import ErrorMessages from '../mixins/ErrorMessages';
+import AssigneeSelector from '../components/AssigneeSelector';
 
 export default {
   components: { AssigneeSelector },
   mixins: [ErrorMessages],
-  name: "SQRAllotment",
-  title: "SQR Allotment",
+  name: 'SQRAllotment',
+  title: 'SQR Allotment',
   data: () => ({
     assignees: null,
-    languages: ["English", "Hindi", "Bengali", "None"],
+    languages: ['English', 'Hindi', 'Bengali', 'None'],
     lists: null,
     files: null,
     filter: {
@@ -176,8 +176,8 @@ export default {
     // Getting assignees
     firebase
       .functions()
-      .httpsCallable("User-getAssignees")({
-        phase: "SQR",
+      .httpsCallable('User-getAssignees')({
+        phase: 'SQR',
       })
       .then((result) => {
         this.assignees = result.data;
@@ -188,21 +188,21 @@ export default {
           );
         }
       })
-      .catch(this.addErrorMessage("getAssignees"));
+      .catch(this.addErrorMessage('getAssignees'));
 
     // Getting lists
     firebase
       .functions()
-      .httpsCallable("SQR-getLists")()
+      .httpsCallable('SQR-getLists')()
       .then((result) => {
         this.lists = result.data;
       })
-      .catch(this.addErrorMessage("getLists"));
+      .catch(this.addErrorMessage('getLists'));
 
     this.filter.languages = this.languages;
   },
   watch: {
-    "allotment.assignee": function (newValue) {
+    'allotment.assignee': function (newValue) {
       if (newValue == null) return;
 
       this.filter.languages = this.languages;
@@ -216,8 +216,8 @@ export default {
 
         const result = await firebase
           .functions()
-          .httpsCallable("SQR-getSpareFiles")(this.filter)
-          .catch(this.addErrorMessage("getSpareFiles"));
+          .httpsCallable('SQR-getSpareFiles')(this.filter)
+          .catch(this.addErrorMessage('getSpareFiles'));
         if (!result) return;
         this.files = result.data;
       }, 1000),
@@ -225,22 +225,22 @@ export default {
   },
   methods: {
     async allot() {
-      this.submissionStatus = "inProgress";
+      this.submissionStatus = 'inProgress';
       const {
         assignee: { emailAddress, name },
         ...allotment
       } = this.allotment;
       try {
-        await firebase.functions().httpsCallable("SQR-processAllotment")({
+        await firebase.functions().httpsCallable('SQR-processAllotment')({
           ...allotment,
           assignee: { emailAddress, name },
         });
         this.errors = {};
-        this.submissionStatus = "complete";
+        this.submissionStatus = 'complete';
       } catch (error) {
-        this.addErrorMessage("processAllotment")(error);
+        this.addErrorMessage('processAllotment')(error);
         // alert(error.message);
-        this.submissionStatus = "error";
+        this.submissionStatus = 'error';
       }
     },
     reset() {

@@ -1,11 +1,10 @@
-import { Component, Vue } from "vue-property-decorator";
-
-import firebase from "firebase/app";
+import firebase from 'firebase/app';
+import { Component, Vue } from 'vue-property-decorator';
 
 @Component
 export default class FirebaseShallowQuery extends Vue {
   lists: string[] | null = null;
-  listsBasePath: string = "original";
+  listsBasePath: string = 'original';
 
   async getLists() {
     const response: any = await this.$http.get(

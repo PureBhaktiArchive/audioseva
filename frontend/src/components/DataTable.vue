@@ -37,21 +37,21 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from "vue-property-decorator";
-import _ from "lodash";
-import TableData from "@/components/TableData";
+import { Component, Vue, Prop } from 'vue-property-decorator';
+import _ from 'lodash';
+import TableData from '@/components/TableData';
 
 interface IAnyObject {
   [key: string]: any;
 }
 
 @Component({
-  name: "DataTable",
+  name: 'DataTable',
   components: { TableData },
 })
 export default class DataTable extends Vue {
   // separator for array.join
-  @Prop({ default: ", " })
+  @Prop({ default: ', ' })
   separator!: string;
 
   @Prop({ default: () => ({}) })
@@ -69,7 +69,7 @@ export default class DataTable extends Vue {
   ) => string;
 
   // Callback for missing value in all columns
-  @Prop({ default: () => (value: any) => "" })
+  @Prop({ default: () => (value: any) => '' })
   missingItemCb!: (value: any) => any;
 
   // Items for v-data-table component
@@ -79,7 +79,7 @@ export default class DataTable extends Vue {
   @Prop() headers!: IAnyObject[];
 
   getClasses({ value }: { value: string }, item: any) {
-    if (typeof this.classes[value] === "function") {
+    if (typeof this.classes[value] === 'function') {
       return this.classes[value](value, item);
     }
     return this.classes[value] || {};
@@ -92,7 +92,7 @@ export default class DataTable extends Vue {
   getKey(item: any, value: string, columnIndex: number, rowIndex: number) {
     if (this.keyExtractor) {
       return this.keyExtractor(item, value, columnIndex, rowIndex);
-    } else if (typeof item === "string") {
+    } else if (typeof item === 'string') {
       return `${item}-${value}`;
     } else {
       return `${rowIndex}-${columnIndex}-${value}`;

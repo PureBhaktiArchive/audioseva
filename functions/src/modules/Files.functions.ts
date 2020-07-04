@@ -22,11 +22,11 @@ app.get(
          *
          * Edited DIGI files are sought as MP3 first, then as FLAC.
          */
-      bucket === 'edited' && fileName.startsWith('DIGI')
+        bucket === 'edited' && fileName.startsWith('DIGI')
         ? [
-          StorageManager.getFile(bucket, `${baseName}.mp3`),
-          StorageManager.getFile(bucket, `${baseName}.flac`),
-        ]
+            StorageManager.getFile(bucket, `${baseName}.mp3`),
+            StorageManager.getFile(bucket, `${baseName}.flac`),
+          ]
         : [StorageManager.getFile(bucket as BucketName, fileName)]
       : /**
          * Links for CR and SQR phases do not include bucket,
@@ -35,10 +35,10 @@ app.get(
          * However files are sought in the `restored` bucket first (SE before CR cases)
          * and then in the `original` bucket.
          */
-      [
-        StorageManager.getFile('restored', fileName),
-        StorageManager.getFile('original', fileName),
-      ];
+        [
+          StorageManager.getFile('restored', fileName),
+          StorageManager.getFile('original', fileName),
+        ];
 
     const file = await StorageManager.findExistingFile(...candidates);
 
@@ -60,7 +60,7 @@ app.get(
     } else {
       console.warn(
         `File ${fileName} is not found${
-        bucket ? ` in the ${bucket} bucket` : ''
+          bucket ? ` in the ${bucket} bucket` : ''
         }.`
       );
       res

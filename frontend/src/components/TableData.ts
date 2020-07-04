@@ -1,7 +1,7 @@
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component({
-  name: "TableData",
+  name: 'TableData',
 })
 export default class TableData extends Vue {
   @Prop() component!: any;

@@ -4,7 +4,7 @@ interface IBaseAssignee {
 }
 
 interface IAllotmentAssignee extends IBaseAssignee {
-  ".key": string;
+  '.key': string;
   languages: string[];
   roles: { [key: string]: boolean };
   status: string;

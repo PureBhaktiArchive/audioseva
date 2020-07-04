@@ -1,1 +1,1 @@
-declare module "vue-page-title";
+declare module 'vue-page-title';

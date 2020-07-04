@@ -75,17 +75,17 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins } from "vue-property-decorator";
-import TextField from "@/components/Inputs/TextField.vue";
-import TextArea from "@/components/Inputs/TextArea.vue";
-import DeleteButton from "@/components/SQRForm/DeleteButton.vue";
-import Checkbox from "@/components/Inputs/Checkbox.vue";
-import SoundIssuesMixin from "@/components/SQRForm/SoundIssuesMixin";
-import SoundTypeRadioGroup from "@/components/SQRForm/SoundTypeRadioGroup.vue";
-import _ from "lodash";
+import { Component, Mixins } from 'vue-property-decorator';
+import TextField from '@/components/Inputs/TextField.vue';
+import TextArea from '@/components/Inputs/TextArea.vue';
+import DeleteButton from '@/components/SQRForm/DeleteButton.vue';
+import Checkbox from '@/components/Inputs/Checkbox.vue';
+import SoundIssuesMixin from '@/components/SQRForm/SoundIssuesMixin';
+import SoundTypeRadioGroup from '@/components/SQRForm/SoundTypeRadioGroup.vue';
+import _ from 'lodash';
 
 @Component({
-  name: "SoundIssues",
+  name: 'SoundIssues',
   components: {
     DeleteButton,
     Checkbox,
@@ -97,7 +97,7 @@ import _ from "lodash";
 export default class SoundIssues extends Mixins<SoundIssuesMixin>(
   SoundIssuesMixin
 ) {
-  updatePath = "soundIssues";
+  updatePath = 'soundIssues';
 
   formProps = {
     updateForm: this.updateForm,
@@ -116,7 +116,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
           ...this.formProps,
           form: this.form,
           fieldProps: {
-            label: "Entire file",
+            label: 'Entire file',
             hideDetails: true,
           },
         },
@@ -126,10 +126,10 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
         props: {
           ...this.componentData.type.props,
           fields: [
-            "Background noise",
-            { label: "Low/changing volume", value: "Volume" },
-            "Reverberation",
-            { label: "Other...", value: "other" },
+            'Background noise',
+            { label: 'Low/changing volume', value: 'Volume' },
+            'Reverberation',
+            { label: 'Other...', value: 'other' },
           ],
         },
       },
@@ -142,7 +142,7 @@ export default class SoundIssues extends Mixins<SoundIssuesMixin>(
 
   get mappedHeaders(): any[] {
     return [
-      { text: "Entire file", value: "entireFile", width: "10%" },
+      { text: 'Entire file', value: 'entireFile', width: '10%' },
       ...this.headers,
     ].map((header: any) => ({ ...header, sortable: false }));
   }
