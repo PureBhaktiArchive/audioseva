@@ -188,3 +188,11 @@ path /quotes {
     read() { true }
     path /{push_id}/text is String {}
 }
+
+path /users/{user_id} {
+  path /refreshTime {
+    read() {
+      user_id == auth.uid
+    }
+  }
+}
