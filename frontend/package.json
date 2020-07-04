@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "test": "vue-cli-service test:unit",
+    "test": "jest",
     "lint": "vue-cli-service lint",
     "deploy": "firebase deploy --only hosting",
     "serve:storybook": "start-storybook -p 6006",
@@ -69,6 +69,7 @@
     "eslint-plugin-vuetify": "1.0.0-beta.6",
     "flush-promises": "1.0.2",
     "fork-ts-checker-webpack-plugin": "5.0.6",
+    "jest": "26.1.0",
     "jest-serializer-vue": "2.0.2",
     "lint-staged": "10.2.11",
     "node-sass": "4.14.1",
