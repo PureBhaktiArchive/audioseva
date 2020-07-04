@@ -2,137 +2,137 @@
  * sri sri guru gauranga jayatah
  */
 
-import _ from "lodash";
-import Vue from "vue";
-import Router, { NavigationGuard, RouteConfig } from "vue-router";
-import { store } from "@/store";
-import { subjects } from "@/abilities";
+import { subjects } from '@/abilities';
+import { store } from '@/store';
+import _ from 'lodash';
+import Vue from 'vue';
+import Router, { NavigationGuard, RouteConfig } from 'vue-router';
 
 Vue.use(Router);
 
 export const router = new Router({
-  mode: "history",
+  mode: 'history',
   routes: [
-    { path: "*", redirect: "/" },
+    { path: '*', redirect: '/' },
     {
-      path: "/",
-      component: () => import("@/views/Layout/MainLayout.vue"),
+      path: '/',
+      component: () => import('@/views/Layout/MainLayout.vue'),
       children: [
         {
-          path: "",
-          component: () => import("@/views/Home.vue"),
+          path: '',
+          component: () => import('@/views/Home.vue'),
         },
         {
-          path: "login",
-          component: () => import("@/views/Login.vue"),
+          path: 'login',
+          component: () => import('@/views/Login.vue'),
           meta: { auth: { guestOnly: true } },
         },
         {
-          path: "listen/:fileName",
-          component: () => import("@/views/Listen.vue"),
+          path: 'listen/:fileName',
+          component: () => import('@/views/Listen.vue'),
         },
         {
-          path: "form/sound-quality-report/:fileName/:token",
-          component: () => import("@/views/SQR/Form.vue"),
+          path: 'form/sound-quality-report/:fileName/:token',
+          component: () => import('@/views/SQR/Form.vue'),
         },
         {
-          path: "form/donation/cash/:token",
-          component: () => import("@/views/DonationReceiptForm.vue"),
+          path: 'form/donation/cash/:token',
+          component: () => import('@/views/DonationReceiptForm.vue'),
         },
         {
-          path: "sqr/",
-          component: () => import("@/views/SQR/SQR.vue"),
+          path: 'sqr/',
+          component: () => import('@/views/SQR/SQR.vue'),
           meta: {
             activator: true,
-            activatorName: "Sound Quality Reporting",
-            menuIcon: "fas fa-headphones",
+            activatorName: 'Sound Quality Reporting',
+            menuIcon: 'fas fa-headphones',
           },
           children: [
             {
-              path: "allot",
-              component: () => import("@/views/SQRAllotment.vue"),
+              path: 'allot',
+              component: () => import('@/views/SQRAllotment.vue'),
               meta: {
                 menuItem: true,
                 auth: {
-                  ability: { subject: subjects.SQR.tasks, action: "allot" },
+                  ability: { subject: subjects.SQR.tasks, action: 'allot' },
                 },
               },
             },
           ],
         },
         {
-          path: "te/",
-          component: () => import("@/views/TE/TE.vue"),
+          path: 'te/',
+          component: () => import('@/views/TE/TE.vue'),
           meta: {
             activator: true,
-            activatorName: "Track Editing",
-            menuIcon: "fas fa-cut",
+            activatorName: 'Track Editing',
+            menuIcon: 'fas fa-cut',
           },
           children: [
             {
-              path: "tasks",
-              component: () => import("@/views/TE/Tasks.vue"),
+              path: 'tasks',
+              component: () => import('@/views/TE/Tasks.vue'),
               meta: {
                 menuItem: true,
                 auth: {
                   ability: {
                     subject: subjects.TE.tasks,
-                    action: "view",
+                    action: 'view',
                   },
                 },
-                homePageLink: { text: "TE" },
+                homePageLink: { text: 'TE' },
               },
             },
             {
-              path: "allot",
-              component: () => import("@/views/TE/Allotment.vue"),
+              path: 'allot',
+              component: () => import('@/views/TE/Allotment.vue'),
               meta: {
                 menuItem: true,
                 auth: {
                   ability: {
                     subject: subjects.TE.tasks,
-                    action: "allot",
+                    action: 'allot',
                   },
                 },
               },
             },
             {
-              path: "my",
-              component: () => import("@/views/TE/MyTasks.vue"),
+              path: 'my',
+              component: () => import('@/views/TE/MyTasks.vue'),
               meta: {
                 menuItem: true,
-                menuLinkName: "My Tasks",
+                menuLinkName: 'My Tasks',
                 auth: {
                   ability: {
                     subject: subjects.TE.myTasks,
-                    action: "view",
+                    action: 'view',
                   },
                 },
               },
             },
             {
-              path: "upload",
-              component: () => import("@/views/TE/Upload.vue"),
+              path: 'upload',
+              component: () => import('@/views/TE/Upload.vue'),
               meta: {
                 menuItem: true,
                 auth: {
                   ability: {
                     subject: subjects.TE.task,
-                    action: "upload",
+                    action: 'upload',
                   },
                 },
-                homePageLink: { text: "Upload" },
+                homePageLink: { text: 'Upload' },
               },
             },
             {
-              path: "tasks/:taskId",
-              component: () => import("@/views/TE/Task.vue"),
+              path: 'tasks/:taskId',
+              component: () => import('@/views/TE/Task.vue'),
               meta: {
                 menuItem: false,
                 auth: {
                   ability: {
                     subject: subjects.TE.task,
-                    action: "view",
+                    action: 'view',
                   },
                 },
               },
@@ -146,7 +146,7 @@ export const router = new Router({
 
 const getRootRouteChildren = (): any => {
   return (router as any).options.routes.find(
-    (route: RouteConfig) => route.path === "/"
+    (route: RouteConfig) => route.path === '/'
   ).children;
 };
 
@@ -164,7 +164,7 @@ export const filterRoutesByClaims = (
   ...args: any[]
 ): RouteConfig[] => {
   return routes.reduce((filteredRoutes, route) => {
-    const ability = _.get(route, "meta.auth.ability", parentAbility);
+    const ability = _.get(route, 'meta.auth.ability', parentAbility);
 
     const filteredRoute = filterCb<RouteConfig>(route, ability, ...args);
     filteredRoute && filteredRoutes.push(filteredRoute);
@@ -173,7 +173,7 @@ export const filterRoutesByClaims = (
 };
 
 const filterHomePageRoutes = filterRoutesByClaims((route, ability): any => {
-  const homePageButton = _.get(route, "meta.homePageLink", false);
+  const homePageButton = _.get(route, 'meta.homePageLink', false);
   let filteredRoute: RouteConfig = route;
   if (route.children) {
     const routeChildren = filterHomePageRoutes(route.children, ability);
@@ -183,13 +183,13 @@ const filterHomePageRoutes = filterRoutesByClaims((route, ability): any => {
   if (
     homePageButton &&
     ability &&
-    store.getters["user/ability"].can(ability.action, ability.subject)
+    store.getters['user/ability'].can(ability.action, ability.subject)
   ) {
     return filteredRoute;
   } else if (filteredRoute.children && filteredRoute.children.length) {
     filteredRoute = _.setWith(
       _.clone(filteredRoute),
-      "meta.homePageLink",
+      'meta.homePageLink',
       false,
       _.clone
     );
@@ -208,7 +208,7 @@ const filterMenuItems = filterRoutesByClaims(
       if (childRoutes.length) return { ...route, children: childRoutes };
     } else if (
       ability &&
-      store.getters["user/ability"].can(ability.action, ability.subject)
+      store.getters['user/ability'].can(ability.action, ability.subject)
     ) {
       return route;
     } else if (!ability) {
@@ -239,39 +239,39 @@ export const checkAuth: NavigationGuard = async (to, from, next) => {
     },
   } = restrictedRoute;
 
-  if ((requireAuth || ability) && !store.getters["user/isSignedIn"])
+  if ((requireAuth || ability) && !store.getters['user/isSignedIn'])
     return next({
-      path: "/login",
+      path: '/login',
       query: { redirect: to.fullPath },
     });
 
-  if (guestOnly && store.getters["user/isSignedIn"]) return next("/");
+  if (guestOnly && store.getters['user/isSignedIn']) return next('/');
 
   if (ability) {
-    return store.getters["user/ability"].can(ability.action, ability.subject)
+    return store.getters['user/ability'].can(ability.action, ability.subject)
       ? next()
-      : next("/");
+      : next('/');
   }
 
   next();
 };
 
 export const redirectSections: NavigationGuard = async (to, from, next) => {
-  if (!_.get(to, "meta.activator")) return next();
+  if (!_.get(to, 'meta.activator')) return next();
 
   const activatorChildren: RouteConfig[] = getRootRouteChildren().find(
     (route: RouteConfig) => `/${route.path}` === `${to.fullPath}/`
   ).children;
   const childRedirectRoute = activatorChildren.find((route) => {
-    const ability = _.get(route, "meta.auth.ability");
+    const ability = _.get(route, 'meta.auth.ability');
     return (
       ability &&
-      store.getters["user/ability"].can(ability.action, ability.subject)
+      store.getters['user/ability'].can(ability.action, ability.subject)
     );
   });
   childRedirectRoute
     ? next(`${to.fullPath}/${childRedirectRoute.path}`)
-    : next("/");
+    : next('/');
 };
 
 router.beforeEach(redirectSections);

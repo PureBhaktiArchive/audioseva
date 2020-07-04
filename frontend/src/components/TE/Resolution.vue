@@ -26,13 +26,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Prop } from "vue-property-decorator";
-import _ from "lodash";
-import LastVersionMixin from "@/components/TE/LastVersionMixin";
-import FormatTime from "@/mixins/FormatTime";
+import { Component, Mixins, Prop } from 'vue-property-decorator';
+import _ from 'lodash';
+import LastVersionMixin from '@/components/TE/LastVersionMixin';
+import FormatTime from '@/mixins/FormatTime';
 
 @Component({
-  name: "Resolution",
+  name: 'Resolution',
 })
 export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
   LastVersionMixin,
@@ -52,7 +52,7 @@ export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
       this.showReviewButton &&
       !this.lastResolution &&
       this.lastVersion &&
-      this.item.status === "WIP"
+      this.item.status === 'WIP'
     );
   }
 
@@ -61,15 +61,15 @@ export default class Resolution extends Mixins<LastVersionMixin, FormatTime>(
       icon: this.lastIsApproved
         ? (this.$vuetify.icons as any).values.check
         : (this.$vuetify.icons as any).values.undo,
-      color: this.lastIsApproved ? "green" : "red",
+      color: this.lastIsApproved ? 'green' : 'red',
     };
   }
 
   get text() {
-    const author = _.get(this.lastResolution || {}, "author.name", "");
-    const feedback = _.get(this.lastResolution || {}, "feedback", "");
-    return `${this.lastIsApproved ? "Approved" : "Disapproved"} by ${author}${
-      feedback ? `: ${feedback}` : ""
+    const author = _.get(this.lastResolution || {}, 'author.name', '');
+    const feedback = _.get(this.lastResolution || {}, 'feedback', '');
+    return `${this.lastIsApproved ? 'Approved' : 'Disapproved'} by ${author}${
+      feedback ? `: ${feedback}` : ''
     }`;
   }
 }

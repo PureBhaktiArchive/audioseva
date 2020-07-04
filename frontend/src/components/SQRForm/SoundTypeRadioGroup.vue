@@ -33,31 +33,31 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Prop } from "vue-property-decorator";
-import _ from "lodash";
-import ItemPath from "@/mixins/ItemPath";
-import { required } from "@/validation";
+import { Component, Mixins, Prop } from 'vue-property-decorator';
+import _ from 'lodash';
+import ItemPath from '@/mixins/ItemPath';
+import { required } from '@/validation';
 
 const statuses = [
-  "blank space",
-  "glitch",
-  "irrelevant",
-  "Background noise",
-  "Volume",
-  "Reverberation",
+  'blank space',
+  'glitch',
+  'irrelevant',
+  'Background noise',
+  'Volume',
+  'Reverberation',
 ];
 
 type Field = { label: string; value: string } | string;
 
 @Component({
-  name: "SoundTypeRadioGroup",
+  name: 'SoundTypeRadioGroup',
 })
 export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
   @Prop({ default: () => ({}) })
   fieldProps!: any;
   @Prop() fields!: Field[];
   otherField: any = 1;
-  otherTextField = "";
+  otherTextField = '';
   selectedField: any = null;
 
   mounted() {
@@ -72,13 +72,13 @@ export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
       this.updateForm(this.itemPath, value, !mount);
       this.selectedField = value;
     } else {
-      this.selectedField = "other";
+      this.selectedField = 'other';
       this.otherField = 0;
       if (mount) {
         this.otherTextField = value;
         this.updateForm(this.itemPath, value, !mount);
       } else {
-        this.updateForm(this.itemPath, this.otherTextField || "");
+        this.updateForm(this.itemPath, this.otherTextField || '');
       }
     }
   }
@@ -89,16 +89,16 @@ export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
   }
 
   getLabel(field: Field) {
-    return typeof field === "string" ? field : field.label;
+    return typeof field === 'string' ? field : field.label;
   }
 
   getFieldValue(field: Field) {
-    return typeof field === "string" ? field : field.value;
+    return typeof field === 'string' ? field : field.value;
   }
 
   isOtherOption(field: Field) {
-    if (typeof field === "string") return false;
-    return field.value === "other";
+    if (typeof field === 'string') return false;
+    return field.value === 'other';
   }
 
   formData() {
@@ -106,7 +106,7 @@ export default class SoundTypeRadioGroup extends Mixins<ItemPath>(ItemPath) {
   }
 
   get otherTextFieldRules() {
-    return this.selectedField === "other" && this.fieldProps.rules.length
+    return this.selectedField === 'other' && this.fieldProps.rules.length
       ? [required]
       : [];
   }

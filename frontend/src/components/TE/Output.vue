@@ -15,13 +15,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Prop } from "vue-property-decorator";
-import LastVersionMixin from "@/components/TE/LastVersionMixin";
-import FormatTime from "@/mixins/FormatTime";
-import VersionDownloadLink from "@/components/TE/VersionDownloadLink.vue";
+import { Component, Mixins, Prop } from 'vue-property-decorator';
+import LastVersionMixin from '@/components/TE/LastVersionMixin';
+import FormatTime from '@/mixins/FormatTime';
+import VersionDownloadLink from '@/components/TE/VersionDownloadLink.vue';
 
 @Component({
-  name: "Output",
+  name: 'Output',
   components: { VersionDownloadLink },
 })
 export default class Output extends Mixins<LastVersionMixin, FormatTime>(

@@ -1,4 +1,4 @@
-type Status = "Spare" | "Given" | "WIP" | "Done";
+type Status = 'Spare' | 'Given' | 'WIP' | 'Done';
 
 interface ISQRFileAllotment {
   dateGiven: string;
@@ -52,7 +52,7 @@ export interface IFileVueFire {
   languages: string[];
   languagesConfirmed?: boolean;
   notes: string;
-  [".key"]: string;
+  ['.key']: string;
   soundQualityReporting?: ISQR;
   contentReporting?: ISQR;
 }

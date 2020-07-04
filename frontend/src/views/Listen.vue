@@ -54,16 +54,16 @@
 </style>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
+import { Component, Vue } from 'vue-property-decorator';
 
 @Component({
-  name: "Listen",
+  name: 'Listen',
   title: ({ $route }) =>
-    `Audio File Name: ${$route.params.fileName.split(".")[0]}`,
+    `Audio File Name: ${$route.params.fileName.split('.')[0]}`,
 })
 export default class ListenAudio extends Vue {
-  fileName: string = "";
-  errorMessage = "";
+  fileName: string = '';
+  errorMessage = '';
 
   $refs!: {
     audioPlayer: HTMLMediaElement;
@@ -72,7 +72,7 @@ export default class ListenAudio extends Vue {
   mounted() {
     this.fileName = this.$route.params.fileName;
     this.$refs.audioPlayer &&
-      this.$refs.audioPlayer.addEventListener("error", this.handleFileError);
+      this.$refs.audioPlayer.addEventListener('error', this.handleFileError);
     const fileType = this.nameAndExtension[1];
     if (!this.canPlayType) {
       this.errorMessage = `Your browser does not support the audio files of type ${fileType}. Please download the file.`;
@@ -81,7 +81,7 @@ export default class ListenAudio extends Vue {
 
   destroyed() {
     this.$refs.audioPlayer &&
-      this.$refs.audioPlayer.removeEventListener("error", this.handleFileError);
+      this.$refs.audioPlayer.removeEventListener('error', this.handleFileError);
   }
 
   handleFileError(e: any) {
@@ -90,28 +90,28 @@ export default class ListenAudio extends Vue {
     }
     switch (e.target.error.code) {
       case e.target.error.MEDIA_ERR_ABORTED:
-        this.errorMessage = "You aborted the media playback.";
+        this.errorMessage = 'You aborted the media playback.';
         break;
       case e.target.error.MEDIA_ERR_NETWORK:
         this.errorMessage =
-          "A network error caused the media download to fail.";
+          'A network error caused the media download to fail.';
         break;
       case e.target.error.MEDIA_ERR_DECODE:
         this.errorMessage =
-          "The media playback was aborted due to a corruption problem or because the media " +
-          "used features your browser did not support.";
+          'The media playback was aborted due to a corruption problem or because the media ' +
+          'used features your browser did not support.';
         break;
       case e.target.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
         this.errorMessage =
-          "The media could not be loaded, either because the server or network failed or because the format is not supported.";
+          'The media could not be loaded, either because the server or network failed or because the format is not supported.';
         break;
       default:
-        this.errorMessage = "An unknown media error occurred";
+        this.errorMessage = 'An unknown media error occurred';
     }
   }
 
   get nameAndExtension() {
-    return this.fileName.split(".");
+    return this.fileName.split('.');
   }
 
   get audioUrl() {

@@ -156,46 +156,46 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from "vue-property-decorator";
-import firebase from "firebase/app";
-import "firebase/database";
+import { Component, Vue } from 'vue-property-decorator';
+import firebase from 'firebase/app';
+import 'firebase/database';
 
 @Component({
-  name: "DonationReceiptForm",
-  title: "Donation Receipt Form",
+  name: 'DonationReceiptForm',
+  title: 'Donation Receipt Form',
 })
 export default class DonationForm extends Vue {
   date = new Date().toISOString().substr(0, 10);
-  currencies = ["INR", "USD", "EUR", "RUB", "AUD", "YEN", "BRL"];
+  currencies = ['INR', 'USD', 'EUR', 'RUB', 'AUD', 'YEN', 'BRL'];
   menu = false;
-  amountRules = [(v: string) => (v && !!v.match(/^\d*$/)) || "Numbers only"];
+  amountRules = [(v: string) => (v && !!v.match(/^\d*$/)) || 'Numbers only'];
   emailRules = [
     (value: string) => {
       if (value && value.length > 0) {
         const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        return pattern.test(value) || "Invalid e-mail";
+        return pattern.test(value) || 'Invalid e-mail';
       }
-      return "Required email";
+      return 'Required email';
     },
   ];
-  rules = [(v: string) => (v && v.length > 0) || "Required"];
+  rules = [(v: string) => (v && v.length > 0) || 'Required'];
   form = {
     date: new Date().toISOString().substr(0, 10),
     donor: {
-      phoneNumber: "",
+      phoneNumber: '',
     },
     sum: {
-      currency: "INR",
+      currency: 'INR',
     },
-    collectedBy: "",
-    comment: "",
+    collectedBy: '',
+    comment: '',
   };
   phoneData = {
-    countryCode: "",
-    phoneNumber: "",
+    countryCode: '',
+    phoneNumber: '',
   };
   isSubmitting = false;
-  submissionStatus = "";
+  submissionStatus = '';
 
   getSubmissionData() {
     return {
@@ -214,50 +214,50 @@ export default class DonationForm extends Vue {
   }
 
   get submissionMessage() {
-    let message = "";
-    if (this.submissionStatus === "success") {
-      message = "Submission successful";
-    } else if (this.submissionStatus === "error") {
-      message = "Submission error";
+    let message = '';
+    if (this.submissionStatus === 'success') {
+      message = 'Submission successful';
+    } else if (this.submissionStatus === 'error') {
+      message = 'Submission error';
     }
     return message;
   }
 
   clearForm() {
-    if (this.submissionStatus === "success") {
+    if (this.submissionStatus === 'success') {
       (this.$refs.form as any).resetValidation();
       this.form = {
         ...this.form,
         donor: {
-          phoneNumber: "",
+          phoneNumber: '',
         },
         sum: {
-          currency: "INR",
+          currency: 'INR',
         },
-        comment: "",
+        comment: '',
       };
       this.phoneData = {
-        countryCode: "",
-        phoneNumber: "",
+        countryCode: '',
+        phoneNumber: '',
       };
     }
   }
 
   async submitForm() {
     if (this.isSubmitting) return;
-    this.submissionStatus = "";
+    this.submissionStatus = '';
     const data = this.getSubmissionData();
     if ((this.$refs.form as any).validate()) {
       this.isSubmitting = true;
       await firebase
         .database()
-        .ref("/donations/cash")
+        .ref('/donations/cash')
         .push()
         .set(data)
         .catch(() => {
-          this.submissionStatus = "error";
+          this.submissionStatus = 'error';
         });
-      if (!this.submissionStatus) this.submissionStatus = "success";
+      if (!this.submissionStatus) this.submissionStatus = 'success';
       this.clearForm();
     }
     this.isSubmitting = false;

@@ -1,16 +1,16 @@
 // Imports
-import { configure, addDecorator, addParameters } from "@storybook/vue";
-import { withA11y } from "@storybook/addon-a11y";
-import { withKnobs } from "@storybook/addon-knobs";
-import { INITIAL_VIEWPORTS } from "@storybook/addon-viewport";
-import { withTemplate } from "~storybook/addon-show-vue-markup";
-import { withVuetify } from "~storybook/addon-vuetify";
-import StoryRouter from "storybook-vue-router";
+import { withA11y } from '@storybook/addon-a11y';
+import { withKnobs } from '@storybook/addon-knobs';
+import { INITIAL_VIEWPORTS } from '@storybook/addon-viewport';
+import { addDecorator, addParameters, configure } from '@storybook/vue';
+import StoryRouter from 'storybook-vue-router';
+import { withTemplate } from '~storybook/addon-show-vue-markup';
+import { withVuetify } from '~storybook/addon-vuetify';
 
 addParameters({
   viewport: {
-    viewports: INITIAL_VIEWPORTS
-  }
+    viewports: INITIAL_VIEWPORTS,
+  },
 });
 
 addDecorator(withA11y);
@@ -19,4 +19,4 @@ addDecorator(withTemplate);
 addDecorator(withVuetify);
 addDecorator(StoryRouter());
 
-configure(require.context("./stories", true, /\.stories\.js$/), module);
+configure(require.context('./stories', true, /\.stories\.js$/), module);

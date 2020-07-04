@@ -25,11 +25,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import _ from "lodash";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import _ from 'lodash';
 
 @Component({
-  name: "InlineStatusEdit",
+  name: 'InlineStatusEdit',
 })
 export default class InlineStatusEdit extends Vue {
   @Prop() item!: any;
@@ -46,8 +46,8 @@ export default class InlineStatusEdit extends Vue {
 
     //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
-    path["itemPath"] = this.value ? this.value.split(".").join("/") : "";
-    this.$emit("save", item, path, e, { newValue: e, itemPath: this.value });
+    path['itemPath'] = this.value ? this.value.split('.').join('/') : '';
+    this.$emit('save', item, path, e, { newValue: e, itemPath: this.value });
   }
 }
 </script>

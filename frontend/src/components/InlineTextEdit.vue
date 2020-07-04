@@ -28,11 +28,11 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import _ from "lodash";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import _ from 'lodash';
 
 @Component({
-  name: "InlineTextEdit",
+  name: 'InlineTextEdit',
 })
 export default class InlineTextEdit extends Vue {
   @Prop({ default: () => ({}) })
@@ -43,14 +43,14 @@ export default class InlineTextEdit extends Vue {
   textAreaProps!: { [key: string]: any };
 
   isShowTextArea: boolean = false;
-  textAreaValue: any = "";
+  textAreaValue: any = '';
 
-  defaultTextProps: any = { label: "Edit here...", counter: true };
+  defaultTextProps: any = { label: 'Edit here...', counter: true };
 
   get editPath() {
     //Object that is use in making of firebase path URL to save data in database.
     const path: any = {};
-    path["itemPath"] = this.value ? this.value.split(".").join("/") : "";
+    path['itemPath'] = this.value ? this.value.split('.').join('/') : '';
     return path;
   }
 
@@ -64,7 +64,7 @@ export default class InlineTextEdit extends Vue {
       (this.$refs.editTextArea as any).focus();
     }, 100);
 
-    this.textAreaValue = _.get(this.item, this.value, "");
+    this.textAreaValue = _.get(this.item, this.value, '');
     this.isShowTextArea = true;
   }
 

@@ -11,10 +11,10 @@
 </template>
 
 <script>
-import HomePageButtons from "../components/HomePageButtons";
+import HomePageButtons from '../components/HomePageButtons';
 export default {
-  name: "Home",
-  title: "Home",
+  name: 'Home',
+  title: 'Home',
   components: { HomePageButtons },
 };
 </script>

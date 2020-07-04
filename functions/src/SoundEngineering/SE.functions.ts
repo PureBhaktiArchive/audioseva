@@ -9,7 +9,7 @@ import admin = require('firebase-admin');
 export const arrangeUploadedFile = functions.storage
   .bucket(StorageManager.getFullBucketName('se.uploads'))
   .object()
-  .onFinalize(async object => {
+  .onFinalize(async (object) => {
     const destinationFile = StorageManager.getDestinationFileForRestoredUpload(
       object.name
     );

@@ -16,7 +16,7 @@ export class TaskValidator extends Validator<ChunkRow[]> {
         `Task ID is incorrect.`
       ),
       new ValidationRuleForEach(
-        row => !row['Output File Name'] || /^(non-)?SEd$/i.test(row['SEd?']),
+        (row) => !row['Output File Name'] || /^(non-)?SEd$/i.test(row['SEd?']),
         `SEd is incorrect.`
       ),
       new ValidationRuleForEach(
@@ -26,7 +26,7 @@ export class TaskValidator extends Validator<ChunkRow[]> {
         'Timing is incorrect.'
       ),
       new ValidationRuleForEach(
-        row => !row['Output File Name'] || !row['Continuation'],
+        (row) => !row['Output File Name'] || !row['Continuation'],
         `Continuation From is not empty for the first chunk.`
       ),
       new ValidationRuleForEach(

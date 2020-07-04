@@ -10,12 +10,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import DataTable from "../DataTable.vue";
-import { mergeDoneStatistics } from "@/utility";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import DataTable from '../DataTable.vue';
+import { mergeDoneStatistics } from '@/utility';
 
 @Component({
-  name: "DoneStatistics",
+  name: 'DoneStatistics',
   components: { DataTable },
 })
 export default class DoneStatistics extends Vue {
@@ -25,7 +25,7 @@ export default class DoneStatistics extends Vue {
     return Object.entries(mergeDoneStatistics(this.doneStatistics));
   }
 
-  headers = [{ value: "doneText" }, { value: "statistic" }];
+  headers = [{ value: 'doneText' }, { value: 'statistic' }];
 
   get statistics() {
     return this.statsArray.map(([date, statistic]) => ({
@@ -35,7 +35,7 @@ export default class DoneStatistics extends Vue {
   }
 
   getDoneText(date: string) {
-    return `Done ${date === "today" ? "today" : `on ${date}`}`;
+    return `Done ${date === 'today' ? 'today' : `on ${date}`}`;
   }
 }
 </script>

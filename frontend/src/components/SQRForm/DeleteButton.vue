@@ -8,10 +8,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component({
-  name: "DeleteButton",
+  name: 'DeleteButton',
 })
 export default class Button extends Vue {
   @Prop() buttonProps!: any;

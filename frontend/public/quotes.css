@@ -1,10 +1,10 @@
 .quote-wrapper {
-    display: flex;
-    justify-content: center;
-    width: 100%;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .quote {
-    word-break: break-all;  /* support IE11 */
-    word-break: break-word;
+  word-break: break-all; /* support IE11 */
+  word-break: break-word;
 }
