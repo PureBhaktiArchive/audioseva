@@ -15,6 +15,8 @@ export default {
   state: {
     currentUser: null,
     roles: null,
+    metadataCallback: null,
+    metadataTimestamp: null,
   },
   getters: {
     isSignedIn: (state: any) => state.currentUser !== null,
@@ -26,6 +28,11 @@ export default {
           return subject.modelName;
         },
       });
+    },
+    metadataRef: (state: any) => {
+      return state.currentUser
+        ? firebase.database().ref(`users/${state.currentUser.uid}/refreshTime`)
+        : null;
     },
   },
   mutations: {
@@ -45,20 +52,62 @@ export default {
     setUserRoles: (state: any, roles: { [key: string]: any } | null) => {
       state.roles = roles;
     },
+    setMetadataCallback: (
+      state: any,
+      callback: ((snapshot: firebase.database.DataSnapshot) => void) | null
+    ) => {
+      state.metadataCallback = callback;
+    },
+    setMetadataTimestamp: (state: any, timestamp: number) => {
+      state.metadataTimestamp = timestamp;
+    },
   },
   actions: {
     signOut() {
       firebase.auth().signOut();
     },
-    async handleUser(
-      { commit, getters, state }: ActionContext<any, any>,
+
+    async handleAuthStateChanged(
+      { dispatch, commit, state, getters }: ActionContext<any, any>,
       user: firebase.User | null
     ) {
       commit('setCurrentUser', user);
-      commit(
-        'setUserRoles',
-        user ? (await user.getIdTokenResult()).claims.roles : null
-      );
+
+      if (state.metadataCallback && getters.metadataRef) {
+        getters.metadataRef.off('value', state.metadataCallback);
+      }
+
+      if (!state.currentUser) {
+        commit('setMetadataCallback', null);
+        commit('setMetadataTimestamp', null);
+        await dispatch('updateUserRoles');
+        return;
+      }
+
+      const metadataCallback = (snapshot: firebase.database.DataSnapshot) => {
+        const currentTimestamp = state.metadataTimestamp;
+        const newTimestamp = snapshot.val();
+        commit('setMetadataTimestamp', newTimestamp);
+        if (currentTimestamp && currentTimestamp > newTimestamp) {
+          return;
+        }
+        dispatch('updateUserRoles', { forceRefresh: true });
+      };
+      commit('setMetadataCallback', metadataCallback);
+      // After setting the callback, it will be called once initially.
+      // So, there is no need to explicitly update roles here.
+      getters.metadataRef.on('value', metadataCallback);
+    },
+
+    async updateUserRoles(
+      { commit, getters, state }: ActionContext<any, any>,
+      { forceRefresh = false } = {}
+    ) {
+      const roles = state.currentUser
+        ? (await state.currentUser.getIdTokenResult(forceRefresh)).claims.roles
+        : null;
+      commit('setUserRoles', roles);
+
       const { rules, can, cannot } = new AbilityBuilder();
       const hasRole = (role: string) => _.get(state.roles, role) === true;
 
@@ -66,6 +115,7 @@ export default {
       if (hasRole('TE.coordinator')) {
         can('manage', [subjects.TE.task, subjects.TE.tasks]);
       }
+
       if (hasRole('TE.checker')) {
         can(['resolve', 'view'], subjects.TE.task);
         can('view', subjects.TE.tasks);

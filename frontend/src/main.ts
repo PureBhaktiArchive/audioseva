@@ -53,13 +53,11 @@ async function getFirebaseConfig(): Promise<Object> {
 
 getFirebaseConfig().then((config) => {
   firebase.initializeApp(config);
-  firebase.auth().onAuthStateChanged((user) => {
-    store.dispatch('user/handleUser', user);
+  firebase.auth().onAuthStateChanged(async (user) => {
+    store.dispatch('user/handleAuthStateChanged', user);
   });
 
-  const unsubscribe: any = firebase.auth().onAuthStateChanged(async (user) => {
-    await store.dispatch('user/handleUser', user);
-
+  const unsubscribe = firebase.auth().onAuthStateChanged(() => {
     new Vue({
       router,
       store,
