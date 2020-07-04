@@ -1,9 +1,9 @@
 export const validateDuration = (v: string) => {
   return v
-    ? v.match("^(0?\\d[:.])?\\d{1,2}[:.]\\d{1,2}$")
+    ? v.match('^(0?\\d[:.])?\\d{1,2}[:.]\\d{1,2}$')
       ? true
-      : "Must match format (h:)mm:ss"
+      : 'Must match format (h:)mm:ss'
     : true;
 };
 
-export const required = (v: string) => !!v || "Required";
+export const required = (v: string) => !!v || 'Required';

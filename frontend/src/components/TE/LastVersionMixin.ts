@@ -1,5 +1,5 @@
-import { Component, Prop, Mixins } from "vue-property-decorator";
-import BaseTaskMixin from "@/components/TE/BaseTaskMixin";
+import BaseTaskMixin from '@/components/TE/BaseTaskMixin';
+import { Component, Mixins, Prop } from 'vue-property-decorator';
 
 @Component
 export default class LastVersionMixin extends Mixins<BaseTaskMixin>(

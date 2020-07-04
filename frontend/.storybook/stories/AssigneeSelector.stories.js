@@ -1,22 +1,22 @@
-import { boolean } from "@storybook/addon-knobs";
-import { storyFactory } from "../util/helpers";
-import AssigneeSelector from "../../src/components/AssigneeSelector";
+import { boolean } from '@storybook/addon-knobs';
+import AssigneeSelector from '../../src/components/AssigneeSelector';
+import { storyFactory } from '../util/helpers';
 
-export default { title: "Assignee Selector" };
+export default { title: 'Assignee Selector' };
 
 const story = storyFactory({
-  AssigneeSelector
+  AssigneeSelector,
 });
 
 const baseProps = (customProps = {}) => ({
   loading: {
-    default: boolean("loading", true)
+    default: boolean('loading', true),
   },
-  ...customProps
+  ...customProps,
 });
 
 export const asDefault = () =>
   story({
     props: baseProps(),
-    template: `<assignee-selector :loading="loading"></assignee-selector>`
+    template: `<assignee-selector :loading="loading"></assignee-selector>`,
   });

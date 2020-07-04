@@ -9,6 +9,10 @@ type InitialTimestamp extends Number {
   validate() { this == (prior(this) == null ? now : prior(this)) }
 }
 
+path /email/notifications {
+    index() { ["sentTimestamp", "template"] }
+}
+
 path /donations {
   path /cash {
     path /{push_id} {

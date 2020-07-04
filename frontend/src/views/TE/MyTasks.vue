@@ -18,7 +18,7 @@
       <!-- eslint-disable vue/no-parsing-error -->
       <template v-slot:.key="{ item }">
         <router-link :to="getTaskLink(item)">
-          {{ item[".key"] }}
+          {{ item['.key'] }}
         </router-link>
       </template>
       <template v-slot:timestampGiven="{ item, value }">
@@ -39,18 +39,18 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins } from "vue-property-decorator";
-import _ from "lodash";
-import firebase from "firebase/app";
-import "firebase/database";
-import { mapState } from "vuex";
-import "@/styles/subtext.css";
+import { Component, Mixins } from 'vue-property-decorator';
+import _ from 'lodash';
+import firebase from 'firebase/app';
+import 'firebase/database';
+import { mapState } from 'vuex';
+import '@/styles/subtext.css';
 
-import DataTable from "@/components/DataTable.vue";
-import TimestampGiven from "@/components/DataTable/TimestampGiven.vue";
-import TaskOutput from "@/components/TE/Output.vue";
-import Resolution from "@/components/TE/Resolution.vue";
-import TaskMixin from "@/components/TE/TaskMixin";
+import DataTable from '@/components/DataTable.vue';
+import TimestampGiven from '@/components/DataTable/TimestampGiven.vue';
+import TaskOutput from '@/components/TE/Output.vue';
+import Resolution from '@/components/TE/Resolution.vue';
+import TaskMixin from '@/components/TE/TaskMixin';
 
 const ranks: any = {
   Given: 3,
@@ -59,9 +59,9 @@ const ranks: any = {
 };
 
 @Component({
-  name: "MyTasks",
+  name: 'MyTasks',
   computed: {
-    ...mapState("user", ["currentUser"]),
+    ...mapState('user', ['currentUser']),
   },
   components: {
     DataTable,
@@ -69,18 +69,18 @@ const ranks: any = {
     Resolution,
     TaskOutput,
   },
-  title: "My Tasks",
+  title: 'My Tasks',
 })
 export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
   tasks: any[] = [];
   currentUser!: firebase.User;
   isLoadingTasks = false;
   headers = [
-    { text: "Task ID", value: ".key", sortable: false },
-    { text: "Status", value: "status", sortable: false },
-    { text: "Date Given", value: "timestampGiven", sortable: false },
-    { text: "Output", value: "output", sortable: false },
-    { text: "Resolution", value: "resolution", sortable: false },
+    { text: 'Task ID', value: '.key', sortable: false },
+    { text: 'Status', value: 'status', sortable: false },
+    { text: 'Date Given', value: 'timestampGiven', sortable: false },
+    { text: 'Output', value: 'output', sortable: false },
+    { text: 'Resolution', value: 'resolution', sortable: false },
   ];
 
   datatableProps = {
@@ -90,17 +90,17 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
     customSort: (items: any[]) => {
       return _.orderBy(
         items,
-        [(o) => ranks[o.status], "timestampGiven"],
-        ["desc", "desc"]
+        [(o) => ranks[o.status], 'timestampGiven'],
+        ['desc', 'desc']
       );
     },
     loading: true,
   };
 
   classes = {
-    ".key": {
-      "font-weight-bold": true,
-      "text-no-wrap": true,
+    '.key': {
+      'font-weight-bold': true,
+      'text-no-wrap': true,
     },
   };
 
@@ -110,18 +110,18 @@ export default class MyTasks extends Mixins<TaskMixin>(TaskMixin) {
 
   async getTasks() {
     await this.$rtdbBind(
-      "tasks",
+      'tasks',
       firebase
         .database()
-        .ref("/TE/tasks")
-        .orderByChild("assignee/emailAddress")
+        .ref('/TE/tasks')
+        .orderByChild('assignee/emailAddress')
         .equalTo(this.currentUser.email)
     );
     this.datatableProps.loading = false;
   }
 
   get activeTasks() {
-    return this.tasks.filter((task) => ["Given", "WIP"].includes(task.status));
+    return this.tasks.filter((task) => ['Given', 'WIP'].includes(task.status));
   }
 }
 </script>

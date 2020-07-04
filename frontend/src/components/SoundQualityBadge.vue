@@ -5,18 +5,18 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component({
-  name: "SoundQualityBadge",
+  name: 'SoundQualityBadge',
 })
 export default class SoundQualityBadge extends Vue {
   @Prop() item!: any;
 
   soundQualityRatingColor = {
-    Bad: "red",
-    Average: "yellow",
-    Good: "green",
+    Bad: 'red',
+    Average: 'yellow',
+    Good: 'green',
   };
 }
 </script>

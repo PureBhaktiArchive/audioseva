@@ -138,15 +138,15 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import SoundIssues from "@/components/SQRForm/SoundIssues.vue";
-import UnwantedParts from "@/components/SQRForm/UnwantedParts.vue";
-import SQRField from "@/components/SQRForm/SQRField.vue";
-import TextArea from "@/components/Inputs/TextArea.vue";
-import Guidelines from "@/components/SQRForm/Guidelines.vue";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import SoundIssues from '@/components/SQRForm/SoundIssues.vue';
+import UnwantedParts from '@/components/SQRForm/UnwantedParts.vue';
+import SQRField from '@/components/SQRForm/SQRField.vue';
+import TextArea from '@/components/Inputs/TextArea.vue';
+import Guidelines from '@/components/SQRForm/Guidelines.vue';
 
 @Component({
-  name: "Fields",
+  name: 'Fields',
   components: {
     SoundIssues,
     UnwantedParts,

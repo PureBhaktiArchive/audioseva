@@ -10,18 +10,18 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import DataTable from "../DataTable.vue";
-import { mergeLanguageStatistics } from "@/utility";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import DataTable from '../DataTable.vue';
+import { mergeLanguageStatistics } from '@/utility';
 
 @Component({
-  name: "SpareByLanguage",
+  name: 'SpareByLanguage',
   components: { DataTable },
 })
 export default class SpareByLanguage extends Vue {
   @Prop() spareByLanguage!: { [key: string]: number };
 
-  headers = [{ value: "language" }, { value: "statistic" }];
+  headers = [{ value: 'language' }, { value: 'statistic' }];
 
   get statsArray() {
     return Object.entries(mergeLanguageStatistics(this.spareByLanguage));

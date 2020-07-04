@@ -8,18 +8,18 @@
       {{
         `${formatSeconds(value.beginning)}-${formatSeconds(value.ending)} ${
           value.type
-        }, ${value.description || ""}`
+        }, ${value.description || ''}`
       }}
     </li>
   </ul>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import moment from "moment";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import moment from 'moment';
 
 @Component({
-  name: "SoundIssuesList",
+  name: 'SoundIssuesList',
 })
 export default class SoundIssuesList extends Vue {
   @Prop() item!: any;
@@ -27,8 +27,8 @@ export default class SoundIssuesList extends Vue {
 
   formatSeconds(seconds: number) {
     return moment
-      .utc(moment.duration(seconds, "seconds").asMilliseconds())
-      .format("mm:ss");
+      .utc(moment.duration(seconds, 'seconds').asMilliseconds())
+      .format('mm:ss');
   }
 }
 </script>

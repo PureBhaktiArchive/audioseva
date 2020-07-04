@@ -47,7 +47,7 @@ export const processAllotment = functions.https.onCall(
       );
 
     const updatedTasks = await repository.save(
-      ...taskIds.map(id => ({
+      ...taskIds.map((id) => ({
         id,
         assignee,
         status: AllotmentStatus.Given,
@@ -160,18 +160,15 @@ export const processUpload = functions.storage
       warnings.push('Task is already Done.');
 
     // Notify the coordinator
-    await admin
-      .database()
-      .ref(`/email/notifications`)
-      .push({
-        template: 'track-editing/upload',
-        to: functions.config().te.coordinator.email_address,
-        replyTo: task.assignee.emailAddress,
-        params: {
-          task,
-          warnings,
-        },
-      });
+    await admin.database().ref(`/email/notifications`).push({
+      template: 'track-editing/upload',
+      to: functions.config().te.coordinator.email_address,
+      replyTo: task.assignee.emailAddress,
+      params: {
+        task,
+        warnings,
+      },
+    });
   });
 
 export const processResolution = functions.database
@@ -182,9 +179,9 @@ export const processResolution = functions.database
 
     console.info(
       `Processing resolution of ${taskId} (version ${versionKey}): ${
-      resolution.val().isApproved
-        ? 'approved'
-        : `disapproved with feedback “${resolution.val().feedback}”`
+        resolution.val().isApproved
+          ? 'approved'
+          : `disapproved with feedback “${resolution.val().feedback}”`
       }.`
     );
 
@@ -278,14 +275,12 @@ export const download = functions.https.onRequest(
        * So the requested version number is just a length of this filtered array
        */
       const versionNumber = _.keys(task.versions).filter(
-        key => key <= versionId
+        (key) => key <= versionId
       ).length;
 
       const [url] = await file.getSignedUrl({
         action: 'read',
-        expires: DateTime.local()
-          .plus({ days: 3 })
-          .toJSDate(),
+        expires: DateTime.local().plus({ days: 3 }).toJSDate(),
         promptSaveAs: `${taskId}.v${versionNumber}${path.extname(
           version.uploadPath
         )}`,

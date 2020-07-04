@@ -1,14 +1,14 @@
-import { ICount } from "@/types/DataTable";
-import _ from "lodash";
-import moment from "moment";
-import { Vue } from "vue-property-decorator";
+import { ICount } from '@/types/DataTable';
+import _ from 'lodash';
+import moment from 'moment';
+import { Vue } from 'vue-property-decorator';
 
 export const getProjectDomain = () => {
-  return window.location.host.split(".").slice(1).join(".");
+  return window.location.host.split('.').slice(1).join('.');
 };
 
 export function getDayDifference(date: number) {
-  return moment().diff(date, "days");
+  return moment().diff(date, 'days');
 }
 
 export const getDaysPassed = (timestampPath: string) => (
@@ -16,20 +16,20 @@ export const getDaysPassed = (timestampPath: string) => (
   item: any
 ) => {
   const dateGiven = _.get(item, timestampPath, false);
-  if (typeof dateGiven === "number") {
+  if (typeof dateGiven === 'number') {
     return getDayDifference(dateGiven);
   }
-  return "";
+  return '';
 };
 
 type MomentDateOrString = string | moment.Moment;
 
 export const getLastDays = (day = 5) => {
-  const days: MomentDateOrString[] = ["today"];
+  const days: MomentDateOrString[] = ['today'];
   const today = moment();
   let i;
   for (i = 1; i < day + 1; i++) {
-    days.unshift(today.clone().subtract(i, "days"));
+    days.unshift(today.clone().subtract(i, 'days'));
   }
   return days;
 };
@@ -37,10 +37,10 @@ export const getLastDays = (day = 5) => {
 export const mergeDoneStatistics = (doneStatistics: ICount) => {
   const baseStatistics: ICount = {};
   getLastDays().forEach((date: MomentDateOrString) => {
-    if (typeof date === "string") {
+    if (typeof date === 'string') {
       baseStatistics[date] = 0;
     } else {
-      baseStatistics[date.format("MMM DD")] = 0;
+      baseStatistics[date.format('MMM DD')] = 0;
     }
   });
   return { ...baseStatistics, ...doneStatistics };
@@ -57,10 +57,10 @@ export const mergeLanguageStatistics = (languageStatistics: ICount) => {
 
 export const formatTimestamp = (value: string, item: any) => {
   const timestamp = _.get(item, value, false);
-  return timestamp ? moment(timestamp).format("D.MM.YYYY") : "";
+  return timestamp ? moment(timestamp).format('D.MM.YYYY') : '';
 };
 
-const taskIdPattern = "^\\w+-\\d+-\\d+";
+const taskIdPattern = '^\\w+-\\d+-\\d+';
 
 const taskIdFormat = new RegExp(taskIdPattern);
 
@@ -71,7 +71,7 @@ export const getTaskId = (fileName: string) => {
   return match ? match[0] : null;
 };
 
-export const getListId = (fileId: string) => fileId.split("-")[0];
+export const getListId = (fileId: string) => fileId.split('-')[0];
 
 export const initialAllotment = () => ({
   assignee: null,
@@ -106,12 +106,12 @@ const getObject = (obj: any, path: string, defaultValue: any = {}) => {
 export const getPathAndKey = (field: string) => {
   let key: any;
   let path: any;
-  if (field.includes(".")) {
-    const paths = field.split(".");
+  if (field.includes('.')) {
+    const paths = field.split('.');
     key = paths.pop();
-    path = paths.join(".");
+    path = paths.join('.');
   } else {
-    path = "";
+    path = '';
     key = field;
   }
   return { path, key };
@@ -119,7 +119,7 @@ export const getPathAndKey = (field: string) => {
 
 export const updateObject = (
   obj: any,
-  { path = "", key, value }: { path: string; key: any; value: any }
+  { path = '', key, value }: { path: string; key: any; value: any }
 ) => {
   let defaultValue: any = {};
   if (!isNaN(key)) {
@@ -130,7 +130,7 @@ export const updateObject = (
 
 export const removeObjectKey = (
   obj: any,
-  { path = "", key }: { path: string; key: any }
+  { path = '', key }: { path: string; key: any }
 ) => {
   return Vue.delete(getObject(obj, path), key);
 };

@@ -42,7 +42,7 @@ export class TasksRepository {
     createSchema<RestorableTask, AllotmentRow>({
       id: 'Task ID',
       status: ({ Status: status }) =>
-        status?.trim() as AllotmentStatus || AllotmentStatus.Spare,
+        (status?.trim() as AllotmentStatus) || AllotmentStatus.Spare,
       assignee: ({ Devotee: name, Email: emailAddress }) => ({
         name: name?.trim() || null,
         emailAddress: emailAddress?.trim() || null,
@@ -51,11 +51,11 @@ export class TasksRepository {
   );
 
   private mapToRows(tasks: IdentifiableTask[]): AllotmentRow[] {
-    return tasks.map<AllotmentRow>(task => {
+    return tasks.map<AllotmentRow>((task) => {
       const lastVersionKey = _.findLastKey(task.versions);
       const lastResolvedVersion = _.findLast(
         task.versions,
-        version => !!version.resolution
+        (version) => !!version.resolution
       );
 
       return {
@@ -65,17 +65,17 @@ export class TasksRepository {
           task.status === undefined
             ? undefined
             : task.status === AllotmentStatus.Spare
-              ? null
-              : task.status,
+            ? null
+            : task.status,
         'Date Given': task.timestampGiven
           ? DateTimeConverter.toSerialDate(
-            DateTime.fromMillis(task.timestampGiven)
-          )
+              DateTime.fromMillis(task.timestampGiven)
+            )
           : null,
         'Date Done': task.timestampDone
           ? DateTimeConverter.toSerialDate(
-            DateTime.fromMillis(task.timestampDone)
-          )
+              DateTime.fromMillis(task.timestampDone)
+            )
           : null,
         Devotee: task.assignee?.name || null,
         Email: task.assignee?.emailAddress || null,
@@ -84,8 +84,8 @@ export class TasksRepository {
           : null,
         'Upload Date': lastVersionKey
           ? DateTimeConverter.toSerialDate(
-            DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
-          )
+              DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
+            )
           : null,
         'Latest Resolution': lastResolvedVersion
           ? lastResolvedVersion.resolution.isApproved
@@ -94,8 +94,8 @@ export class TasksRepository {
           : null,
         'Resolution Date': lastResolvedVersion
           ? DateTimeConverter.toSerialDate(
-            DateTime.fromMillis(lastResolvedVersion.resolution.timestamp)
-          )
+              DateTime.fromMillis(lastResolvedVersion.resolution.timestamp)
+            )
           : null,
         'Checked By': lastResolvedVersion
           ? lastResolvedVersion.resolution.author?.name || null
@@ -111,12 +111,14 @@ export class TasksRepository {
   public async getTask(taskId: string) {
     const snapshot = await this.getTaskRef(taskId).once('value');
     return snapshot.exists()
-      ? { id: taskId, ...snapshot.val() } as TrackEditingTask
+      ? ({ id: taskId, ...snapshot.val() } as TrackEditingTask)
       : null;
   }
 
   public async getTasks(taskIds: string[]) {
-    return await Promise.all(taskIds.map(async taskId => this.getTask(taskId)));
+    return await Promise.all(
+      taskIds.map(async (taskId) => this.getTask(taskId))
+    );
   }
 
   public async save(...tasks: IdentifiableTask[]) {
@@ -129,9 +131,7 @@ export class TasksRepository {
   }
 
   public async saveNewVersion(taskId: string, version: FileVersion) {
-    await this.getTaskRef(taskId)
-      .child('versions')
-      .push(version);
+    await this.getTaskRef(taskId).child('versions').push(version);
 
     const updatedTask = await this.getTask(taskId);
 
@@ -142,7 +142,7 @@ export class TasksRepository {
   private async saveToDatabase(tasks: IdentifiableTask[]) {
     await tasksRef.update(
       _.chain(tasks)
-        .flatMap(task =>
+        .flatMap((task) =>
           _(task)
             .omit(task, 'id')
             .map((value, key) => [`${task.id}/${key}`, value])
@@ -168,9 +168,9 @@ export class TasksRepository {
 
     const tasks = _.chain(await tasksSheet.getRows())
       // Skip empty rows
-      .filter(row => !!row['File Name'])
+      .filter((row) => !!row['File Name'])
       // Skip first rows without Task ID
-      .dropWhile(row => !row['Output File Name'])
+      .dropWhile((row) => !row['Output File Name'])
       // Group chunks of one task together
       .reduce((accumulator, row) => {
         if (row['Output File Name']) accumulator.push([]);
@@ -178,7 +178,7 @@ export class TasksRepository {
         return accumulator;
       }, new Array<Array<ChunkRow>>())
       // Validate rows
-      .filter(taskRows => {
+      .filter((taskRows) => {
         const validationResult = new TaskValidator().validate(taskRows);
         if (!validationResult.isValid)
           console.info(
@@ -188,7 +188,7 @@ export class TasksRepository {
         return validationResult.isValid;
       })
       // Convert the rows into the tasks
-      .map(taskRows => ({
+      .map((taskRows) => ({
         id: taskRows[0]['Output File Name'].trim().toUpperCase(),
         isRestored: taskRows[0]['SEd?'].toUpperCase() === 'SED',
         chunks: taskRows.map<AudioChunk>(
@@ -238,8 +238,8 @@ export class TasksRepository {
 
     /// Adding missing tasks from the database to the spreadsheet
     const tasksForSpreadsheet = _.chain(tasksFromDatabase)
-      .filter(task => !idsInSpreadsheet.has(task.id))
-      .forEach(task => {
+      .filter((task) => !idsInSpreadsheet.has(task.id))
+      .forEach((task) => {
         console.info(
           `${shouldWrite ? 'Adding' : 'Would add'} missing task ${task.id}`,
           'into the spreadsheet.'
@@ -249,7 +249,7 @@ export class TasksRepository {
 
     /// Updating allotment info from the spreadsheet to the database
     const tasksForDatabase = _.chain(allotmentsFromSpreadsheet)
-      .filter(allotment => {
+      .filter((allotment) => {
         const task = tasksFromDatabase[allotment.id];
 
         if (!task) {
@@ -261,7 +261,7 @@ export class TasksRepository {
         if (
           allotment.status === task.status &&
           (allotment.assignee?.emailAddress || null) ===
-          (task.assignee?.emailAddress || null)
+            (task.assignee?.emailAddress || null)
         )
           return false;
 

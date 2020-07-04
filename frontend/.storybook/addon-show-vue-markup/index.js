@@ -1,3 +1,3 @@
-import withTemplate from "./decorator";
+import withTemplate from './decorator';
 
 export { withTemplate };

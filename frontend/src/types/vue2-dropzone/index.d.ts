@@ -1,1 +1,1 @@
-declare module "vue2-dropzone";
+declare module 'vue2-dropzone';

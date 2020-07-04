@@ -70,7 +70,7 @@
                 >
                   <div slot="label">
                     <code class="mr-2">
-                      {{ task[".key"] }}
+                      {{ task['.key'] }}
                     </code>
                     <restored-chip
                       :isRestored="task.isRestored"
@@ -117,21 +117,21 @@
 </template>
 
 <script lang="ts">
-import { Component, Mixins, Watch } from "vue-property-decorator";
-import firebase from "firebase/app";
-import "firebase/database";
-import "firebase/functions";
-import _ from "lodash";
+import { Component, Mixins, Watch } from 'vue-property-decorator';
+import firebase from 'firebase/app';
+import 'firebase/database';
+import 'firebase/functions';
+import _ from 'lodash';
 
-import TaskMixin from "@/components/TE/TaskMixin";
-import TaskDefinition from "@/components/TE/TaskDefinition.vue";
-import AssigneeSelector from "@/components/AssigneeSelector.vue";
-import RestoredChip from "@/components/TE/RestoredChip.vue";
+import TaskMixin from '@/components/TE/TaskMixin';
+import TaskDefinition from '@/components/TE/TaskDefinition.vue';
+import AssigneeSelector from '@/components/AssigneeSelector.vue';
+import RestoredChip from '@/components/TE/RestoredChip.vue';
 
 @Component({
-  name: "Allotment",
+  name: 'Allotment',
   components: { AssigneeSelector, TaskDefinition, RestoredChip },
-  title: "Track Editing Allotment",
+  title: 'Track Editing Allotment',
 })
 export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
   allotment: any = Allotment.initialAllotment();
@@ -155,7 +155,7 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
     this.getTasks();
   }
 
-  @Watch("allotment.assignee")
+  @Watch('allotment.assignee')
   async handleAssigneeChange(newVal: any, oldVal: any) {
     if (!newVal) {
       return;
@@ -166,11 +166,11 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
       }
       this.isLoadingAssigneeTasks = true;
       await this.$rtdbBind(
-        "assigneeTasks",
+        'assigneeTasks',
         firebase
           .database()
-          .ref("/TE/tasks")
-          .orderByChild("assignee/emailAddress")
+          .ref('/TE/tasks')
+          .orderByChild('assignee/emailAddress')
           .equalTo(this.allotment.assignee.emailAddress)
       );
       this.isLoadingAssigneeTasks = false;
@@ -180,8 +180,8 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
   async getTrackEditors() {
     const editors = await firebase
       .functions()
-      .httpsCallable("User-getAssignees")({
-      phase: "TE",
+      .httpsCallable('User-getAssignees')({
+      phase: 'TE',
     });
     this.trackEditors = editors.data;
     if (this.$route.query.emailAddress) {
@@ -196,27 +196,27 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
 
   async getTasks() {
     await this.$rtdbBind(
-      "tasks",
+      'tasks',
       firebase
         .database()
-        .ref("/TE/tasks")
-        .orderByChild("status")
-        .equalTo("Spare")
+        .ref('/TE/tasks')
+        .orderByChild('status')
+        .equalTo('Spare')
         .limitToFirst(50)
     );
     this.isLoadingTasks = false;
   }
 
   async allot() {
-    this.submissionStatus = "inProgress";
+    this.submissionStatus = 'inProgress';
     try {
-      await firebase.functions().httpsCallable("TE-processAllotment")(
+      await firebase.functions().httpsCallable('TE-processAllotment')(
         this.allotment
       );
-      this.submissionStatus = "complete";
+      this.submissionStatus = 'complete';
     } catch (error) {
       alert(error.message);
-      this.submissionStatus = "error";
+      this.submissionStatus = 'error';
     }
   }
 
@@ -225,14 +225,14 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
   }
 
   getTaskSummary(task: any) {
-    if (!task.chunks) return "";
+    if (!task.chunks) return '';
     const summaryStats = task.chunks.reduce(
       (stats: { [x: string]: number | undefined }, chunk: any) => {
         if (stats[chunk.fileName] === undefined) {
           stats[chunk.fileName] = 0;
         }
         if (chunk.unwantedParts) {
-          stats[chunk.fileName] += chunk.unwantedParts.split("\n").length;
+          stats[chunk.fileName] += chunk.unwantedParts.split('\n').length;
         }
         return stats;
       },
@@ -247,14 +247,14 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
         }
         return summary;
       },
-      ""
+      ''
     );
   }
 
   get assigneeTasksStats() {
     return this.assigneeTasks.reduce(
       (stats, task) => {
-        if (["WIP", "Given"].includes(task.status)) {
+        if (['WIP', 'Given'].includes(task.status)) {
           stats[task.status] += 1;
         }
         return stats;
@@ -271,7 +271,7 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
   get groupedTasks() {
     if (!this.tasks) return {};
     return _.groupBy(this.tasks, (task) =>
-      _.split(task[".key"], "-", 2).join("-")
+      _.split(task['.key'], '-', 2).join('-')
     );
   }
 }

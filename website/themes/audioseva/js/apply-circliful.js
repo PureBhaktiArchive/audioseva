@@ -1,3 +1,3 @@
-jQuery(function($){
-    $(".circliful").circliful();
+jQuery(function ($) {
+  $('.circliful').circliful();
 });

@@ -38,10 +38,10 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component({
-  name: "AssigneeSelector",
+  name: 'AssigneeSelector',
 })
 export default class AssigneeSelector extends Vue {
   @Prop({ default: false }) loading!: boolean;

@@ -1,5 +1,5 @@
 export interface ITasks {
-  ".key": string;
+  '.key': string;
   duration: number;
   soundIssues: string[];
 }

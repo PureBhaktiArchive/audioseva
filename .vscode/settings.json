@@ -1,9 +1,6 @@
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.detectIndentation": false,
-  "editor.insertSpaces": true,
   "editor.formatOnSave": true,
-  "editor.tabSize": 2,
   "editor.quickSuggestions": {
     "other": true,
     "comments": false,
@@ -38,5 +35,16 @@
       "${commentend}",
       ""
     ]
-  }
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/lib": true,
+    "**/dist": true
+  },
+  "formatFiles.excludePattern": "**/*.min.js"
 }

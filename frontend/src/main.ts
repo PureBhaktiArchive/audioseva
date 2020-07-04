@@ -1,37 +1,30 @@
 /*
  * sri sri guru gauranga jayatah
  */
-import "core-js/stable";
-import "regenerator-runtime/runtime";
-import "whatwg-fetch";
-
-import firebase from "firebase/app";
-import "firebase/auth";
-
-import Vue from "vue";
-import VueResource from "vue-resource";
-
-import App from "./App.vue";
-
-import { router } from "@/router";
-import { store } from "@/store";
-
-import Vuetify from "vuetify";
-import vuetifyOptions from "@/vuetifyOptions";
-import "vuetify/dist/vuetify.min.css";
-
-import { rtdbPlugin as VueFire } from "vuefire";
-import VuePageTitle from "vue-page-title";
-import { abilitiesPlugin } from "@casl/vue";
-import { SubjectsPlugin } from "@/abilities";
-
-import "@/styles/main.css";
+import { SubjectsPlugin } from '@/abilities';
+import { router } from '@/router';
+import { store } from '@/store';
+import '@/styles/main.css';
+import vuetifyOptions from '@/vuetifyOptions';
+import { abilitiesPlugin } from '@casl/vue';
+import 'core-js/stable';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'regenerator-runtime/runtime';
+import Vue from 'vue';
+import VuePageTitle from 'vue-page-title';
+import VueResource from 'vue-resource';
+import { rtdbPlugin as VueFire } from 'vuefire';
+import Vuetify from 'vuetify';
+import 'vuetify/dist/vuetify.min.css';
+import 'whatwg-fetch';
+import App from './App.vue';
 
 Vue.use(VuePageTitle, {
-  suffix: "| Audio Seva",
+  suffix: '| Audio Seva',
   setTitleMethod: (title: string) => {
-    if (title.includes("Home |")) {
-      document.title = "Audio Seva";
+    if (title.includes('Home |')) {
+      document.title = 'Audio Seva';
     } else {
       document.title = title;
     }
@@ -40,14 +33,14 @@ Vue.use(VuePageTitle, {
 Vue.use(VueResource);
 Vue.use(VueFire);
 Vue.use(Vuetify);
-Vue.use(abilitiesPlugin, store.getters["user/ability"]);
+Vue.use(abilitiesPlugin, store.getters['user/ability']);
 Vue.use(SubjectsPlugin);
 
 async function getFirebaseConfig(): Promise<Object> {
-  return process.env.NODE_ENV === "production"
+  return process.env.NODE_ENV === 'production'
     ? /// loading config from Firebase Hosting reserved URL
       /// https://firebase.google.com/docs/hosting/reserved-urls#sdk_auto-configuration
-      (await fetch("/__/firebase/init.json")).json()
+      (await fetch('/__/firebase/init.json')).json()
     : {
         apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
         authDomain: process.env.VUE_APP_FIREBASE_AUTH_DOMAIN,
@@ -60,18 +53,18 @@ async function getFirebaseConfig(): Promise<Object> {
 
 getFirebaseConfig().then((config) => {
   firebase.initializeApp(config);
-  firebase.auth().onAuthStateChanged(async user => {
-    store.dispatch("user/handleAuthStateChanged", user);
+  firebase.auth().onAuthStateChanged(async (user) => {
+    store.dispatch('user/handleAuthStateChanged', user);
   });
 
-  const unsubscribe: any = firebase.auth().onAuthStateChanged(() => {
+  const unsubscribe = firebase.auth().onAuthStateChanged(() => {
     new Vue({
       router,
       store,
       vuetify: new Vuetify(vuetifyOptions),
       firebase: {},
       render: (h) => h(App),
-    }).$mount("#app");
+    }).$mount('#app');
 
     unsubscribe();
   });

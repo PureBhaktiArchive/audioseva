@@ -1,10 +1,14 @@
 module.exports = {
   root: true,
-  env: {},
+  env: {
+    node: true,
+  },
   parser: '@typescript-eslint/parser',
   parserOptions: {
+    tsconfigRootDir: __dirname,
     project: 'tsconfig.json',
     sourceType: 'module',
+    ecmaVersion: 2017,
   },
   plugins: ['@typescript-eslint'],
   extends: [
@@ -17,5 +21,6 @@ module.exports = {
   ],
   rules: {
     '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/unbound-method': 'off',
   },
 };

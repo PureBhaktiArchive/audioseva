@@ -1,31 +1,29 @@
 // Imports
-import Vue from "vue";
-import Vuetify from "vuetify";
-import { makeDecorator } from "@storybook/addons";
-
+import '@mdi/font/css/materialdesignicons.min.css';
+import { makeDecorator } from '@storybook/addons';
 // Utilities
-import deepmerge from "deepmerge";
-
+import deepmerge from 'deepmerge';
+import Vue from 'vue';
+import Vuetify from 'vuetify';
 // Vuetify
-import "vuetify/dist/vuetify.min.css";
-import "@mdi/font/css/materialdesignicons.min.css";
-import vuetifyOptions from "../../src/vuetifyOptions";
+import 'vuetify/dist/vuetify.min.css';
+import vuetifyOptions from '../../src/vuetifyOptions';
 
 Vue.use(Vuetify);
 
 export default makeDecorator({
-  name: "withVuetify",
-  parameterName: "vuetify",
+  name: 'withVuetify',
+  parameterName: 'vuetify',
   wrapper: (storyFn, context, { parameters = vuetifyOptions }) => {
     // Reduce to one new URL?
     const searchParams = new URL(window.location).searchParams;
-    const dark = searchParams.get("eyes-variation") === "dark";
-    const rtl = searchParams.get("eyes-variation") === "rtl";
+    const dark = searchParams.get('eyes-variation') === 'dark';
+    const rtl = searchParams.get('eyes-variation') === 'rtl';
     const vuetify = new Vuetify(
       deepmerge(
         {
           rtl,
-          theme: { dark }
+          theme: { dark },
         },
         parameters
       )
@@ -41,7 +39,7 @@ export default makeDecorator({
             <wrapped-component />
           </v-container>
         </v-app>
-      `
+      `,
     });
-  }
+  },
 });

@@ -2,13 +2,13 @@
  * sri sri guru gauranga jayatah
  */
 
-import { router } from "@/router";
-import firebase from "firebase/app";
-import "firebase/auth";
-import { ActionContext } from "vuex";
-import _ from "lodash";
-import { Ability } from "@casl/ability";
-import { defineAbilities } from "@/abilities";
+import { subjects } from '@/abilities';
+import { router } from '@/router';
+import { Ability, AbilityBuilder } from '@casl/ability';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import _ from 'lodash';
+import { ActionContext } from 'vuex';
 
 export default {
   namespaced: true,
@@ -20,17 +20,10 @@ export default {
   },
   getters: {
     isSignedIn: (state: any) => state.currentUser !== null,
-    hasRole: (state: any) => (roles: string | string[]) => {
-      if (!state.roles) return false;
-      if (typeof roles === "string") {
-        return _.get(state.roles, roles);
-      }
-      return roles.some((role) => _.get(state.roles, role));
-    },
     ability: () => {
       return new Ability([], {
         subjectName(subject) {
-          if (!subject || typeof subject === "string") return subject;
+          if (!subject || typeof subject === 'string') return subject;
 
           return subject.modelName;
         },
@@ -48,7 +41,7 @@ export default {
       if (!user) {
         router
           .push({
-            path: "/login",
+            path: '/login',
             query: { redirect: router.currentRoute.fullPath },
           })
           .catch(() => {
@@ -77,30 +70,32 @@ export default {
       { dispatch, commit, state, getters }: ActionContext<any, any>,
       user: firebase.User | null
     ) {
-      commit("setCurrentUser", user);
+      commit('setCurrentUser', user);
 
       if (state.metadataCallback && getters.metadataRef) {
-        getters.metadataRef.off("value", state.metadataCallback);
+        getters.metadataRef.off('value', state.metadataCallback);
       }
+
       if (!state.currentUser) {
-        commit("setMetadataCallback", null);
-        commit("setMetadataTimestamp", null);
-        await dispatch("updateUserRoles");
+        commit('setMetadataCallback', null);
+        commit('setMetadataTimestamp', null);
+        await dispatch('updateUserRoles');
         return;
       }
+
       commit(
-        "setMetadataCallback",
+        'setMetadataCallback',
         (snapshot: firebase.database.DataSnapshot) => {
           const currentTimestamp = state.metadataTimestamp;
           const newTimestamp = snapshot.val();
-          commit("setMetadataTimestamp", newTimestamp);
+          commit('setMetadataTimestamp', newTimestamp);
           if (currentTimestamp && currentTimestamp > newTimestamp) {
             return;
           }
-          dispatch("updateUserRoles", { forceRefresh: true });
+          dispatch('updateUserRoles', { forceRefresh: true });
         }
       );
-      getters.metadataRef.on("value", state.metadataCallback);
+      getters.metadataRef.on('value', state.metadataCallback);
     },
     async updateUserRoles(
       { commit, getters, state }: ActionContext<any, any>,
@@ -109,8 +104,37 @@ export default {
       const roles = state.currentUser
         ? (await state.currentUser.getIdTokenResult(forceRefresh)).claims.roles
         : null;
-      commit("setUserRoles", roles);
-      getters.ability.update(defineAbilities());
+      commit('setUserRoles', roles);
+
+      const { rules, can, cannot } = new AbilityBuilder();
+      const hasRole = (role: string) => _.get(state.roles, role) === true;
+
+      // TE rules
+      if (hasRole('TE.coordinator')) {
+        can('manage', [subjects.TE.task, subjects.TE.tasks]);
+      }
+
+      if (hasRole('TE.checker')) {
+        can(['resolve', 'view'], subjects.TE.task);
+        can('view', subjects.TE.tasks);
+      }
+      if (hasRole('TE.editor')) {
+        can(['upload', 'view'], subjects.TE.task);
+        can('view', subjects.TE.myTasks);
+      }
+
+      // SQR abilities
+      can('submit', subjects.SQR.form, { isMarkedDone: false });
+
+      if (hasRole('SQR.coordinator')) {
+        can('manage', [subjects.SQR.form, subjects.SQR.tasks]);
+      }
+
+      if (hasRole('SQR.checker')) {
+        can('submit', subjects.SQR.form);
+      }
+
+      getters.ability.update(rules);
     },
   },
 };

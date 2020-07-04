@@ -1,16 +1,16 @@
-import { object } from "@storybook/addon-knobs";
-import { action } from "@storybook/addon-actions";
-import { storyFactory } from "../util/helpers";
-import DataTable from "../../src/components/DataTable";
-import Assignee from "../../src/components/Assignee";
-import InlineTextEdit from "../../src/components/InlineTextEdit";
+import { action } from '@storybook/addon-actions';
+import { object } from '@storybook/addon-knobs';
+import Assignee from '../../src/components/Assignee';
+import DataTable from '../../src/components/DataTable';
+import InlineTextEdit from '../../src/components/InlineTextEdit';
+import { storyFactory } from '../util/helpers';
 
-export default { title: "DataTable" };
+export default { title: 'DataTable' };
 
 const story = storyFactory({
   DataTable,
   Assignee,
-  InlineTextEdit
+  InlineTextEdit,
 });
 
 const getItems = () => {
@@ -18,7 +18,7 @@ const getItems = () => {
   for (let i = 0; i < 20; i++) {
     assignees.push({
       assignee: { name: `name-${i}`, emailAddress: `email-${i}` },
-      description: `description-${i}`
+      description: `description-${i}`,
     });
   }
   return assignees;
@@ -26,17 +26,17 @@ const getItems = () => {
 
 const baseProps = (headers = []) => ({
   items: {
-    default: object("items", getItems())
+    default: object('items', getItems()),
   },
   headers: {
-    default: object("headers", [
+    default: object('headers', [
       ...headers,
-      { text: "Description", value: "description" }
-    ])
-  }
+      { text: 'Description', value: 'description' },
+    ]),
+  },
 });
 
-const assigneeHeaders = [{ text: "Assignee", value: "assignee" }];
+const assigneeHeaders = [{ text: 'Assignee', value: 'assignee' }];
 
 export const asDefault = () =>
   story({
@@ -45,12 +45,12 @@ export const asDefault = () =>
       return {
         datatableProps: {
           page: 1,
-          itemsPerPage: 3
-        }
+          itemsPerPage: 3,
+        },
       };
     },
     methods: {
-      action: action("clicked row")
+      action: action('clicked row'),
     },
     template: `
     <div>
@@ -66,15 +66,15 @@ export const asDefault = () =>
         </template>
       </data-table>
     </div>
-  `
+  `,
   });
 
 export const withInlineEditDescription = () =>
   story({
     props: baseProps(assigneeHeaders),
     methods: {
-      save: action("save"),
-      cancel: action("cancel")
+      save: action('save'),
+      cancel: action('cancel'),
     },
     template: `
     <data-table :items="items" :headers="headers">
@@ -85,7 +85,7 @@ export const withInlineEditDescription = () =>
         <inline-text-edit @save="save" @cancel="cancel" :item="item" :value="value"></inline-text-edit>
       </template>
     </data-table>
-  `
+  `,
   });
 
 export const withTableRowStyle = () =>
@@ -93,14 +93,14 @@ export const withTableRowStyle = () =>
     props: baseProps(),
     methods: {
       tableRowStyle: () => ({
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
-        color: "white"
-      })
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        color: 'white',
+      }),
     },
     template: `
     <data-table :items="items" :headers="headers" :tableRowStyle="tableRowStyle">
     </data-table>
-  `
+  `,
   });
 
 export const withTdStyles = () =>
@@ -108,10 +108,10 @@ export const withTdStyles = () =>
     props: {
       ...baseProps(),
       classes: {
-        default: object("classes", {
-          description: { "font-weight-bold": true }
-        })
-      }
+        default: object('classes', {
+          description: { 'font-weight-bold': true },
+        }),
+      },
     },
-    template: `<data-table :items="items" :headers="headers" :classes="classes"></data-table>`
+    template: `<data-table :items="items" :headers="headers" :classes="classes"></data-table>`,
   });

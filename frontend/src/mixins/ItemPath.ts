@@ -1,5 +1,5 @@
-import { Component, Prop, Vue } from "vue-property-decorator";
-import _ from "lodash";
+import _ from 'lodash';
+import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component
 export default class ItemPath extends Vue {
@@ -17,6 +17,6 @@ export default class ItemPath extends Vue {
   }
 
   getValue(): any {
-    return _.get(this.form, this.itemPath, "");
+    return _.get(this.form, this.itemPath, '');
   }
 }

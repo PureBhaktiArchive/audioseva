@@ -1,3 +1,3 @@
-import withVuetify from "./decorator";
+import withVuetify from './decorator';
 
 export { withVuetify };
