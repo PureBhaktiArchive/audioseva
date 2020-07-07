@@ -4,11 +4,7 @@
 
 import { Allotment } from './Allotment';
 
-export class ReportingTask extends Allotment {
-  public fileName: string;
-
-  constructor(fileName: string, allotment: Allotment) {
-    super(allotment);
-    this.fileName = fileName;
-  }
+export interface ReportingTask extends Allotment {
+  fileName: string;
+  token?: string;
 }
