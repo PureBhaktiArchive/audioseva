@@ -156,9 +156,9 @@ export abstract class AbstractRepository<
       .filter((allotment) => {
         if (allotment[this.idPropertyName].match(/[.#$/[\]]/)) {
           console.warn(
-            `Task ${
-              allotment[this.idPropertyName]
-            } has invalid characters for the database.`
+            `Task ${allotment[this.idPropertyName]}`,
+            'contains invalid characters.',
+            'Skipping'
           );
           return false;
         }
@@ -166,10 +166,9 @@ export abstract class AbstractRepository<
         const task = tasksFromDatabase[allotment[this.idPropertyName]];
 
         if (!task && !createTasksInDatabase) {
-          console.info(
-            `Task ${
-              allotment[this.idPropertyName]
-            } is not found in the database.`
+          console.warn(
+            `Task ${allotment[this.idPropertyName]}`,
+            'is not found in the database.'
           );
           return false;
         }
@@ -196,7 +195,7 @@ export abstract class AbstractRepository<
           (mustBeAssigned && !isAssigned) ||
           (mustNotBeAssigned && isAssigned)
         ) {
-          console.info(
+          console.warn(
             `Task ${allotment[this.idPropertyName]}`,
             `has invalid data in the spreadsheet:`,
             `“${allotment.status} ${allotment.assignee?.emailAddress} ”.`,
