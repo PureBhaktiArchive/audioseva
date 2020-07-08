@@ -5,8 +5,7 @@
     "group:definitelyTyped",
     "schedule:earlyMondays",
     ":maintainLockFilesWeekly",
-    ":timezone(Asia/Novokuznetsk)",
-    ":assignAndReview(anantakrishna)"
+    ":timezone(Asia/Novokuznetsk)"
   ],
   "rebaseStalePrs": false,
   "rebaseConflictedPrs": false,
@@ -28,6 +27,12 @@
       "extends": ["group:all"],
       "managerBranchPrefix": "CRP/",
       "commitMessagePrefix": "CRP:"
+    },
+    {
+      "paths": ["cli"],
+      "extends": ["group:all"],
+      "managerBranchPrefix": "cli/",
+      "commitMessagePrefix": "CLI:"
     }
   ]
 }
