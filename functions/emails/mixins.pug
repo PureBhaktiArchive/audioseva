@@ -39,7 +39,7 @@ mixin currentSet(allotments, currentFileName)
     for allotment in allotments || []
       li
         | #{ allotment.fileName }
-        | #{ DateTime.fromMillis(allotment.timestampGiven).toLocaleString({  locale: 'in', month: 'numeric', day: 'numeric' }) }
+        | #{ DateTime.fromMillis(allotment.timestampGiven).toFormat('dd.MM') }
         | #{ allotment.status }
         | #{ DateTime.local().diff(DateTime.fromMillis(allotment.timestampGiven), ['days', 'hours']).toObject().days }
         if currentFileName && allotment.fileName === currentFileName
