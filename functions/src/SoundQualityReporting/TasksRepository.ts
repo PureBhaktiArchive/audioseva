@@ -5,84 +5,56 @@
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { createSchema, morphism } from 'morphism';
+import { AbstractRepository } from '../AbstractRepository';
 import { AllotmentStatus } from '../Allotment';
 import { DateTimeConverter } from '../DateTimeConverter';
+import { ReportingAllotmentRow } from '../ReportingAllotmentRow';
 import { ReportingTask } from '../ReportingTask';
-import { RequireOnly } from '../RequireOnly';
-import { Spreadsheet } from '../Spreadsheet';
 import admin = require('firebase-admin');
 import _ = require('lodash');
-
-export type IdentifyableTask = RequireOnly<ReportingTask, 'fileName'>;
 
 const baseRef = admin.database().ref(`/SQR`);
 const allotmentsRef = baseRef.child(`allotments`);
 
-export class TasksRepository {
-  static async open() {
-    const repository = new TasksRepository();
-    await repository.open();
-    return repository;
-  }
-
-  private sheet: Spreadsheet;
-
-  public async open() {
-    this.sheet = await Spreadsheet.open(
+export class TasksRepository extends AbstractRepository<
+  ReportingAllotmentRow,
+  ReportingTask,
+  'fileName'
+> {
+  constructor() {
+    super(
       functions.config().sqr.spreadsheet_id,
-      'Allotments'
+      'fileName',
+      'File Name',
+      allotmentsRef
     );
   }
 
-  private rowToObjectSchema = createSchema<IdentifyableTask>({
-    fileName: 'File Name',
-    status: ({ Status: status }) => status || AllotmentStatus.Spare,
-    timestampGiven: ({ 'Date Given': date }) =>
-      DateTimeConverter.fromSerialDate(date).toMillis(),
-    timestampDone: ({ 'Date Done': date }) =>
-      DateTimeConverter.fromSerialDate(date).toMillis(),
-    assignee: ({ Devotee: name, Email: emailAddress }) => ({
-      name,
-      emailAddress,
-    }),
-  });
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private objectToRowSchema = createSchema<any, IdentifyableTask>({
-    'File Name': 'fileName',
-    Status: ({ status }) => (status === AllotmentStatus.Spare ? null : status),
-    'Date Given': ({ timestampGiven }) =>
-      timestampGiven
-        ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven))
-        : null,
-    'Date Done': ({ timestampDone }) =>
-      timestampDone
-        ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampDone))
-        : null,
-    Devotee: 'assignee.name',
-    Email: 'assignee.emailAddress',
-    Notes: 'notes',
-  });
-
-  private getTaskRef(fileName: string) {
-    return allotmentsRef.child(fileName);
-  }
-
-  public async getTask(fileName: string) {
-    const snapshot = await this.getTaskRef(fileName).once('value');
-    return snapshot.exists()
-      ? new ReportingTask(fileName, snapshot.val())
-      : null;
-  }
-
-  public async getTasks(fileNames: string[]) {
-    return await Promise.all(
-      fileNames.map(async (fileName) => this.getTask(fileName))
-    );
-  }
+  protected mapToRows = morphism(
+    createSchema<ReportingAllotmentRow, ReportingTask>({
+      'File Name': 'fileName',
+      Status: ({ status }) =>
+        status === undefined
+          ? undefined
+          : status === AllotmentStatus.Spare
+          ? null
+          : status,
+      'Date Given': ({ timestampGiven }) =>
+        timestampGiven
+          ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven))
+          : null,
+      'Date Done': ({ timestampDone }) =>
+        timestampDone
+          ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampDone))
+          : null,
+      Devotee: 'assignee.name',
+      Email: 'assignee.emailAddress',
+      Notes: 'notes',
+    })
+  );
 
   public async getLists() {
-    return _(await this.sheet.getRows())
+    return _(await this.getRows())
       .filter(_.negate(_.property('Status')))
       .filter('List')
       .map('List')
@@ -91,7 +63,7 @@ export class TasksRepository {
   }
 
   public async getSpareFiles(list: string, languages: string[], count: number) {
-    return _(await this.sheet.getRows())
+    return _(await this.getRows())
       .filter(
         (item) =>
           !item['Status'] &&
@@ -103,7 +75,7 @@ export class TasksRepository {
         list: item['List'],
         serial: item['Serial'],
         notes:
-          (item['Notes'] as string) +
+          (item['Notes'] || '') +
           (item['Devotee']
             ? ` Devotee column is not empty: ${item['Devotee']}`
             : ''),
@@ -119,68 +91,20 @@ export class TasksRepository {
       .orderByChild('assignee/emailAddress')
       .equalTo(emailAddress)
       .once('value');
+
     return (
       _.chain(snapshot.val())
         .toPairs()
         // Considering only ones with Given Timestamp, as after cancelation the assignee can be kept.
         .filter(([, value]) => Number.isInteger(value.timestampGiven))
         .map<ReportingTask>(
-          ([fileName, item]) => new ReportingTask(fileName, item)
+          ([fileName, item]) => ({ fileName, ...item } as ReportingTask)
         )
         .value()
     );
   }
 
-  public async save(...tasks: IdentifyableTask[]) {
-    await this.saveToDatabase(tasks);
-
-    const updatedTasks = await this.getTasks(
-      tasks.map(({ fileName }) => fileName)
-    );
-
-    await this.saveToSpreadsheet(updatedTasks);
-    return updatedTasks;
-  }
-
-  public async saveToDatabase(tasks: IdentifyableTask[]) {
-    await allotmentsRef.update(
-      _.chain(tasks)
-        .flatMap((task) =>
-          _(task)
-            .omit(task, 'fileName')
-            .map((value, key) => [`${task.fileName}/${key}`, value])
-            .value()
-        )
-        .fromPairs()
-        .value()
-    );
-  }
-
-  private async saveToSpreadsheet(tasks: ReportingTask[]) {
-    const rows = morphism(this.objectToRowSchema, tasks);
-    await this.sheet.updateOrAppendRows(
-      this.rowToObjectSchema.fileName as string,
-      rows
-    );
-  }
-
-  /**
-   * Imports allotment statuses from the spreadsheet.
-   * Coordinator is marking allotments as Done manually in the spreadsheet, so preiodically importing them.
-   * To be replaced with labeling emails in Gmail mailbox.
-   */
-  public async importDoneStatuses() {
-    const tasks = morphism(this.rowToObjectSchema, await this.sheet.getRows());
-
-    await this.saveToDatabase(
-      _.chain(tasks)
-        .filter(
-          ({ fileName, status }) =>
-            // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-            !fileName.match(/[.[\]$#]/) && status === AllotmentStatus.Done
-        )
-        .map((t) => _.pick(t, ['fileName', 'status', 'timestampDone']))
-        .value()
-    );
+  public async syncAllotments() {
+    return super.syncAllotments({ createTasksInDatabase: true });
   }
 }

@@ -4,54 +4,34 @@
 
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
-import { createSchema, morphism } from 'morphism';
+import { AbstractRepository } from '../AbstractRepository';
 import { AllotmentStatus } from '../Allotment';
 import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
 import { trackEditingVersionOutputLink } from '../Frontend';
-import { RequireOnly } from '../RequireOnly';
 import { Spreadsheet } from '../Spreadsheet';
-import { AllotmentRow } from './AllotmentRow';
 import { ChunkRow } from './ChunkRow';
 import { TaskValidator } from './TaskValidator';
+import { TrackEditingAllotmentRow } from './TrackEditingAllotmentRow';
 import { TrackEditingTask } from './TrackEditingTask';
 import admin = require('firebase-admin');
 import _ = require('lodash');
 
-type IdentifiableTask = RequireOnly<TrackEditingTask, 'id'>;
-
-type RestorableTask = Pick<TrackEditingTask, 'id' | 'status' | 'assignee'>;
-
 const baseRef = admin.database().ref(`/TE`);
 const tasksRef = baseRef.child(`tasks`);
 
-export class TasksRepository {
-  private _allotmentsSheet: Spreadsheet<AllotmentRow>;
-  protected async allotmentsSheet() {
-    this._allotmentsSheet =
-      this._allotmentsSheet ||
-      (await Spreadsheet.open<AllotmentRow>(
-        functions.config().te.spreadsheet.id,
-        'Allotments'
-      ));
-    return this._allotmentsSheet;
+export class TasksRepository extends AbstractRepository<
+  TrackEditingAllotmentRow,
+  TrackEditingTask,
+  'id'
+> {
+  constructor() {
+    super(functions.config().te.spreadsheet.id, 'id', 'Task ID', tasksRef);
   }
 
-  private mapFromRows = morphism(
-    createSchema<RestorableTask, AllotmentRow>({
-      id: 'Task ID',
-      status: ({ Status: status }) =>
-        (status?.trim() as AllotmentStatus) || AllotmentStatus.Spare,
-      assignee: ({ Devotee: name, Email: emailAddress }) => ({
-        name: name?.trim() || null,
-        emailAddress: emailAddress?.trim() || null,
-      }),
-    })
-  );
-
-  private mapToRows(tasks: IdentifiableTask[]): AllotmentRow[] {
-    return tasks.map<AllotmentRow>((task) => {
+  protected mapToRows(tasks: TrackEditingTask[]): TrackEditingAllotmentRow[] {
+    return tasks.map((task) => {
       const lastVersionKey = _.findLastKey(task.versions);
       const lastResolvedVersion = _.findLast(
         task.versions,
@@ -104,32 +84,6 @@ export class TasksRepository {
     });
   }
 
-  private getTaskRef(taskId: string) {
-    return tasksRef.child(taskId);
-  }
-
-  public async getTask(taskId: string) {
-    const snapshot = await this.getTaskRef(taskId).once('value');
-    return snapshot.exists()
-      ? ({ id: taskId, ...snapshot.val() } as TrackEditingTask)
-      : null;
-  }
-
-  public async getTasks(taskIds: string[]) {
-    return await Promise.all(
-      taskIds.map(async (taskId) => this.getTask(taskId))
-    );
-  }
-
-  public async save(...tasks: IdentifiableTask[]) {
-    await this.saveToDatabase(tasks);
-
-    const updatedTasks = await this.getTasks(tasks.map(({ id }) => id));
-
-    await this.saveToSpreadsheet(updatedTasks);
-    return updatedTasks;
-  }
-
   public async saveNewVersion(taskId: string, version: FileVersion) {
     await this.getTaskRef(taskId).child('versions').push(version);
 
@@ -137,27 +91,6 @@ export class TasksRepository {
 
     await this.saveToSpreadsheet([updatedTask]);
     return updatedTask;
-  }
-
-  private async saveToDatabase(tasks: IdentifiableTask[]) {
-    await tasksRef.update(
-      _.chain(tasks)
-        .flatMap((task) =>
-          _(task)
-            .omit(task, 'id')
-            .map((value, key) => [`${task.id}/${key}`, value])
-            .value()
-        )
-        .fromPairs()
-        .value()
-    );
-  }
-
-  public async saveToSpreadsheet(tasks: IdentifiableTask[]) {
-    await (await this.allotmentsSheet()).updateOrAppendRows(
-      'Task ID',
-      this.mapToRows(tasks)
-    );
   }
 
   public async importTasks() {
@@ -209,107 +142,5 @@ export class TasksRepository {
 
     await this.saveToDatabase(tasks);
     return tasks.length;
-  }
-
-  public async syncAllotments() {
-    const mode = (await baseRef.child('sync/mode').once('value')).val();
-    if ((mode || 'off') === 'off') {
-      console.info('Sync is off, see /TE/sync/mode.');
-      return;
-    }
-
-    const shouldWrite = mode === 'on';
-
-    /// Getting spreadsheet rows and database snapshot in parallel
-    const [allotmentRows, snapshot] = await Promise.all([
-      (await this.allotmentsSheet()).getRows(),
-      tasksRef.once('value'),
-    ]);
-
-    const allotmentsFromSpreadsheet = this.mapFromRows(allotmentRows);
-
-    const idsInSpreadsheet = new Set(
-      _.map(allotmentsFromSpreadsheet, ({ id }) => id)
-    );
-
-    const tasksFromDatabase = _.chain(snapshot.val())
-      .mapValues((source, id) => ({ id, ...source } as TrackEditingTask))
-      .value();
-
-    /// Adding missing tasks from the database to the spreadsheet
-    const tasksForSpreadsheet = _.chain(tasksFromDatabase)
-      .filter((task) => !idsInSpreadsheet.has(task.id))
-      .forEach((task) => {
-        console.info(
-          `${shouldWrite ? 'Adding' : 'Would add'} missing task ${task.id}`,
-          'into the spreadsheet.'
-        );
-      })
-      .value();
-
-    /// Updating allotment info from the spreadsheet to the database
-    const tasksForDatabase = _.chain(allotmentsFromSpreadsheet)
-      .filter((allotment) => {
-        const task = tasksFromDatabase[allotment.id];
-
-        if (!task) {
-          console.info(`Task ${allotment.id} is not found in the database.`);
-          return false;
-        }
-
-        /// Updating only if any of these fields have changed
-        if (
-          allotment.status === task.status &&
-          (allotment.assignee?.emailAddress || null) ===
-            (task.assignee?.emailAddress || null)
-        )
-          return false;
-
-        /// Checking the sanity of the spreadsheet data
-        const mustBeAssigned = [
-          AllotmentStatus.Given,
-          AllotmentStatus.WIP,
-          AllotmentStatus.Done,
-        ].includes(allotment.status);
-        const mustNotBeAssigned = [AllotmentStatus.Spare].includes(
-          allotment.status
-        );
-        const isAssigned = !!allotment.assignee?.emailAddress;
-        if (
-          (mustBeAssigned && !isAssigned) ||
-          (mustNotBeAssigned && isAssigned)
-        ) {
-          console.info(
-            `Task ${allotment.id} has invalid data in the spreadsheet:`,
-            `“${allotment.status} ${allotment.assignee?.emailAddress} ”.`,
-            'Skipping.'
-          );
-          return false;
-        }
-
-        console.info(
-          `${shouldWrite ? 'Updating' : 'Would update'} task ${task.id}`,
-          'in the database',
-          `from “${task.status} ${task.assignee?.emailAddress}”`,
-          `to “${allotment.status} ${allotment.assignee?.emailAddress}”.`
-        );
-
-        return true;
-      })
-      /// Updating only these fields
-      .map(({ id, status, assignee }) => ({
-        id,
-        assignee,
-        status,
-      }))
-      .value();
-
-    if (shouldWrite) {
-      console.log(`Updating spreadsheet and database.`);
-      await Promise.all([
-        this.saveToSpreadsheet(tasksForSpreadsheet),
-        this.saveToDatabase(tasksForDatabase),
-      ]);
-    } else console.log(`Doing nothing.`);
   }
 }
