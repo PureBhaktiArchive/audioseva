@@ -198,9 +198,9 @@ export abstract class AbstractRepository<
 
         console.info(
           `${dryRun ? 'DRY RUN' : ''}`,
-          `Updating task ${task[this.idPropertyName]}`,
+          `Updating task ${allotment[this.idPropertyName]}`,
           'in the database',
-          `from “${task.status} ${task.assignee?.emailAddress}”`,
+          `from “${task?.status} ${task?.assignee?.emailAddress}”`,
           `to “${allotment.status} ${allotment.assignee?.emailAddress}”.`
         );
 
