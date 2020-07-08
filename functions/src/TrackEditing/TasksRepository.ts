@@ -143,4 +143,14 @@ export class TasksRepository extends AbstractRepository<
     await this.saveToDatabase(tasks);
     return tasks.length;
   }
+
+  public async syncAllotments() {
+    const mode = (await baseRef.child('/sync/mode').once('value')).val();
+    if ((mode || 'off') === 'off') {
+      console.info('Sync is off, see /TE/sync/mode.');
+      return;
+    }
+
+    return super.syncAllotments({ dryRun: mode !== 'on' });
+  }
 }

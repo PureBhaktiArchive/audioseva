@@ -233,16 +233,8 @@ export const syncAllotments = functions.pubsub
   .schedule('every 1 hours synchronized')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
-    const mode = (
-      await admin.database().ref('/TE/sync/mode').once('value')
-    ).val();
-    if ((mode || 'off') === 'off') {
-      console.info('Sync is off, see /TE/sync/mode.');
-      return;
-    }
-
     const repository = new TasksRepository();
-    await repository.syncAllotments({ dryRun: mode !== 'on' });
+    await repository.syncAllotments();
   });
 
 export const download = functions.https.onRequest(

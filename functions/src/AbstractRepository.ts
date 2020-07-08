@@ -111,14 +111,17 @@ export abstract class AbstractRepository<
    * - Updates `status`, `assignee` and `timestampGiven` from the spreadsheet to the database.
    * @param dryRun Whether changes should be just printed, not saved.
    */
-  public async syncAllotments({ dryRun = false } = {}) {
+  protected async syncAllotments({
+    dryRun = false,
+    createTasksInDatabase = false,
+  } = {}) {
     /// Getting spreadsheet rows and database snapshot in parallel
     const [rows, snapshot] = await Promise.all([
       this.getRows(),
       this.allotmentsRef.once('value'),
     ]);
 
-    const allotmentsFromSpreadsheet = this.mapFromRows(rows);
+    const tasksFromSpreadsheet = this.mapFromRows(rows);
 
     const tasksFromDatabase = _.chain(snapshot.val())
       .mapValues((value, key) => this.constructTask(key, value))
@@ -127,9 +130,7 @@ export abstract class AbstractRepository<
     /// Adding missing tasks from the database to the spreadsheet
 
     const idsInSpreadsheet = new Set(
-      _.map(allotmentsFromSpreadsheet, (task) =>
-        _.get(task, this.idPropertyName)
-      )
+      _.map(tasksFromSpreadsheet, (task) => _.get(task, this.idPropertyName))
     );
 
     const tasksForSpreadsheet = _.chain(tasksFromDatabase)
@@ -145,11 +146,11 @@ export abstract class AbstractRepository<
 
     /// Updating allotment info from the spreadsheet to the database
 
-    const tasksForDatabase = _.chain(allotmentsFromSpreadsheet)
+    const tasksForDatabase = _.chain(tasksFromSpreadsheet)
       .filter((allotment) => {
         const task = tasksFromDatabase[allotment[this.idPropertyName]];
 
-        if (!task) {
+        if (!task && !createTasksInDatabase) {
           console.info(
             `Task ${
               allotment[this.idPropertyName]
@@ -160,9 +161,9 @@ export abstract class AbstractRepository<
 
         /// Updating only if any of these fields have changed
         if (
-          allotment.status === task.status &&
+          allotment.status === task?.status &&
           (allotment.assignee?.emailAddress || null) ===
-            (task.assignee?.emailAddress || null)
+            (task?.assignee?.emailAddress || null)
         )
           return false;
 

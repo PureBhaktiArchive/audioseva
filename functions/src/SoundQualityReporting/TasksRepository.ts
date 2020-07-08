@@ -103,4 +103,8 @@ export class TasksRepository extends AbstractRepository<
         .value()
     );
   }
+
+  public async syncAllotments() {
+    return super.syncAllotments({ createTasksInDatabase: true });
+  }
 }
