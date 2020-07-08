@@ -27,7 +27,7 @@ export class TasksRepository extends AbstractRepository<
   'id'
 > {
   constructor() {
-    super(functions.config().te.spreadsheet.id, 'id', 'TaskId', tasksRef);
+    super(functions.config().te.spreadsheet.id, 'id', 'Task ID', tasksRef);
   }
 
   protected mapToRows(tasks: TrackEditingTask[]): TrackEditingAllotmentRow[] {
