@@ -154,6 +154,15 @@ export abstract class AbstractRepository<
 
     const tasksForDatabase = _.chain(tasksFromSpreadsheet)
       .filter((allotment) => {
+        if (allotment[this.idPropertyName].match(/[.#$/[\]]/)) {
+          console.warn(
+            `Task ${
+              allotment[this.idPropertyName]
+            } has invalid characters for the database.`
+          );
+          return false;
+        }
+
         const task = tasksFromDatabase[allotment[this.idPropertyName]];
 
         if (!task && !createTasksInDatabase) {
