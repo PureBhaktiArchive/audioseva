@@ -52,15 +52,13 @@ const donation = {
 const currentSet = [
   {
     fileName: 'UMA-001A',
-    dateGiven: '11.12',
+    timestampGiven: 1556476200000,
     status: 'Given',
-    daysPassed: 14,
   },
   {
     fileName: 'UMA-001B',
-    dateGiven: '11.12',
+    timestampGiven: 1557496200000,
     status: 'Given',
-    daysPassed: 14,
   },
 ];
 
@@ -70,6 +68,7 @@ const sqrSubmission = {
   template: 'sqr/submission',
   message: { to: 'test@audioseva.com' },
   locals: {
+    ...globals,
     warnings,
     currentSet,
     allotmentLink: 'http://allot',
@@ -155,4 +154,4 @@ const teUpload = {
   },
 };
 
-email.send(teUpload).then(console.log).catch(console.error);
+email.send(sqrSubmission).then(console.log).catch(console.error);
