@@ -208,11 +208,18 @@ export abstract class AbstractRepository<
       })
       .map(
         /// Updating only these fields
-        ({ [this.idPropertyName]: id, status, assignee, timestampDone }) =>
+        ({
+          [this.idPropertyName]: id,
+          status,
+          assignee,
+          timestampGiven,
+          timestampDone,
+        }) =>
           ({
             [this.idPropertyName]: id,
             status,
             assignee,
+            timestampGiven,
             timestampDone,
           } as RequireOnly<TTask, TId>)
       )
