@@ -82,7 +82,7 @@ export const cancelAllotment = functions.https.onCall(
 );
 
 export const syncAllotments = functions.pubsub
-  .schedule('every 1 hours')
+  .schedule('every 1 hours synchronized')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = new TasksRepository();
