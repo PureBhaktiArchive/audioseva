@@ -6,7 +6,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
-import { AllotmentStatus } from '../Allotment';
+import { AllotmentStatus, isActiveAllotment } from '../Allotment';
 import { formatAudioAnnotations } from '../AudioAnnotation';
 import { abortCall } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
@@ -40,7 +40,7 @@ export class SQRWorkflow {
   }
 
   static async getSpareFiles(list: string, languages: string[], count: number) {
-    const repository = await TasksRepository.open();
+    const repository = new TasksRepository();
     const files = await repository.getSpareFiles(list, languages, count);
 
     /**
@@ -69,7 +69,7 @@ export class SQRWorkflow {
       `Allotting ${fileNames.join(', ')} to ${assignee.emailAddress}`
     );
 
-    const repository = await TasksRepository.open();
+    const repository = new TasksRepository();
     const tasks = await repository.getTasks(fileNames);
 
     const dirtyTasks = _(tasks)
@@ -135,7 +135,7 @@ export class SQRWorkflow {
   ) {
     console.info(`Processing ${fileName}/${token} submission:`, submission);
 
-    const repository = await TasksRepository.open();
+    const repository = new TasksRepository();
     const task = await repository.getTask(fileName);
 
     if (token !== task.token) {
@@ -195,12 +195,12 @@ export class SQRWorkflow {
 
     const currentSet = (
       await repository.getUserAllotments(task.assignee.emailAddress)
-    ).filter((item) => item.isActive);
+    ).filter((item) => isActiveAllotment(item));
 
     const warnings = [];
     if (updated) warnings.push('This is an updated submission!');
 
-    if (!task.isActive)
+    if (!isActiveAllotment(task))
       warnings.push(`Status of the allotment is ${task.status}`);
 
     if (_(currentSet).every((item) => item.status !== AllotmentStatus.Given))
@@ -241,7 +241,7 @@ export class SQRWorkflow {
       `Cancelling ${fileName}/${token} allotment: ${reason}, ${comments}.`
     );
 
-    const repository = await TasksRepository.open();
+    const repository = new TasksRepository();
     const task = await repository.getTask(fileName);
 
     if (task.token !== token)
@@ -270,7 +270,7 @@ export class SQRWorkflow {
 
     const currentSet = (
       await repository.getUserAllotments(task.assignee.emailAddress)
-    ).filter((item) => item.isActive);
+    ).filter((item) => isActiveAllotment(item));
 
     const warnings = [];
     if (_(currentSet).every((item) => item.status !== AllotmentStatus.Given))

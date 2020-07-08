@@ -57,7 +57,7 @@ export const processSubmission = functions.database
 export const getLists = functions.https.onCall(async (data, context) => {
   authorize(context, ['SQR.coordinator']);
 
-  const repository = await TasksRepository.open();
+  const repository = new TasksRepository();
   return await repository.getLists();
 });
 
@@ -81,10 +81,10 @@ export const cancelAllotment = functions.https.onCall(
   }
 );
 
-export const importDoneStatuses = functions.pubsub
-  .schedule('every 1 hours')
+export const syncAllotments = functions.pubsub
+  .schedule('every 1 hours synchronized')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
-    const repository = await TasksRepository.open();
-    await repository.importDoneStatuses();
+    const repository = new TasksRepository();
+    await repository.syncAllotments();
   });
