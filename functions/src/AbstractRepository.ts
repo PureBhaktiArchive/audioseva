@@ -109,12 +109,18 @@ export abstract class AbstractRepository<
    * Syncs allotments data between the spreadsheet and database.
    * - Adds missing tasks to the spreadsheet.
    * - Updates `status`, `assignee` and `timestampGiven` from the spreadsheet to the database.
-   * @param dryRun Whether changes should be just printed, not saved.
    */
-  protected async syncAllotments({
-    dryRun = false,
-    createTasksInDatabase = false,
-  } = {}) {
+  public async syncAllotments({ createTasksInDatabase = false } = {}) {
+    const mode = (
+      await this.allotmentsRef.parent.child('/sync/mode').once('value')
+    ).val();
+    if ((mode || 'off') === 'off') {
+      console.info('Sync is off, see /TE/sync/mode.');
+      return;
+    }
+
+    const dryRun = mode !== 'on';
+
     /// Getting spreadsheet rows and database snapshot in parallel
     const [rows, snapshot] = await Promise.all([
       this.getRows(),
@@ -137,7 +143,7 @@ export abstract class AbstractRepository<
       .filter((task) => !idsInSpreadsheet.has(task[this.idPropertyName]))
       .forEach((task) => {
         console.info(
-          `${dryRun ? 'DRY RUN' : null}`,
+          `${dryRun ? 'DRY RUN' : ''}`,
           `Adding missing task ${task[this.idPropertyName]}`,
           'into the spreadsheet.'
         );
@@ -191,7 +197,7 @@ export abstract class AbstractRepository<
         }
 
         console.info(
-          `${dryRun ? 'DRY RUN' : null}`,
+          `${dryRun ? 'DRY RUN' : ''}`,
           `Updating task ${task[this.idPropertyName]}`,
           'in the database',
           `from “${task.status} ${task.assignee?.emailAddress}”`,
@@ -212,7 +218,7 @@ export abstract class AbstractRepository<
       )
       .value();
 
-    if (dryRun) console.log(`Doing nothing.`);
+    if (dryRun) console.log(`DRY RUN, doing nothing.`);
     else {
       console.log(`Updating spreadsheet and database.`);
       await Promise.all([
