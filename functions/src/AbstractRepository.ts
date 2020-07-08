@@ -43,9 +43,9 @@ export abstract class AbstractRepository<
       status: ({ Status: status }) =>
         (status?.trim() as AllotmentStatus) || AllotmentStatus.Spare,
       timestampGiven: ({ 'Date Given': date }) =>
-        DateTimeConverter.fromSerialDate(date).toMillis(),
+        date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
       timestampDone: ({ 'Date Done': date }) =>
-        DateTimeConverter.fromSerialDate(date).toMillis(),
+        date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
       assignee: ({ Devotee: name, Email: emailAddress }) => ({
         name: name?.trim() || null,
         emailAddress: emailAddress?.trim() || null,
