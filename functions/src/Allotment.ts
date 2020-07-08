@@ -1,4 +1,6 @@
+import { AllotmentValidator } from './AllotmentValidator';
 import { Person } from './Person';
+import { IValidator } from './validation/Validator';
 
 /*
  * sri sri guru gauranga jayatah
@@ -22,3 +24,5 @@ export interface Allotment {
 
 export const isActiveAllotment = (allotment: Allotment): boolean =>
   ![AllotmentStatus.Spare, AllotmentStatus.Done].includes(allotment.status);
+
+export const allotmentValidator: IValidator<Allotment> = new AllotmentValidator();

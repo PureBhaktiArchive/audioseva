@@ -4,7 +4,7 @@
 
 import { database } from 'firebase-admin';
 import { createSchema, morphism, StrictSchema } from 'morphism';
-import { Allotment, AllotmentStatus } from './Allotment';
+import { Allotment, AllotmentStatus, allotmentValidator } from './Allotment';
 import { AllotmentRow } from './AllotmentRow';
 import { DateTimeConverter } from './DateTimeConverter';
 import { RequireOnly } from './RequireOnly';
@@ -153,63 +153,47 @@ export abstract class AbstractRepository<
     /// Updating allotment info from the spreadsheet to the database
 
     const tasksForDatabase = _.chain(tasksFromSpreadsheet)
-      .filter((allotment) => {
-        if (allotment[this.idPropertyName].match(/[.#$/[\]]/)) {
-          console.warn(
-            `Task ${allotment[this.idPropertyName]}`,
-            'contains invalid characters.',
-            'Skipping'
-          );
+      .filter((taskFromSpreadsheet) => {
+        const id = taskFromSpreadsheet[this.idPropertyName];
+
+        if (id.match(/[.#$/[\]]/)) {
+          console.warn(`Task ${id} contains invalid characters.`);
           return false;
         }
 
-        const task = tasksFromDatabase[allotment[this.idPropertyName]];
+        const taskFromDatabase = tasksFromDatabase[id];
 
-        if (!task && !createTasksInDatabase) {
-          console.warn(
-            `Task ${allotment[this.idPropertyName]}`,
-            'is not found in the database.'
-          );
+        if (!taskFromDatabase && !createTasksInDatabase) {
+          console.warn(`Task ${id} is not found in the database.`);
           return false;
         }
 
         /// Updating only if any of these fields have changed
         if (
-          allotment.status === task?.status &&
-          (allotment.assignee?.emailAddress || null) ===
-            (task?.assignee?.emailAddress || null)
+          taskFromSpreadsheet.status === taskFromDatabase?.status &&
+          (taskFromSpreadsheet.assignee?.emailAddress || null) ===
+            (taskFromDatabase?.assignee?.emailAddress || null)
         )
           return false;
 
         /// Checking the sanity of the spreadsheet data
-        const mustBeAssigned = [
-          AllotmentStatus.Given,
-          AllotmentStatus.WIP,
-          AllotmentStatus.Done,
-        ].includes(allotment.status);
-        const mustNotBeAssigned = [AllotmentStatus.Spare].includes(
-          allotment.status
+        const validationResult = allotmentValidator.validate(
+          taskFromSpreadsheet
         );
-        const isAssigned = !!allotment.assignee?.emailAddress;
-        if (
-          (mustBeAssigned && !isAssigned) ||
-          (mustNotBeAssigned && isAssigned)
-        ) {
+        if (!validationResult.isValid) {
           console.warn(
-            `Task ${allotment[this.idPropertyName]}`,
-            `has invalid data in the spreadsheet:`,
-            `“${allotment.status} ${allotment.assignee?.emailAddress} ”.`,
-            'Skipping.'
+            `Task ${id} is not valid in the spreadsheet:`,
+            validationResult.messages
           );
           return false;
         }
 
         console.info(
           `${dryRun ? 'DRY RUN' : ''}`,
-          `Updating task ${allotment[this.idPropertyName]}`,
+          `Updating task ${id}`,
           'in the database',
-          `from “${task?.status} ${task?.assignee?.emailAddress}”`,
-          `to “${allotment.status} ${allotment.assignee?.emailAddress}”.`
+          `from “${taskFromDatabase?.status} ${taskFromDatabase?.assignee?.emailAddress}”`,
+          `to “${taskFromSpreadsheet.status} ${taskFromSpreadsheet.assignee?.emailAddress}”.`
         );
 
         return true;
