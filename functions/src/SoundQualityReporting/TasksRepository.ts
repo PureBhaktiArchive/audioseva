@@ -75,7 +75,7 @@ export class TasksRepository extends AbstractRepository<
         list: item['List'],
         serial: item['Serial'],
         notes:
-          item['Notes'] +
+          (item['Notes'] || '') +
           (item['Devotee']
             ? ` Devotee column is not empty: ${item['Devotee']}`
             : ''),
