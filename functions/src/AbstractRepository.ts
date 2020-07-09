@@ -105,17 +105,19 @@ export abstract class AbstractRepository<
     );
   }
 
+  public get syncModeRef() {
+    return this.allotmentsRef.parent.child('/sync/mode');
+  }
+
   /**
    * Syncs allotments data between the spreadsheet and database.
    * - Adds missing tasks to the spreadsheet.
    * - Updates `status`, `assignee` and `timestampGiven` from the spreadsheet to the database.
    */
   public async syncAllotments({ createTasksInDatabase = false } = {}) {
-    const mode = (
-      await this.allotmentsRef.parent.child('/sync/mode').once('value')
-    ).val();
+    const mode = (await this.syncModeRef.once('value')).val();
     if ((mode || 'off') === 'off') {
-      console.info('Sync is off, see /TE/sync/mode.');
+      console.info('Sync is off, see', this.syncModeRef);
       return;
     }
 
