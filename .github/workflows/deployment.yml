@@ -76,3 +76,19 @@ jobs:
           token: ${{ github.token }}
           deployment_id: ${{ github.event.deployment.id }}
           state: failure
+
+  tag:
+    name: Tag
+    needs: deployment
+    if: ${{ github.event.deployment.environment == 'production' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+      - uses: actions/checkout@v2
+      - name: Create tag
+        uses: tvdias/github-tagger@v0.0.1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.date.outputs.date }}
