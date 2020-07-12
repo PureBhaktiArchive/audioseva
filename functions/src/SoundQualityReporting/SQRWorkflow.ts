@@ -193,9 +193,9 @@ export class SQRWorkflow {
 
     // Sending email notification for the coordinator
 
-    const currentSet = (
-      await repository.getUserAllotments(task.assignee.emailAddress)
-    ).filter((item) => isActiveAllotment(item));
+    const currentSet = await repository.getCurrentSet(
+      task.assignee.emailAddress
+    );
 
     const warnings = [];
     if (updated) warnings.push('This is an updated submission!');
@@ -268,9 +268,9 @@ export class SQRWorkflow {
       assignee: null,
     });
 
-    const currentSet = (
-      await repository.getUserAllotments(task.assignee.emailAddress)
-    ).filter((item) => isActiveAllotment(item));
+    const currentSet = await repository.getCurrentSet(
+      task.assignee.emailAddress
+    );
 
     const warnings = [];
     if (_(currentSet).every((item) => item.status !== AllotmentStatus.Given))

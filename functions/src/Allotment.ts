@@ -23,6 +23,6 @@ export interface Allotment {
 }
 
 export const isActiveAllotment = (allotment: Allotment): boolean =>
-  ![AllotmentStatus.Spare, AllotmentStatus.Done].includes(allotment.status);
+  [AllotmentStatus.Given, AllotmentStatus.WIP].includes(allotment.status);
 
 export const allotmentValidator: IValidator<Allotment> = new AllotmentValidator();

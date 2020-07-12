@@ -6,7 +6,7 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { createSchema, morphism } from 'morphism';
 import { AbstractRepository } from '../AbstractRepository';
-import { AllotmentStatus } from '../Allotment';
+import { AllotmentStatus, isActiveAllotment } from '../Allotment';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { ReportingAllotmentRow } from '../ReportingAllotmentRow';
 import { ReportingTask } from '../ReportingTask';
@@ -101,6 +101,12 @@ export class TasksRepository extends AbstractRepository<
           ([fileName, item]) => ({ fileName, ...item } as ReportingTask)
         )
         .value()
+    );
+  }
+
+  public async getCurrentSet(emailAddress: string) {
+    return (await this.getUserAllotments(emailAddress)).filter((item) =>
+      isActiveAllotment(item)
     );
   }
 
