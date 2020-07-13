@@ -71,7 +71,19 @@ type Submission {
   created: Number | Null,
   changed: CurrentTimestamp,
   completed: Number,
+  processed: Number | Null,
   comments: String | Null,
+
+  validate() {
+    // These fields are not supposed to be changed from the frontend
+    this.processed == prior(this.processed) &&
+    this.completed == prior(this.completed) &&
+    // The same submission should not be updated twice at the same time
+    this.changed > prior(this.changed) &&
+    this.changed >= this.completed &&
+    this.completed >= this.created &&
+    true
+  }
 }
 
 // Audio timing interval, in seconds
@@ -122,6 +134,9 @@ path /SQR {
       create() { tokenIsValid(token, fileName, root.SQR) }
       update() {
         tokenIsValid(token, fileName, root.SQR)
+        &&
+        // Prevent updating is the previous version of the submission was not processed yet
+        prior(this.processed) > prior(this.changed)
         &&
         (hasRole('SQR', 'checker') || hasRole('SQR', 'coordinator') || root.SQR.allotments[fileName].status != 'Done')
       }

@@ -191,6 +191,13 @@ export class SQRWorkflow {
       ]
     );
 
+    // Marking this submission as processed
+    await this.completedSubmissionsRef
+      .child(fileName)
+      .child(token)
+      .child('processed')
+      .set(admin.database.ServerValue.TIMESTAMP);
+
     // Sending email notification for the coordinator
 
     const currentSet = await repository.getCurrentSet(
