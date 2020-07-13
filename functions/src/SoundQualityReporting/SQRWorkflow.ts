@@ -216,7 +216,6 @@ export class SQRWorkflow {
     if (!previousSubmissions.exists())
       warnings.push('This is the first submission by this devotee!');
 
-    console.log('Current Set:', currentSet);
     await admin
       .database()
       .ref(`/email/notifications`)
@@ -225,12 +224,12 @@ export class SQRWorkflow {
         to: functions.config().coordinator.email_address,
         replyTo: task.assignee.emailAddress,
         params: {
-          currentSet,
           submission: {
             fileName,
             author: task.assignee,
             ...submission,
           },
+          currentSet,
           warnings,
           allotmentLink: sqrAllotmentLink(task.assignee.emailAddress),
           updateLink: sqrSubmissionLink(fileName, token),
