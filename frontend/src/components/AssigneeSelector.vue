@@ -3,6 +3,7 @@
     label="Select an assignee"
     clearable
     dense
+    persistent-hint
     v-bind="$attrs"
     v-on="$listeners"
     :loading="loading"
