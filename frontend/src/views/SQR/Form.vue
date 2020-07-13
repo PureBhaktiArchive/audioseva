@@ -143,6 +143,7 @@ enum SubmissionsBranch {
   title: ({ $route }) => `Sound Quality Report for ${$route.params.fileName}`,
 })
 export default class Form extends Vue {
+  /// Adding this property so that the enum would be accessible from the template
   FormState = FormState;
   cancelFields = [
     {
