@@ -143,6 +143,7 @@ enum SubmissionsBranch {
   title: ({ $route }) => `Sound Quality Report for ${$route.params.fileName}`,
 })
 export default class Form extends Vue {
+  FormState = FormState;
   cancelFields = [
     {
       header: 'CLICK HERE if you are unable to play or download the audio',
