@@ -79,6 +79,7 @@
                   type="submit"
                   color="primary"
                   class="mx-2"
+                  :loading="(formState === FormState.SUBMITTING)"
                 >
                   Submit
                 </v-btn>
@@ -142,6 +143,8 @@ enum SubmissionsBranch {
   title: ({ $route }) => `Sound Quality Report for ${$route.params.fileName}`,
 })
 export default class Form extends Vue {
+  /// Adding this property so that the enum would be accessible from the template
+  FormState = FormState;
   cancelFields = [
     {
       header: 'CLICK HERE if you are unable to play or download the audio',
