@@ -174,12 +174,7 @@ export class TasksRepository extends AbstractRepository<
           const id = row['Task ID'];
           const existingTask = existingTasks[id];
 
-          if (!existingTask) {
-            console.warn(`Task ${id} is not found in the database.`);
-            return null;
-          }
-
-          if (existingTask.status !== AllotmentStatus.Recheck) {
+          if (existingTask?.status !== AllotmentStatus.Recheck) {
             return null;
           }
 
