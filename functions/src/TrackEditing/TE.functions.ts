@@ -234,7 +234,8 @@ export const processRechecked = functions.pubsub
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = new TasksRepository();
-    await repository.processRechecked();
+    const updates = await repository.getRecheckedTasksUpdates();
+    await repository.save(...updates);
   });
 
 export const syncAllotments = functions.pubsub

@@ -150,7 +150,7 @@ export class TasksRepository extends AbstractRepository<
     return tasks.length;
   }
 
-  public async processRechecked() {
+  public async getRecheckedTasksUpdates() {
     const recheckSheet = await Spreadsheet.open<RecheckRow>(
       functions.config().te.spreadsheet.id,
       'Recheck files'
@@ -251,7 +251,6 @@ export class TasksRepository extends AbstractRepository<
       )
       .filter()
       .value();
-
-    await this.save(...updates);
+    return updates;
   }
 }
