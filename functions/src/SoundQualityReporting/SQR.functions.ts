@@ -86,5 +86,5 @@ export const syncAllotments = functions.pubsub
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = new TasksRepository();
-    await repository.syncAllotments();
+    await repository.syncAllotments({ createTasksInDatabase: true });
   });
