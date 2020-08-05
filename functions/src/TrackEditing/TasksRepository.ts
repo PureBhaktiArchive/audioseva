@@ -153,7 +153,7 @@ export class TasksRepository extends AbstractRepository<
   public async processRechecked() {
     const recheckSheet = await Spreadsheet.open<RecheckRow>(
       functions.config().te.spreadsheet.id,
-      functions.config().te.spreadsheet?.sheets?.recheck?.name
+      'Recheck files'
     );
 
     /// Getting spreadsheet rows and database snapshot in parallel
