@@ -209,7 +209,6 @@ export class TasksRepository extends AbstractRepository<
 
           const latestResolution = latestVersion?.resolution;
 
-          // Removing the resolution if it exists and is approving
           if (latestResolution)
             if (latestResolution.isApproved) {
               console.info(
@@ -217,21 +216,25 @@ export class TasksRepository extends AbstractRepository<
                 `added by ${latestResolution.author?.name}`,
                 `on ${DateTime.fromMillis(latestResolution.timestamp).toHTTP()}`
               );
-              latestVersion.resolution = {
-                author: {
-                  name: row['Rechecked by'],
-                  emailAddress: row['Rechecked by'],
-                },
-                isApproved: false,
-                feedback: row.Feedback,
-                timestamp: DateTimeConverter.fromSerialDate(
-                  row['Date checked']
-                ).toMillis(),
-              };
-            } else
+            } else {
               console.warn(
                 `${id}: Will not remove “Disapproved” resolution from version ${latestVersionKey}.`
               );
+              return null;
+            }
+
+          // Changing or setting resolution
+          latestVersion.resolution = {
+            author: {
+              name: row['Rechecked by'],
+              emailAddress: row['Rechecked by'],
+            },
+            isApproved: false,
+            feedback: row.Feedback,
+            timestamp: DateTimeConverter.fromSerialDate(
+              row['Date checked']
+            ).toMillis(),
+          };
 
           return {
             id,
