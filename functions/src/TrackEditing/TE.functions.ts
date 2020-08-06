@@ -7,6 +7,7 @@ import { DateTime } from 'luxon';
 import * as path from 'path';
 import { AllotmentStatus } from '../Allotment';
 import { abortCall, authorize } from '../auth';
+import { FileResolution } from '../FileResolution';
 import { FileVersion } from '../FileVersion';
 import { Person } from '../Person';
 import { StorageManager } from '../StorageManager';
@@ -173,19 +174,22 @@ export const processUpload = functions.storage
 
 export const processResolution = functions.database
   .ref('/TE/tasks/{taskId}/versions/{versionKey}/resolution')
-  .onCreate(async (resolution, { params: { taskId, versionKey } }) => {
+  .onUpdate(async (change, { params: { taskId, versionKey } }) => {
     const repository = new TasksRepository();
     const task = await repository.getTask(taskId);
 
+    const resolution = change.after.val() as FileResolution;
     console.info(
-      `Processing resolution of ${taskId} (version ${versionKey}): ${
-        resolution.val().isApproved
+      `Processing ${resolution.isRechecked ? 'RECHECKED' : ''}`,
+      `resolution of ${taskId}(version ${versionKey}):`,
+      `${
+        resolution.isApproved
           ? 'approved'
-          : `disapproved with feedback “${resolution.val().feedback}”`
+          : `disapproved with feedback “${resolution.feedback}”`
       }.`
     );
 
-    if (resolution.val().isApproved) {
+    if (resolution.isApproved) {
       // Saving the approved file to the final storage bucket
       await StorageManager.getBucket('te.uploads')
         .file(task.versions[versionKey].uploadPath)
@@ -204,19 +208,16 @@ export const processResolution = functions.database
       });
     } else {
       await repository.saveToSpreadsheet([task]);
-      await admin
-        .database()
-        .ref(`/email/notifications`)
-        .push({
-          template: 'track-editing/feedback',
-          to: task.assignee.emailAddress,
-          bcc: functions.config().te.coordinator.email_address,
-          replyTo: functions.config().te.coordinator.email_address,
-          params: {
-            task,
-            resolution: resolution.val(),
-          },
-        });
+      await admin.database().ref(`/email/notifications`).push({
+        template: 'track-editing/feedback',
+        to: task.assignee.emailAddress,
+        bcc: functions.config().te.coordinator.email_address,
+        replyTo: functions.config().te.coordinator.email_address,
+        params: {
+          task,
+          resolution,
+        },
+      });
     }
   });
 
