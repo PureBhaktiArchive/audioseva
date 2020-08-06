@@ -202,9 +202,9 @@ export class TasksRepository extends AbstractRepository<
             this.getNewVersionRef(id).key;
 
           const latestVersion = existingTask.versions?.[latestVersionKey] || {
-            timestamp:
-              existingTask.timestampDone || DateTime.local().toMillis(),
+            timestamp: existingTask.timestampDone,
             uploadPath: null,
+            isFake: true,
           };
 
           const latestResolution = latestVersion?.resolution;
@@ -230,6 +230,7 @@ export class TasksRepository extends AbstractRepository<
               emailAddress: row['Rechecked by'],
             },
             isApproved: false,
+            isRechecked: true,
             feedback: row.Feedback,
             timestamp: DateTimeConverter.fromSerialDate(
               row['Date checked']
