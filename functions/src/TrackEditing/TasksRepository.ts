@@ -5,7 +5,7 @@
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { AbstractRepository } from '../AbstractRepository';
-import { AllotmentStatus } from '../Allotment';
+import { Allotment, AllotmentStatus } from '../Allotment';
 import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
@@ -169,7 +169,7 @@ export class TasksRepository extends AbstractRepository<
     const updates = _.chain(rows)
       // Skip empty rows and not yet rechecked
       .filter((row) => !!row['Task ID'] && !!row['Date checked'])
-      .map<Pick<TrackEditingTask, 'id' | 'status' | 'assignee' | 'versions'>>(
+      .map<Pick<TrackEditingTask, 'id' | keyof Allotment | 'versions'>>(
         (row) => {
           const id = row['Task ID'];
           const existingTask = existingTasks[id];
@@ -239,6 +239,7 @@ export class TasksRepository extends AbstractRepository<
           return {
             id,
             status: AllotmentStatus.WIP,
+            timestampDone: null,
             assignee: {
               name: row['New assignee email'],
               emailAddress: row['New assignee email'],
