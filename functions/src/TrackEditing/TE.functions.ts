@@ -52,8 +52,7 @@ export const processAllotment = functions.https.onCall(
         id,
         assignee,
         status: AllotmentStatus.Given,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        timestampGiven: admin.database.ServerValue.TIMESTAMP as any,
+        timestampGiven: admin.database.ServerValue.TIMESTAMP as number,
         versions: null, // Removing old versions
       }))
     );
@@ -203,8 +202,7 @@ export const processResolution = functions.database
       await repository.save({
         id: taskId,
         status: AllotmentStatus.Done,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        timestampDone: admin.database.ServerValue.TIMESTAMP as any,
+        timestampDone: admin.database.ServerValue.TIMESTAMP as number,
       });
     } else {
       await repository.saveToSpreadsheet([task]);
