@@ -231,7 +231,7 @@ export class TasksRepository extends AbstractRepository<
             },
             isApproved: false,
             isRechecked: true,
-            feedback: row.Feedback,
+            feedback: `[RECHECK]: ${row.Feedback}`,
             timestamp: DateTimeConverter.fromSerialDate(
               row['Date checked']
             ).toMillis(),
