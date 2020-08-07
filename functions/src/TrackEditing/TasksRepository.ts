@@ -10,6 +10,7 @@ import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
 import { trackEditingVersionOutputLink } from '../Frontend';
+import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
 import { ChunkRow } from './ChunkRow';
 import { RecheckRow } from './RecheckRow';
@@ -166,6 +167,29 @@ export class TasksRepository extends AbstractRepository<
       .mapValues((value, key) => this.constructTask(key, value))
       .value();
 
+    const aliasToPerson = new Map(
+      _.map(
+        (
+          await admin
+            .database()
+            .ref('/users')
+            // Filtering only those with filled `alias`: https://stackoverflow.com/a/39148596/3082178
+            .orderByChild('alias')
+            .startAt('!')
+            .endAt('~')
+            .once('value')
+        ).val(),
+        (record, uid) => [
+          record.alias as string,
+          {
+            uid,
+            name: record.alias, // We don't have name in the database, using alias instead
+            emailAddress: record.emailAddress,
+          } as Person,
+        ]
+      )
+    );
+
     const updates = _.chain(rows)
       // Skip empty rows and not yet rechecked
       .filter((row) => !!row['Task ID'] && !!row['Date checked'])
@@ -225,7 +249,7 @@ export class TasksRepository extends AbstractRepository<
 
           // Changing or setting resolution
           latestVersion.resolution = {
-            author: {
+            author: aliasToPerson.get(row['Rechecked by']) || {
               name: row['Rechecked by'],
               emailAddress: row['Rechecked by'],
             },
