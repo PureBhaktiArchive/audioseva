@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import { File } from '@google-cloud/storage';
+import { File, FileOptions } from '@google-cloud/storage';
 import { URL } from 'url';
 import functions = require('firebase-functions');
 import admin = require('firebase-admin');
@@ -40,13 +40,18 @@ export class StorageManager {
    * @param bucketName The short name of the bucket
    * @param fileName The file name in the bucket, without path.
    */
-  static getFile(bucketName: BucketName, fileName: string) {
+  static getFile(
+    bucketName: BucketName,
+    fileName: string,
+    fileOptions?: FileOptions
+  ) {
     return this.getBucket(bucketName).file(
       `${this.extractListFromFilename(fileName)}/${
         bucketName === 'original'
           ? this.standardizeFileName(fileName)
           : fileName
-      }`
+      }`,
+      fileOptions
     );
   }
 
@@ -56,7 +61,7 @@ export class StorageManager {
    * @param files Files to search among.
    * @returns First existing file or `null` if none exists.
    */
-  static async findExistingFile(files: File[]) {
+  static async findExistingFile(...files: File[]) {
     for (const file of files) if ((await file?.exists())?.shift()) return file;
     return null;
   }

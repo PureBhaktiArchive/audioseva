@@ -156,9 +156,16 @@ type FileResolution {
   }
 }
 
+type File {
+  bucket: String,
+  name: String,
+  generation: Number | Null,
+}
+
 type FileVersion {
   timestamp: InitialTimestamp,
   uploadPath: String, // Path in the `uploads` bucket
+  file: File | Null, // Explicit file specification for download
   resolution: FileResolution | Null,
 }
 

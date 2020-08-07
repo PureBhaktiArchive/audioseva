@@ -5,13 +5,14 @@
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { AbstractRepository } from '../AbstractRepository';
-import { Allotment, AllotmentStatus } from '../Allotment';
+import { AllotmentStatus } from '../Allotment';
 import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
 import { trackEditingVersionOutputLink } from '../Frontend';
 import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
+import { StorageManager } from '../StorageManager';
 import { ChunkRow } from './ChunkRow';
 import { RecheckRow } from './RecheckRow';
 import { TaskValidator } from './TaskValidator';
@@ -190,91 +191,104 @@ export class TasksRepository extends AbstractRepository<
       )
     );
 
-    const updates = _.chain(rows)
+    const updates = rows.map(async (row) => {
+      const id = row['Task ID'];
       // Skip empty rows and not yet rechecked
-      .filter((row) => !!row['Task ID'] && !!row['Date checked'])
-      .map<Pick<TrackEditingTask, 'id' | keyof Allotment | 'versions'>>(
-        (row) => {
-          const id = row['Task ID'];
-          const existingTask = existingTasks[id];
+      if (!id || !row['Date checked']) return null;
 
-          if (existingTask?.status !== AllotmentStatus.Recheck) {
-            return null;
-          }
+      const existingTask = existingTasks[id];
 
-          if (row.Feedback === 'OK') {
-            console.log(`Marking rechecked task ${id} as Done.`);
-            return {
-              id,
-              status: AllotmentStatus.Done,
-            };
-          }
+      if (existingTask?.status !== AllotmentStatus.Recheck) {
+        return null;
+      }
 
-          if (!row['New assignee email']) {
-            console.log(`${id}: skipping as new assignee email is not set.`);
-            return null;
-          }
+      if (row.Feedback === 'OK') {
+        console.log(`Marking rechecked task ${id} as Done.`);
+        return {
+          id,
+          status: AllotmentStatus.Done,
+        };
+      }
 
-          // Adding fake version if none exists
-          if (!existingTask.versions)
-            console.info(
-              `There is no version in task ${id}, will add a fake one.`
-            );
+      if (!row['New assignee email']) {
+        console.log(`${id}: skipping as new assignee email is not set.`);
+        return null;
+      }
 
-          const latestVersionKey =
-            _.findLastKey(existingTask.versions) ||
-            this.getNewVersionRef(id).key;
+      // Adding fake version if none exists
+      if (!existingTask.versions)
+        console.info(`There is no version in task ${id}, will add a fake one.`);
 
-          const latestVersion = existingTask.versions?.[latestVersionKey] || {
-            timestamp: existingTask.timestampDone,
-            uploadPath: null,
-            isFake: true,
-          };
+      const latestVersionKey =
+        _.findLastKey(existingTask.versions) || this.getNewVersionRef(id).key;
 
-          const latestResolution = latestVersion?.resolution;
+      const latestVersion = existingTask.versions?.[latestVersionKey] || {
+        timestamp: existingTask.timestampDone,
+      };
 
-          if (latestResolution)
-            if (latestResolution.isApproved) {
-              console.info(
-                `${id}: will replace “Approved” resolution in version ${latestVersionKey}`,
-                `added by ${latestResolution.author?.name}`,
-                `on ${DateTime.fromMillis(latestResolution.timestamp).toHTTP()}`
-              );
-            } else {
-              console.warn(
-                `${id}: Will not remove “Disapproved” resolution from version ${latestVersionKey}.`
-              );
-              return null;
-            }
+      const latestResolution = latestVersion?.resolution;
 
-          // Changing or setting resolution
-          latestVersion.resolution = {
-            author: aliasToPerson.get(row['Rechecked by']) || {
-              name: row['Rechecked by'],
-              emailAddress: row['Rechecked by'],
-            },
-            isApproved: false,
-            isRechecked: true,
-            feedback: `[RECHECK]: ${row.Feedback}`,
-            timestamp: DateTimeConverter.fromSerialDate(
-              row['Date checked']
-            ).toMillis(),
-          };
-
-          return {
-            id,
-            status: AllotmentStatus.WIP,
-            timestampDone: null,
-            assignee: {
-              name: row['New assignee email'],
-              emailAddress: row['New assignee email'],
-            },
-            versions: { [latestVersionKey]: latestVersion },
-          };
+      if (latestResolution)
+        if (latestResolution.isApproved) {
+          console.info(
+            `${id}: will replace “Approved” resolution in version ${latestVersionKey}`,
+            `added by ${latestResolution.author?.name}`,
+            `on ${DateTime.fromMillis(latestResolution.timestamp).toHTTP()}`
+          );
+        } else {
+          console.warn(
+            `${id}: Will not remove “Disapproved” resolution from version ${latestVersionKey}.`
+          );
+          return null;
         }
-      )
-      .filter()
-      .value();
-    return updates;
+
+      // Final file could be sound engineered before rechecked, thus searching for it in both buckets
+      const finalFile = await StorageManager.findExistingFile(
+        StorageManager.getFile('restored', id),
+        StorageManager.getFile('edited', id)
+      );
+
+      if (!finalFile) {
+        console.error(
+          `${id}: could not find final file neither in “restored” nor in “edited” bucket.`
+        );
+        return null;
+      }
+
+      // Fixing the final file generation
+      // https://googleapis.dev/nodejs/storage/latest/File.html#getMetadata-examples
+      const [metadata] = await finalFile.getMetadata();
+      latestVersion.file = {
+        bucket: finalFile.bucket.name,
+        name: finalFile.name,
+        generation: metadata.generation as number,
+      };
+
+      // Changing or setting resolution
+      latestVersion.resolution = {
+        author: aliasToPerson.get(row['Rechecked by']) || {
+          name: row['Rechecked by'],
+          emailAddress: row['Rechecked by'],
+        },
+        isApproved: false,
+        isRechecked: true,
+        feedback: `[RECHECK]: ${row.Feedback}`,
+        timestamp: DateTimeConverter.fromSerialDate(
+          row['Date checked']
+        ).toMillis(),
+      };
+
+      return {
+        id,
+        status: AllotmentStatus.WIP,
+        timestampDone: null,
+        assignee: {
+          name: row['New assignee email'],
+          emailAddress: row['New assignee email'],
+        },
+        versions: { [latestVersionKey]: latestVersion },
+      };
+    });
+    return _.filter(await Promise.all(updates));
   }
 }

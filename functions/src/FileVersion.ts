@@ -7,6 +7,11 @@ import { FileResolution } from './FileResolution';
 export interface FileVersion {
   timestamp?: number; // Can be null for a fake version
   uploadPath?: string; // Can be null for a fake version
-  isFake?: boolean; // Fake versions are added for the tasks that were finalized before the system came in place
+  file?: // Explicit file specification for download
+  {
+    bucket: string;
+    name: string;
+    generation?: number; // Used to refer to the fixed version of the edited file in the cloud bucket
+  };
   resolution?: FileResolution;
 }

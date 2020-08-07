@@ -189,15 +189,19 @@ export const processResolution = functions.database
     );
 
     if (resolution.isApproved) {
+      const version = task.versions[versionKey];
+      const file = version.file // Explicit file specification takes precedence
+        ? admin
+            .storage()
+            .bucket(version.file.bucket)
+            .file(version.file.name, { generation: version.file.generation })
+        : // Otherwise resorting to the uploaded file path
+          StorageManager.getBucket('te.uploads').file(version.uploadPath);
+
       // Saving the approved file to the final storage bucket
-      await StorageManager.getBucket('te.uploads')
-        .file(task.versions[versionKey].uploadPath)
-        .copy(
-          StorageManager.getFile(
-            'edited',
-            path.basename(task.versions[versionKey].uploadPath)
-          )
-        );
+      await file.copy(
+        StorageManager.getFile('edited', `${taskId}${path.extname(file.name)}`)
+      );
 
       await repository.save({
         id: taskId,
@@ -267,22 +271,15 @@ export const download = functions.https.onRequest(
         return;
       }
 
-      const file = await StorageManager.findExistingFile(
-        version.uploadPath
-          ? // If the path is specified, the version was created through the system
-            [StorageManager.getBucket('te.uploads').file(version.uploadPath)]
-          : // Otherwise the version is fake because the task was completed before the system
-          versionId === _.findLastKey(task.versions)
-          ? // For the last fake version we provide the file from the `edited` bucket
-            [
-              StorageManager.getFile('edited', `${task.id}.mp3`),
-              StorageManager.getFile('edited', `${task.id}.flac`),
-            ]
-          : // Fake version is not downloadable if it's not the last version
-            []
-      );
+      const file = version.file // Explicit file specification takes precedence
+        ? admin
+            .storage()
+            .bucket(version.file.bucket)
+            .file(version.file.name, { generation: version.file.generation })
+        : // Otherwise resorting to the uploaded file path
+          StorageManager.getBucket('te.uploads').file(version.uploadPath);
 
-      if (!file) {
+      if (!(await file.exists()).shift()) {
         res
           .status(404)
           .send('File does not exist, please contact the coordinator.');

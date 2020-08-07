@@ -40,7 +40,7 @@ app.get(
           StorageManager.getFile('original', fileName),
         ];
 
-    const file = await StorageManager.findExistingFile(candidates);
+    const file = await StorageManager.findExistingFile(...candidates);
 
     if (file) {
       const [url] = await file.getSignedUrl({
