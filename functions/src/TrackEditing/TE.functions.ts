@@ -269,13 +269,17 @@ export const download = functions.https.onRequest(
 
       const file = await StorageManager.findExistingFile(
         version.uploadPath
-          ? [StorageManager.getBucket('te.uploads').file(version.uploadPath)]
-          : versionId === _.findLastKey(task.versions)
-          ? [
+          ? // If the path is specified, the version was created through the system
+            [StorageManager.getBucket('te.uploads').file(version.uploadPath)]
+          : // Otherwise the version is fake because the task was completed before the system
+          versionId === _.findLastKey(task.versions)
+          ? // For the last fake version we provide the file from the `edited` bucket
+            [
               StorageManager.getFile('edited', `${task.id}.mp3`),
               StorageManager.getFile('edited', `${task.id}.flac`),
             ]
-          : []
+          : // Fake version is not downloadable if it's not the last version
+            []
       );
 
       if (!file) {
