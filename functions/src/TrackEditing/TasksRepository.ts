@@ -5,7 +5,7 @@
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { AbstractRepository } from '../AbstractRepository';
-import { AllotmentStatus } from '../Allotment';
+import { Allotment, AllotmentStatus } from '../Allotment';
 import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
@@ -191,7 +191,9 @@ export class TasksRepository extends AbstractRepository<
       )
     );
 
-    const updates = rows.map(async (row) => {
+    type Update = Pick<TrackEditingTask, 'id' | keyof Allotment | 'versions'>;
+
+    const updates = rows.map<Promise<Update>>(async (row) => {
       const id = row['Task ID'];
       // Skip empty rows and not yet rechecked
       if (!id || !row['Date checked']) return null;
@@ -281,6 +283,7 @@ export class TasksRepository extends AbstractRepository<
       return {
         id,
         status: AllotmentStatus.WIP,
+        timestampGiven: admin.database.ServerValue.TIMESTAMP as number,
         timestampDone: null,
         assignee: {
           name: row['New assignee email'],
