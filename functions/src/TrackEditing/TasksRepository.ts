@@ -65,11 +65,12 @@ export class TasksRepository extends AbstractRepository<
         'Upload Link': lastVersionKey
           ? trackEditingVersionOutputLink(task.id, lastVersionKey)
           : null,
-        'Upload Date': lastVersionKey
-          ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
-            )
-          : null,
+        'Upload Date':
+          lastVersionKey && task.versions[lastVersionKey]?.timestamp
+            ? DateTimeConverter.toSerialDate(
+                DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
+              )
+            : null,
         'Latest Resolution': lastResolvedVersion
           ? lastResolvedVersion.resolution.isApproved
             ? 'Approved'
@@ -202,12 +203,7 @@ export class TasksRepository extends AbstractRepository<
 
       const existingTask = existingTasks[id];
 
-      if (existingTask?.status !== AllotmentStatus.Recheck) {
-        console.error(
-          `${id}: skipping because it has status ${existingTask?.status}.`
-        );
-        return null;
-      }
+      if (existingTask?.status !== AllotmentStatus.Recheck) return null;
 
       if (row.Feedback === 'OK') {
         console.log(`Marking rechecked task ${id} as Done.`);
