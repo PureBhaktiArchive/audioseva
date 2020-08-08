@@ -217,32 +217,18 @@ export class TasksRepository extends AbstractRepository<
         return null;
       }
 
-      // Adding fake version if none exists
-      if (!existingTask.versions)
-        console.info(`There is no version in task ${id}, will add a fake one.`);
-
+      // Adding a fake version if none exists
       const latestVersionKey =
         _.findLastKey(existingTask.versions) || this.getNewVersionRef(id).key;
 
-      const latestVersion = existingTask.versions?.[latestVersionKey] || {
-        timestamp: existingTask.timestampDone,
-      };
+      const latestVersion = existingTask.versions?.[latestVersionKey];
 
-      const latestResolution = latestVersion?.resolution;
-
-      if (latestResolution)
-        if (latestResolution.isApproved) {
-          console.info(
-            `${id}: will replace “Approved” resolution in version ${latestVersionKey}`,
-            `added by ${latestResolution.author?.name}`,
-            `on ${DateTime.fromMillis(latestResolution.timestamp).toHTTP()}`
-          );
-        } else {
-          console.warn(
-            `${id}: Will not remove “Disapproved” resolution from version ${latestVersionKey}.`
-          );
-          return null;
-        }
+      if (latestVersion?.resolution?.isApproved === false) {
+        console.warn(
+          `${id}: skipping as the latest resolution is “Disapproved”.`
+        );
+        return null;
+      }
 
       // Final file could be sound engineered before rechecked, thus searching for it in both buckets
       const finalFile = await StorageManager.findExistingFile(
@@ -257,28 +243,12 @@ export class TasksRepository extends AbstractRepository<
         return null;
       }
 
-      // Fixing the final file generation
+      // Getting the final file generation
       // https://googleapis.dev/nodejs/storage/latest/File.html#getMetadata-examples
-      const [metadata] = await finalFile.getMetadata();
-      latestVersion.file = {
-        bucket: finalFile.bucket.name,
-        name: finalFile.name,
-        generation: metadata.generation as number,
-      };
+      const [finalFileMetadata] = await finalFile.getMetadata();
 
-      // Changing or setting resolution
-      latestVersion.resolution = {
-        author: aliasToPerson.get(row['Rechecked by']) || {
-          name: row['Rechecked by'],
-          emailAddress: row['Rechecked by'],
-        },
-        isApproved: false,
-        isRechecked: true,
-        feedback: `[RECHECK]: ${row.Feedback}`,
-        timestamp: DateTimeConverter.fromSerialDate(
-          row['Date checked']
-        ).toMillis(),
-      };
+      // Logging just in case to have the previous state of the task
+      console.info(`${id}: current state of the task is`, existingTask);
 
       return {
         id,
@@ -289,7 +259,28 @@ export class TasksRepository extends AbstractRepository<
           name: row['New assignee email'],
           emailAddress: row['New assignee email'],
         },
-        versions: { [latestVersionKey]: latestVersion },
+        versions: {
+          [latestVersionKey]: {
+            ...latestVersion,
+            file: {
+              bucket: finalFile.bucket.name,
+              name: finalFile.name,
+              generation: finalFileMetadata.generation as number,
+            },
+            resolution: {
+              author: aliasToPerson.get(row['Rechecked by']) || {
+                name: row['Rechecked by'],
+                emailAddress: row['Rechecked by'],
+              },
+              isApproved: false,
+              isRechecked: true,
+              feedback: `[RECHECK]: ${row.Feedback}`,
+              timestamp: DateTimeConverter.fromSerialDate(
+                row['Date checked']
+              ).toMillis(),
+            },
+          },
+        },
       };
     });
     return _.filter(await Promise.all(updates));
