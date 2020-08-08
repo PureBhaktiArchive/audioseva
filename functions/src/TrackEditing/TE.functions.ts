@@ -217,6 +217,7 @@ export const processResolution = functions.database
         replyTo: functions.config().te.coordinator.email_address,
         params: {
           task,
+          versionKey,
           resolution,
         },
       });
