@@ -97,7 +97,7 @@ export abstract class AbstractRepository<
       flatten(
         _.zipObject(
           tasks.map((task) => _.get(task, this.idPropertyName)),
-          _.map(tasks, (task) => _.omit(task, 'id'))
+          _.map(tasks, (task) => _.omit(task, this.idPropertyName))
         )
       )
     );
