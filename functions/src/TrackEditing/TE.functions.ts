@@ -173,7 +173,9 @@ export const processUpload = functions.storage
 
 export const processResolution = functions.database
   .ref('/TE/tasks/{taskId}/versions/{versionKey}/resolution')
-  .onUpdate(async (change, { params: { taskId, versionKey } }) => {
+  .onWrite(async (change, { params: { taskId, versionKey } }) => {
+    if (!change.after.exists()) return;
+
     const repository = new TasksRepository();
     const task = await repository.getTask(taskId);
 
