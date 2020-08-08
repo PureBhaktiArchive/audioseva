@@ -271,7 +271,7 @@ export class TasksRepository extends AbstractRepository<
       }
 
       // Logging just in case to have the previous state of the task
-      console.info(`${id}: current state of the task is`, existingTask);
+      console.info(`${id}: updating the task. Current state is`, existingTask);
 
       // Constructing the update for the task
       return {
