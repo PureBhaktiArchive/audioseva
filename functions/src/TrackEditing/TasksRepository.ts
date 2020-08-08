@@ -169,25 +169,27 @@ export class TasksRepository extends AbstractRepository<
       .value();
 
     const aliasToPerson = new Map(
-      _.map(
-        (
-          await admin
-            .database()
-            .ref('/users')
-            // Filtering only those with filled `alias`: https://stackoverflow.com/a/39148596/3082178
-            .orderByChild('alias')
-            .startAt('!')
-            .endAt('~')
-            .once('value')
-        ).val(),
-        (record, uid) => [
-          record.alias as string,
-          {
-            uid,
-            name: record.alias, // We don't have name in the database, using alias instead
-            emailAddress: record.emailAddress,
-          } as Person,
-        ]
+      await Promise.all(
+        _.map(
+          (
+            await admin
+              .database()
+              .ref('/users')
+              // Filtering only those with filled `alias`: https://stackoverflow.com/a/39148596/3082178
+              .orderByChild('alias')
+              .startAt('!')
+              .endAt('~')
+              .once('value')
+          ).val(),
+          async (record, uid): Promise<[string, Person]> => [
+            record.alias as string,
+            {
+              uid,
+              name: (await admin.auth().getUser(uid)).displayName,
+              emailAddress: record.emailAddress,
+            } as Person,
+          ]
+        )
       )
     );
 
@@ -247,6 +249,20 @@ export class TasksRepository extends AbstractRepository<
       // https://googleapis.dev/nodejs/storage/latest/File.html#getMetadata-examples
       const [finalFileMetadata] = await finalFile.getMetadata();
 
+      const newAssignee = await admin
+        .auth()
+        .getUserByEmail(row['New assignee email'])
+        .catch((error) => {
+          if (error.code !== 'auth/user-not-found') throw error;
+        });
+
+      if (!newAssignee) {
+        console.error(
+          `${id}: could not find user ${row['New assignee email']}.`
+        );
+        return null;
+      }
+
       // Logging just in case to have the previous state of the task
       console.info(`${id}: current state of the task is`, existingTask);
 
@@ -256,8 +272,8 @@ export class TasksRepository extends AbstractRepository<
         timestampGiven: admin.database.ServerValue.TIMESTAMP as number,
         timestampDone: null,
         assignee: {
-          name: row['New assignee email'],
-          emailAddress: row['New assignee email'],
+          name: newAssignee.displayName,
+          emailAddress: newAssignee.email,
         },
         versions: {
           [latestVersionKey]: {
