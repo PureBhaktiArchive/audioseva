@@ -248,7 +248,7 @@ export class TasksRepository extends AbstractRepository<
         return null;
       }
 
-      // Getting the final file generation
+      // Getting the final file metadata to get its generation
       // https://googleapis.dev/nodejs/storage/latest/File.html#getMetadata-examples
       const [finalFileMetadata] = await finalFile.getMetadata();
 
@@ -269,6 +269,7 @@ export class TasksRepository extends AbstractRepository<
       // Logging just in case to have the previous state of the task
       console.info(`${id}: current state of the task is`, existingTask);
 
+      // Constructing the update for the task
       return {
         id,
         status: AllotmentStatus.WIP,
@@ -280,12 +281,15 @@ export class TasksRepository extends AbstractRepository<
         },
         versions: {
           [latestVersionKey]: {
+            // First inheriting the previous values of the latest version
             ...latestVersion,
+            // Pinning the final file to get it later at any time
             file: {
               bucket: finalFile.bucket.name,
               name: finalFile.name,
               generation: finalFileMetadata.generation as number,
             },
+            // Replacing the resolution altogether
             resolution: {
               author: aliasToPerson.get(row['Rechecked by']) || {
                 name: row['Rechecked by'],
