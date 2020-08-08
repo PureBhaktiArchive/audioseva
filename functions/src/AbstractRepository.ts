@@ -9,7 +9,6 @@ import { AllotmentRow } from './AllotmentRow';
 import { DateTimeConverter } from './DateTimeConverter';
 import { RequireOnly } from './RequireOnly';
 import { Spreadsheet } from './Spreadsheet';
-import flatten = require('flat');
 import _ = require('lodash');
 
 export abstract class AbstractRepository<
@@ -83,13 +82,23 @@ export abstract class AbstractRepository<
   }
 
   public async saveToDatabase(tasks: RequireOnly<TTask, TId>[]) {
+    const flatten = (obj, prefix = '', res = {}) =>
+      Object.entries(obj).reduce((memo, [key, val]) => {
+        const nestedKey = `${prefix}${key}`;
+        if (typeof val === 'object' && val && val['.sv'] === undefined) {
+          flatten(val, `${nestedKey}/`, memo);
+        } else {
+          res[nestedKey] = val;
+        }
+        return memo;
+      }, res);
+
     await this.allotmentsRef.update(
       flatten(
         _.zipObject(
           tasks.map((task) => _.get(task, this.idPropertyName)),
           _.map(tasks, (task) => _.omit(task, 'id'))
-        ),
-        { delimiter: '/' }
+        )
       )
     );
   }
