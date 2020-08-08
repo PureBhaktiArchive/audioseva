@@ -203,6 +203,9 @@ export class TasksRepository extends AbstractRepository<
       const existingTask = existingTasks[id];
 
       if (existingTask?.status !== AllotmentStatus.Recheck) {
+        console.error(
+          `${id}: skipping because it has status ${existingTask?.status}.`
+        );
         return null;
       }
 
