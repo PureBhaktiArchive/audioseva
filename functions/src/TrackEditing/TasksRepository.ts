@@ -241,10 +241,7 @@ export class TasksRepository extends AbstractRepository<
         return null;
       }
 
-      // Adding a fake version if none exists
-      const latestVersionKey =
-        _.findLastKey(existingTask.versions) || this.getNewVersionRef(id).key;
-
+      const latestVersionKey = _.findLastKey(existingTask.versions);
       const latestVersion = existingTask.versions?.[latestVersionKey];
 
       if (latestVersion?.resolution?.isApproved === false) {
@@ -293,7 +290,8 @@ export class TasksRepository extends AbstractRepository<
           emailAddress: newAssignee.email,
         },
         versions: {
-          [latestVersionKey]: {
+          // Adding a fake version if none exists
+          [latestVersionKey || this.getNewVersionRef(id).key]: {
             // First inheriting the previous values of the latest version
             ...latestVersion,
             // Pinning the final file to get it later at any time
