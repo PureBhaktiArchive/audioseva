@@ -304,6 +304,8 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
     const versions = Object.values<any>(task.versions);
     for (const i in versions) {
       const version = versions[i];
+      // The version may be fake (without `uploadPath`)
+      if (!version.uploadPath) continue;
       const ref = this.uploadsBucket.ref().child(version.uploadPath);
       const metadata = await ref.getMetadata().catch((e) => 'error');
       if (metadata === 'error') continue;

@@ -62,7 +62,7 @@ export abstract class AbstractRepository<
     return snapshot.exists() ? this.constructTask(id, snapshot.val()) : null;
   }
 
-  private constructTask(id: string, data): TTask {
+  protected constructTask(id: string, data): TTask {
     return { [this.idPropertyName]: id, ...data } as TTask;
   }
 
@@ -82,19 +82,24 @@ export abstract class AbstractRepository<
   }
 
   public async saveToDatabase(tasks: RequireOnly<TTask, TId>[]) {
+    const flatten = (obj, prefix = '', res = {}) =>
+      Object.entries(obj).reduce((memo, [key, val]) => {
+        const nestedKey = `${prefix}${key}`;
+        if (typeof val === 'object' && val && val['.sv'] === undefined) {
+          flatten(val, `${nestedKey}/`, memo);
+        } else {
+          res[nestedKey] = val;
+        }
+        return memo;
+      }, res);
+
     await this.allotmentsRef.update(
-      _.chain(tasks)
-        .flatMap((task) =>
-          _(task)
-            .omit(this.idPropertyName)
-            .map((value: unknown, key) => [
-              `${task[this.idPropertyName]}/${key}`,
-              value,
-            ])
-            .value()
+      flatten(
+        _.zipObject(
+          tasks.map((task) => _.get(task, this.idPropertyName)),
+          _.map(tasks, (task) => _.omit(task, this.idPropertyName))
         )
-        .fromPairs()
-        .value()
+      )
     );
   }
 
@@ -200,24 +205,9 @@ export abstract class AbstractRepository<
 
         return true;
       })
-      .map(
-        /// Updating only these fields
-        ({
-          [this.idPropertyName]: id,
-          status,
-          assignee,
-          timestampGiven,
-          timestampDone,
-        }) =>
-          ({
-            [this.idPropertyName]: id,
-            status,
-            assignee,
-            timestampGiven,
-            timestampDone,
-          } as RequireOnly<TTask, TId>)
-      )
-      .value();
+      // Type casting is required to pass this successfully to `saveToDatabase`.
+      // Asked question https://stackoverflow.com/q/63216805/3082178
+      .value() as RequireOnly<TTask, TId>[];
 
     if (dryRun) console.log(`DRY RUN, doing nothing.`);
     else {

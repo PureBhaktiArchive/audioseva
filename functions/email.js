@@ -136,8 +136,8 @@ const teFeedback = {
   template: 'track-editing/feedback',
   locals: {
     ...globals,
-    task: { id: 'TEST-001-1' },
-    resolution: { feedback: 'Please redo.' },
+    task: { id: 'TEST-001-1', assignee: { name: 'Assignee' } },
+    resolution: { feedback: 'Please redo.', isRechecked: true },
   },
 };
 
@@ -154,4 +154,4 @@ const teUpload = {
   },
 };
 
-email.send(sqrSubmission).then(console.log).catch(console.error);
+email.send(teFeedback).then(console.log).catch(console.error);

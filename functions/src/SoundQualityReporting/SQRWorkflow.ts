@@ -91,8 +91,7 @@ export class SQRWorkflow {
       ...fileNames.map((fileName) => ({
         fileName,
         status: AllotmentStatus.Given,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        timestampGiven: admin.database.ServerValue.TIMESTAMP as any,
+        timestampGiven: admin.database.ServerValue.TIMESTAMP as number,
         assignee,
         token: uuidv4(),
       }))
