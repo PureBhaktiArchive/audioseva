@@ -218,6 +218,29 @@ export class TasksRepository extends AbstractRepository<
         return null;
       }
 
+      const newAssignee = await admin
+        .auth()
+        .getUserByEmail(row['New assignee email'])
+        .catch((error) => {
+          if (error.code !== 'auth/user-not-found') throw error;
+        });
+
+      if (!newAssignee) {
+        console.error(
+          `${id}: could not find user ${row['New assignee email']}.`
+        );
+        return null;
+      }
+
+      const checker = aliasToPerson.get(row['Rechecked by']);
+
+      if (!checker) {
+        console.error(
+          `${id}: cannot find user by alias ${row['Rechecked by']}`
+        );
+        return null;
+      }
+
       // Adding a fake version if none exists
       const latestVersionKey =
         _.findLastKey(existingTask.versions) || this.getNewVersionRef(id).key;
@@ -255,20 +278,6 @@ export class TasksRepository extends AbstractRepository<
       // Getting the final file metadata to get its generation
       // https://googleapis.dev/nodejs/storage/latest/File.html#getMetadata-examples
       const [finalFileMetadata] = await finalFile.getMetadata();
-
-      const newAssignee = await admin
-        .auth()
-        .getUserByEmail(row['New assignee email'])
-        .catch((error) => {
-          if (error.code !== 'auth/user-not-found') throw error;
-        });
-
-      if (!newAssignee) {
-        console.error(
-          `${id}: could not find user ${row['New assignee email']}.`
-        );
-        return null;
-      }
 
       // Logging just in case to have the previous state of the task
       console.info(`${id}: updating the task. Current state is`, existingTask);
