@@ -10,6 +10,7 @@ export enum AllotmentStatus {
   Spare = 'Spare',
   Given = 'Given',
   WIP = 'WIP',
+  Recheck = 'Recheck',
   Done = 'Done',
   AudioProblem = 'Audio Problem',
 }

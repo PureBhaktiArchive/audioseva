@@ -156,9 +156,16 @@ type FileResolution {
   }
 }
 
+type StorageFileReference {
+  bucket: String,
+  name: String,
+  generation: Number | Null,
+}
+
 type FileVersion {
   timestamp: InitialTimestamp,
   uploadPath: String, // Path in the `uploads` bucket
+  file: StorageFileReference | Null, // Explicit file reference for download
   resolution: FileResolution | Null,
 }
 
@@ -189,10 +196,14 @@ path /quotes {
     path /{push_id}/text is String {}
 }
 
-path /users/{user_id} {
-  path /refreshTime {
-    read() {
-      user_id == auth.uid
+path /users {
+  index() { ["alias"] }
+
+  path /{user_id} {
+    path /refreshTime {
+      read() {
+        user_id == auth.uid
+      }
     }
   }
 }

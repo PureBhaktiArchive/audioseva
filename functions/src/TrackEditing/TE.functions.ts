@@ -7,6 +7,7 @@ import { DateTime } from 'luxon';
 import * as path from 'path';
 import { AllotmentStatus } from '../Allotment';
 import { abortCall, authorize } from '../auth';
+import { FileResolution } from '../FileResolution';
 import { FileVersion } from '../FileVersion';
 import { Person } from '../Person';
 import { StorageManager } from '../StorageManager';
@@ -51,8 +52,7 @@ export const processAllotment = functions.https.onCall(
         id,
         assignee,
         status: AllotmentStatus.Given,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        timestampGiven: admin.database.ServerValue.TIMESTAMP as any,
+        timestampGiven: admin.database.ServerValue.TIMESTAMP as number,
         versions: null, // Removing old versions
       }))
     );
@@ -147,10 +147,10 @@ export const processUpload = functions.storage
         status: AllotmentStatus.WIP,
       });
 
-    const version = new FileVersion({
+    const version: FileVersion = {
       timestamp: DateTime.fromISO(object.timeCreated).toMillis(),
       uploadPath: object.name,
-    });
+    };
 
     task = await repository.saveNewVersion(taskId, version);
 
@@ -173,50 +173,56 @@ export const processUpload = functions.storage
 
 export const processResolution = functions.database
   .ref('/TE/tasks/{taskId}/versions/{versionKey}/resolution')
-  .onCreate(async (resolution, { params: { taskId, versionKey } }) => {
+  .onWrite(async (change, { params: { taskId, versionKey } }) => {
+    if (!change.after.exists()) return;
+
     const repository = new TasksRepository();
     const task = await repository.getTask(taskId);
 
+    const resolution = change.after.val() as FileResolution;
     console.info(
-      `Processing resolution of ${taskId} (version ${versionKey}): ${
-        resolution.val().isApproved
+      `Processing ${resolution.isRechecked ? 'RECHECKED' : ''}`,
+      `resolution of ${taskId}(version ${versionKey}):`,
+      `${
+        resolution.isApproved
           ? 'approved'
-          : `disapproved with feedback “${resolution.val().feedback}”`
+          : `disapproved with feedback “${resolution.feedback}”`
       }.`
     );
 
-    if (resolution.val().isApproved) {
+    if (resolution.isApproved) {
+      const version = task.versions[versionKey];
+      const file = version.file // Explicit file reference takes precedence
+        ? admin
+            .storage()
+            .bucket(version.file.bucket)
+            .file(version.file.name, { generation: version.file.generation })
+        : // Otherwise resorting to the uploaded file path
+          StorageManager.getBucket('te.uploads').file(version.uploadPath);
+
       // Saving the approved file to the final storage bucket
-      await StorageManager.getBucket('te.uploads')
-        .file(task.versions[versionKey].uploadPath)
-        .copy(
-          StorageManager.getFile(
-            'edited',
-            path.basename(task.versions[versionKey].uploadPath)
-          )
-        );
+      await file.copy(
+        StorageManager.getFile('edited', `${taskId}${path.extname(file.name)}`)
+      );
 
       await repository.save({
         id: taskId,
         status: AllotmentStatus.Done,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        timestampDone: admin.database.ServerValue.TIMESTAMP as any,
+        timestampDone: admin.database.ServerValue.TIMESTAMP as number,
       });
     } else {
       await repository.saveToSpreadsheet([task]);
-      await admin
-        .database()
-        .ref(`/email/notifications`)
-        .push({
-          template: 'track-editing/feedback',
-          to: task.assignee.emailAddress,
-          bcc: functions.config().te.coordinator.email_address,
-          replyTo: functions.config().te.coordinator.email_address,
-          params: {
-            task,
-            resolution: resolution.val(),
-          },
-        });
+      await admin.database().ref(`/email/notifications`).push({
+        template: 'track-editing/feedback',
+        to: task.assignee.emailAddress,
+        bcc: functions.config().te.coordinator.email_address,
+        replyTo: functions.config().te.coordinator.email_address,
+        params: {
+          task,
+          versionKey,
+          resolution,
+        },
+      });
     }
   });
 
@@ -227,6 +233,15 @@ export const importTasks = functions.pubsub
     const repository = new TasksRepository();
     const count: number = await repository.importTasks();
     console.info(`Imported ${count} tasks.`);
+  });
+
+export const processRechecked = functions.pubsub
+  .schedule('every day 00:30')
+  .timeZone(functions.config().coordinator.timezone)
+  .onRun(async () => {
+    const repository = new TasksRepository();
+    const updates = await repository.getRecheckedTasksUpdates();
+    await repository.save(...updates);
   });
 
 export const syncAllotments = functions.pubsub
@@ -259,9 +274,13 @@ export const download = functions.https.onRequest(
         return;
       }
 
-      const file = StorageManager.getBucket('te.uploads').file(
-        version.uploadPath
-      );
+      const file = version.file // Explicit file reference takes precedence
+        ? admin
+            .storage()
+            .bucket(version.file.bucket)
+            .file(version.file.name, { generation: version.file.generation })
+        : // Otherwise resorting to the uploaded file path
+          StorageManager.getBucket('te.uploads').file(version.uploadPath);
 
       if (!(await file.exists()).shift()) {
         res
@@ -281,12 +300,13 @@ export const download = functions.https.onRequest(
       const [url] = await file.getSignedUrl({
         action: 'read',
         expires: DateTime.local().plus({ days: 3 }).toJSDate(),
-        promptSaveAs: `${taskId}.v${versionNumber}${path.extname(
-          version.uploadPath
-        )}`,
+        promptSaveAs: `${taskId}.v${versionNumber}${path.extname(file.name)}`,
       });
 
-      console.log(`Redirecting ${taskId}/${versionId} to ${url}`);
+      console.log(
+        `Redirecting ${taskId}/${versionId} to signed URL for`,
+        `${file.bucket.name}/${file.name}`
+      );
       res.redirect(307, url);
     }
   )
