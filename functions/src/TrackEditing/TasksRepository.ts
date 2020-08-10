@@ -213,22 +213,18 @@ export class TasksRepository extends AbstractRepository<
         };
       }
 
-      if (!row['New assignee email']) {
-        console.log(`${id}: skipping as new assignee email is not set.`);
-        return null;
-      }
+      const newAssigneeEmail = row['New assignee email']?.trim();
+      if (!newAssigneeEmail) return null;
 
       const newAssignee = await admin
         .auth()
-        .getUserByEmail(row['New assignee email'])
+        .getUserByEmail(newAssigneeEmail)
         .catch((error) => {
           if (error.code !== 'auth/user-not-found') throw error;
         });
 
       if (!newAssignee) {
-        console.error(
-          `${id}: could not find user ${row['New assignee email']}.`
-        );
+        console.error(`${id}: could not find user ${newAssigneeEmail}.`);
         return null;
       }
 
@@ -236,7 +232,7 @@ export class TasksRepository extends AbstractRepository<
 
       if (!checker) {
         console.error(
-          `${id}: cannot find user by alias ${row['Rechecked by']}`
+          `${id}: could not find user by alias ${row['Rechecked by']}`
         );
         return null;
       }
@@ -245,7 +241,7 @@ export class TasksRepository extends AbstractRepository<
       const latestVersion = existingTask.versions?.[latestVersionKey];
 
       if (latestVersion?.resolution?.isApproved === false) {
-        console.warn(
+        console.error(
           `${id}: skipping as the latest resolution is “Disapproved”.`
         );
         return null;
