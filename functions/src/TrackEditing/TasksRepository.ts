@@ -205,7 +205,7 @@ export class TasksRepository extends AbstractRepository<
 
       if (existingTask?.status !== AllotmentStatus.Recheck) return null;
 
-      if (row.Feedback === 'OK') {
+      if (row.Feedback?.toUpperCase()?.trim() === 'OK') {
         console.log(`Marking rechecked task ${id} as Done.`);
         return {
           id,
