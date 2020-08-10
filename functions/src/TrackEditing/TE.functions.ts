@@ -192,7 +192,7 @@ export const processResolution = functions.database
 
     if (resolution.isApproved) {
       const version = task.versions[versionKey];
-      const file = version.file // Explicit file specification takes precedence
+      const file = version.file // Explicit file reference takes precedence
         ? admin
             .storage()
             .bucket(version.file.bucket)
@@ -274,7 +274,7 @@ export const download = functions.https.onRequest(
         return;
       }
 
-      const file = version.file // Explicit file specification takes precedence
+      const file = version.file // Explicit file reference takes precedence
         ? admin
             .storage()
             .bucket(version.file.bucket)
