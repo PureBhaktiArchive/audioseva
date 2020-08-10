@@ -103,7 +103,7 @@ export class StorageManager {
       );
 
   static getDestinationFileForRestoredUpload(fileName: string): File {
-    const matches = /^(\w+)-(\d{1,4}.*?)(?:[\s_]+v[-\d\s]+)?$/i.exec(
+    const matches = /^(\w+)-(\d{1,4}(?:\s*[A-Z]*|-\d+))(?:[\s_].*)?$/i.exec(
       path.basename(fileName, path.extname(fileName))
     );
 
