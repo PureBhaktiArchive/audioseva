@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import { File, FileOptions } from '@google-cloud/storage';
+import { File } from '@google-cloud/storage';
 import { URL } from 'url';
 import functions = require('firebase-functions');
 import admin = require('firebase-admin');
@@ -40,18 +40,13 @@ export class StorageManager {
    * @param bucketName The short name of the bucket
    * @param fileName The file name in the bucket, without path.
    */
-  static getFile(
-    bucketName: BucketName,
-    fileName: string,
-    fileOptions?: FileOptions
-  ) {
+  static getFile(bucketName: BucketName, fileName: string) {
     return this.getBucket(bucketName).file(
       `${this.extractListFromFilename(fileName)}/${
         bucketName === 'original'
           ? this.standardizeFileName(fileName)
           : fileName
-      }`,
-      fileOptions
+      }`
     );
   }
 
