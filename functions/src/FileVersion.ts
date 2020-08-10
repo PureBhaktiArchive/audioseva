@@ -7,7 +7,7 @@ import { FileResolution } from './FileResolution';
 export interface FileVersion {
   timestamp?: number; // Can be null for a fake version
   uploadPath?: string; // Can be null for a fake version
-  file?: // Explicit file specification for download
+  file?: // Explicit file reference for download
   {
     bucket: string;
     name: string;
