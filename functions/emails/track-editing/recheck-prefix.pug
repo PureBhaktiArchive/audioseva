@@ -1,0 +1,4 @@
+mixin recheck-prefix(task)
+  if Object.entries(task.versions).some(([, { resolution: { isRechecked } }]) => isRechecked)
+    | [RECHECK]
+    |

@@ -136,8 +136,15 @@ const teFeedback = {
   template: 'track-editing/feedback',
   locals: {
     ...globals,
-    task: { id: 'TEST-001-1', assignee: { name: 'Assignee' } },
-    resolution: { feedback: 'Please redo.', isRechecked: true },
+    task: {
+      id: 'TEST-001-1',
+      assignee: { name: 'Assignee' },
+      versions: {
+        v1: { resolution: { feedback: 'Please redo.', isRechecked: true } },
+        v2: { uploadPath: '/path', resolution: { feedback: 'Again redo' } },
+      },
+    },
+    resolution: { feedback: 'Again redo.' },
   },
 };
 
@@ -148,7 +155,12 @@ const teUpload = {
     task: {
       id: 'TEST-001-1',
       assignee: person,
-      versions: { version1: {}, version2: {} },
+      versions: {
+        version1: {
+          resolution: { feedback: 'Please redo.', isRechecked: true },
+        },
+        version2: {},
+      },
     },
     warnings,
   },
