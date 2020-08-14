@@ -236,7 +236,7 @@ export const importTasks = functions.pubsub
   });
 
 export const processRechecked = functions.pubsub
-  .schedule('every day 00:30')
+  .schedule('every 4 hours from 08:00 to 00:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = new TasksRepository();
