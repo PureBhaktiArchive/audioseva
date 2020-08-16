@@ -62,6 +62,7 @@ export const processAllotment = functions.https.onCall(
       .database()
       .ref(`/email/notifications`)
       .push({
+        timestamp: admin.database.ServerValue.TIMESTAMP,
         template: 'track-editing/allotment',
         to: assignee.emailAddress,
         bcc: functions.config().te.coordinator.email_address,
@@ -161,6 +162,7 @@ export const processUpload = functions.storage
 
     // Notify the coordinator
     await admin.database().ref(`/email/notifications`).push({
+      timestamp: admin.database.ServerValue.TIMESTAMP,
       template: 'track-editing/upload',
       to: functions.config().te.coordinator.email_address,
       replyTo: task.assignee.emailAddress,
@@ -213,6 +215,7 @@ export const processResolution = functions.database
     } else {
       await repository.saveToSpreadsheet([task]);
       await admin.database().ref(`/email/notifications`).push({
+        timestamp: admin.database.ServerValue.TIMESTAMP,
         template: 'track-editing/feedback',
         to: task.assignee.emailAddress,
         bcc: functions.config().te.coordinator.email_address,

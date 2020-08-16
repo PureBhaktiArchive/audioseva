@@ -29,6 +29,7 @@ export const processDonations = functions.database
     ]);
 
     return admin.database().ref(`/email/notifications`).push({
+      timestamp: admin.database.ServerValue.TIMESTAMP,
       to: donation.donor.emailAddress,
       bcc: functions.config().donations.contact.email_address,
       replyTo: functions.config().donations.contact.email_address,

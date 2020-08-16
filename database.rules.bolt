@@ -10,7 +10,7 @@ type InitialTimestamp extends Number {
 }
 
 path /email/notifications {
-    index() { ["sentTimestamp", "template"] }
+    index() { ["timestamp", "sentTimestamp", "template"] }
 }
 
 path /donations {

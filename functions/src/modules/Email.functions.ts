@@ -17,10 +17,17 @@ async function sendNotificationEmailSnapshot(
 
   if (data.sentTimestamp) return;
 
+  if ((data.timestamp || 0) < Date.now() - 604800 * 1000) {
+    console.log(`Skipping outdated email ${snapshot.key}.`);
+    return;
+  }
+
   console.log(
     `Sending email ${snapshot.key} to ${data.to} with template "${data.template}" and params`,
     data.params
   );
+
+  if (process.env.FUNCTIONS_EMULATOR) return;
 
   await email.send({
     template: data.template,
@@ -52,8 +59,9 @@ export const sendNotificationEmail = functions.database
   });
 
 export const retryFailedEmails = functions.pubsub
-  .topic('retry-failed-emails')
-  .onPublish(async () => {
+  .schedule('every day 09:00')
+  .timeZone(functions.config().coordinator.timezone)
+  .onRun(async () => {
     const failedNotifications = await admin
       .database()
       .ref('/email/notifications/')
@@ -62,7 +70,7 @@ export const retryFailedEmails = functions.pubsub
       .once('value');
 
     console.log(
-      `Found ${failedNotifications.numChildren()} failed notifications`
+      `Found ${failedNotifications.numChildren()} not sent notifications.`
     );
 
     const keys = Object.keys(failedNotifications.val());
