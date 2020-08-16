@@ -23,7 +23,7 @@ export function authorize(
   roles: string[]
 ) {
   if (
-    !functions.config().emulator &&
+    !process.env.FUNCTIONS_EMULATOR &&
     !_.some(roles, (role) => _.get(context.auth?.token?.roles, role))
   )
     abortCall(
