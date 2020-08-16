@@ -140,7 +140,18 @@ const teFeedback = {
       id: 'TEST-001-1',
       assignee: { name: 'Assignee' },
       versions: {
-        v1: { resolution: { feedback: 'Please redo.', isRechecked: true } },
+        '-M32eFVWKzJQJqyx0jOj': {
+          resolution: {
+            author: {},
+            feedback:
+              '1s gap between files missing at 45:58 on the edited file. Rest is fine.',
+            isApproved: false,
+            timestamp: 1588483134292,
+          },
+          timestamp: 1584904338974,
+          uploadPath:
+            'TwCkuLuxejdQ7qOcOwgluZzrXlv1/1584902849151/UMA-170-1.flac',
+        },
         v2: { uploadPath: '/path', resolution: { feedback: 'Again redo' } },
       },
     },
@@ -152,14 +163,28 @@ const teUpload = {
   template: 'track-editing/upload',
   locals: {
     ...globals,
+
     task: {
       id: 'TEST-001-1',
       assignee: person,
       versions: {
-        version1: {
-          resolution: { feedback: 'Please redo.', isRechecked: true },
+        '-M32eFVWKzJQJqyx0jOj': {
+          resolution: {
+            author: {},
+            feedback:
+              '1s gap between files missing at 45:58 on the edited file. Rest is fine.',
+            isApproved: false,
+            timestamp: 1588483134292,
+          },
+          timestamp: 1584904338974,
+          uploadPath:
+            'TwCkuLuxejdQ7qOcOwgluZzrXlv1/1584902849151/UMA-170-1.flac',
         },
-        version2: {},
+        '-MEnVDFzCgJNltWq95jJ': {
+          timestamp: 1597518173253,
+          uploadPath:
+            'TwCkuLuxejdQ7qOcOwgluZzrXlv1/1597517749657/UMA-170-1.flac',
+        },
       },
     },
     warnings,
@@ -167,3 +192,4 @@ const teUpload = {
 };
 
 email.send(teFeedback).then(console.log).catch(console.error);
+email.send(teUpload).then(console.log).catch(console.error);
