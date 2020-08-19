@@ -3,7 +3,6 @@
  */
 
 import { File } from '@google-cloud/storage';
-import { URL } from 'url';
 import functions = require('firebase-functions');
 import admin = require('firebase-admin');
 import path = require('path');
@@ -22,13 +21,6 @@ export class StorageManager {
 
   static getBucket(bucketName: BucketName) {
     return admin.storage().bucket(this.getFullBucketName(bucketName));
-  }
-
-  static getPublicURL(file: File) {
-    return new URL(
-      `${file.bucket.name}/${file.name}`,
-      'https://storage.googleapis.com'
-    ).toString();
   }
 
   /**
