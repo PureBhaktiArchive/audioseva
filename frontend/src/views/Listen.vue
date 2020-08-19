@@ -13,8 +13,7 @@
           :src="audioUrl"
           style="display: block; width: 100%;"
         >
-          Your browser does not support embedding audio. Please click
-          <a :href="audioUrl">this link</a>.
+          Your browser does not support embedding audio.
         </audio>
       </v-card-title>
       <v-card-title primary-title>
