@@ -11,7 +11,7 @@ import path = require('path');
 const app = express();
 
 app.get(
-  ['/download/:bucket/:fileName', '/download/:fileName'],
+  '/download/:bucket(original|edited|restored)?/:fileName(\\w+-\\d+*)',
   async ({ params: { bucket, fileName } }, res) => {
     const baseName = path.basename(fileName, path.extname(fileName));
 
