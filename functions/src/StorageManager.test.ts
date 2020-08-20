@@ -14,29 +14,67 @@ jest.mock('firebase-admin', () => ({
   storage: jest.fn(() => new MockStorage()),
 }));
 
-describe('File', () => {
+describe('Candidates', () => {
   test.each`
-    bucket        | fileName               | path
-    ${'original'} | ${'Hi3 A.flac'}        | ${'ML1/ML1-003A.flac'}
-    ${'original'} | ${'Hi201.mp3'}         | ${'ML1/ML1-201A.mp3'}
-    ${'original'} | ${'Hi201B.mp3'}        | ${'ML1/ML1-201B.mp3'}
-    ${'original'} | ${'BR-01A.flac'}       | ${'BR/BR-001A.flac'}
-    ${'original'} | ${'DK-1A.flac'}        | ${'DK/DK-001A.flac'}
-    ${'original'} | ${'SER-88A.flac'}      | ${'SER/SER-088A.flac'}
-    ${'original'} | ${'ML2-71 A.flac'}     | ${'ML2/71 A.flac'}
-    ${'restored'} | ${'Hi3 A.flac'}        | ${'ML1/Hi3 A.flac'}
-    ${'restored'} | ${'BR-01A.flac'}       | ${'BR/BR-01A.flac'}
-    ${'restored'} | ${'DK-1A.flac'}        | ${'DK/DK-1A.flac'}
-    ${'restored'} | ${'SER-88A.flac'}      | ${'SER/SER-88A.flac'}
-    ${'restored'} | ${'ML2-71 A.flac'}     | ${'ML2/ML2-71 A.flac'}
-    ${'edited'}   | ${'DK-001-1.flac'}     | ${'DK/DK-001-1.flac'}
-    ${'edited'}   | ${'DIGI07-0001-1.mp3'} | ${'DIGI07/DIGI07-0001-1.mp3'}
-    ${'edited'}   | ${'ML2-1000-2.flac'}   | ${'ML2/ML2-1000-2.flac'}
+    bucket        | fileName                | candidates
+    ${'original'} | ${'Hi3 A.flac'}         | ${['original.test/ML1/ML1-003A.flac']}
+    ${'original'} | ${'Hi201.mp3'}          | ${['original.test/ML1/ML1-201A.mp3']}
+    ${'original'} | ${'Hi201B.mp3'}         | ${['original.test/ML1/ML1-201B.mp3']}
+    ${'original'} | ${'BR-01A.flac'}        | ${['original.test/BR/BR-001A.flac']}
+    ${'original'} | ${'DK-1A.flac'}         | ${['original.test/DK/DK-001A.flac']}
+    ${'original'} | ${'SER-88A.flac'}       | ${['original.test/SER/SER-088A.flac']}
+    ${'original'} | ${'ML2-71 A.flac'}      | ${['original.test/ML2/71 A.flac']}
+    ${'restored'} | ${'Hi3 A.flac'}         | ${['restored.test/ML1/Hi3 A.flac']}
+    ${'restored'} | ${'BR-01A.flac'}        | ${['restored.test/BR/BR-01A.flac']}
+    ${'restored'} | ${'DK-1A.flac'}         | ${['restored.test/DK/DK-1A.flac']}
+    ${'restored'} | ${'SER-88A.flac'}       | ${['restored.test/SER/SER-88A.flac']}
+    ${'restored'} | ${'ML2-71 A.flac'}      | ${['restored.test/ML2/ML2-71 A.flac']}
+    ${'edited'}   | ${'DK-001-1.flac'}      | ${['edited.test/DK/DK-001-1.flac']}
+    ${'edited'}   | ${'ML2-1000-2.flac'}    | ${['edited.test/ML2/ML2-1000-2.flac']}
+    ${'original'} | ${'DIGI07-0001'}        | ${['original.test/DIGI07/DIGI07-0001.mp3']}
+    ${'original'} | ${'DIGI07-0001.mp3'}    | ${['original.test/DIGI07/DIGI07-0001.mp3']}
+    ${'original'} | ${'DIGI07-0001.flac'}   | ${['original.test/DIGI07/DIGI07-0001.mp3']}
+    ${'original'} | ${'BR-01A'}             | ${['original.test/BR/BR-001A.flac']}
+    ${'original'} | ${'BR-01A.flac'}        | ${['original.test/BR/BR-001A.flac']}
+    ${'original'} | ${'BR-01A.mp3'}         | ${['original.test/BR/BR-001A.mp3']}
+    ${'restored'} | ${'DIGI07-0001'}        | ${['restored.test/DIGI07/DIGI07-0001.mp3', 'edited.test/DIGI07/DIGI07-0001.flac']}
+    ${'restored'} | ${'DIGI07-0001.mp3'}    | ${['restored.test/DIGI07/DIGI07-0001.mp3', 'edited.test/DIGI07/DIGI07-0001.flac']}
+    ${'restored'} | ${'DIGI07-0001.flac'}   | ${['restored.test/DIGI07/DIGI07-0001.flac', 'edited.test/DIGI07/DIGI07-0001.mp3']}
+    ${'restored'} | ${'BR-01A'}             | ${['restored.test/BR/BR-01A.flac']}
+    ${'restored'} | ${'BR-01A.flac'}        | ${['restored.test/BR/BR-01A.flac']}
+    ${'restored'} | ${'BR-01A.mp3'}         | ${['restored.test/BR/BR-01A.flac']}
+    ${'edited'}   | ${'DIGI07-0001-1'}      | ${['edited.test/DIGI07/DIGI07-0001-1.mp3', 'edited.test/DIGI07/DIGI07-0001-1.flac']}
+    ${'edited'}   | ${'DIGI07-0001-1.mp3'}  | ${['edited.test/DIGI07/DIGI07-0001-1.mp3', 'edited.test/DIGI07/DIGI07-0001-1.flac']}
+    ${'edited'}   | ${'DIGI07-0001-1.flac'} | ${['edited.test/DIGI07/DIGI07-0001-1.flac', 'edited.test/DIGI07/DIGI07-0001-1.mp3']}
+    ${'edited'}   | ${'BR-01-1'}            | ${['edited.test/BR/BR-01-1.flac']}
+    ${'edited'}   | ${'BR-01-1.flac'}       | ${['edited.test/BR/BR-01-1.flac']}
+    ${'edited'}   | ${'BR-01-1.mp3'}        | ${['edited.test/BR/BR-01-1.flac']}
+    ${'restored'} | ${'DIGI07-0001-1'}      | ${['restored.test/DIGI07/DIGI07-0001-1.mp3', 'restored.test/DIGI07/DIGI07-0001-1.flac']}
+    ${'restored'} | ${'DIGI07-0001-1.mp3'}  | ${['restored.test/DIGI07/DIGI07-0001-1.mp3', 'restored.test/DIGI07/DIGI07-0001-1.flac']}
+    ${'restored'} | ${'DIGI07-0001-1.flac'} | ${['restored.test/DIGI07/DIGI07-0001-1.flac', 'restored.test/DIGI07/DIGI07-0001-1.mp3']}
+    ${'restored'} | ${'BR-01-1'}            | ${['restored.test/BR/BR-01-1.flac']}
+    ${'restored'} | ${'BR-01-1.flac'}       | ${['restored.test/BR/BR-01-1.flac']}
+    ${'restored'} | ${'BR-01-1.mp3'}        | ${['restored.test/BR/BR-01-1.flac']}
+    ${undefined}  | ${'DIGI07-0001'}        | ${['restored.test/DIGI07/DIGI07-0001.mp3', 'restored.test/DIGI07/DIGI07-0001.flac', 'original.test/DIGI07/DIGI07-0001.mp3', 'original.test/DIGI07/DIGI07-0001.flac']}
+    ${undefined}  | ${'DIGI07-0001.mp3'}    | ${['restored.test/DIGI07/DIGI07-0001.mp3', 'restored.test/DIGI07/DIGI07-0001.flac', 'original.test/DIGI07/DIGI07-0001.mp3', 'original.test/DIGI07/DIGI07-0001.flac']}
+    ${undefined}  | ${'DIGI07-0001.flac'}   | ${['restored.test/DIGI07/DIGI07-0001.flac', 'restored.test/DIGI07/DIGI07-0001.mp3', 'original.test/DIGI07/DIGI07-0001.flac', 'original.test/DIGI07/DIGI07-0001.mp3']}
+    ${undefined}  | ${'BR-01A'}             | ${['restored.test/BR/BR-01A.flac', 'original.test/BR/BR-001A.flac']}
+    ${undefined}  | ${'BR-01A.flac'}        | ${['restored.test/BR/BR-01A.flac', 'original.test/BR/BR-001A.flac']}
+    ${undefined}  | ${'BR-01A.mp3'}         | ${['restored.test/BR/BR-01A.flac', 'original.test/BR/BR-001A.mp3']}
+    ${undefined}  | ${'DIGI07-0001-1'}      | ${['restored.test/DIGI07/DIGI07-0001-1.mp3', 'restored.test/DIGI07/DIGI07-0001-1.flac', 'edited.test/DIGI07/DIGI07-0001-1.mp3', 'edited.test/DIGI07/DIGI07-0001-1.flac']}
+    ${undefined}  | ${'DIGI07-0001-1.mp3'}  | ${['restored.test/DIGI07/DIGI07-0001-1.mp3', 'restored.test/DIGI07/DIGI07-0001-1.flac', 'edited.test/DIGI07/DIGI07-0001-1.mp3', 'edited.test/DIGI07/DIGI07-0001-1.flac']}
+    ${undefined}  | ${'DIGI07-0001-1.flac'} | ${['restored.test/DIGI07/DIGI07-0001-1.flac', 'restored.test/DIGI07/DIGI07-0001-1.mp3', 'edited.test/DIGI07/DIGI07-0001-1.flac', 'edited.test/DIGI07/DIGI07-0001-1.mp3']}
+    ${undefined}  | ${'BR-01-1'}            | ${['restored.test/BR/BR-01-1.flac', 'edited.test/BR/BR-01-1.flac']}
+    ${undefined}  | ${'BR-01-1.flac'}       | ${['restored.test/BR/BR-01-1.flac', 'edited.test/BR/BR-01-1.flac']}
+    ${undefined}  | ${'BR-01-1.mp3'}        | ${['restored.test/BR/BR-01-1.flac', 'edited.test/BR/BR-01-1.flac']}
   `(
-    `$bucket $fileName is served from gs://$bucket/$path`,
-    ({ fileName, bucket, path }) => {
-      const file = StorageManager.getFile(bucket, fileName);
-      expect(file.name).toEqual(path);
+    'for file `$fileName` from `$bucket` bucket should be $candidates',
+    ({ bucket, fileName, candidates: expectedCandidates }) => {
+      const candidates = StorageManager.getCandidateFiles(fileName, bucket).map(
+        (file) => `${file.bucket.name}/${file.name}`
+      );
+
+      expect(candidates).toStrictEqual(expectedCandidates);
     }
   );
 });
@@ -48,7 +86,7 @@ describe('Uploaded SE file', () => {
     ${'a/b/c/ML2-1059-1.flac'}           | ${'ML2/ML2-1059-1.flac'}
     ${'ML2-1113-1_v2-2.flac'}            | ${'ML2/ML2-1113-1.flac'}
     ${'ML2-97 B_V2.flac'}                | ${'ML2/ML2-97 B.flac'}
-    ${'BR-03B v3.flac'}                  | ${'BR/BR-03B.flac'}
+    ${'BR-01B v3.flac'}                  | ${'BR/BR-01B.flac'}
     ${'DIGI07-0001-1.mp3'}               | ${'DIGI07/DIGI07-0001-1.mp3'}
     ${'DIGI07-0306-1_v2_less_harsh.mp3'} | ${'DIGI07/DIGI07-0306-1.mp3'}
     ${'DIGI08-0015_V3 Sadananda.mp3'}    | ${'DIGI08/DIGI08-0015.mp3'}
