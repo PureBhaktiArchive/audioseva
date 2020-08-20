@@ -43,6 +43,47 @@ export class StorageManager {
   }
 
   /**
+   * Constructs and returns all the `File` references that should be tried to find requested file.
+   * If `bucket` is set, only this bucket is used to build candidates list.
+   * Otherwise all the related buckets are used: `original` and `restored` for the source files,
+   * and `edited` and `restored` for the track-edited file names.
+   *
+   * If extension is not included in the `fileName`, both `.flac` and `.mp3` are tried.
+   * Order depends on the list. For digital recordings `.mp3` is preferred.
+   *
+   * @param fileName The file name, with or without extension
+   * @param bucketName The short name of the bucket, or `undefined` if the file should be sought in multiple appropriate buckets
+   */
+  static getCandidateFiles(fileName: string, bucket?: BucketName) {
+    const baseName = path.basename(fileName, path.extname(fileName));
+
+    return bucket
+      ? /**
+         * Bucket is specified in SE spreadsheets:
+         * either `edited` or `original`.
+         *
+         * Edited DIGI files are sought as MP3 first, then as FLAC.
+         */
+        bucket === 'edited' && baseName.startsWith('DIGI')
+        ? [
+            StorageManager.getFile(bucket, `${baseName}.mp3`),
+            StorageManager.getFile(bucket, `${baseName}.flac`),
+          ]
+        : [StorageManager.getFile(bucket, fileName)]
+      : /**
+         * Links for CR and SQR phases do not include bucket,
+         * as original files are supposed to be served.
+         *
+         * However files are sought in the `restored` bucket first (SE before CR cases)
+         * and then in the `original` bucket.
+         */
+        [
+          StorageManager.getFile('restored', fileName),
+          StorageManager.getFile('original', fileName),
+        ];
+  }
+
+  /**
    * Method finds the first existing file among specified.
    *
    * @param files Files to search among.

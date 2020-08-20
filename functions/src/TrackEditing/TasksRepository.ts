@@ -249,16 +249,7 @@ export class TasksRepository extends AbstractRepository<
 
       // Final file could be sound engineered before rechecked, thus searching for it in both buckets
       const finalFile = await StorageManager.findExistingFile(
-        ...[
-          id.startsWith('DIGI')
-            ? StorageManager.getFile('restored', `${id}.mp3`)
-            : null,
-          StorageManager.getFile('restored', `${id}.flac`),
-          id.startsWith('DIGI')
-            ? StorageManager.getFile('edited', `${id}.mp3`)
-            : null,
-          StorageManager.getFile('edited', `${id}.flac`),
-        ]
+        ...StorageManager.getCandidateFiles(id)
       );
 
       if (!finalFile) {
