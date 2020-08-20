@@ -2,6 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
+import { MockStorage } from './MockStorage';
 import { StorageManager } from './StorageManager';
 
 jest.mock('firebase-functions', () => ({
@@ -10,12 +11,7 @@ jest.mock('firebase-functions', () => ({
 
 jest.mock('firebase-admin', () => ({
   initializeApp: jest.fn(),
-  storage: () => ({
-    bucket: jest.fn((name) => ({
-      name,
-      file: (fileName) => ({ name: fileName }),
-    })),
-  }),
+  storage: jest.fn(() => new MockStorage()),
 }));
 
 describe('File', () => {
