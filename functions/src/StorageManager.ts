@@ -33,7 +33,7 @@ export class StorageManager {
    * @param bucketName The short name of the bucket
    * @param fileName The file name in the bucket, without path.
    */
-  static getFile(bucketName: BucketName, fileName: string) {
+  private static getFile(bucketName: BucketName, fileName: string) {
     return this.getBucket(bucketName).file(
       `${this.extractListFromFilename(fileName)}/${
         bucketName === 'original'
@@ -89,9 +89,8 @@ export class StorageManager {
   }
 
   static extractListFromFilename = (fileName: string): string => {
-    // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-    const match = fileName.match(/^\w+(?=-)|Hi(?=\d)/i);
-    if (!match) return null;
+    const match = /^\w+(?=-)|Hi(?=\d)/i.exec(fileName);
+    if (!match) throw new Error(`Cannot extract list name from "${fileName}"`);
 
     const list = match[0].toUpperCase();
     return list === 'HI' ? 'ML1' : list;
@@ -128,6 +127,12 @@ export class StorageManager {
             extension,
           ].join('')
       );
+
+  static getDestinationFileForApprovedEdited(fileName: string): File {
+    return this.getBucket('edited').file(
+      `${this.extractListFromFilename(fileName)}/${fileName}`
+    );
+  }
 
   static getDestinationFileForRestoredUpload(fileName: string): File {
     const matches = /^(\w+)-(\d{1,4}(?:\s*[A-Z]*|-\d+))(?:[\s_].*)?$/i.exec(

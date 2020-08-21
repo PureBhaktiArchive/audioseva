@@ -204,7 +204,9 @@ export const processResolution = functions.database
 
       // Saving the approved file to the final storage bucket
       await file.copy(
-        StorageManager.getFile('edited', `${taskId}${path.extname(file.name)}`)
+        StorageManager.getDestinationFileForApprovedEdited(
+          `${taskId}${path.extname(file.name)}`
+        )
       );
 
       await repository.save({
