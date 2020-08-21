@@ -6,6 +6,7 @@ import { File } from '@google-cloud/storage';
 import functions = require('firebase-functions');
 import admin = require('firebase-admin');
 import path = require('path');
+import _ = require('lodash');
 
 export type BucketName =
   | 'original'
@@ -54,33 +55,26 @@ export class StorageManager {
    * @param fileName The file name, with or without extension
    * @param bucketName The short name of the bucket, or `undefined` if the file should be sought in multiple appropriate buckets
    */
-  static getCandidateFiles(fileName: string, bucket?: BucketName) {
-    const baseName = path.basename(fileName, path.extname(fileName));
+  static getCandidateFiles(fileName: string, bucket?: BucketName): File[] {
+    const extension = path.extname(fileName).toLowerCase();
+    const baseName = path.basename(fileName, extension);
 
-    return bucket
-      ? /**
-         * Bucket is specified in SE spreadsheets:
-         * either `edited` or `original`.
-         *
-         * Edited DIGI files are sought as MP3 first, then as FLAC.
-         */
-        bucket === 'edited' && baseName.startsWith('DIGI')
+    // File is TEd if it has format LIST-001-1
+    const isTEd = /^[A-Z]+\d*-\d+-\d+$/.test(baseName);
+    const isDigital = baseName.startsWith('DIGI');
+
+    const buckets: BucketName[] = bucket
+      ? [bucket]
+      : ['restored', isTEd ? 'edited' : 'original'];
+
+    return _.flatMap(buckets, (bucket) =>
+      isDigital
         ? [
-            StorageManager.getFile(bucket, `${baseName}.mp3`),
-            StorageManager.getFile(bucket, `${baseName}.flac`),
+            this.getFile(bucket, `${baseName}.mp3`),
+            this.getFile(bucket, `${baseName}.flac`),
           ]
-        : [StorageManager.getFile(bucket, fileName)]
-      : /**
-         * Links for CR and SQR phases do not include bucket,
-         * as original files are supposed to be served.
-         *
-         * However files are sought in the `restored` bucket first (SE before CR cases)
-         * and then in the `original` bucket.
-         */
-        [
-          StorageManager.getFile('restored', fileName),
-          StorageManager.getFile('original', fileName),
-        ];
+        : this.getFile(bucket, `${baseName}${extension || '.flac'}`)
+    );
   }
 
   /**
