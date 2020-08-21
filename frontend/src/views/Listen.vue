@@ -57,8 +57,6 @@ import { Component, Vue } from 'vue-property-decorator';
 
 @Component({
   name: 'Listen',
-  title: ({ $route }) =>
-    `Audio File Name: ${$route.params.fileName.split('.')[0]}`,
 })
 export default class ListenAudio extends Vue {
   fileName: string = '';
@@ -70,12 +68,9 @@ export default class ListenAudio extends Vue {
 
   mounted() {
     this.fileName = this.$route.params.fileName;
+    this.$title = `Audio File Name: ${this.fileName.split('.')[0]}`;
     this.$refs.audioPlayer &&
       this.$refs.audioPlayer.addEventListener('error', this.handleFileError);
-    const fileType = this.nameAndExtension[1];
-    if (!this.canPlayType) {
-      this.errorMessage = `Your browser does not support the audio files of type ${fileType}. Please download the file.`;
-    }
   }
 
   destroyed() {
@@ -84,9 +79,6 @@ export default class ListenAudio extends Vue {
   }
 
   handleFileError(e: any) {
-    if (!this.canPlayType) {
-      return;
-    }
     switch (e.target.error.code) {
       case e.target.error.MEDIA_ERR_ABORTED:
         this.errorMessage = 'You aborted the media playback.';
@@ -109,21 +101,8 @@ export default class ListenAudio extends Vue {
     }
   }
 
-  get nameAndExtension() {
-    return this.fileName.split('.');
-  }
-
   get audioUrl() {
     return `/download/${this.fileName}`;
-  }
-
-  get audioFileName() {
-    return this.nameAndExtension[0];
-  }
-
-  get canPlayType() {
-    const fileType = this.nameAndExtension[1];
-    return fileType && this.$refs.audioPlayer.canPlayType(`audio/${fileType}`);
   }
 }
 </script>
