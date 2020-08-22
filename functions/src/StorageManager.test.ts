@@ -2,17 +2,17 @@
  * sri sri guru gauranga jayatah
  */
 
-import { MockStorage } from './MockStorage';
+import fbTest = require('firebase-functions-test');
+
+const firebase = fbTest();
+firebase.mockConfig({ project: { domain: 'test' } });
+
 import { StorageManager } from './StorageManager';
 
-jest.mock('firebase-functions', () => ({
-  config: () => ({ project: { domain: 'test' } }),
-}));
-
-jest.mock('firebase-admin', () => ({
-  initializeApp: jest.fn(),
-  storage: jest.fn(() => new MockStorage()),
-}));
+// jest.mock('firebase-admin', () => ({
+//   initializeApp: jest.fn(),
+//   storage: jest.fn(() => new MockStorage()),
+// }));
 
 describe('Candidates', () => {
   test.each`
