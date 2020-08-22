@@ -1,5 +1,5 @@
 <template>
-  <a @click.stop download :href="downloadLink" v-bind="$attrs"><slot></slot></a>
+  <a @click.stop :href="downloadLink" v-bind="$attrs"><slot></slot></a>
 </template>
 
 <script lang="ts">
