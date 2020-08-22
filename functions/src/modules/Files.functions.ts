@@ -11,7 +11,7 @@ import path = require('path');
 const app = express();
 
 app.get(
-  '/download/:bucket(original|edited|restored)?/:fileName(\\w+-\\d+*)',
+  '/download/:bucket(original|edited|restored)?/:fileName',
   async ({ params: { bucket, fileName } }, res) => {
     const file = await StorageManager.findExistingFile(
       ...StorageManager.getCandidateFiles(fileName, bucket as BucketName)
