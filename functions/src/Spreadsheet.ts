@@ -143,7 +143,7 @@ export class Spreadsheet<T = unknown> {
    * @param dataRowNumber Number of the row in the data section, 1-based
    */
   protected fromDataRowNumber(dataRowNumber: number) {
-    return dataRowNumber + Math.min(this.frozenRowCount, 1);
+    return dataRowNumber + Math.max(this.frozenRowCount, 1);
   }
 
   public get spreadsheetId(): string {
