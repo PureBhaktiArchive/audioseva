@@ -28,7 +28,10 @@ app.get(
          * However taking the extension from the found file,
          * as it may differ in case of DIGI files.
          */
-        promptSaveAs: `${path.basename(fileName)}${path.extname(file.name)}`,
+        promptSaveAs: `${path.basename(
+          fileName,
+          path.extname(fileName)
+        )}${path.extname(file.name)}`,
       });
       console.log(`Redirecting ${bucket}/${fileName} to ${url}`);
       res.redirect(307, url);
