@@ -38,5 +38,10 @@ export const arrangeUploadedFile = functions.storage
       `Moving ${object.name} to ${destinationFile.name}.`,
       exists ? 'Overwriting' : null
     );
-    await uploadedFile.move(destinationFile);
+
+    try {
+      await uploadedFile.move(destinationFile);
+    } catch (error) {
+      console.error(error);
+    }
   });
