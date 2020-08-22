@@ -11,36 +11,11 @@ import path = require('path');
 const app = express();
 
 app.get(
-  ['/download/:bucket/:fileName', '/download/:fileName'],
+  '/download/:bucket(original|edited|restored)?/:fileName',
   async ({ params: { bucket, fileName } }, res) => {
-    const baseName = path.basename(fileName, path.extname(fileName));
-
-    const candidates = bucket
-      ? /**
-         * Bucket is specified in SE spreadsheets:
-         * either `edited` or `original`.
-         *
-         * Edited DIGI files are sought as MP3 first, then as FLAC.
-         */
-        bucket === 'edited' && fileName.startsWith('DIGI')
-        ? [
-            StorageManager.getFile(bucket, `${baseName}.mp3`),
-            StorageManager.getFile(bucket, `${baseName}.flac`),
-          ]
-        : [StorageManager.getFile(bucket as BucketName, fileName)]
-      : /**
-         * Links for CR and SQR phases do not include bucket,
-         * as original files are supposed to be served.
-         *
-         * However files are sought in the `restored` bucket first (SE before CR cases)
-         * and then in the `original` bucket.
-         */
-        [
-          StorageManager.getFile('restored', fileName),
-          StorageManager.getFile('original', fileName),
-        ];
-
-    const file = await StorageManager.findExistingFile(...candidates);
+    const file = await StorageManager.findExistingFile(
+      ...StorageManager.getCandidateFiles(fileName, bucket as BucketName)
+    );
 
     if (file) {
       const [url] = await file.getSignedUrl({
@@ -53,15 +28,17 @@ app.get(
          * However taking the extension from the found file,
          * as it may differ in case of DIGI files.
          */
-        promptSaveAs: `${baseName}${path.extname(file.name)}`,
+        promptSaveAs: `${path.basename(
+          fileName,
+          path.extname(fileName)
+        )}${path.extname(file.name)}`,
       });
       console.log(`Redirecting ${bucket}/${fileName} to ${url}`);
       res.redirect(307, url);
     } else {
       console.warn(
-        `File ${fileName} is not found${
-          bucket ? ` in the ${bucket} bucket` : ''
-        }.`
+        `File ${fileName} is not found`,
+        bucket ? `in the ${bucket} bucket` : ''
       );
       res
         .status(404)

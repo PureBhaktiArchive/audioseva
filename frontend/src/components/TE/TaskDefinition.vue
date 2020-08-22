@@ -3,7 +3,7 @@
     <template v-for="(chunk, index) in item.chunks">
       <v-row class="wrap pb-1" :key="`${item['key']}-${index}-layout`">
         <v-col v-bind="layout.link">
-          <a :href="getLink(chunk.fileName)" class="mr-2">
+          <a :href="'/download/' + chunk.fileName" class="mr-2">
             {{ chunk.fileName }}</a
           >
           <restored-chip :isRestored="item.isRestored"></restored-chip>
@@ -16,9 +16,10 @@
           >
         </v-col>
         <v-col v-bind="layout.unwantedParts">
-          <!-- Needed so prettier doesn't add extra space at start of unwantedParts -->
-          <!-- prettier-ignore -->
-          <div :style="{ whiteSpace: 'pre-wrap' }">{{ chunk.unwantedParts }}</div>
+          <div
+            :style="{ whiteSpace: 'pre-wrap' }"
+            v-text="chunk.unwantedParts"
+          ></div>
         </v-col>
       </v-row>
       <v-divider
@@ -69,12 +70,6 @@ export default class TaskDefinition extends Mixins<FormatTime>(FormatTime) {
     }),
   })
   layout!: { [key: string]: any };
-
-  getLink(fileName: string) {
-    return `/download/${
-      this.item.isRestored ? 'restored' : 'original'
-    }/${fileName}.${fileName.startsWith('DIGI') ? 'mp3' : 'flac'}`;
-  }
 }
 </script>
 

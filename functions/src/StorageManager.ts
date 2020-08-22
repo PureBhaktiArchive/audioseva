@@ -3,10 +3,10 @@
  */
 
 import { File } from '@google-cloud/storage';
-import { URL } from 'url';
 import functions = require('firebase-functions');
 import admin = require('firebase-admin');
 import path = require('path');
+import _ = require('lodash');
 
 export type BucketName =
   | 'original'
@@ -24,13 +24,6 @@ export class StorageManager {
     return admin.storage().bucket(this.getFullBucketName(bucketName));
   }
 
-  static getPublicURL(file: File) {
-    return new URL(
-      `${file.bucket.name}/${file.name}`,
-      'https://storage.googleapis.com'
-    ).toString();
-  }
-
   /**
    * Transforms the file name into the object path and returns a File instance.
    *
@@ -40,13 +33,47 @@ export class StorageManager {
    * @param bucketName The short name of the bucket
    * @param fileName The file name in the bucket, without path.
    */
-  static getFile(bucketName: BucketName, fileName: string) {
+  private static getFile(bucketName: BucketName, fileName: string) {
     return this.getBucket(bucketName).file(
       `${this.extractListFromFilename(fileName)}/${
         bucketName === 'original'
           ? this.standardizeFileName(fileName)
           : fileName
       }`
+    );
+  }
+
+  /**
+   * Constructs and returns all the `File` references that should be tried to find requested file.
+   * If `bucket` is set, only this bucket is used to build candidates list.
+   * Otherwise all the related buckets are used: `original` and `restored` for the source files,
+   * and `edited` and `restored` for the track-edited file names.
+   *
+   * If extension is not included in the `fileName`, both `.flac` and `.mp3` are tried.
+   * Order depends on the list. For digital recordings `.mp3` is preferred.
+   *
+   * @param fileName The file name, with or without extension
+   * @param bucketName The short name of the bucket, or `undefined` if the file should be sought in multiple appropriate buckets
+   */
+  static getCandidateFiles(fileName: string, bucket?: BucketName): File[] {
+    const extension = path.extname(fileName).toLowerCase();
+    const baseName = path.basename(fileName, extension);
+
+    // File is TEd if it has format LIST-001-1
+    const isTEd = /^[A-Z]+\d*-\d+-\d+$/.test(baseName);
+    const isDigital = baseName.startsWith('DIGI');
+
+    const buckets: BucketName[] = bucket
+      ? [bucket]
+      : ['restored', isTEd ? 'edited' : 'original'];
+
+    return _.flatMap(buckets, (bucket) =>
+      isDigital
+        ? [
+            this.getFile(bucket, `${baseName}.mp3`),
+            this.getFile(bucket, `${baseName}.flac`),
+          ]
+        : this.getFile(bucket, `${baseName}${extension || '.flac'}`)
     );
   }
 
@@ -62,9 +89,8 @@ export class StorageManager {
   }
 
   static extractListFromFilename = (fileName: string): string => {
-    // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-    const match = fileName.match(/^\w+(?=-)|Hi(?=\d)/i);
-    if (!match) return null;
+    const match = /^\w+(?=-)|Hi(?=\d)/i.exec(fileName);
+    if (!match) throw new Error(`Cannot extract list name from "${fileName}"`);
 
     const list = match[0].toUpperCase();
     return list === 'HI' ? 'ML1' : list;
@@ -101,6 +127,12 @@ export class StorageManager {
             extension,
           ].join('')
       );
+
+  static getDestinationFileForApprovedEdited(fileName: string): File {
+    return this.getBucket('edited').file(
+      `${this.extractListFromFilename(fileName)}/${fileName}`
+    );
+  }
 
   static getDestinationFileForRestoredUpload(fileName: string): File {
     const matches = /^(\w+)-(\d{1,4}(?:\s*[A-Z]*|-\d+))(?:[\s_].*)?$/i.exec(
