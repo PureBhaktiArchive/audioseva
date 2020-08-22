@@ -16,11 +16,18 @@ export class DateTimeConverter {
     serialDate: number,
     timezone: string = Settings.defaultZoneName
   ): DateTime {
-    // Calculating timestamp as if the source date was specified in UTC,
-    // then setting the time zone as specified but keeping local time the same
-    return DateTime.fromSeconds((serialDate - daysBetweenEpochs) * secondsInDay)
-      .setZone('utc')
-      .setZone(timezone, { keepLocalTime: true });
+    try {
+      // Calculating timestamp as if the source date was specified in UTC,
+      // then setting the time zone as specified but keeping local time the same
+      return DateTime.fromSeconds(
+        (serialDate - daysBetweenEpochs) * secondsInDay
+      )
+        .setZone('utc')
+        .setZone(timezone, { keepLocalTime: true });
+    } catch (error) {
+      console.error(`Value "${serialDate}" caused error`, error);
+      throw error;
+    }
   }
 
   /**
