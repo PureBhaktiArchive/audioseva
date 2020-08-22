@@ -10,6 +10,11 @@ export const arrangeUploadedFile = functions.storage
   .bucket(StorageManager.getFullBucketName('se.uploads'))
   .object()
   .onFinalize(async (object) => {
+    const uploadedFile = admin
+      .storage()
+      .bucket(object.bucket)
+      .file(object.name);
+
     const destinationFile = StorageManager.getDestinationFileForRestoredUpload(
       object.name
     );
@@ -21,13 +26,17 @@ export const arrangeUploadedFile = functions.storage
 
     const [exists] = await destinationFile.exists();
 
+    if (exists) {
+      const [sourceStillExists] = await uploadedFile.exists();
+      if (!sourceStillExists) {
+        console.log(`File ${object.name} seems to be already arranged.`);
+        return;
+      }
+    }
+
     console.info(
       `Moving ${object.name} to ${destinationFile.name}.`,
       exists ? 'Overwriting' : null
     );
-    await admin
-      .storage()
-      .bucket(object.bucket)
-      .file(object.name)
-      .move(destinationFile);
+    await uploadedFile.move(destinationFile);
   });
