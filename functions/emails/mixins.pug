@@ -22,16 +22,17 @@ mixin interval(interval)
   | #{interval.beginning}&ndash;#{interval.ending}
 
 mixin annotation(item)
-  li
-    if item.entireFile
-      | Entire file
-    else 
-      +interval(item)
-    |
-    | - #{ item.type }
-    if item.description
+  if item
+    li
+      if item.entireFile
+        | Entire file
+      else
+        +interval(item)
       |
-      | - #{ item.description }
+      | - #{ item.type }
+      if item.description
+        |
+        | - #{ item.description }
 
 mixin currentSet(allotments, currentFileName)
   p Current set:
