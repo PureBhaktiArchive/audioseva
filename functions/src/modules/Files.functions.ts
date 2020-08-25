@@ -13,36 +13,43 @@ const app = express();
 app.get(
   '/download/:bucket(original|edited|restored)?/:fileName',
   async ({ params: { bucket, fileName } }, res) => {
-    const file = await StorageManager.findExistingFile(
-      ...StorageManager.getCandidateFiles(fileName, bucket as BucketName)
-    );
-
-    if (file) {
-      const [url] = await file.getSignedUrl({
-        action: 'read',
-        expires: DateTime.local().plus({ days: 3 }).toJSDate(),
-        /**
-         * Intentionally using the requested file name,
-         * because files have different name in the `original` bucket.
-         *
-         * However taking the extension from the found file,
-         * as it may differ in case of DIGI files.
-         */
-        promptSaveAs: `${path.basename(
-          fileName,
-          path.extname(fileName)
-        )}${path.extname(file.name)}`,
-      });
-      console.log(`Redirecting ${bucket}/${fileName} to ${url}`);
-      res.redirect(307, url);
-    } else {
-      console.warn(
-        `File ${fileName} is not found`,
-        bucket ? `in the ${bucket} bucket` : ''
+    try {
+      const file = await StorageManager.findExistingFile(
+        ...StorageManager.getCandidateFiles(fileName, bucket as BucketName)
       );
+
+      if (file) {
+        const [url] = await file.getSignedUrl({
+          action: 'read',
+          expires: DateTime.local().plus({ days: 3 }).toJSDate(),
+          /**
+           * Intentionally using the requested file name,
+           * because files have different name in the `original` bucket.
+           *
+           * However taking the extension from the found file,
+           * as it may differ in case of DIGI files.
+           */
+          promptSaveAs: `${path.basename(
+            fileName,
+            path.extname(fileName)
+          )}${path.extname(file.name)}`,
+        });
+        console.log(`Redirecting ${bucket}/${fileName} to ${url}`);
+        res.redirect(307, url);
+      } else {
+        console.warn(
+          `File ${fileName} is not found`,
+          bucket ? `in the ${bucket} bucket` : ''
+        );
+        res
+          .status(404)
+          .send('File is not found, please contact the coordinator.');
+      }
+    } catch (error) {
+      console.warn(error);
       res
-        .status(404)
-        .send('File is not found, please contact the coordinator.');
+        .status(500)
+        .send('Error getting the file, please contact the coordinator.');
     }
   }
 );
