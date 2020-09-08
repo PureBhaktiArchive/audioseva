@@ -16,65 +16,69 @@ import express = require('express');
 import _ = require('lodash');
 import admin = require('firebase-admin');
 
-export const processAllotment = functions.https.onCall(
-  async (
-    {
-      assignee,
-      tasks: taskIds,
-      comment,
-    }: { assignee: Person; tasks: string[]; comment: string },
-    context
-  ) => {
-    authorize(context, ['TE.coordinator']);
+export const processAllotment = functions
+  .runWith({ maxInstances: 1, timeoutSeconds: 120 })
+  .https.onCall(
+    async (
+      {
+        assignee,
+        tasks: taskIds,
+        comment,
+      }: { assignee: Person; tasks: string[]; comment: string },
+      context
+    ) => {
+      authorize(context, ['TE.coordinator']);
 
-    if (!assignee || !taskIds || taskIds.length === 0)
-      abortCall('invalid-argument', 'Assignee and Tasks are required.');
+      if (!assignee || !taskIds || taskIds.length === 0)
+        abortCall('invalid-argument', 'Assignee and Tasks are required.');
 
-    console.info(`Allotting ${taskIds.join(', ')} to ${assignee.emailAddress}`);
-
-    const repository = new TasksRepository();
-    const tasks = await repository.getTasks(taskIds);
-
-    const dirtyTasks = _(tasks)
-      .filter()
-      .filter(({ status }) => status !== AllotmentStatus.Spare)
-      .map(({ id }) => id)
-      .join();
-
-    if (dirtyTasks.length)
-      abortCall(
-        'aborted',
-        `Files ${dirtyTasks} seem to be already allotted in the database. Please 🔨 the administrator.`
+      console.info(
+        `Allotting ${taskIds.join(', ')} to ${assignee.emailAddress}`
       );
 
-    const updatedTasks = await repository.save(
-      ...taskIds.map((id) => ({
-        id,
-        assignee,
-        status: AllotmentStatus.Given,
-        timestampGiven: admin.database.ServerValue.TIMESTAMP as number,
-        versions: null, // Removing old versions
-      }))
-    );
+      const repository = new TasksRepository();
+      const tasks = await repository.getTasks(taskIds);
 
-    // Notify the assignee
-    await admin
-      .database()
-      .ref(`/email/notifications`)
-      .push({
-        timestamp: admin.database.ServerValue.TIMESTAMP,
-        template: 'track-editing/allotment',
-        to: assignee.emailAddress,
-        bcc: functions.config().te.coordinator.email_address,
-        replyTo: functions.config().te.coordinator.email_address,
-        params: {
-          tasks: updatedTasks,
+      const dirtyTasks = _(tasks)
+        .filter()
+        .filter(({ status }) => status !== AllotmentStatus.Spare)
+        .map(({ id }) => id)
+        .join();
+
+      if (dirtyTasks.length)
+        abortCall(
+          'aborted',
+          `Files ${dirtyTasks} seem to be already allotted in the database. Please 🔨 the administrator.`
+        );
+
+      const updatedTasks = await repository.save(
+        ...taskIds.map((id) => ({
+          id,
           assignee,
-          comment,
-        },
-      });
-  }
-);
+          status: AllotmentStatus.Given,
+          timestampGiven: admin.database.ServerValue.TIMESTAMP as number,
+          versions: null, // Removing old versions
+        }))
+      );
+
+      // Notify the assignee
+      await admin
+        .database()
+        .ref(`/email/notifications`)
+        .push({
+          timestamp: admin.database.ServerValue.TIMESTAMP,
+          template: 'track-editing/allotment',
+          to: assignee.emailAddress,
+          bcc: functions.config().te.coordinator.email_address,
+          replyTo: functions.config().te.coordinator.email_address,
+          params: {
+            tasks: updatedTasks,
+            assignee,
+            comment,
+          },
+        });
+    }
+  );
 
 export const cancelAllotment = functions.https.onCall(
   async ({ taskId }, context) => {
@@ -100,8 +104,9 @@ export const cancelAllotment = functions.https.onCall(
   }
 );
 
-export const processUpload = functions.storage
-  .bucket(StorageManager.getFullBucketName('te.uploads'))
+export const processUpload = functions
+  .runWith({ maxInstances: 1, timeoutSeconds: 120 })
+  .storage.bucket(StorageManager.getFullBucketName('te.uploads'))
   .object()
   .onFinalize(async (object) => {
     if (object.contentDisposition != null) {
@@ -173,8 +178,9 @@ export const processUpload = functions.storage
     });
   });
 
-export const processResolution = functions.database
-  .ref('/TE/tasks/{taskId}/versions/{versionKey}/resolution')
+export const processResolution = functions
+  .runWith({ maxInstances: 1, timeoutSeconds: 120 })
+  .database.ref('/TE/tasks/{taskId}/versions/{versionKey}/resolution')
   .onWrite(async (change, { params: { taskId, versionKey } }) => {
     if (!change.after.exists()) return;
 
@@ -231,8 +237,9 @@ export const processResolution = functions.database
     }
   });
 
-export const importTasks = functions.pubsub
-  .schedule('every day 00:00')
+export const importTasks = functions
+  .runWith({ timeoutSeconds: 120 })
+  .pubsub.schedule('every day 00:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = new TasksRepository();
@@ -240,8 +247,9 @@ export const importTasks = functions.pubsub
     console.info(`Imported ${count} tasks.`);
   });
 
-export const processRechecked = functions.pubsub
-  .schedule('every 4 hours from 08:00 to 00:00')
+export const processRechecked = functions
+  .runWith({ timeoutSeconds: 120 })
+  .pubsub.schedule('every 4 hours from 07:55 to 00:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = new TasksRepository();
@@ -249,8 +257,9 @@ export const processRechecked = functions.pubsub
     await repository.save(...updates);
   });
 
-export const syncAllotments = functions.pubsub
-  .schedule('every 1 hours synchronized')
+export const syncAllotments = functions
+  .runWith({ timeoutSeconds: 120 })
+  .pubsub.schedule('every 1 hours from 05:00 to 00:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = new TasksRepository();

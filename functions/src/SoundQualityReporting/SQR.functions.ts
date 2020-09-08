@@ -12,33 +12,36 @@ import _ = require('lodash');
 /**
  * SQR allotment processing
  */
-export const processAllotment = functions.https.onCall(
-  async (
-    {
-      assignee,
-      files,
-      comment,
-    }: { assignee: Person; files: SpareFile[]; comment: string },
-    context
-  ) => {
-    authorize(context, ['SQR.coordinator']);
+export const processAllotment = functions
+  .runWith({ maxInstances: 1, timeoutSeconds: 120 })
+  .https.onCall(
+    async (
+      {
+        assignee,
+        files,
+        comment,
+      }: { assignee: Person; files: SpareFile[]; comment: string },
+      context
+    ) => {
+      authorize(context, ['SQR.coordinator']);
 
-    if (!assignee || !files || files.length === 0)
-      abortCall('invalid-argument', 'Assignee and Files are required.');
+      if (!assignee || !files || files.length === 0)
+        abortCall('invalid-argument', 'Assignee and Files are required.');
 
-    await SQRWorkflow.processAllotment(
-      files.map(({ name }) => name),
-      _.pick(assignee, 'emailAddress', 'name'),
-      comment
-    );
-  }
-);
+      await SQRWorkflow.processAllotment(
+        files.map(({ name }) => name),
+        _.pick(assignee, 'emailAddress', 'name'),
+        comment
+      );
+    }
+  );
 
 /**
  * SQR new submission processing
  */
-export const processSubmission = functions.database
-  .ref('/SQR/submissions/completed/{fileName}/{token}')
+export const processSubmission = functions
+  .runWith({ maxInstances: 1, timeoutSeconds: 120 })
+  .database.ref('/SQR/submissions/completed/{fileName}/{token}')
   .onWrite(async (change, { params: { fileName, token } }) => {
     // Ignoring deletions
     if (!change.after.exists()) return;
@@ -54,26 +57,28 @@ export const processSubmission = functions.database
 /**
  * Gets lists with spare files
  */
-export const getLists = functions.https.onCall(async (data, context) => {
-  authorize(context, ['SQR.coordinator']);
+export const getLists = functions
+  .runWith({ memory: '128MB' })
+  .https.onCall(async (data, context) => {
+    authorize(context, ['SQR.coordinator']);
 
-  const repository = new TasksRepository();
-  return await repository.getLists();
-});
+    const repository = new TasksRepository();
+    return await repository.getLists();
+  });
 
 /**
  * Gets spare files for specified list and languages
  */
-export const getSpareFiles = functions.https.onCall(
-  async ({ list, language, languages, count }, context) => {
+export const getSpareFiles = functions
+  .runWith({ memory: '128MB' })
+  .https.onCall(async ({ list, language, languages, count }, context) => {
     authorize(context, ['SQR.coordinator']);
     return await SQRWorkflow.getSpareFiles(
       list,
       languages || [language],
       count
     );
-  }
-);
+  });
 
 export const cancelAllotment = functions.https.onCall(
   async ({ fileName, comments, token, reason }) => {
@@ -81,8 +86,9 @@ export const cancelAllotment = functions.https.onCall(
   }
 );
 
-export const syncAllotments = functions.pubsub
-  .schedule('every 1 hours synchronized')
+export const syncAllotments = functions
+  .runWith({ timeoutSeconds: 120 })
+  .pubsub.schedule('every 1 hours from 05:00 to 00:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = new TasksRepository();

@@ -54,4 +54,6 @@ app.get(
   }
 );
 
-export const download = functions.https.onRequest(app);
+export const download = functions
+  .runWith({ memory: '128MB' })
+  .https.onRequest(app);
