@@ -238,14 +238,6 @@ export class TasksRepository extends AbstractRepository<
       }
 
       const latestVersionKey = _.findLastKey(existingTask.versions);
-      const latestVersion = existingTask.versions?.[latestVersionKey];
-
-      if (latestVersion?.resolution?.isApproved === false) {
-        console.error(
-          `${id}: skipping as the latest resolution is “Disapproved”.`
-        );
-        return null;
-      }
 
       // Final file could be sound engineered before rechecked, thus searching for it in both buckets
       const finalFile = await StorageManager.findExistingFile(
@@ -280,7 +272,7 @@ export class TasksRepository extends AbstractRepository<
           // Adding a fake version if none exists
           [latestVersionKey || this.getNewVersionRef(id).key]: {
             // First inheriting the previous values of the latest version
-            ...latestVersion,
+            ...existingTask.versions?.[latestVersionKey],
             // Pinning the final file to get it later at any time
             file: {
               bucket: finalFile.bucket.name,
