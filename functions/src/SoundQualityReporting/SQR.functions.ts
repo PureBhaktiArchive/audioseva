@@ -57,26 +57,28 @@ export const processSubmission = functions
 /**
  * Gets lists with spare files
  */
-export const getLists = functions.https.onCall(async (data, context) => {
-  authorize(context, ['SQR.coordinator']);
+export const getLists = functions
+  .runWith({ memory: '256MB', maxInstances: 1 })
+  .https.onCall(async (data, context) => {
+    authorize(context, ['SQR.coordinator']);
 
-  const repository = new TasksRepository();
-  return await repository.getLists();
-});
+    const repository = new TasksRepository();
+    return await repository.getLists();
+  });
 
 /**
  * Gets spare files for specified list and languages
  */
-export const getSpareFiles = functions.https.onCall(
-  async ({ list, language, languages, count }, context) => {
+export const getSpareFiles = functions
+  .runWith({ memory: '256MB', maxInstances: 1 })
+  .https.onCall(async ({ list, language, languages, count }, context) => {
     authorize(context, ['SQR.coordinator']);
     return await SQRWorkflow.getSpareFiles(
       list,
       languages || [language],
       count
     );
-  }
-);
+  });
 
 export const cancelAllotment = functions.https.onCall(
   async ({ fileName, comments, token, reason }) => {
