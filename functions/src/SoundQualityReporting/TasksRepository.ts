@@ -10,6 +10,7 @@ import { AllotmentStatus, isActiveAllotment } from '../Allotment';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { ReportingAllotmentRow } from '../ReportingAllotmentRow';
 import { ReportingTask } from '../ReportingTask';
+import { SpareFile } from './SpareFile';
 import admin = require('firebase-admin');
 import _ = require('lodash');
 

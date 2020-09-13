@@ -5,6 +5,7 @@
 import * as functions from 'firebase-functions';
 import { abortCall, authorize } from '../auth';
 import { Person } from '../Person';
+import { SpareFile } from './SpareFile';
 import { SQRWorkflow } from './SQRWorkflow';
 import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
