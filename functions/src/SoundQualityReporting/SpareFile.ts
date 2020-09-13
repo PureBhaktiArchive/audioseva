@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-interface SpareFile {
+export interface SpareFile {
   name: string;
   list: string;
   serial: string;
