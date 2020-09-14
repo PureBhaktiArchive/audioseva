@@ -240,8 +240,8 @@ export class TasksRepository extends AbstractRepository<
       const latestVersionKey = _.findLastKey(existingTask.versions);
 
       // Final file could be sound engineered before rechecked, thus searching for it in both buckets
-      const finalFile = await StorageManager.findExistingFile(
-        ...StorageManager.getCandidateFiles(id)
+      const finalFile = await StorageManager.getMostRecentFile(
+        StorageManager.getCandidateFiles(id)
       );
 
       if (!finalFile) {

@@ -14,8 +14,8 @@ app.get(
   '/download/:bucket(original|edited|restored)?/:fileName',
   async ({ params: { bucket, fileName } }, res) => {
     try {
-      const file = await StorageManager.findExistingFile(
-        ...StorageManager.getCandidateFiles(fileName, bucket as BucketName)
+      const file = await StorageManager.getMostRecentFile(
+        StorageManager.getCandidateFiles(fileName, bucket as BucketName)
       );
 
       if (file) {
@@ -46,7 +46,7 @@ app.get(
           .send('File is not found, please contact the coordinator.');
       }
     } catch (error) {
-      console.warn(error);
+      console.warn('Caught error:', error.message);
       res
         .status(500)
         .send('Error getting the file, please contact the coordinator.');

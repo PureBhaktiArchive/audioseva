@@ -53,7 +53,7 @@ export class StorageManager {
    * Order depends on the list. For digital recordings `.mp3` is preferred.
    *
    * @param fileName The file name, with or without extension
-   * @param bucketName The short name of the bucket, or `undefined` if the file should be sought in multiple appropriate buckets
+   * @param bucket The short name of the bucket, or `undefined` if the file should be sought in multiple appropriate buckets
    */
   static getCandidateFiles(fileName: string, bucket?: BucketName): File[] {
     const extension = path.extname(fileName).toLowerCase();
@@ -78,14 +78,26 @@ export class StorageManager {
   }
 
   /**
-   * Method finds the first existing file among specified.
+   * Gets the most recent existing file among specified.
    *
-   * @param files Files to search among.
-   * @returns First existing file or `null` if none exists.
+   * @param candidates Files to search among.
+   * @returns Most recent existing file or `null` if none exists.
    */
-  static async findExistingFile(...files: File[]) {
-    for (const file of files) if ((await file?.exists())?.shift()) return file;
-    return null;
+  static async getMostRecentFile(candidates: File[]) {
+    // Calling to `getMetadata` populates the metadata in the original `File` instance.
+    await Promise.all(
+      candidates.map((file) => file.getMetadata().catch(() => null))
+    );
+
+    return candidates
+      .filter((file) => file.metadata.updated) // Filtering out non-existent files
+      .sort(
+        // Sorting files by Last Modified descending
+        (a, b) =>
+          new Date(b.metadata.updated).valueOf() -
+          new Date(a.metadata.updated).valueOf()
+      )
+      .shift(); // And returning the most recent one
   }
 
   static extractListFromFilename = (fileName: string): string => {
