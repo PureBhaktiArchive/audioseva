@@ -17,7 +17,6 @@ app.get(
       const file = await StorageManager.getMostRecentFile(
         StorageManager.getCandidateFiles(fileName, bucket as BucketName)
       );
-      console.log('Chosen:', file.bucket.name, file.name);
 
       if (file) {
         const [url] = await file.getSignedUrl({
@@ -47,7 +46,7 @@ app.get(
           .send('File is not found, please contact the coordinator.');
       }
     } catch (error) {
-      console.warn(error);
+      console.warn('Caught error:', error.message);
       res
         .status(500)
         .send('Error getting the file, please contact the coordinator.');
