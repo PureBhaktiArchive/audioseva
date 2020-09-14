@@ -14,9 +14,10 @@ app.get(
   '/download/:bucket(original|edited|restored)?/:fileName',
   async ({ params: { bucket, fileName } }, res) => {
     try {
-      const file = await StorageManager.findExistingFile(
-        ...StorageManager.getCandidateFiles(fileName, bucket as BucketName)
+      const file = await StorageManager.getMostRecentFile(
+        StorageManager.getCandidateFiles(fileName, bucket as BucketName)
       );
+      console.log('Chosen:', file.bucket.name, file.name);
 
       if (file) {
         const [url] = await file.getSignedUrl({
