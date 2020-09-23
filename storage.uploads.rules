@@ -1,3 +1,4 @@
+rules_version = "2";
 service firebase.storage {
   match /b/{bucket}/o {
     match /{uid}/{time}/{fileName} {
@@ -9,7 +10,7 @@ service firebase.storage {
           request.auth.token.roles.TE.coordinator
           )
         && (
-          fileName.matches('DIGI\\d\\d-\\d+-\\d+\\.(?i)mp3') ||
+          fileName.matches('DIGI(\\d\\d|XX)-\\d+-\\d+\\.(?i)mp3') ||
           fileName.matches('\\w+-\\d+-\\d+\\.(?i)flac')
           )
         ;
