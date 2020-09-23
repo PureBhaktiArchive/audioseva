@@ -3,36 +3,9 @@
     "config:base",
     "group:test",
     "group:definitelyTyped",
+    "group:linters",
     "schedule:earlyMondays",
     ":maintainLockFilesWeekly",
-    ":timezone(Asia/Novokuznetsk)"
-  ],
-  "rebaseStalePrs": false,
-  "rebaseConflictedPrs": false,
-  "packageRules": [
-    {
-      "paths": ["frontend"],
-      "extends": ["group:all"],
-      "managerBranchPrefix": "frontend/",
-      "commitMessagePrefix": "Frontend:"
-    },
-    {
-      "paths": ["functions"],
-      "extends": ["group:all"],
-      "managerBranchPrefix": "functions/",
-      "commitMessagePrefix": "Functions:"
-    },
-    {
-      "paths": ["CRP"],
-      "extends": ["group:all"],
-      "managerBranchPrefix": "CRP/",
-      "commitMessagePrefix": "CRP:"
-    },
-    {
-      "paths": ["cli"],
-      "extends": ["group:all"],
-      "managerBranchPrefix": "cli/",
-      "commitMessagePrefix": "CLI:"
-    }
+    ":timezone(Asia/Calcutta)"
   ]
 }
