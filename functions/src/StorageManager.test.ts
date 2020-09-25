@@ -30,6 +30,8 @@ describe('Candidates', () => {
     ${'restored'} | ${'SER-88A.flac'}       | ${['restored.test/SER/SER-88A.flac']}
     ${'restored'} | ${'ML2-71 A.flac'}      | ${['restored.test/ML2/ML2-71 A.flac']}
     ${'edited'}   | ${'DK-001-1.flac'}      | ${['edited.test/DK/DK-001-1.flac']}
+    ${'edited'}   | ${'HI-001-1.flac'}      | ${['edited.test/ML1/HI-001-1.flac']}
+    ${'restored'} | ${'HI-001-1.flac'}      | ${['restored.test/ML1/HI-001-1.flac']}
     ${'edited'}   | ${'ML2-1000-2.flac'}    | ${['edited.test/ML2/ML2-1000-2.flac']}
     ${'original'} | ${'DIGI07-0001'}        | ${['original.test/DIGI07/DIGI07-0001.mp3', 'original.test/DIGI07/DIGI07-0001.flac']}
     ${'original'} | ${'DIGI07-0001.mp3'}    | ${['original.test/DIGI07/DIGI07-0001.mp3', 'original.test/DIGI07/DIGI07-0001.flac']}
@@ -84,17 +86,20 @@ describe('Uploaded SE file', () => {
     sourceFileName                       | destinationFileName
     ${'folder/ISK-22-2_v2.flac'}         | ${'ISK/ISK-22-2.flac'}
     ${'a/b/c/ML2-1059-1.flac'}           | ${'ML2/ML2-1059-1.flac'}
+    ${'HI-001-1.flac'}                   | ${'ML1/HI-001-1.flac'}
     ${'ML2-1113-1_v2-2.flac'}            | ${'ML2/ML2-1113-1.flac'}
-    ${'ML2-97 B_V2.flac'}                | ${'ML2/ML2-97 B.flac'}
-    ${'BR-01B v3.flac'}                  | ${'BR/BR-01B.flac'}
+    ${'TST-001-1_1.flac'}                | ${null}
+    ${'ML2-97 B_V2.flac'}                | ${null}
+    ${'BR-01B v3.flac'}                  | ${null}
     ${'DIGI07-0001-1.mp3'}               | ${'DIGI07/DIGI07-0001-1.mp3'}
     ${'DIGI07-0306-1_v2_less_harsh.mp3'} | ${'DIGI07/DIGI07-0306-1.mp3'}
     ${'DIGI08-0015_V3 Sadananda.mp3'}    | ${'DIGI08/DIGI08-0015.mp3'}
-    ${'DIGI07-0214-1_Sadananda.mp3'}     | ${'DIGI07/DIGI07-0214-1.mp3'}
+    ${'DIGI07-0214-1_Sadananda.mp3'}     | ${null}
     ${'DIGI04-0047-1_v1.2.mp3'}          | ${'DIGI04/DIGI04-0047-1.mp3'}
-    ${'DIGI04-0047-1 Sadanand.mp3'}      | ${'DIGI04/DIGI04-0047-1.mp3'}
+    ${'DIGI04-0047-1 Sadanand.mp3'}      | ${null}
     ${'BR-49A-2.mp3'}                    | ${null}
     ${'RANI-93-2.flac.flac'}             | ${null}
+    ${'test-93-2.flac'}                  | ${'TEST/TEST-93-2.flac'}
   `(
     `$sourceFileName should be saved to $destinationFileName`,
     ({ sourceFileName, destinationFileName }) => {

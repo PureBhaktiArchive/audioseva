@@ -147,15 +147,22 @@ export class StorageManager {
   }
 
   static getDestinationFileForRestoredUpload(fileName: string): File {
-    const matches = /^(\w+)-(\d{1,4}(?:\s*[A-Z]*|-\d+))(?:[\s_].*)?$/i.exec(
+    const matches = /^(\w+-\d{1,4}(?:[AB]?|-\d+))(?:_v.*)?$/i.exec(
       path.basename(fileName, path.extname(fileName))
     );
 
     if (!matches) return null;
 
-    const [, list, serial] = matches;
-    return this.getBucket('restored').file(
-      `${list}/${list}-${serial}${path.extname(fileName)}`
-    );
+    const [, trimmedFileName] = matches;
+
+    try {
+      const list = this.extractListFromFilename(trimmedFileName);
+      return this.getBucket('restored').file(
+        `${list}/${trimmedFileName.toUpperCase()}${path.extname(fileName)}`
+      );
+    } catch (error) {
+      console.error(error.message);
+      return null;
+    }
   }
 }
