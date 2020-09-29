@@ -71,7 +71,6 @@
     "fork-ts-checker-webpack-plugin": "5.2.0",
     "jest": "26.4.2",
     "jest-serializer-vue": "2.0.2",
-    "lint-staged": "10.3.0",
     "node-sass": "4.14.1",
     "prettier": "2.1.1",
     "prism-react-renderer": "1.1.1",
@@ -118,18 +117,5 @@
       "**/tests/unit/**/*.spec.(js|jsx|ts|tsx)|**/__tests__/*.(js|jsx|ts|tsx)"
     ],
     "testURL": "http://localhost/"
-  },
-  "gitHooks": {
-    "pre-commit": "lint-staged"
-  },
-  "lint-staged": {
-    "*.js": [
-      "vue-cli-service lint",
-      "git add"
-    ],
-    "*.vue": [
-      "vue-cli-service lint",
-      "git add"
-    ]
   }
 }
