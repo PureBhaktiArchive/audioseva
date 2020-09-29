@@ -127,27 +127,35 @@ export const dumpMetadata = functions
         const { size, updated, crc32c, md5Hash } = file.metadata;
 
         const stream = file.createReadStream();
-        stream.on('error', () => console.log('Error in stream', file.name));
-
-        const { duration } = await getAudioDuration(stream).catch((error) => {
+        stream.on('error', (error) =>
           console.error(
-            `Error getting duration for ${file.bucket.name}/${file.name}#${file.generation} (${file.metadata.md5Hash})`,
+            'Error in stream',
+            file.bucket.name,
+            file.name,
+            file.generation,
             error.message
+          )
           );
-          // If no duration is obtained, return null
-          return null;
-        });
-        // const { duration } = await getAudioMetadata(stream, {
-        //   duration: true,
-        //   fileSize: size,
-        // }).catch((error) => {
+
+        // const duration = await getAudioDuration(stream).catch((error) => {
         //   console.error(
-        //     `Error getting duration for ${file.bucket.name}/${file.name}#${file.generation} (${file.metadata.md5Hash})`,
+        //     `Error getting audio duration for ${file.bucket.name}/${file.name}#${file.generation} (${file.metadata.md5Hash})`,
         //     error.message
         //   );
         //   // If no duration is obtained, return null
-        //   return { duration: null };
+        //   return null;
         // });
+        const { duration } = await getAudioMetadata(stream, {
+          duration: true,
+          fileSize: size,
+        }).catch((error) => {
+          console.error(
+            `Error getting audio metadata for ${file.bucket.name}/${file.name}#${file.generation} (${file.metadata.md5Hash})`,
+            error.message
+          );
+          // If no duration is obtained, return null
+          return { duration: null };
+        });
 
         return {
           name: file.name,
@@ -158,7 +166,7 @@ export const dumpMetadata = functions
           duration,
         };
       },
-      { concurrency: 10, stopOnError: false }
+      { concurrency: 5, stopOnError: false }
     );
 
     await dbref.update(updates);
