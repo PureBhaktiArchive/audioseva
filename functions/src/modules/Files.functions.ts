@@ -142,6 +142,29 @@ const audioDurationExtractionFunctions: Array<GetAudioDuration> = [
     }).then(({ duration }) => duration),
 ];
 
+const getAudioDuration = (file: File) =>
+  audioDurationExtractionFunctions.reduce(
+    (p, fn) =>
+      // Chaining the next function to the failure branch of the previous one
+      p.catch(() =>
+        fn(file)
+          // Logging the error message
+          .catch((error) => {
+            console.error(
+              'Error getting audio duration',
+              file,
+              file.bucket.name,
+              file.name,
+              file.generation,
+              file.metadata.md5Hash,
+              error.message
+            );
+            throw error;
+          })
+      ),
+    Promise.reject() // Initial rejected promise to trigger the first function
+  );
+
 export const dumpDuration = functions.pubsub
   .topic(TOPIC_NAME)
   .onPublish(async (message, context) => {
@@ -154,35 +177,19 @@ export const dumpDuration = functions.pubsub
 
     await file.getMetadata();
 
-    const duration = await audioDurationExtractionFunctions
-      .reduce(
-        (p, fn) =>
-          p.catch(() => {
-            return fn(file).catch((error) => {
-              console.error(
-                'Error getting audio duration',
-                file.bucket.name,
-                file.name,
-                file.generation,
-                file.metadata.md5Hash,
-                error.message
-              );
-              throw error;
-            });
-          }),
-        Promise.reject()
-      )
-      .catch(() => undefined);
-
-    if (duration)
+    try {
+      const duration = await getAudioDuration(file);
       await getFileDurationLeaf(rootFilesMetadataRef, file).parent.set({
         name: file.name,
         size: file.metadata.size,
         updated: new Date(file.metadata.updated).valueOf(),
-        crc32c: file.metadata.crc32,
+        crc32c: file.metadata.crc32c,
         md5Hash: file.metadata.md5Hash,
         duration,
       });
+    } catch (error) {
+      console.error('Failed to get duration for', file);
+    }
   });
 
 export const dumpDurationsToSpreadsheet = functions.pubsub
