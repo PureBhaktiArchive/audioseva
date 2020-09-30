@@ -127,11 +127,20 @@ export const enqueueFilesDurationsExtraction = functions
   });
 
 const mmAsync = promisify<Readable, MM.Options, MM.Metadata>(mm);
-const getAudioDurationUsingMM = (stream: Readable, fileSize: number) =>
-  mmAsync(stream, {
-    duration: true,
-    fileSize,
-  }).then(({ duration }) => duration);
+
+type GetAudioDuration = (file: File) => Promise<number>;
+
+const audioDurationExtractionFunctions: Array<GetAudioDuration> = [
+  // Using 'get-audio-duration'
+  (file) => getAudioDurationInSeconds(file.createReadStream()),
+
+  // Using 'musicmetadata'
+  (file: File) =>
+    mmAsync(file.createReadStream(), {
+      duration: true,
+      fileSize: file.metadata.size,
+    }).then(({ duration }) => duration),
+];
 
 export const dumpDuration = functions.pubsub
   .topic(TOPIC_NAME)
@@ -145,38 +154,35 @@ export const dumpDuration = functions.pubsub
 
     await file.getMetadata();
 
-    const { size, updated, crc32c, md5Hash } = file.metadata;
-
-    const stream = file.createReadStream();
-    stream.on('error', (error) =>
-      console.error(
-        'Error in stream',
-        file.bucket.name,
-        file.name,
-        file.generation,
-        error.message
+    const duration = await audioDurationExtractionFunctions
+      .reduce(
+        (p, fn) =>
+          p.catch(() => {
+            return fn(file).catch((error) => {
+              console.error(
+                'Error getting audio duration',
+                file.bucket.name,
+                file.name,
+                file.generation,
+                file.metadata.md5Hash,
+                error.message
+              );
+              throw error;
+            });
+          }),
+        Promise.reject()
       )
-    );
+      .catch(() => undefined);
 
-    try {
-      console.log(
-        `Trying to get audio duration for ${file.bucket.name}/${file.name}#${file.generation} (${file.metadata.md5Hash})`
-      );
-      const duration =
-        (await getAudioDurationInSeconds(stream).catch(() => null)) ||
-        (await getAudioDurationUsingMM(stream, size).catch(() => null));
-
+    if (duration)
       await getFileDurationLeaf(rootFilesMetadataRef, file).parent.set({
         name: file.name,
-        size,
-        updated: new Date(updated).valueOf(),
-        crc32c,
-        md5Hash,
+        size: file.metadata.size,
+        updated: new Date(file.metadata.updated).valueOf(),
+        crc32c: file.metadata.crc32,
+        md5Hash: file.metadata.md5Hash,
         duration,
       });
-    } catch (error) {
-      console.error('Error getting audio duration', error.message);
-    }
   });
 
 export const dumpDurationsToSpreadsheet = functions.pubsub
