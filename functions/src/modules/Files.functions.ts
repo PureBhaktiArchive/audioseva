@@ -86,7 +86,7 @@ const getFileDurationLeaf = <
 const pubsub = new PubSub();
 const TOPIC_NAME = 'dump-duration';
 
-export const enqueueFilesDurationsExtraction = functions
+export const scanFilesForDurationsDump = functions
   .runWith({ timeoutSeconds: 120 })
   .pubsub.schedule('every day 23:00')
   .timeZone(functions.config().coordinator.timezone)
@@ -99,17 +99,29 @@ export const enqueueFilesDurationsExtraction = functions
         versions: true,
       });
       await pMap(files, async (file) => {
-        if (
-          // Skipping folder objects
-          !file.name.endsWith('/') &&
-          // Skipping files for which the duration is already dumped
-          !getFileDurationLeaf(snapshot, file).exists()
-        )
-          await topic.publishJSON({
-            bucketName: file.bucket.name,
-            fileName: file.name,
-            generation: file.generation,
-          });
+        try {
+          if (
+            // Skipping folder objects
+            !file.name.endsWith('/') &&
+            // Skipping files for which the duration is already dumped
+            !getFileDurationLeaf(snapshot, file).exists()
+          )
+            await topic.publishJSON({
+              bucketName: file.bucket.name,
+              fileName: file.name,
+              generation: file.generation,
+            });
+        } catch (error) {
+          console.error(
+            `Error triggering duration calculation for`,
+            file.bucket.name,
+            file.name,
+            file.generation,
+            file.metadata.md5Hash,
+            'with reason:',
+            error.message
+          );
+        }
       });
     });
   });
