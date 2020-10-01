@@ -5,18 +5,20 @@
 import { PubSub } from '@google-cloud/pubsub';
 import { File } from '@google-cloud/storage';
 import { database } from 'firebase-admin';
+import * as fs from 'fs';
 import getAudioDurationInSeconds from 'get-audio-duration';
 import { DateTime } from 'luxon';
+import * as os from 'os';
+import * as path from 'path';
 import { Readable } from 'stream';
 import { promisify } from 'util';
 import { Spreadsheet } from '../Spreadsheet';
 import { BucketName, StorageManager } from '../StorageManager';
+import pMap = require('p-map');
 import functions = require('firebase-functions');
 import express = require('express');
-import path = require('path');
 import mm = require('musicmetadata');
 import admin = require('firebase-admin');
-import pMap = require('p-map');
 
 const app = express();
 
@@ -68,20 +70,6 @@ export const download = functions
   .runWith({ memory: '128MB' })
   .https.onRequest(app);
 
-// interface FileMetadata {
-//   duration: number;
-//   size: number;
-//   updated: number;
-//   crc32c: string;
-//   md5Hash: string;
-// }
-// type FileName = string;
-// type GenerationNumber = number;
-// type Dump = Record<
-//   BucketName,
-//   Record<FileName, Record<GenerationNumber, FileMetadata>>
-// >;
-
 const rootFilesMetadataRef = database().ref('files');
 const getFileDurationLeaf = <
   T extends database.Reference | database.DataSnapshot
@@ -110,7 +98,7 @@ export const enqueueFilesDurationsExtraction = functions
       const [files] = await StorageManager.getBucket(bucketName).getFiles({
         versions: true,
       });
-      await pMap(files.slice(0, 200), async (file) => {
+      await pMap(files, async (file) => {
         if (
           // Skipping folder objects
           !file.name.endsWith('/') &&
@@ -135,38 +123,62 @@ const audioDurationExtractionFunctions: Array<GetAudioDuration> = [
   (file) => getAudioDurationInSeconds(file.createReadStream()),
 
   // Using 'musicmetadata'
-  (file: File) =>
+  (file) =>
     mmAsync(file.createReadStream(), {
       duration: true,
       fileSize: file.metadata.size,
     }).then(({ duration }) => duration),
+
+  // Downloading the whole file and using 'get-audio-duration'
+  async (file) => {
+    const filePath = path.join(os.tmpdir(), path.basename(file.name));
+    await file.download({ destination: filePath });
+    return getAudioDurationInSeconds(filePath).finally(() =>
+      fs.unlinkSync(filePath)
+    );
+  },
 ];
 
 const getAudioDuration = (file: File) =>
   audioDurationExtractionFunctions.reduce(
-    (p, fn) =>
+    (p, fn, index, all) =>
       // Chaining the next function to the failure branch of the previous one
       p.catch(() =>
         fn(file)
           // Logging the error message
           .catch((error) => {
-            console.error(
-              'Error getting audio duration',
-              file,
+            console.log(
+              `Error getting audio duration`,
+              `using method #${index + 1}/${all.length}`,
+              'for',
               file.bucket.name,
               file.name,
               file.generation,
               file.metadata.md5Hash,
+              'with reason:',
               error.message
             );
             throw error;
+          })
+          // Logging which method worked out
+          .then((value) => {
+            console.log(
+              `Got duration using method #${index + 1}/${all.length}`,
+              'for',
+              file.bucket.name,
+              file.name,
+              file.generation,
+              file.metadata.md5Hash
+            );
+            return value;
           })
       ),
     Promise.reject() // Initial rejected promise to trigger the first function
   );
 
-export const dumpDuration = functions.pubsub
-  .topic(TOPIC_NAME)
+export const dumpDuration = functions
+  .runWith({ memory: '512MB' })
+  .pubsub.topic(TOPIC_NAME)
   .onPublish(async (message, context) => {
     const { bucketName, fileName, generation } = message.json;
 
@@ -188,7 +200,13 @@ export const dumpDuration = functions.pubsub
         duration,
       });
     } catch (error) {
-      console.error('Failed to get duration for', file);
+      console.error(
+        'Failed to get duration for',
+        file.bucket.name,
+        file.name,
+        file.generation,
+        file.metadata.md5Hash
+      );
     }
   });
 
