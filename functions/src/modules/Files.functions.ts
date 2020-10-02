@@ -189,7 +189,7 @@ const getAudioDuration = (file: File) =>
   );
 
 export const dumpDuration = functions
-  .runWith({ memory: '512MB' })
+  .runWith({ memory: '1GB' })
   .pubsub.topic(TOPIC_NAME)
   .onPublish(async (message, context) => {
     const { bucketName, fileName, generation } = message.json;
