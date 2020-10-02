@@ -221,14 +221,21 @@ export const dumpDuration = functions
 
     try {
       const duration = await getAudioDuration(file);
-      await getFileDurationLeaf(rootFilesMetadataRef, file).parent.set({
+
+      // Keeping the local variable for type checking
+      const metadata: FileMetadata = {
         name: file.name,
         size: file.metadata.size,
         updated: new Date(file.metadata.updated).valueOf(),
+        timeDeleted: file.metadata.timeDeleted,
         crc32c: file.metadata.crc32c,
         md5Hash: file.metadata.md5Hash,
         duration,
-      });
+      };
+
+      await getFileDurationLeaf(rootFilesMetadataRef, file).parent.set(
+        metadata
+      );
     } catch (error) {
       console.error(
         'Failed to get duration for',
