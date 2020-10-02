@@ -106,8 +106,13 @@ export class Spreadsheet<T = unknown> {
    * @param firstRowNumber First row number
    * @param lastRowNumber Last row number
    */
-  protected rowsToA1Notation(firstRowNumber: number, lastRowNumber: number) {
-    return this.toA1Notation(null, firstRowNumber, null, lastRowNumber);
+  protected rowsToA1Notation(firstRowNumber: number, lastRowNumber?: number) {
+    return this.toA1Notation(
+      this.getColumnLetter(this.columnNames[0]),
+      firstRowNumber,
+      this.getColumnLetter(this.columnNames[this.columnNames.length - 1]),
+      lastRowNumber
+    );
   }
 
   /**
@@ -116,6 +121,19 @@ export class Spreadsheet<T = unknown> {
    */
   protected rowToA1Notation(rowNumber: number) {
     return this.rowsToA1Notation(rowNumber, rowNumber);
+  }
+
+  /**
+   * Returns A1 notation for the row. For example: 1:1.
+   * @param rowNumber Row number on the sheet
+   */
+  protected columnToA1Notation(columnName: string) {
+    const columnLetter = this.getColumnLetter(columnName);
+    return this.toA1Notation(
+      columnLetter,
+      this.fromDataRowNumber(1),
+      columnLetter
+    );
   }
 
   protected getColumnLetter(columnName: string) {
@@ -208,15 +226,8 @@ export class Spreadsheet<T = unknown> {
    */
   public async getColumn(columnName: string) {
     if (!this.columnsCache.has(columnName)) {
-      const columnLetter = this.getColumnLetter(columnName);
-
       const values = await this.getValues(
-        this.toA1Notation(
-          columnLetter,
-          this.fromDataRowNumber(1),
-          columnLetter,
-          null
-        ),
+        this.columnToA1Notation(columnName),
         'COLUMNS'
       );
 
@@ -239,10 +250,7 @@ export class Spreadsheet<T = unknown> {
     Spreadsheet.getResponse(
       await this.api.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
-        range: this.toA1Notation(
-          this.getColumnLetter(columnName),
-          this.fromDataRowNumber(1)
-        ),
+        range: this.columnToA1Notation(columnName),
         valueInputOption: IValueInputOption.RAW,
         requestBody: {
           majorDimension: 'COLUMNS',
@@ -399,5 +407,25 @@ export class Spreadsheet<T = unknown> {
       this.updateRows(new Map(updates)),
       this.appendRows(appends.map(([, object]) => object)),
     ]);
+  }
+
+  /**
+   * Overwrites rows starting from the top of the data table.
+   *
+   * @param objects Objects to be saved into the spreadsheet
+   */
+  public async overwriteRows(objects: T[]) {
+    if (objects.length === 0) return;
+
+    Spreadsheet.getResponse(
+      await this.api.spreadsheets.values.update({
+        spreadsheetId: this.spreadsheetId,
+        range: this.rowsToA1Notation(this.fromDataRowNumber(1)),
+        valueInputOption: IValueInputOption.RAW,
+        requestBody: {
+          values: objects.map((object) => this.objectToArray(object)),
+        },
+      })
+    );
   }
 }

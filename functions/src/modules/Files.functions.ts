@@ -12,6 +12,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { Readable } from 'stream';
 import { promisify } from 'util';
+import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { BucketName, StorageManager } from '../StorageManager';
 import pMap = require('p-map');
@@ -19,6 +20,7 @@ import functions = require('firebase-functions');
 import express = require('express');
 import mm = require('musicmetadata');
 import admin = require('firebase-admin');
+import _ = require('lodash');
 
 const app = express();
 
@@ -82,6 +84,22 @@ const getFileDurationLeaf = <
     .child(path.basename(file.name, path.extname(file.name)))
     .child(file.generation.toString())
     .child('duration') as T;
+
+interface FileMetadata {
+  name: string;
+  duration: number;
+  size: number;
+  updated: number;
+  timeDeleted?: number;
+  crc32c: string;
+  md5Hash: string;
+}
+type FileName = string;
+type GenerationNumber = number;
+type Dump = Record<
+  BucketName,
+  Record<FileName, Record<GenerationNumber, FileMetadata>>
+>;
 
 const pubsub = new PubSub();
 const TOPIC_NAME = 'dump-duration';
@@ -227,12 +245,53 @@ export const dumpDurationsToSpreadsheet = functions.pubsub
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     interface DurationsRow {
+      'TEd/SEd': 'TEd' | 'SEd' | string;
       'File Name': string;
+      Generation: number;
+      Checksum: string;
+      'Creation Date': number;
+      'Deletion Date': number;
+      Size: number;
       Duration: number;
     }
+
+    const data = (await rootFilesMetadataRef.once('value')).val() as Dump;
+    const rows = _.flatMap(Object.entries(data), ([bucketName, bucketData]) =>
+      _(Object.entries(bucketData))
+        // Only Track-edited files are of interest
+        .filter(([fileName]) => /^[A-Z]+\d*-\d+-\d+$/.test(fileName))
+        .flatMap(([fileName, fileData]) =>
+          Object.entries(fileData).map<DurationsRow>(
+            ([generation, metadata]) => ({
+              'TEd/SEd':
+                bucketName === 'edited'
+                  ? 'TEd'
+                  : bucketName === 'restored'
+                  ? 'SEd'
+                  : bucketName,
+              'File Name': fileName,
+              Generation: parseInt(generation),
+              Checksum: metadata.crc32c,
+              'Creation Date': DateTimeConverter.toSerialDate(
+                DateTime.fromMillis(metadata.updated)
+              ),
+              'Deletion Date': metadata.timeDeleted
+                ? DateTimeConverter.toSerialDate(
+                    DateTime.fromMillis(metadata.timeDeleted)
+                  )
+                : null,
+              Size: metadata.size,
+              Duration: metadata.duration / 86400, // converting seconds into days
+            })
+          )
+        )
+        .value()
+    );
 
     const sheet = await Spreadsheet.open<DurationsRow>(
       functions.config().te.spreadsheet.id,
       'Durations'
     );
+
+    await sheet.overwriteRows(rows);
   });
