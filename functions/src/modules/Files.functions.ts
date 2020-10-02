@@ -206,10 +206,10 @@ const getAudioDuration = (file: File) =>
     Promise.reject() // Initial rejected promise to trigger the first function
   );
 
-export const dumpDuration = functions
+export const saveMetadataIntoDatabase = functions
   .runWith({ memory: '1GB' })
   .pubsub.topic(TOPIC_NAME)
-  .onPublish(async (message, context) => {
+  .onPublish(async (message) => {
     const { bucketName, fileName, generation } = message.json;
 
     const file = admin
