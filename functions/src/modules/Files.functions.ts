@@ -211,7 +211,7 @@ export const extractMetadata = functions
         name: file.name,
         size: file.metadata.size,
         timeCreated: new Date(file.metadata.timeCreated).valueOf(),
-        timeDeleted: file.metadata.timeDeleted,
+        timeDeleted: file.metadata.timeDeleted || null,
         crc32c: file.metadata.crc32c,
         md5Hash: file.metadata.md5Hash,
         duration,
