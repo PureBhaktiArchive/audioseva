@@ -73,7 +73,7 @@ export const download = functions
   .https.onRequest(app);
 
 const rootFilesMetadataRef = database().ref('files');
-const getFileDurationLeaf = <
+const getFileMetadataLeaf = <
   T extends database.Reference | database.DataSnapshot
 >(
   root: T,
@@ -82,14 +82,13 @@ const getFileDurationLeaf = <
   root
     .child(file.bucket.name.split('.')[0])
     .child(path.basename(file.name, path.extname(file.name)))
-    .child(file.generation.toString())
-    .child('duration') as T;
+    .child(file.generation.toString()) as T;
 
 interface FileMetadata {
   name: string;
   duration: number;
   size: number;
-  updated: number;
+  timeCreated: number;
   timeDeleted?: number;
   crc32c: string;
   md5Hash: string;
@@ -102,9 +101,9 @@ type Dump = Record<
 >;
 
 const pubsub = new PubSub();
-const TOPIC_NAME = 'dump-duration';
+const TOPIC_NAME = 'extract-file-metadata';
 
-export const scanFilesForDurationsDump = functions
+export const triggerMetadataExtraction = functions
   .runWith({ timeoutSeconds: 120 })
   .pubsub.schedule('every day 23:00')
   .timeZone(functions.config().coordinator.timezone)
@@ -121,8 +120,8 @@ export const scanFilesForDurationsDump = functions
           if (
             // Skipping folder objects
             !file.name.endsWith('/') &&
-            // Skipping files for which the duration is already dumped
-            !getFileDurationLeaf(snapshot, file).exists()
+            // Skipping files for which the metadta is already dumped
+            !getFileMetadataLeaf(snapshot, file).exists()
           )
             await topic.publishJSON({
               bucketName: file.bucket.name,
@@ -131,13 +130,8 @@ export const scanFilesForDurationsDump = functions
             });
         } catch (error) {
           console.error(
-            `Error triggering duration calculation for`,
-            file.bucket.name,
-            file.name,
-            file.generation,
-            file.metadata.md5Hash,
-            'with reason:',
-            error.message
+            `Error triggering metadata extraction for ${file.metadata.id}`,
+            `with message: ${error.message}`
           );
         }
       });
@@ -180,13 +174,8 @@ const getAudioDuration = (file: File) =>
             console.log(
               `Error getting audio duration`,
               `using method #${index + 1}/${all.length}`,
-              'for',
-              file.bucket.name,
-              file.name,
-              file.generation,
-              file.metadata.md5Hash,
-              'with reason:',
-              error.message
+              `for ${file.metadata.id}`,
+              `with message: ${error.message}`
             );
             throw error;
           })
@@ -194,11 +183,7 @@ const getAudioDuration = (file: File) =>
           .then((value) => {
             console.log(
               `Got duration using method #${index + 1}/${all.length}`,
-              'for',
-              file.bucket.name,
-              file.name,
-              file.generation,
-              file.metadata.md5Hash
+              `for ${file.metadata.id}`
             );
             return value;
           })
@@ -206,7 +191,7 @@ const getAudioDuration = (file: File) =>
     Promise.reject() // Initial rejected promise to trigger the first function
   );
 
-export const saveMetadataIntoDatabase = functions
+export const extractMetadata = functions
   .runWith({ memory: '1GB' })
   .pubsub.topic(TOPIC_NAME)
   .onPublish(async (message) => {
@@ -217,49 +202,43 @@ export const saveMetadataIntoDatabase = functions
       .bucket(bucketName)
       .file(fileName, { generation });
 
-    await file.getMetadata();
-
     try {
+      await file.getMetadata();
       const duration = await getAudioDuration(file);
 
       // Keeping the local variable for type checking
       const metadata: FileMetadata = {
         name: file.name,
         size: file.metadata.size,
-        updated: new Date(file.metadata.updated).valueOf(),
+        timeCreated: new Date(file.metadata.timeCreated).valueOf(),
         timeDeleted: file.metadata.timeDeleted,
         crc32c: file.metadata.crc32c,
         md5Hash: file.metadata.md5Hash,
         duration,
       };
 
-      await getFileDurationLeaf(rootFilesMetadataRef, file).parent.set(
-        metadata
-      );
+      await getFileMetadataLeaf(rootFilesMetadataRef, file).set(metadata);
     } catch (error) {
       console.error(
-        'Failed to get duration for',
-        file.bucket.name,
-        file.name,
-        file.generation,
-        file.metadata.md5Hash
+        `Failed to extract metadata for ${file.metadata.id}`,
+        `with message: ${error.message}`
       );
     }
   });
 
-export const dumpDurationsToSpreadsheet = functions.pubsub
+export const exportMetadataToSpreadsheet = functions.pubsub
   .schedule('every day 04:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     interface DurationsRow {
-      'TEd/SEd': 'TEd' | 'SEd' | string;
+      'SEd?': 'SEd' | 'Non-SEd';
       'File Name': string;
-      Generation: number;
+      Generation: string;
       Checksum: string;
       'Creation Date': number;
       'Deletion Date': number;
-      Size: number;
-      Duration: number;
+      'File Size': number;
+      'Audio Duration': number;
     }
 
     const data = (await rootFilesMetadataRef.once('value')).val() as Dump;
@@ -270,25 +249,20 @@ export const dumpDurationsToSpreadsheet = functions.pubsub
         .flatMap(([fileName, fileData]) =>
           Object.entries(fileData).map<DurationsRow>(
             ([generation, metadata]) => ({
-              'TEd/SEd':
-                bucketName === 'edited'
-                  ? 'TEd'
-                  : bucketName === 'restored'
-                  ? 'SEd'
-                  : bucketName,
+              'SEd?': bucketName === 'restored' ? 'SEd' : 'Non-SEd',
               'File Name': fileName,
-              Generation: parseInt(generation),
+              Generation: generation,
               Checksum: metadata.crc32c,
               'Creation Date': DateTimeConverter.toSerialDate(
-                DateTime.fromMillis(metadata.updated)
+                DateTime.fromMillis(metadata.timeCreated)
               ),
               'Deletion Date': metadata.timeDeleted
                 ? DateTimeConverter.toSerialDate(
                     DateTime.fromMillis(metadata.timeDeleted)
                   )
                 : null,
-              Size: metadata.size,
-              Duration: metadata.duration / 86400, // converting seconds into days
+              'File Size': metadata.size,
+              'Audio Duration': metadata.duration / 86400, // converting seconds into days
             })
           )
         )
