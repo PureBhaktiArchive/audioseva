@@ -266,6 +266,7 @@ export const exportMetadataToSpreadsheet = functions.pubsub
             })
           )
         )
+        .sortBy('File Name', 'Creation Date')
         .value()
     );
 
