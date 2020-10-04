@@ -72,7 +72,7 @@ export const download = functions
   .runWith({ memory: '128MB' })
   .https.onRequest(app);
 
-const rootFilesMetadataRef = database().ref('files');
+const rootFilesMetadataRef = database().ref('files').child('metadata');
 const getFileMetadataLeaf = <
   T extends database.Reference | database.DataSnapshot
 >(
