@@ -108,24 +108,7 @@ export const saveMetadataToDatabase = functions
     const snapshot = await rootFilesMetadataRef.once('value');
     const topic = pubsub.topic(TOPIC_NAME);
 
-    await pMap(['edited', 'restored'], async (bucketName: BucketName) => {
-      const [files] = await StorageManager.getBucket(bucketName).getFiles({
-        versions: true,
-      });
-
-      try {
-        await pMap(files, processFile, {
-          concurrency: 1000,
-          stopOnError: false,
-        });
-      } catch (error) {
-        for (const individualError of error) {
-          console.error(individualError?.message);
-        }
-      }
-    });
-
-    const processFile = async (file: File) => {
+    async function processFile(file: File) {
       // Skipping folder objects
       if (file.name.endsWith('/')) return;
 
@@ -154,7 +137,26 @@ export const saveMetadataToDatabase = functions
           fileName: file.name,
           generation: file.generation,
         });
-    };
+    }
+
+    await pMap(['edited', 'restored'], async (bucketName: BucketName) => {
+      const [files] = await StorageManager.getBucket(bucketName).getFiles({
+        versions: true,
+      });
+
+      try {
+        await pMap(files, processFile, {
+          concurrency: 1000,
+          stopOnError: false,
+        });
+      } catch (error) {
+        if (typeof error[Symbol.iterator] === 'function')
+          for (const individualError of error) {
+            console.error(individualError?.message);
+          }
+        else console.error(error.message);
+      }
+    });
   });
 
 export const extractDuration = functions
