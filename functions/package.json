@@ -27,7 +27,6 @@
     "lodash": "4.17.20",
     "luxon": "1.25.0",
     "morphism": "1.12.3",
-    "musicmetadata": "2.0.5",
     "p-map": "4.0.0",
     "pug": "3.0.0",
     "uuid": "8.3.0"

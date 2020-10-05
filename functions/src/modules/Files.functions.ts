@@ -10,15 +10,12 @@ import getAudioDurationInSeconds from 'get-audio-duration';
 import { DateTime } from 'luxon';
 import * as os from 'os';
 import * as path from 'path';
-import { Readable } from 'stream';
-import { promisify } from 'util';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { BucketName, StorageManager } from '../StorageManager';
 import pMap = require('p-map');
 import functions = require('firebase-functions');
 import express = require('express');
-import mm = require('musicmetadata');
 import admin = require('firebase-admin');
 import _ = require('lodash');
 
@@ -86,7 +83,7 @@ const getFileMetadataLeaf = <
 
 interface FileMetadata {
   name: string;
-  duration: number;
+  duration?: number;
   size: number;
   timeCreated: number;
   timeDeleted?: number;
@@ -101,9 +98,9 @@ type Dump = Record<
 >;
 
 const pubsub = new PubSub();
-const TOPIC_NAME = 'extract-file-metadata';
+const TOPIC_NAME = 'extract-file-duration';
 
-export const triggerMetadataExtraction = functions
+export const saveMetadataToDatabase = functions
   .runWith({ timeoutSeconds: 120 })
   .pubsub.schedule('every day 23:00')
   .timeZone(functions.config().coordinator.timezone)
@@ -115,84 +112,53 @@ export const triggerMetadataExtraction = functions
       const [files] = await StorageManager.getBucket(bucketName).getFiles({
         versions: true,
       });
-      await pMap(files, async (file) => {
-        try {
-          if (
-            // Skipping folder objects
-            !file.name.endsWith('/') &&
-            // Skipping files for which the metadta is already dumped
-            !getFileMetadataLeaf(snapshot, file).exists()
-          )
-            await topic.publishJSON({
-              bucketName: file.bucket.name,
-              fileName: file.name,
-              generation: file.generation,
-            });
-        } catch (error) {
-          console.error(
-            `Error triggering metadata extraction for ${file.metadata.id}`,
-            `with message: ${error.message}`
-          );
+
+      try {
+        await pMap(files, processFile, {
+          concurrency: 1000,
+          stopOnError: false,
+        });
+      } catch (error) {
+        for (const individualError of error) {
+          console.error(individualError?.message);
         }
-      });
+      }
     });
+
+    const processFile = async (file: File) => {
+      // Skipping folder objects
+      if (file.name.endsWith('/')) return;
+
+      const metadataSnapshot = getFileMetadataLeaf(snapshot, file);
+
+      if (!metadataSnapshot.exists()) {
+        // Keeping the local variable for type checking
+        const metadataUpdate: FileMetadata = {
+          name: file.name,
+          size: file.metadata.size,
+          timeCreated: new Date(file.metadata.timeCreated).valueOf(),
+          timeDeleted: file.metadata.timeDeleted
+            ? new Date(file.metadata.timeDeleted).valueOf()
+            : null,
+          crc32c: file.metadata.crc32c,
+          md5Hash: file.metadata.md5Hash,
+        };
+
+        await metadataSnapshot.ref.update(metadataUpdate);
+      }
+
+      // Triggering duration extraction if it does not exist yet
+      if (!metadataSnapshot.child('duration').exists())
+        await topic.publishJSON({
+          bucketName: file.bucket.name,
+          fileName: file.name,
+          generation: file.generation,
+        });
+    };
   });
 
-const mmAsync = promisify<Readable, MM.Options, MM.Metadata>(mm);
-
-type GetAudioDuration = (file: File) => Promise<number>;
-
-const audioDurationExtractionFunctions: Array<GetAudioDuration> = [
-  // Using 'get-audio-duration'
-  (file) => getAudioDurationInSeconds(file.createReadStream()),
-
-  // Using 'musicmetadata'
-  (file) =>
-    mmAsync(file.createReadStream(), {
-      duration: true,
-      fileSize: file.metadata.size,
-    }).then(({ duration }) => duration),
-
-  // Downloading the whole file and using 'get-audio-duration'
-  async (file) => {
-    const filePath = path.join(os.tmpdir(), path.basename(file.name));
-    await file.download({ destination: filePath });
-    return getAudioDurationInSeconds(filePath).finally(() =>
-      fs.unlinkSync(filePath)
-    );
-  },
-];
-
-const getAudioDuration = (file: File) =>
-  audioDurationExtractionFunctions.reduce(
-    (p, fn, index, all) =>
-      // Chaining the next function to the failure branch of the previous one
-      p.catch(() =>
-        fn(file)
-          // Logging the error message
-          .catch((error) => {
-            console.log(
-              `Error getting audio duration`,
-              `using method #${index + 1}/${all.length}`,
-              `for ${file.metadata.id}`,
-              `with message: ${error.message}`
-            );
-            throw error;
-          })
-          // Logging which method worked out
-          .then((value) => {
-            console.log(
-              `Got duration using method #${index + 1}/${all.length}`,
-              `for ${file.metadata.id}`
-            );
-            return value;
-          })
-      ),
-    Promise.reject() // Initial rejected promise to trigger the first function
-  );
-
-export const extractMetadata = functions
-  .runWith({ memory: '1GB' })
+export const extractDuration = functions
+  .runWith({ memory: '1GB', timeoutSeconds: 120 })
   .pubsub.topic(TOPIC_NAME)
   .onPublish(async (message) => {
     const { bucketName, fileName, generation } = message.json;
@@ -203,24 +169,18 @@ export const extractMetadata = functions
       .file(fileName, { generation });
 
     try {
-      await file.getMetadata();
-      const duration = await getAudioDuration(file);
+      const filePath = path.join(os.tmpdir(), path.basename(file.name));
+      await file.download({ destination: filePath });
+      const duration = await getAudioDurationInSeconds(filePath).finally(() =>
+        fs.unlinkSync(filePath)
+      );
 
-      // Keeping the local variable for type checking
-      const metadata: FileMetadata = {
-        name: file.name,
-        size: file.metadata.size,
-        timeCreated: new Date(file.metadata.timeCreated).valueOf(),
-        timeDeleted: file.metadata.timeDeleted || null,
-        crc32c: file.metadata.crc32c,
-        md5Hash: file.metadata.md5Hash,
-        duration,
-      };
-
-      await getFileMetadataLeaf(rootFilesMetadataRef, file).set(metadata);
+      await getFileMetadataLeaf(rootFilesMetadataRef, file)
+        .child('duration')
+        .set(duration);
     } catch (error) {
       console.error(
-        `Failed to extract metadata for ${file.metadata.id}`,
+        `Failed to extract duration for ${file.metadata.id}`,
         `with message: ${error.message}`
       );
     }
