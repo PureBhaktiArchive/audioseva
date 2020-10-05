@@ -70,16 +70,13 @@ export const download = functions
   .https.onRequest(app);
 
 const rootFilesMetadataRef = database().ref('files').child('metadata');
-const getFileMetadataLeaf = <
-  T extends database.Reference | database.DataSnapshot
->(
-  root: T,
-  file: File
-): T =>
-  root
-    .child(file.bucket.name.split('.')[0])
-    .child(path.basename(file.name, path.extname(file.name)))
-    .child(file.generation.toString()) as T;
+
+function getFileMetadataPath(file: File) {
+  return `${file.bucket.name.split('.')[0]}/${path.basename(
+    file.name,
+    path.extname(file.name)
+  )}/${file.generation.toString()}`;
+}
 
 interface FileMetadata {
   name: string;
@@ -98,7 +95,7 @@ type Dump = Record<
 >;
 
 const pubsub = new PubSub();
-const TOPIC_NAME = 'extract-file-duration';
+const DURATION_EXTRACTION_TOPIC_NAME = 'extract-file-duration';
 
 export const saveMetadataToDatabase = functions
   .runWith({ timeoutSeconds: 120 })
@@ -106,62 +103,60 @@ export const saveMetadataToDatabase = functions
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const snapshot = await rootFilesMetadataRef.once('value');
-    const topic = pubsub.topic(TOPIC_NAME);
-
-    async function processFile(file: File) {
-      // Skipping folder objects
-      if (file.name.endsWith('/')) return;
-
-      const metadataSnapshot = getFileMetadataLeaf(snapshot, file);
-
-      if (!metadataSnapshot.exists()) {
-        // Keeping the local variable for type checking
-        const metadataUpdate: FileMetadata = {
-          name: file.name,
-          size: file.metadata.size,
-          timeCreated: new Date(file.metadata.timeCreated).valueOf(),
-          timeDeleted: file.metadata.timeDeleted
-            ? new Date(file.metadata.timeDeleted).valueOf()
-            : null,
-          crc32c: file.metadata.crc32c,
-          md5Hash: file.metadata.md5Hash,
-        };
-
-        await metadataSnapshot.ref.update(metadataUpdate);
-      }
-
-      // Triggering duration extraction if it does not exist yet
-      if (!metadataSnapshot.child('duration').exists())
-        await topic.publishJSON({
-          bucketName: file.bucket.name,
-          fileName: file.name,
-          generation: file.generation,
-        });
-    }
+    const durationExtractionTopic = pubsub.topic(
+      DURATION_EXTRACTION_TOPIC_NAME
+    );
 
     await pMap(['edited', 'restored'], async (bucketName: BucketName) => {
-      const [files] = await StorageManager.getBucket(bucketName).getFiles({
+      const [allFiles] = await StorageManager.getBucket(bucketName).getFiles({
         versions: true,
       });
 
-      try {
-        await pMap(files, processFile, {
-          concurrency: 1000,
-          stopOnError: false,
-        });
-      } catch (error) {
-        if (typeof error[Symbol.iterator] === 'function')
-          for (const individualError of error) {
-            console.error(individualError?.message);
-          }
-        else console.error(error.message);
-      }
+      // Skipping folder objects
+      const files = allFiles.filter((file) => !file.name.endsWith('/'));
+
+      const updates = files.reduce((accumulator, file) => {
+        const path = getFileMetadataPath(file);
+        if (!snapshot.child(path).exists())
+          accumulator[path] = {
+            name: file.name,
+            size: file.metadata.size,
+            timeCreated: new Date(file.metadata.timeCreated).valueOf(),
+            timeDeleted: file.metadata.timeDeleted
+              ? new Date(file.metadata.timeDeleted).valueOf()
+              : null,
+            crc32c: file.metadata.crc32c,
+            md5Hash: file.metadata.md5Hash,
+          };
+        return accumulator;
+      }, {} as Record<string, FileMetadata>);
+
+      await Promise.all([
+        // Triggering duration extraction
+        pMap(
+          files.filter(
+            (file) =>
+              !snapshot
+                .child(getFileMetadataPath(file))
+                .child('duration')
+                .exists()
+          ),
+          (file) =>
+            durationExtractionTopic.publishJSON({
+              bucketName: file.bucket.name,
+              fileName: file.name,
+              generation: file.generation,
+            })
+        ),
+        // Saving new metadata to the database
+        rootFilesMetadataRef.update(updates),
+      ]);
     });
   });
 
 export const extractDuration = functions
   .runWith({ memory: '1GB', timeoutSeconds: 120 })
-  .pubsub.topic(TOPIC_NAME)
+  .pubsub.topic(DURATION_EXTRACTION_TOPIC_NAME)
   .onPublish(async (message) => {
     const { bucketName, fileName, generation } = message.json;
 
@@ -177,7 +172,8 @@ export const extractDuration = functions
         fs.unlinkSync(filePath)
       );
 
-      await getFileMetadataLeaf(rootFilesMetadataRef, file)
+      await rootFilesMetadataRef
+        .child(getFileMetadataPath(file))
         .child('duration')
         .set(duration);
     } catch (error) {
