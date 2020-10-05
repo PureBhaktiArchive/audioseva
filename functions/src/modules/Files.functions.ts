@@ -11,6 +11,7 @@ import { DateTime } from 'luxon';
 import * as os from 'os';
 import * as path from 'path';
 import { DateTimeConverter } from '../DateTimeConverter';
+import { flatten } from '../flatten';
 import { Spreadsheet } from '../Spreadsheet';
 import { BucketName, StorageManager } from '../StorageManager';
 import pMap = require('p-map');
@@ -119,8 +120,8 @@ export const saveMetadataToDatabase = functions
 
       const updates = files.reduce((accumulator, file) => {
         const path = getFileMetadataPath(file);
-        if (!snapshot.child(path).exists())
-          accumulator[path] = {
+        if (!snapshot.child(path).exists()) {
+          const metadataForDatabase: FileMetadata = {
             name: file.name,
             size: file.metadata.size,
             timeCreated: new Date(file.metadata.timeCreated).valueOf(),
@@ -130,8 +131,10 @@ export const saveMetadataToDatabase = functions
             crc32c: file.metadata.crc32c,
             md5Hash: file.metadata.md5Hash,
           };
+          flatten(metadataForDatabase, `${path}/`, accumulator);
+        }
         return accumulator;
-      }, {} as Record<string, FileMetadata>);
+      }, {});
 
       await Promise.all([
         // Triggering duration extraction
