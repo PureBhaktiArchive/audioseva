@@ -201,11 +201,11 @@ export const exportMetadataToSpreadsheet = functions.pubsub
 
     const data = (await rootFilesMetadataRef.once('value')).val() as Dump;
     const rows = _(Object.entries(data))
-      .flatMap(([bucketName, bucketData]) =>
+      .flatMapDeep(([bucketName, bucketData]) =>
         _(Object.entries(bucketData))
           // Only Track-edited files are of interest
           .filter(([fileName]) => /^[A-Z]+\d*-\d+-\d+$/.test(fileName))
-          .flatMap(([fileName, fileData]) =>
+          .map(([fileName, fileData]) =>
             Object.entries(fileData).map<DurationsRow>(
               ([generation, metadata]) => ({
                 'SEd?': bucketName === 'restored' ? 'SEd' : 'Non-SEd',
@@ -229,10 +229,12 @@ export const exportMetadataToSpreadsheet = functions.pubsub
       )
       .sortBy('File Name', 'Creation Date')
       .value();
+
     const sheet = await Spreadsheet.open<DurationsRow>(
       functions.config().te.spreadsheet.id,
       'Durations'
     );
 
-    await sheet.overwriteRows(rows);
+    const result = await sheet.overwriteRows(rows);
+    console.log(`Updated ${result?.updatedRows} rows.`);
   });

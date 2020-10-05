@@ -415,9 +415,9 @@ export class Spreadsheet<T = unknown> {
    * @param objects Objects to be saved into the spreadsheet
    */
   public async overwriteRows(objects: T[]) {
-    if (objects.length === 0) return;
+    if (objects.length === 0) return null;
 
-    Spreadsheet.getResponse(
+    return Spreadsheet.getResponse(
       await this.api.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
         range: this.rowsToA1Notation(this.fromDataRowNumber(1)),
