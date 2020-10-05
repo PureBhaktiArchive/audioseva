@@ -200,34 +200,35 @@ export const exportMetadataToSpreadsheet = functions.pubsub
     }
 
     const data = (await rootFilesMetadataRef.once('value')).val() as Dump;
-    const rows = _.flatMap(Object.entries(data), ([bucketName, bucketData]) =>
-      _(Object.entries(bucketData))
-        // Only Track-edited files are of interest
-        .filter(([fileName]) => /^[A-Z]+\d*-\d+-\d+$/.test(fileName))
-        .flatMap(([fileName, fileData]) =>
-          Object.entries(fileData).map<DurationsRow>(
-            ([generation, metadata]) => ({
-              'SEd?': bucketName === 'restored' ? 'SEd' : 'Non-SEd',
-              'File Name': fileName,
-              Generation: generation,
-              Checksum: metadata.crc32c,
-              'Creation Date': DateTimeConverter.toSerialDate(
-                DateTime.fromMillis(metadata.timeCreated)
-              ),
-              'Deletion Date': metadata.timeDeleted
-                ? DateTimeConverter.toSerialDate(
-                    DateTime.fromMillis(metadata.timeDeleted)
-                  )
-                : null,
-              'File Size': metadata.size,
-              'Audio Duration': metadata.duration / 86400, // converting seconds into days
-            })
+    const rows = _(Object.entries(data))
+      .flatMap(([bucketName, bucketData]) =>
+        _(Object.entries(bucketData))
+          // Only Track-edited files are of interest
+          .filter(([fileName]) => /^[A-Z]+\d*-\d+-\d+$/.test(fileName))
+          .flatMap(([fileName, fileData]) =>
+            Object.entries(fileData).map<DurationsRow>(
+              ([generation, metadata]) => ({
+                'SEd?': bucketName === 'restored' ? 'SEd' : 'Non-SEd',
+                'File Name': fileName,
+                Generation: generation,
+                Checksum: metadata.crc32c,
+                'Creation Date': DateTimeConverter.toSerialDate(
+                  DateTime.fromMillis(metadata.timeCreated)
+                ),
+                'Deletion Date': metadata.timeDeleted
+                  ? DateTimeConverter.toSerialDate(
+                      DateTime.fromMillis(metadata.timeDeleted)
+                    )
+                  : null,
+                'File Size': metadata.size,
+                'Audio Duration': metadata.duration / 86400, // converting seconds into days
+              })
+            )
           )
-        )
-        .sortBy('File Name', 'Creation Date')
-        .value()
-    );
-
+          .value()
+      )
+      .sortBy('File Name', 'Creation Date')
+      .value();
     const sheet = await Spreadsheet.open<DurationsRow>(
       functions.config().te.spreadsheet.id,
       'Durations'
