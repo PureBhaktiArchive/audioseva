@@ -101,7 +101,7 @@ const pubsub = new PubSub();
 const DURATION_EXTRACTION_TOPIC_NAME = 'extract-file-duration';
 
 export const saveMetadataToDatabase = functions
-  .runWith({ timeoutSeconds: 120 })
+  .runWith({ timeoutSeconds: 120, memory: '512MB' })
   .pubsub.schedule('every day 23:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
