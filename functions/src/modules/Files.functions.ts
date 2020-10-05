@@ -71,12 +71,14 @@ export const download = functions
 
 const rootFilesMetadataRef = database().ref('files').child('metadata');
 
-function getFileMetadataPath(file: File) {
-  return `${file.bucket.name.split('.')[0]}/${path.basename(
+const getFileMetadataPath = (file: File) =>
+  `${file.bucket.name.split('.')[0]}/${path.basename(
     file.name,
     path.extname(file.name)
-  )}/${file.generation.toString()}`;
-}
+  )}/${file.generation}`;
+
+const getFileDurationPath = (file: File) =>
+  `${getFileMetadataPath(file)}/duration`;
 
 interface FileMetadata {
   name: string;
@@ -135,11 +137,7 @@ export const saveMetadataToDatabase = functions
         // Triggering duration extraction
         pMap(
           files.filter(
-            (file) =>
-              !snapshot
-                .child(getFileMetadataPath(file))
-                .child('duration')
-                .exists()
+            (file) => !snapshot.child(getFileDurationPath(file)).exists()
           ),
           (file) =>
             durationExtractionTopic.publishJSON({
@@ -172,10 +170,9 @@ export const extractDuration = functions
         fs.unlinkSync(filePath)
       );
 
-      await rootFilesMetadataRef
-        .child(getFileMetadataPath(file))
-        .child('duration')
-        .set(duration);
+      console.log(`Got duration for ${file.metadata.id}: ${duration}`);
+
+      await rootFilesMetadataRef.child(getFileDurationPath(file)).set(duration);
     } catch (error) {
       console.error(
         `Failed to extract duration for ${file.metadata.id}`,
