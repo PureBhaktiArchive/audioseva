@@ -208,7 +208,7 @@ export const exportMetadataToSpreadsheet = functions.pubsub
               'SEd?': bucketName === 'restored' ? 'SEd' : 'Non-SEd',
               'File Name': fileName,
               Generation: generation,
-              Checksum: metadata.crc32c,
+              Checksum: metadata.crc32c || null,
               'Creation Date': DateTimeConverter.toSerialDate(
                 DateTime.fromMillis(metadata.timeCreated)
               ),
@@ -217,8 +217,8 @@ export const exportMetadataToSpreadsheet = functions.pubsub
                     DateTime.fromMillis(metadata.timeDeleted)
                   )
                 : null,
-              'File Size': metadata.size,
-              'Audio Duration': metadata.duration / 86400, // converting seconds into days
+              'File Size': metadata.size || null,
+              'Audio Duration': metadata.duration / 86400 || null, // converting seconds into days
             })
           )
         )
