@@ -7,6 +7,7 @@ import { createSchema, morphism, StrictSchema } from 'morphism';
 import { Allotment, AllotmentStatus, allotmentValidator } from './Allotment';
 import { AllotmentRow } from './AllotmentRow';
 import { DateTimeConverter } from './DateTimeConverter';
+import { flatten } from './flatten';
 import { RequireOnly } from './RequireOnly';
 import { Spreadsheet } from './Spreadsheet';
 import _ = require('lodash');
@@ -82,17 +83,6 @@ export abstract class AbstractRepository<
   }
 
   public async saveToDatabase(tasks: RequireOnly<TTask, TId>[]) {
-    const flatten = (obj, prefix = '', res = {}) =>
-      Object.entries(obj).reduce((memo, [key, val]) => {
-        const nestedKey = `${prefix}${key}`;
-        if (typeof val === 'object' && val && val['.sv'] === undefined) {
-          flatten(val, `${nestedKey}/`, memo);
-        } else {
-          res[nestedKey] = val;
-        }
-        return memo;
-      }, res);
-
     await this.allotmentsRef.update(
       flatten(
         _.zipObject(
