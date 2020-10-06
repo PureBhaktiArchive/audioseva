@@ -102,7 +102,8 @@ export class Spreadsheet<T = unknown> {
   }
 
   /**
-   * Returns A1 notation for a row span. For example: 1:5.
+   * Returns A1 notation for a row span. For example: A1:H5.
+   * Columns within header are included only.
    * @param firstRowNumber First row number
    * @param lastRowNumber Last row number
    */
@@ -116,7 +117,8 @@ export class Spreadsheet<T = unknown> {
   }
 
   /**
-   * Returns A1 notation for the row. For example: 1:1.
+   * Returns A1 notation for the row. For example: A1:H1.
+   * Columns within header are included only.
    * @param rowNumber Row number on the sheet
    */
   protected rowToA1Notation(rowNumber: number) {
@@ -124,7 +126,8 @@ export class Spreadsheet<T = unknown> {
   }
 
   /**
-   * Returns A1 notation for the row. For example: 1:1.
+   * Returns A1 notation for the column. For example: A2:A.
+   * Only data is included, without header.
    * @param rowNumber Row number on the sheet
    */
   protected columnToA1Notation(columnName: string) {
