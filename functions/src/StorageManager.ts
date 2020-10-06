@@ -99,7 +99,7 @@ export class StorageManager {
         (a, b) =>
           // By bucket priority descending
           -(bucketPriority(a) - bucketPriority(b)) ||
-          // Dy Date Created descending
+          // By time created descending
           -(
             new Date(a.metadata.timeCreated).valueOf() -
             new Date(b.metadata.timeCreated).valueOf()
