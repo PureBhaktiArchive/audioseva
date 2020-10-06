@@ -40,7 +40,7 @@
     "@types/jest": "26.0.14",
     "@types/lodash": "4.14.161",
     "@types/luxon": "1.25.0",
-    "@types/node": "12.12.62",
+    "@types/node": "12.12.64",
     "@types/uuid": "8.3.0",
     "@typescript-eslint/eslint-plugin": "4.1.0",
     "@typescript-eslint/parser": "4.1.0",
