@@ -202,30 +202,26 @@ export const exportMetadataToSpreadsheet = functions.pubsub
     const data = (await rootFilesMetadataRef.once('value')).val() as Dump;
     const rows = _(Object.entries(data))
       .flatMapDeep(([bucketName, bucketData]) =>
-        _(Object.entries(bucketData))
-          // Only Track-edited files are of interest
-          .filter(([fileName]) => /^[A-Z]+\d*-\d+-\d+$/.test(fileName))
-          .map(([fileName, fileData]) =>
-            Object.entries(fileData).map<DurationsRow>(
-              ([generation, metadata]) => ({
-                'SEd?': bucketName === 'restored' ? 'SEd' : 'Non-SEd',
-                'File Name': fileName,
-                Generation: generation,
-                Checksum: metadata.crc32c,
-                'Creation Date': DateTimeConverter.toSerialDate(
-                  DateTime.fromMillis(metadata.timeCreated)
-                ),
-                'Deletion Date': metadata.timeDeleted
-                  ? DateTimeConverter.toSerialDate(
-                      DateTime.fromMillis(metadata.timeDeleted)
-                    )
-                  : null,
-                'File Size': metadata.size,
-                'Audio Duration': metadata.duration / 86400, // converting seconds into days
-              })
-            )
+        Object.entries(bucketData).map(([fileName, fileData]) =>
+          Object.entries(fileData).map<DurationsRow>(
+            ([generation, metadata]) => ({
+              'SEd?': bucketName === 'restored' ? 'SEd' : 'Non-SEd',
+              'File Name': fileName,
+              Generation: generation,
+              Checksum: metadata.crc32c,
+              'Creation Date': DateTimeConverter.toSerialDate(
+                DateTime.fromMillis(metadata.timeCreated)
+              ),
+              'Deletion Date': metadata.timeDeleted
+                ? DateTimeConverter.toSerialDate(
+                    DateTime.fromMillis(metadata.timeDeleted)
+                  )
+                : null,
+              'File Size': metadata.size,
+              'Audio Duration': metadata.duration / 86400, // converting seconds into days
+            })
           )
-          .value()
+        )
       )
       .sortBy('File Name', 'Creation Date')
       .value();
