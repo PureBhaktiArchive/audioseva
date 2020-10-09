@@ -40,11 +40,13 @@ app.get(
            *
            * However taking the extension from the found file,
            * as it may differ in case of DIGI files.
+           *
+           * Adding “SEd” suffix for restored files to visually distinguish them
+           * and verify that the downloaded file was actually sound-engineered.
            */
-          promptSaveAs: `${path.basename(
-            fileName,
-            path.extname(fileName)
-          )}${path.extname(file.name)}`,
+          promptSaveAs: `${path.basename(fileName, path.extname(fileName))}${
+            file.bucket.name.startsWith('restored') ? '.SEd' : ''
+          }${path.extname(file.name)}`,
         });
         console.log(`Redirecting ${bucket}/${fileName} to ${url}`);
         res.redirect(307, url);
