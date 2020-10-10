@@ -89,21 +89,13 @@ export class StorageManager {
       candidates.map((file) => file.getMetadata().catch(() => null))
     );
 
-    const bucketPriority = (file: File) =>
-      // Original files are of least priority, other buckets are equal
-      file.bucket.name.startsWith('original.') ? 0 : 1;
-
     return candidates
-      .filter((file) => file.metadata.name) // Filtering out non-existent files
+      .filter((file) => file.metadata.updated) // Filtering out non-existent files
       .sort(
+        // Sorting files by Last Modified descending
         (a, b) =>
-          // By bucket priority descending
-          -(bucketPriority(a) - bucketPriority(b)) ||
-          // By time created descending
-          -(
-            new Date(a.metadata.timeCreated).valueOf() -
-            new Date(b.metadata.timeCreated).valueOf()
-          )
+          new Date(b.metadata.updated).valueOf() -
+          new Date(a.metadata.updated).valueOf()
       )
       .shift(); // And returning the most recent one
   }
