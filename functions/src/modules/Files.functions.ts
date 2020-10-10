@@ -236,3 +236,30 @@ export const exportMetadataToSpreadsheet = functions.pubsub
     const result = await sheet.overwriteRows(rows);
     console.log(`Updated ${result?.updatedRows} rows.`);
   });
+
+export const findPotentialMisleads = functions.https.onCall(async () => {
+  functions.config().project.domain = 'audioseva.com';
+
+  const [files] = await StorageManager.getBucket('restored').getFiles({});
+
+  return (
+    await pMap(files, async (file) => {
+      // Skipping folders
+      if (file.name.endsWith('/')) return undefined;
+
+      const baseName = path.basename(file.name, path.extname(file.name));
+
+      // Skipping TEd files
+      const isTEd = /^[A-Z]+\d*-\d+-\d+$/.test(baseName);
+      if (isTEd) return undefined;
+
+      const mostRecent = await StorageManager.getMostRecentFile(
+        StorageManager.getCandidateFiles(baseName)
+      );
+      console.log(baseName, 'from', mostRecent?.bucket?.name);
+      return mostRecent?.bucket?.name?.startsWith('original')
+        ? baseName
+        : undefined;
+    })
+  ).filter((value) => !!value);
+});
