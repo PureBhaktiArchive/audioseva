@@ -4,6 +4,7 @@
     "group:test",
     "group:definitelyTyped",
     "group:linters",
+    "group:allNonMajor",
     "schedule:earlyMondays",
     ":maintainLockFilesWeekly",
     ":timezone(Asia/Calcutta)"
