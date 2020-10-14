@@ -163,7 +163,8 @@ export const handler = async ({
   // Code → Resolution
   const resolutions = new Map<string, Resolution>();
   for (const [code, fileName] of _(rows)
-    .filter('DIGI Code')
+    .filter('DIGI Code') // Only those with DIGI Code
+    .filter('Launch') // Only thouse marked to be launched
     .groupBy('DIGI Code')
     .mapValues((rows) => rows[0]['File Name'])
     .toPairs()

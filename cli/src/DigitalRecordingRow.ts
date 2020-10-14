@@ -17,4 +17,5 @@ export interface DigitalRecordingRow {
   Comments: string;
   'Cluster Key': string;
   'File Status': string;
+  Launch: boolean;
 }
