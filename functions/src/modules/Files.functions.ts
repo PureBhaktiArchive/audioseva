@@ -190,8 +190,9 @@ export const exportMetadataToSpreadsheet = functions.pubsub
   .schedule('every day 04:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
+    type Source = 'SE' | 'TE' | 'Original';
     interface DurationsRow {
-      'SEd?': 'SEd' | 'Non-SEd';
+      'Source Bucket': Source;
       'File Name': string;
       Generation: string;
       Checksum: string;
@@ -201,13 +202,20 @@ export const exportMetadataToSpreadsheet = functions.pubsub
       'Audio Duration': number;
     }
 
+    const bucketToSourceMap = new Map<BucketName, Source>([
+      ['original', 'Original'],
+      ['restored', 'SE'],
+      ['edited', 'TE'],
+    ]);
+
     const data = (await rootFilesMetadataRef.once('value')).val() as Dump;
     const rows = _(Object.entries(data))
       .flatMapDeep(([bucketName, bucketData]) =>
         Object.entries(bucketData).map(([fileName, fileData]) =>
           Object.entries(fileData).map<DurationsRow>(
             ([generation, metadata]) => ({
-              'SEd?': bucketName === 'restored' ? 'SEd' : 'Non-SEd',
+              'Source Bucket':
+                bucketToSourceMap.get(bucketName as BucketName) || null,
               'File Name': fileName,
               Generation: generation,
               Checksum: metadata.crc32c || null,
