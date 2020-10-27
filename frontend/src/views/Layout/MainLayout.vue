@@ -63,7 +63,7 @@
         v-if="currentUser"
       ></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <router-link to="/" tag="span" style="cursor: pointer;">{{
+        <router-link to="/" tag="span" style="cursor: pointer">{{
           appTitle
         }}</router-link>
       </v-toolbar-title>

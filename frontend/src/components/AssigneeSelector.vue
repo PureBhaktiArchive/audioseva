@@ -28,12 +28,8 @@
       <slot name="message"></slot>
     </template>
     <template v-slot:no-data>
-      <div class="pa-2" v-if="loading">
-        Loading Assignees
-      </div>
-      <div class="pa-2" v-else>
-        No data available
-      </div>
+      <div class="pa-2" v-if="loading">Loading Assignees</div>
+      <div class="pa-2" v-else>No data available</div>
     </template>
   </v-autocomplete>
 </template>

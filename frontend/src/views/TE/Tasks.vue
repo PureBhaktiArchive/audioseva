@@ -46,16 +46,12 @@
       </template>
       <template v-slot:table-no-data>
         <div class="no-results">
-          <div v-if="!datatableProps.loading">
-            No records available
-          </div>
+          <div v-if="!datatableProps.loading">No records available</div>
         </div>
       </template>
       <template v-slot:table-no-results>
         <div class="no-results">
-          <div v-if="!datatableProps.loading">
-            No records available
-          </div>
+          <div v-if="!datatableProps.loading">No records available</div>
         </div>
       </template>
     </data-table>
