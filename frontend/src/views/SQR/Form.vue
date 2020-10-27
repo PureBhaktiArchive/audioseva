@@ -79,7 +79,7 @@
                   type="submit"
                   color="primary"
                   class="mx-2"
-                  :loading="(formState === FormState.SUBMITTING)"
+                  :loading="formState === FormState.SUBMITTING"
                 >
                   Submit
                 </v-btn>

@@ -38,9 +38,7 @@
           block.
 
           <ul>
-            <li>
-              Please note: The timing is to be filled in (h:)mm:ss format
-            </li>
+            <li>Please note: The timing is to be filled in (h:)mm:ss format</li>
             <li>
               Also, please mention the Beginning and Ending time for each such
               unwanted part
@@ -52,9 +50,7 @@
               Space’ in Type and provide a relevant details in the Description
               field
             </li>
-            <li>
-              For the next unwanted part, please add another such block.
-            </li>
+            <li>For the next unwanted part, please add another such block.</li>
             <li>
               Add block by clicking on the green button ‘+ UNWANTED PART’.
             </li>
@@ -84,9 +80,7 @@
               format. - Choose the specific issue from the options listed or
               enter a different issue by selecting ‘Other’.
             </li>
-            <li>
-              Please describe the issue in the ‘Description’ field.
-            </li>
+            <li>Please describe the issue in the ‘Description’ field.</li>
             <li>
               For instance, from 20:20 - 21:34 if there is loud noise of
               roadside vehicles, making it difficult to hear what Srila Gurudeva
@@ -95,9 +89,7 @@
               in Type and in ‘Description’ field, write ‘Sound of vehicles
               honking and general traffic noise.’
             </li>
-            <li>
-              Add block by clicking on the green button ‘+ SOUND ISSUE’.
-            </li>
+            <li>Add block by clicking on the green button ‘+ SOUND ISSUE’.</li>
             <li>
               Delete a block by clicking the red 'Bin' icon on the top right of
               each block.
@@ -127,9 +119,7 @@
               hum throughout, vehicle sound throughout the tape, sound of the
               fan or wind, low volume, etc. Please provide these details here.
             </li>
-            <li>
-              Any other comments you wish to provide can be filled here.
-            </li>
+            <li>Any other comments you wish to provide can be filled here.</li>
           </ul>
         </guidelines>
       </v-col>

@@ -156,9 +156,7 @@
                     :nudge-width="200"
                   >
                     <template v-slot:activator="{ on }">
-                      <v-btn class="success" v-on="on">
-                        Approve
-                      </v-btn>
+                      <v-btn class="success" v-on="on"> Approve </v-btn>
                     </template>
                     <v-card>
                       <v-list>
@@ -193,9 +191,7 @@
                     :nudge-width="200"
                   >
                     <template v-slot:activator="{ on }">
-                      <v-btn class="error ml-2" v-on="on">
-                        Disapprove
-                      </v-btn>
+                      <v-btn class="error ml-2" v-on="on"> Disapprove </v-btn>
                     </template>
                     <v-card>
                       <v-list>

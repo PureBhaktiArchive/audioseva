@@ -11,7 +11,7 @@
           ref="audioPlayer"
           controls="controls"
           :src="audioUrl"
-          style="display: block; width: 100%;"
+          style="display: block; width: 100%"
         >
           Your browser does not support embedding audio.
         </audio>
