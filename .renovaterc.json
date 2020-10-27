@@ -8,5 +8,11 @@
     "schedule:earlyMondays",
     ":maintainLockFilesWeekly",
     ":timezone(Asia/Calcutta)"
+  ],
+  "packageRules": [
+    {
+      "sourceUrlPrefixes": ["https://github.com/vuejs"],
+      "groupName": "vue monorepo"
+    }
   ]
 }
