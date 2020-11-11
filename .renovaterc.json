@@ -1,18 +1,18 @@
 {
   "extends": [
-    "config:base",
+    "group:monorepos",
     "group:test",
-    "group:definitelyTyped",
     "group:linters",
-    "group:allNonMajor",
-    "schedule:earlyMondays",
-    ":maintainLockFilesWeekly",
-    ":timezone(Asia/Calcutta)"
+    ":maintainLockFilesWeekly"
   ],
   "packageRules": [
     {
       "sourceUrlPrefixes": ["https://github.com/vuejs"],
       "groupName": "vue monorepo"
+    },
+    {
+      "packageNames": ["firebase", "firebaseui", "vuefire"],
+      "groupName": "firebase"
     }
   ]
 }
