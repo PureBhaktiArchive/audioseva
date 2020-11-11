@@ -2,11 +2,11 @@
   "name": "audioseva-appsscript",
   "dependencies": {},
   "devDependencies": {
-    "@types/google-apps-script": "1.0.16",
-    "@typescript-eslint/eslint-plugin": "4.6.0",
-    "@typescript-eslint/parser": "4.6.0",
-    "eslint": "7.12.1",
-    "eslint-config-prettier": "6.14.0",
+    "@types/google-apps-script": "1.0.17",
+    "@typescript-eslint/eslint-plugin": "4.7.0",
+    "@typescript-eslint/parser": "4.7.0",
+    "eslint": "7.13.0",
+    "eslint-config-prettier": "6.15.0",
     "typescript": "4.0.5"
   },
   "scripts": {
