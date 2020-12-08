@@ -20,7 +20,7 @@
     "email-templates": "7.1.2",
     "express": "4.17.1",
     "firebase-admin": "9.3.0",
-    "firebase-functions": "3.11.0",
+    "firebase-functions": "3.13.0",
     "get-audio-duration": "2.0.3",
     "glob": "7.1.6",
     "googleapis": "64.0.0",
