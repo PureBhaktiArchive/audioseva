@@ -1,10 +1,19 @@
 {
   "extends": [
+    ":dependencyDashboard",
+    ":maintainLockFilesWeekly",
+    ":enableVulnerabilityAlertsWithLabel(security)",
+    "helpers:disableTypesNodeMajor",
+    "group:googleapis",
+    "group:definitelyTyped",
     "group:monorepos",
     "group:test",
-    "group:linters",
-    ":maintainLockFilesWeekly"
+    "group:linters"
   ],
+  "stabilityDays": 5,
+  "major": {
+    "dependencyDashboardApproval": true
+  },
   "packageRules": [
     {
       "sourceUrlPrefixes": ["https://github.com/vuejs"],
@@ -12,7 +21,23 @@
     },
     {
       "packageNames": ["firebase", "firebaseui", "vuefire"],
-      "groupName": "firebase"
+      "groupName": "frontend firebase packages"
+    },
+    {
+      "packageNames": ["firebase-functions", "firebase-admin"],
+      "groupName": "backend firebase packages"
+    },
+    {
+      "packageNames": ["ts-jest"],
+      "groupName": "test packages"
+    },
+    {
+      "sourceUrlPrefixes": ["https://github.com/vuetifyjs/vue-cli-plugins"],
+      "groupName": "vuetify vue-cli plugins"
+    },
+    {
+      "sourceUrlPrefixes": ["https://github.com/googleapis/"],
+      "groupName": "googleapis packages"
     }
   ]
 }
