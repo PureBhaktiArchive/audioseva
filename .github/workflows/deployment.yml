@@ -12,14 +12,14 @@ jobs:
 
     steps:
       - name: Turnstyle
-        uses: softprops/turnstyle@master
+        uses: softprops/turnstyle@0.1.5
         with:
           continue-after-seconds: 180
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Report deployment status in progress
-        uses: maxkomarychev/oction-create-deployment-status@master
+        uses: maxkomarychev/oction-create-deployment-status@0.7.1
         with:
           token: ${{ github.token }}
           deployment_id: ${{ github.event.deployment.id }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Report deployment success
         if: success()
-        uses: maxkomarychev/oction-create-deployment-status@master
+        uses: maxkomarychev/oction-create-deployment-status@0.7.1
         with:
           token: ${{ github.token }}
           deployment_id: ${{ github.event.deployment.id }}
@@ -71,7 +71,7 @@ jobs:
 
       - name: Report deployment failure
         if: failure()
-        uses: maxkomarychev/oction-create-deployment-status@master
+        uses: maxkomarychev/oction-create-deployment-status@0.7.1
         with:
           token: ${{ github.token }}
           deployment_id: ${{ github.event.deployment.id }}
