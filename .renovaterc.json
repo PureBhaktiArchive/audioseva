@@ -1,8 +1,9 @@
 {
   "extends": [
+    ":automergeMinor",
     ":dependencyDashboard",
-    ":maintainLockFilesWeekly",
     ":enableVulnerabilityAlertsWithLabel(security)",
+    ":maintainLockFilesWeekly",
     "helpers:disableTypesNodeMajor",
     "group:googleapis",
     "group:definitelyTyped",
