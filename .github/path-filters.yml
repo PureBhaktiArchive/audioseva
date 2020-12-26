@@ -1,0 +1,14 @@
+#
+# sri sri guru gaurangau jayatah
+#
+
+# Used in GitHub Actions workflows for detecting which paths were changed
+# https://github.com/dorny/paths-filter#advanced-options
+frontend:
+  - 'frontend/**'
+functions:
+  - 'functions/**'
+cli:
+  - 'cli/**'
+crp:
+  - 'CRP/**'

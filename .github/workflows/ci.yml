@@ -10,6 +10,22 @@ on:
       - master
 
 jobs:
+  changes:
+    name: Detect changes in sub-projects
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      functions: ${{ steps.filter.outputs.functions }}
+      cli: ${{ steps.filter.outputs.cli }}
+      crp: ${{ steps.filter.outputs.crp }}
+    steps:
+      # Checkout to use filters from file
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: .github/path-filters.yml
+
   build:
     name: Build and test
     runs-on: ubuntu-latest
