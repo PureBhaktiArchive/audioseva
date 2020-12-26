@@ -122,10 +122,11 @@ export const handler = async ({
     if (!found?.length) return 'MISSING';
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const durations = await async.map(found, getDuration);
+    const durations = await async.map<string, number>(found, getDuration);
 
-    // Checking that all the files have the same duration, truncated to integer seconds
-    if (_.uniqBy(durations, Math.floor).length > 1) return 'CONTROVERSIAL';
+    // Checking that all the durations are within interval of 1 second
+    if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1)
+      return 'CONTROVERSIAL';
 
     const targetFolderPath = path.join(rootDirectory, 'Renamed', list);
     fs.mkdirSync(targetFolderPath, { recursive: true });
