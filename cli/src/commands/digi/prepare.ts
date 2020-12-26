@@ -76,7 +76,7 @@ export const handler = async ({
   const conversionQueue = async.queue<ConversionTask>((task, callback) => {
     ffmpeg(task.source)
       .withAudioCodec('libmp3lame')
-      .withAudioBitrate(64)
+      .withAudioBitrate(256)
       .output(task.destination)
       .on('start', function () {
         console.log(`Converting ${task.source}`);
