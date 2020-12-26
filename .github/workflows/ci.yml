@@ -10,12 +10,30 @@ on:
       - master
 
 jobs:
+  changes:
+    name: Detect changes in sub-projects
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      functions: ${{ steps.filter.outputs.functions }}
+      cli: ${{ steps.filter.outputs.cli }}
+      gas: ${{ steps.filter.outputs.gas }}
+    steps:
+      # Checkout to use filters from file
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: .github/path-filters.yml
+
   build:
     name: Build and test (${{ matrix.project }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         project: [frontend, functions, gas, cli]
+    # Comparing to string, because the job output is a strings, not boolean
+    if: needs.changes.outputs.${{ matrix.project }} == 'true'
     steps:
       - uses: actions/checkout@v3
 
