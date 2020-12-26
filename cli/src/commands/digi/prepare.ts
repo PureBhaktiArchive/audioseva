@@ -143,7 +143,9 @@ export const handler = async ({
         (fileName) =>
           fileName.includes('from Brajanath Prabhu')
             ? -1
-            : fileName.includes('clean')
+            : fileName.includes('Srila BV Narayan Maharaja  mp3')
+            ? 99
+            : /clean|restored/.test(fileName)
             ? 100
             : 0,
         /**
