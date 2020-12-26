@@ -152,7 +152,7 @@ export const handler = async ({
       .first();
 
     if (!fs.existsSync(targetFilePath))
-      conversionQueue.push({
+      void conversionQueue.push({
         source: bestSuitableFile,
         destination: targetFilePath,
       });
