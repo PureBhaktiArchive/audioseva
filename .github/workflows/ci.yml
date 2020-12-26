@@ -35,6 +35,8 @@ jobs:
           restore-keys: |
             node-${{ matrix.node }}-${{ runner.os }}-
 
+      - run: npx prettier --check .
+        working-directory: ${{ matrix.project }}
       - run: npm ci
         working-directory: ${{ matrix.project }}
       - run: npm run lint --if-present
