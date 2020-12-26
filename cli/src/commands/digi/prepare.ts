@@ -79,7 +79,7 @@ export const handler = async ({
       .withAudioBitrate(256)
       .output(task.destination)
       .on('start', function () {
-        console.log(`Converting ${task.source}`);
+        console.log(`Converting ${task.source} to ${task.destination}`);
       })
       .on('error', callback)
       .on('end', function () {
@@ -90,6 +90,7 @@ export const handler = async ({
   conversionQueue.error((e, task) => {
     console.error(`Error converting ${task.source}`, e);
   });
+  conversionQueue.pause();
 
   const durationsCacheFile = path.join(rootDirectory, 'durations.txt');
   // Relative file path to Duration
@@ -163,6 +164,8 @@ export const handler = async ({
 
   // Code → Resolution
   const resolutions = new Map<string, Resolution>();
+
+  spinner.info('Processing files to launch');
   for (const [code, fileName] of _(rows)
     .filter('DIGI Code') // Only those with DIGI Code
     .filter('Launch') // Only thouse marked to be launched
@@ -177,12 +180,14 @@ export const handler = async ({
   fs.writeFileSync(durationsCacheFile, JSON.stringify([...durationsCache]));
   spinner.succeed();
 
+  spinner.info('Starting conversion');
+  conversionQueue.resume();
+  await conversionQueue.drain();
+
   spinner.start('Saving statuses into the spreadsheet');
   await spreadsheet.updateColumn(
     'File Status',
     rows.map((row) => resolutions.get(row['DIGI Code']) || null)
   );
   spinner.succeed();
-
-  await conversionQueue.drain();
 };
