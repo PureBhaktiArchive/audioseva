@@ -53,7 +53,7 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'deploy:staging')
     steps:
       - name: Create deployment
-        uses: maxkomarychev/oction-create-deployment@0.7.1
+        uses: maxkomarychev/oction-create-deployment@v0.7.1
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           ref: ${{ github.head_ref }}
