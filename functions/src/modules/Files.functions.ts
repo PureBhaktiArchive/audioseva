@@ -10,6 +10,7 @@ import getAudioDurationInSeconds from 'get-audio-duration';
 import { DateTime } from 'luxon';
 import * as os from 'os';
 import * as path from 'path';
+import { asyncHandler } from '../asyncHandler';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { flatten } from '../flatten';
 import { Spreadsheet } from '../Spreadsheet';
@@ -24,7 +25,7 @@ const app = express();
 
 app.get(
   '/download/:bucket(original|edited|restored)?/:fileName',
-  async ({ params: { bucket, fileName } }, res) => {
+  asyncHandler(async ({ params: { bucket, fileName } }, res) => {
     try {
       const file = await StorageManager.getMostRecentFile(
         StorageManager.getCandidateFiles(fileName, bucket as BucketName)
@@ -65,7 +66,7 @@ app.get(
         .status(500)
         .send('Error getting the file, please contact the coordinator.');
     }
-  }
+  })
 );
 
 export const download = functions

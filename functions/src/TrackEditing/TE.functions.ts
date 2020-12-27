@@ -6,6 +6,7 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import * as path from 'path';
 import { AllotmentStatus } from '../Allotment';
+import { asyncHandler } from '../asyncHandler';
 import { abortCall, authorize } from '../auth';
 import { FileResolution } from '../FileResolution';
 import { FileVersion } from '../FileVersion';
@@ -269,7 +270,7 @@ export const syncAllotments = functions
 export const download = functions.https.onRequest(
   express().get(
     '/te/tasks/:taskId/versions/:versionId/file',
-    async ({ params: { taskId, versionId } }, res) => {
+    asyncHandler(async ({ params: { taskId, versionId } }, res) => {
       const repository = new TasksRepository();
       const task = await repository.getTask(taskId);
 
@@ -322,6 +323,6 @@ export const download = functions.https.onRequest(
         `${file.bucket.name}/${file.name}`
       );
       res.redirect(307, url);
-    }
+    })
   )
 );
