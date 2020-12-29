@@ -40,7 +40,9 @@
     },
     {
       "sourceUrlPrefixes": ["https://github.com/googleapis/"],
-      "groupName": "googleapis packages"
+      "groupName": "googleapis packages",
+      "dependencyDashboardApproval": false,
+      "separateMultipleMajor": false
     }
   ]
 }
