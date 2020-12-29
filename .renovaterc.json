@@ -5,6 +5,7 @@
     ":enableVulnerabilityAlertsWithLabel(security)",
     ":maintainLockFilesWeekly",
     ":prNotPending",
+    ":separateMultipleMajorReleases",
     "helpers:disableTypesNodeMajor",
     "group:googleapis",
     "group:definitelyTyped",
