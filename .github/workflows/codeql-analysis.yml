@@ -1,4 +1,4 @@
-name: "CodeQL"
+name: 'CodeQL'
 
 on:
   push:
@@ -6,8 +6,9 @@ on:
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [master]
+  # Scanning on a schedule monthly to be informed about new vulnerabilities discovered
   schedule:
-    - cron: '0 18 * * 2'
+    - cron: '0 18 28 * *'
 
 jobs:
   analyze:
