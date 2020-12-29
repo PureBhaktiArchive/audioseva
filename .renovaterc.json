@@ -4,6 +4,7 @@
     ":dependencyDashboard",
     ":enableVulnerabilityAlertsWithLabel(security)",
     ":maintainLockFilesWeekly",
+    ":prNotPending",
     "helpers:disableTypesNodeMajor",
     "group:googleapis",
     "group:definitelyTyped",
