@@ -128,5 +128,5 @@ export const importRecords = functions
       return 'OK';
     });
 
-    await sheet.updateColumn('Sanity Status', spreadsheetStatuses);
+    await sheet.updateColumn('Import Status', spreadsheetStatuses);
   });
