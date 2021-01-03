@@ -58,6 +58,8 @@ export const importRecords = functions
       const file = await StorageManager.getMostRecentFile(
         StorageManager.getCandidateFiles(row['Task ID'])
       );
+      if (!file) return 'File not found';
+
       const fileCreatedTimestamp = DateTime.fromISO(
         file.metadata.timeCreated
       ).toMillis();
@@ -66,7 +68,7 @@ export const importRecords = functions
         file: {
           bucket: file.bucket.name,
           name: file.name,
-          generation: file.generation,
+          generation: file.metadata.generation, // file.generation is undefined
         },
         taskId: row['Task ID'],
         fidelityCheck: {
