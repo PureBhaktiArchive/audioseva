@@ -10,6 +10,12 @@ enum IValueInputOption {
   RAW = 'RAW',
 }
 
+const encodeSheetsValue = (value: unknown): unknown =>
+  value === undefined ? null : value === null ? '' : value;
+
+const decodeSheetsValue = (value: unknown): unknown =>
+  value === '' ? null : value ?? null;
+
 export class Spreadsheet<T = unknown> {
   public columnNames: string[];
 
@@ -234,7 +240,7 @@ export class Spreadsheet<T = unknown> {
         'COLUMNS'
       );
 
-      this.columnsCache.set(columnName, values[0]);
+      this.columnsCache.set(columnName, values[0].map(decodeSheetsValue));
     }
 
     return this.columnsCache.get(columnName);
@@ -257,7 +263,7 @@ export class Spreadsheet<T = unknown> {
         valueInputOption: IValueInputOption.RAW,
         requestBody: {
           majorDimension: 'COLUMNS',
-          values: [values],
+          values: [values.map(encodeSheetsValue)],
         },
       })
     );
@@ -285,8 +291,9 @@ export class Spreadsheet<T = unknown> {
      * Thus, the values array may be shorter than columnNames, which produces `undefined`.
      * That is why we coalesce the undefined values to null after zipping.
      */
-    return _.mapValues(_.zipObject(this.columnNames, values), (value) =>
-      value === '' ? null : value ?? null
+    return _.mapValues(
+      _.zipObject(this.columnNames, values),
+      decodeSheetsValue
     ) as T;
   }
 
@@ -301,9 +308,7 @@ export class Spreadsheet<T = unknown> {
   protected objectToArray(object: T) {
     return _(this.columnNames)
       .map((columnName) => <unknown>object[columnName])
-      .map((value) =>
-        value === undefined ? null : value === null ? '' : value
-      )
+      .map(encodeSheetsValue)
       .value();
   }
 
