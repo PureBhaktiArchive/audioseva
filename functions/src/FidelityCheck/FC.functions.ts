@@ -2,6 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
+import { diff } from 'deep-diff';
 import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
@@ -104,13 +105,22 @@ export const importRecords = functions
       /**
        * If the record exists in the database,
        * and FC Date in the spreadsheet is not newer,
-       * then comparing the file info and row details.
+       * then comparing the records.
        */
       if (
         existingRecord &&
         record.fidelityCheck.timestamp <= existingRecord.fidelityCheck.timestamp
       ) {
-        //TODO: compare records
+        const differences = diff(
+          existingRecord,
+          record,
+          // Ignoring some paths
+          (path, key) => path.length === 0 && !['fidelityCheck'].includes(key)
+        );
+        if (differences)
+          return differences
+            .map((d) => `${d.kind}: ${d.path.join('→')}`)
+            .join('\n');
       }
 
       databaseUpdates[row['Archive ID']] = record;
