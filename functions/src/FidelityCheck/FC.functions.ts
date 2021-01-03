@@ -36,16 +36,7 @@ export const importRecords = functions
     const databaseUpdates: Record<string, FidelityCheckRecord> = {};
 
     const spreadsheetStatuses = await pMap(rows, async (row, index) => {
-      // Take only fidelity checked rows with numeric Archive ID into consideration.
-      // Also, the file should be done in TE and SE.
-      if (
-        !Number.isFinite(row['Archive ID']) ||
-        row['Fidelity Checked'] !== true ||
-        row['Done files'] !== true
-      )
-        return null;
-
-      // Then a series of sanity checks are performed
+      if (!Number.isFinite(row['Archive ID'])) return 'No Archive ID';
 
       // Archive Id should be unique per each row
       if (archiveIds.indexOf(row['Archive ID']) < index)
@@ -53,6 +44,13 @@ export const importRecords = functions
 
       // Task Id should be unique per each row
       if (taskIds.indexOf(row['Task ID']) < index) return 'Duplicate Task ID';
+
+      // Take only fidelity checked rows with numeric Archive ID into consideration.
+      // Also, the file should be done in TE and SE.
+      if (row['Fidelity Checked'] !== true || row['Done files'] !== true)
+        return null;
+
+      // Then a series of sanity checks are performed
 
       // All rows should have a valid FC Date
       if (!Number.isFinite(row['FC Date'])) return 'No FC Date';
