@@ -7,6 +7,7 @@ import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { DateTimeConverter } from '../DateTimeConverter';
+import { flatten } from '../flatten';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageManager } from '../StorageManager';
 import { FidelityCheckRecord } from './FidelityCheckRecord';
@@ -128,5 +129,8 @@ export const importRecords = functions
       return 'OK';
     });
 
-    await sheet.updateColumn('Import Status', spreadsheetStatuses);
+    await Promise.all([
+      database().ref('/FC/records').update(flatten(databaseUpdates)),
+      sheet.updateColumn('Import Status', spreadsheetStatuses),
+    ]);
   });
