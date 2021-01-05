@@ -29,6 +29,7 @@
     "morphism": "1.12.3",
     "p-map": "4.0.0",
     "pug": "3.0.0",
+    "recursive-diff": "1.0.8",
     "uuid": "8.3.2"
   },
   "devDependencies": {

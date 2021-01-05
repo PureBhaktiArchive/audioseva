@@ -3,15 +3,11 @@
  */
 
 import { FileResolution } from './FileResolution';
+import { StorageFileReference } from './StorageFileReference';
 
 export interface FileVersion {
   timestamp?: number; // Can be null for a fake version
   uploadPath?: string; // Can be null for a fake version
-  file?: // Explicit file reference for download
-  {
-    bucket: string;
-    name: string;
-    generation?: number; // Used to refer to the fixed version of the edited file in the cloud bucket
-  };
+  file?: StorageFileReference; // Explicit file reference for download
   resolution?: FileResolution;
 }

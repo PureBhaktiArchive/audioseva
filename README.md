@@ -69,6 +69,7 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 | `donations.contact.email_address` | Email address used in donations communication      |
 | `te.spreadsheet.id`               | Track Editing spreadsheet id                       |
 | `te.coordinator.email_address`    | Track Editing coordinator mailbox                  |
+| `fc.spreadsheet.id`               | Fidelity Check spreadsheet id                      |
 
 ## Frontend environment variables
 
