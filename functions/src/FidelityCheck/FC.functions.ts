@@ -61,9 +61,20 @@ export const validateRecords = functions
       );
       if (!file) return 'File not found';
 
-      const fileCreatedTimestamp = DateTime.fromISO(
-        file.metadata.timeCreated
-      ).toMillis();
+      const fileCreationDate = DateTime.fromISO(file.metadata.timeCreated, {
+        zone: sheet.timeZone, // Using sheet's timeZone to make date comparison below correct
+      });
+
+      const fidelityCheckDate = DateTimeConverter.fromSerialDate(
+        row['FC Date'],
+        sheet.timeZone
+      );
+
+      // The FC Date should be later than the file was created.
+      if (fileCreationDate.startOf('day') > fidelityCheckDate)
+        return `File was created on ${fileCreationDate.toISODate()}, after Fidelity Check`;
+
+      // Sanity checks are over. Now analyzing the record changes.
 
       const record: FidelityCheckRecord = {
         file: {
@@ -73,9 +84,7 @@ export const validateRecords = functions
         },
         taskId: row['Task ID'],
         fidelityCheck: {
-          timestamp: DateTimeConverter.fromSerialDate(
-            row['FC Date']
-          ).toMillis(),
+          timestamp: fidelityCheckDate.toMillis(),
           approved: row['Ready For Archive'],
           author: row.Initials,
         },
@@ -92,12 +101,6 @@ export const validateRecords = functions
           soundQualityRating: row['Sound Rating'],
         },
       };
-
-      // The FC Date should be later than the file was created.
-      if (record.fidelityCheck.timestamp <= fileCreatedTimestamp)
-        return 'File is newer than FC Date';
-
-      // Sanity checks are over. Now analyzing the record changes.
 
       const existingRecord = snapshot
         .child(row['Archive ID'].toString())
