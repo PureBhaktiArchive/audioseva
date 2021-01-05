@@ -61,7 +61,7 @@ export const validateRecords = functions
       );
       if (!file) return 'File not found';
 
-      const fileCreationDate = DateTime.fromISO(file.metadata.timeCreated, {
+      const fileCreationTime = DateTime.fromISO(file.metadata.timeCreated, {
         zone: sheet.timeZone, // Using sheet's timeZone to make date comparison below correct
       });
 
@@ -71,10 +71,10 @@ export const validateRecords = functions
       );
 
       // The FC Date should be later than the file was created.
-      // Comparing the beginning of day of the file creation timestamp
+      // Comparing the beginning of day of the file creation time
       // because the fidelity check date is date only, without time portion.
-      if (fileCreationDate.startOf('day') > fidelityCheckDate)
-        return `File was created on ${fileCreationDate.toISODate()}, after Fidelity Check`;
+      if (fileCreationTime.startOf('day') > fidelityCheckDate)
+        return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check`;
 
       // Sanity checks are over. Now analyzing the record changes.
 
