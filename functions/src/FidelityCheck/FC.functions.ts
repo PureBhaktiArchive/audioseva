@@ -71,6 +71,8 @@ export const validateRecords = functions
       );
 
       // The FC Date should be later than the file was created.
+      // Comparing the beginning of day of the file creation timestamp
+      // because the fidelity check date is date only, without time portion.
       if (fileCreationDate.startOf('day') > fidelityCheckDate)
         return `File was created on ${fileCreationDate.toISODate()}, after Fidelity Check`;
 
