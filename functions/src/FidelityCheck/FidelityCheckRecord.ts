@@ -30,7 +30,7 @@ export interface FidelityCheckRecord {
 }
 
 export const backMapping: Record<
-  keyof ContentDetails | 'file' | 'taskId',
+  keyof ContentDetails | keyof Pick<FidelityCheckRecord, 'file' | 'taskId'>,
   keyof FidelityCheckRow | 'File'
 > = {
   file: 'File',
