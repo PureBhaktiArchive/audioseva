@@ -14,7 +14,7 @@ import { backMapping, FidelityCheckRecord } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import pMap = require('p-map');
 
-export const importRecords = functions
+export const validateRecords = functions
   .runWith({ timeoutSeconds: 120 })
   .pubsub.schedule('every day 00:00')
   .timeZone(functions.config().coordinator.timezone)
@@ -140,6 +140,6 @@ export const importRecords = functions
 
     await Promise.all([
       database().ref('/FC/records').update(flatten(databaseUpdates)),
-      sheet.updateColumn('Import Status', spreadsheetStatuses),
+      sheet.updateColumn('Validation Status', spreadsheetStatuses),
     ]);
   });

@@ -20,5 +20,5 @@ export interface FidelityCheckRow {
   'Ready For Archive': boolean;
   'FC Date': number;
   Initials: string;
-  'Import Status': string;
+  'Validation Status': string;
 }
