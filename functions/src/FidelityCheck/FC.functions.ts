@@ -2,15 +2,15 @@
  * sri sri guru gauranga jayatah
  */
 
-import { diff } from 'deep-diff';
 import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
+import { getDiff } from 'recursive-diff';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { flatten } from '../flatten';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageManager } from '../StorageManager';
-import { FidelityCheckRecord } from './FidelityCheckRecord';
+import { backMapping, FidelityCheckRecord } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import pMap = require('p-map');
 
@@ -100,7 +100,7 @@ export const importRecords = functions
       // Sanity checks are over. Now analyzing the record changes.
 
       const existingRecord = snapshot
-        .child(row['Task ID'])
+        .child(row['Archive ID'].toString())
         .val() as FidelityCheckRecord;
 
       /**
@@ -112,16 +112,25 @@ export const importRecords = functions
         existingRecord &&
         record.fidelityCheck.timestamp <= existingRecord.fidelityCheck.timestamp
       ) {
-        const differences = diff(
-          existingRecord,
-          record,
-          // Ignoring some paths
-          (path, key) => path.length === 0 && !['fidelityCheck'].includes(key)
+        const differences = getDiff(existingRecord, record, true).filter(
+          (d) =>
+            // Ignore fidelityCheck changes
+            d.path[0] !== 'fidelityCheck' &&
+            // Check if the values really changed, using the “falsey” logic
+            !(d.op !== 'add' ? d.oldVal : undefined) !==
+              !(d.op !== 'delete' ? d.val : undefined)
         );
-        if (differences)
-          return differences
-            .map((d) => `${d.kind}: ${d.path.join('→')}`)
-            .join('\n');
+
+        if (differences.length) {
+          return `Changed: ${differences
+            .map(
+              (d) =>
+                backMapping[
+                  d.path[0] === 'contentDetails' ? d.path[1] : d.path[0]
+                ]
+            )
+            .join(', ')}`;
+        }
       }
 
       databaseUpdates[row['Archive ID']] = record;
