@@ -20,4 +20,3 @@ jobs:
           ref: ${{ github.ref }}
           environment: production
           required_contexts: <<EMPTY>>
-          state: pending
