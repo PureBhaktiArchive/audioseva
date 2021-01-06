@@ -76,10 +76,10 @@ export const handler = async ({
   const conversionQueue = async.queue<ConversionTask>((task, callback) => {
     ffmpeg(task.source)
       .withAudioCodec('libmp3lame')
-      .withAudioBitrate(64)
+      .withAudioBitrate(256)
       .output(task.destination)
       .on('start', function () {
-        console.log(`Converting ${task.source}`);
+        console.log(`Converting ${task.source} to ${task.destination}`);
       })
       .on('error', callback)
       .on('end', function () {
@@ -90,6 +90,7 @@ export const handler = async ({
   conversionQueue.error((e, task) => {
     console.error(`Error converting ${task.source}`, e);
   });
+  conversionQueue.pause();
 
   const durationsCacheFile = path.join(rootDirectory, 'durations.txt');
   // Relative file path to Duration
@@ -122,10 +123,11 @@ export const handler = async ({
     if (!found?.length) return 'MISSING';
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const durations = await async.map(found, getDuration);
+    const durations = await async.map<string, number>(found, getDuration);
 
-    // Checking that all the files have the same duration, truncated to integer seconds
-    if (_.uniqBy(durations, Math.floor).length > 1) return 'CONTROVERSIAL';
+    // Checking that all the durations are within interval of 1 second
+    if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1)
+      return 'CONTROVERSIAL';
 
     const targetFolderPath = path.join(rootDirectory, 'Renamed', list);
     fs.mkdirSync(targetFolderPath, { recursive: true });
@@ -141,7 +143,9 @@ export const handler = async ({
         (fileName) =>
           fileName.includes('from Brajanath Prabhu')
             ? -1
-            : fileName.includes('clean')
+            : fileName.includes('Srila BV Narayan Maharaja  mp3')
+            ? 99
+            : /clean|restored/.test(fileName)
             ? 100
             : 0,
         /**
@@ -162,6 +166,8 @@ export const handler = async ({
 
   // Code → Resolution
   const resolutions = new Map<string, Resolution>();
+
+  spinner.info('Processing files to launch');
   for (const [code, fileName] of _(rows)
     .filter('DIGI Code') // Only those with DIGI Code
     .filter('Launch') // Only thouse marked to be launched
@@ -176,12 +182,14 @@ export const handler = async ({
   fs.writeFileSync(durationsCacheFile, JSON.stringify([...durationsCache]));
   spinner.succeed();
 
+  spinner.info('Starting conversion');
+  conversionQueue.resume();
+  await conversionQueue.drain();
+
   spinner.start('Saving statuses into the spreadsheet');
   await spreadsheet.updateColumn(
     'File Status',
     rows.map((row) => resolutions.get(row['DIGI Code']) || null)
   );
   spinner.succeed();
-
-  await conversionQueue.drain();
 };
