@@ -70,7 +70,7 @@ app.get(
 );
 
 export const download = functions
-  .runWith({ memory: '128MB' })
+  .runWith({ memory: '256MB' })
   .https.onRequest(app);
 
 const rootFilesMetadataRef = database().ref('files').child('metadata');
