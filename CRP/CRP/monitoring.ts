@@ -2,6 +2,8 @@
  * sri sri guru gauranga jayatah
  */
 
+import { OnEditEventObject } from '../OnEditEventObject';
+
 function rowToObject(row: unknown[], columnNames: string[]): unknown {
   return Object.assign(
     {},
@@ -52,16 +54,6 @@ const watchedColumns = [
   'Resolution',
   'Fidelity Check Resolution',
 ];
-
-interface OnEditEventObject {
-  authMode: GoogleAppsScript.Script.AuthMode;
-  oldValue: unknown;
-  range: GoogleAppsScript.Spreadsheet.Range;
-  source: GoogleAppsScript.Spreadsheet.Spreadsheet;
-  triggerUid: string;
-  user: GoogleAppsScript.Base.User;
-  value: unknown;
-}
 
 const DEBUG = PropertiesService.getScriptProperties().getProperty('DEBUG');
 
