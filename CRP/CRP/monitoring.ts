@@ -2,8 +2,6 @@
  * sri sri guru gauranga jayatah
  */
 
-import { OnEditEventObject } from '../OnEditEventObject';
-
 function rowToObject(row: unknown[], columnNames: string[]): unknown {
   return Object.assign(
     {},
@@ -58,7 +56,7 @@ const watchedColumns = [
 const DEBUG = PropertiesService.getScriptProperties().getProperty('DEBUG');
 
 // this script records changes to the spreadsheet on a "Changelog" sheet.
-export function trackChanges(e: OnEditEventObject) {
+export function trackChanges(e: GoogleAppsScript.Events.SheetsOnEdit) {
   const timestamp = new Date();
   const sheet = e.range.getSheet();
 

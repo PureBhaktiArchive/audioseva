@@ -2,8 +2,6 @@
  * sri sri guru gauranga jayatah
  */
 
-import { OnEditEventObject } from '../OnEditEventObject';
-
 const dateColumnsMapping = {
   'Fidelity Checked': 'FC Date',
   'Ready For Archive': 'Finalization Date',
@@ -15,7 +13,7 @@ const baseColumnsMapping = {
   'Topics Ready': 'Ready For Archive',
 };
 
-export function onEdit(e: OnEditEventObject) {
+export function onEdit(e: GoogleAppsScript.Events.SheetsOnEdit) {
   const sheet = e.source.getActiveSheet();
   if (sheet.getName() !== 'Fidelity Check') return;
 
