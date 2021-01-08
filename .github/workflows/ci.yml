@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [frontend, CRP, cli]
+        project: [frontend, gas, cli]
         node: [12]
         include:
           - project: functions
