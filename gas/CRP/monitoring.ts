@@ -53,20 +53,10 @@ const watchedColumns = [
   'Fidelity Check Resolution',
 ];
 
-interface OnEditEventObject {
-  authMode: GoogleAppsScript.Script.AuthMode;
-  oldValue: unknown;
-  range: GoogleAppsScript.Spreadsheet.Range;
-  source: GoogleAppsScript.Spreadsheet.Spreadsheet;
-  triggerUid: string;
-  user: GoogleAppsScript.Base.User;
-  value: unknown;
-}
-
 const DEBUG = PropertiesService.getScriptProperties().getProperty('DEBUG');
 
 // this script records changes to the spreadsheet on a "Changelog" sheet.
-export function trackChanges(e: OnEditEventObject) {
+export function trackChanges(e: GoogleAppsScript.Events.SheetsOnEdit) {
   const timestamp = new Date();
   const sheet = e.range.getSheet();
 
