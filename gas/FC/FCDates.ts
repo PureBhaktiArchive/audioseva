@@ -13,7 +13,7 @@ const baseColumnsMapping = {
   'Topics Ready': 'Ready For Archive',
 };
 
-export function onEdit(e: GoogleAppsScript.Events.SheetsOnEdit) {
+export function setDatesForCheckboxes(e: GoogleAppsScript.Events.SheetsOnEdit) {
   const sheet = e.source.getActiveSheet();
   if (sheet.getName() !== 'Fidelity Check') return;
 
