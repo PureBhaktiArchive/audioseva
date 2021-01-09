@@ -25,16 +25,18 @@ export interface FidelityCheckRecord {
   fidelityCheck: {
     timestamp: number;
     author: string;
-    approved: boolean;
+  };
+  approval: {
+    readyForArchive: boolean;
+    timestamp: number;
+    topicsReady: boolean;
   };
 }
 
 export const backMapping: Record<
-  keyof ContentDetails | keyof Pick<FidelityCheckRecord, 'file' | 'taskId'>,
-  keyof FidelityCheckRow | 'File'
+  keyof ContentDetails,
+  keyof FidelityCheckRow
 > = {
-  file: 'File',
-  taskId: 'Task ID',
   title: 'Suggested Title',
   topics: 'Topics',
   date: 'Date (yyyymmdd format)',
