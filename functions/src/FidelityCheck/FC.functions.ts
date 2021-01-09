@@ -57,12 +57,13 @@ export const validateRecords = functions
 
       // Then a series of sanity checks are performed
 
-      const fidelityCheckDateSource = row['Fidelity Checked']
+      // General fidelity check supercedes the quick one (without topics)
+      const fidelityCheckDate = row['Fidelity Checked']
         ? row['FC Date']
         : row['FC Date without topics'];
 
       // All rows should have a valid FC Date
-      if (!Number.isFinite(fidelityCheckDateSource)) return 'No FC Date';
+      if (!Number.isFinite(fidelityCheckDate)) return 'Invalid FC Date';
 
       const file = await StorageManager.getMostRecentFile(
         StorageManager.getCandidateFiles(row['Task ID'])
@@ -73,15 +74,19 @@ export const validateRecords = functions
         zone: sheet.timeZone, // Using sheet's timeZone to make date comparison below correct
       });
 
-      const fidelityCheckDate = DateTimeConverter.fromSerialDate(
-        fidelityCheckDateSource,
+      const fidelityCheckTime = DateTimeConverter.fromSerialDate(
+        fidelityCheckDate,
         sheet.timeZone
       );
 
-      // The FC Date should be later than the file was created.
-      // Comparing the beginning of day of the file creation time
-      // because the fidelity check date is date only, without time portion.
-      if (fileCreationTime.startOf('day') > fidelityCheckDate)
+      // The FC Date should be later than the time when the file was created.
+      if (
+        fileCreationTime >
+        (fidelityCheckTime === fidelityCheckTime.startOf('day')
+          ? // If the time is midnight, it means that the date is entered manually, hence using the end of the day as a threshold
+            fidelityCheckTime.endOf('day')
+          : fidelityCheckTime)
+      )
         return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check`;
 
       // Sanity checks are over. Now analyzing the record changes.
@@ -94,9 +99,13 @@ export const validateRecords = functions
         },
         taskId: row['Task ID'],
         fidelityCheck: {
-          timestamp: fidelityCheckDate.toMillis(),
-          approved: row['Ready For Archive'],
-          author: row['FC Initials'],
+          timestamp: fidelityCheckTime.toMillis(),
+          author: row['FC Initials'] || null,
+        },
+        approval: {
+          readyForArchive: row['Ready For Archive'] || false,
+          timestamp: row['Finalization Date'] || null,
+          topicsReady: row['Topics Ready'] || false,
         },
         contentDetails: {
           title: row['Suggested Title'],
@@ -117,32 +126,43 @@ export const validateRecords = functions
         .val() as FidelityCheckRecord;
 
       /**
-       * If the record exists in the database,
-       * and FC Date in the spreadsheet is not newer,
-       * then comparing the records.
+       * If the record exists in the database, then comparing the records.
        */
-      if (
-        existingRecord &&
-        record.fidelityCheck.timestamp <= existingRecord.fidelityCheck.timestamp
-      ) {
-        const differences = getDiff(existingRecord, record, true).filter(
-          (d) =>
-            // Ignore fidelityCheck changes
-            d.path[0] !== 'fidelityCheck' &&
-            // Check if the values really changed, using the “falsey” logic
-            !(d.op !== 'add' ? d.oldVal : undefined) !==
-              !(d.op !== 'delete' ? d.val : undefined)
-        );
+      if (existingRecord) {
+        // Comparing file info if the FC Date is not bumped
+        if (
+          record.fidelityCheck.timestamp <=
+          existingRecord.fidelityCheck.timestamp
+        ) {
+          if (getDiff(existingRecord.file, record.file).length)
+            return 'File was updated since last fidelity check';
+        }
 
-        if (differences.length) {
-          return `Changed: ${differences
-            .map(
+        // If the record is approved earlier, and the Finalization Date is not bumped
+        if (
+          record.approval.readyForArchive &&
+          (record.approval.timestamp <= existingRecord.approval.timestamp ||
+            !existingRecord.approval.timestamp)
+        ) {
+          const changedColumns = getDiff(
+            existingRecord.contentDetails,
+            record.contentDetails,
+            true // keep old values
+          )
+            .filter(
               (d) =>
-                backMapping[
-                  d.path[0] === 'contentDetails' ? d.path[1] : d.path[0]
-                ]
+                // Ignore topics changes if they were not approved earlier
+                (!existingRecord.approval?.topicsReady ||
+                  d.path[0] !== 'topics') &&
+                // Check if the values really changed, using the “falsey” logic
+                !(d.op !== 'add' ? d.oldVal : undefined) !==
+                  !(d.op !== 'delete' ? d.val : undefined)
             )
-            .join(', ')}`;
+            .map((d) => backMapping[d.path[0]]);
+
+          if (changedColumns.length) {
+            return `Changed: ${changedColumns.join(', ')}`;
+          }
         }
       }
 
