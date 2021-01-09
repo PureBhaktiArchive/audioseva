@@ -219,8 +219,10 @@ export class TasksRepository extends AbstractRepository<
       const newAssignee = await admin
         .auth()
         .getUserByEmail(newAssigneeEmail)
-        .catch((error) => {
-          if (error.code !== 'auth/user-not-found') throw error;
+        .catch((error: admin.FirebaseError) => {
+          console.error(
+            `Error getting user by email '${newAssigneeEmail}': ${error.code}, ${error.message}`
+          );
         });
 
       if (!newAssignee) {
