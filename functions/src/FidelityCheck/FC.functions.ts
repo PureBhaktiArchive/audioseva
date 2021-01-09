@@ -100,11 +100,11 @@ export const validateRecords = functions
         taskId: row['Task ID'],
         fidelityCheck: {
           timestamp: fidelityCheckTime.toMillis(),
-          author: row['FC Initials'] || null,
+          author: row['FC Initials'],
         },
         approval: {
           readyForArchive: row['Ready For Archive'] || false,
-          timestamp: row['Finalization Date'] || null,
+          timestamp: row['Finalization Date'],
           topicsReady: row['Topics Ready'] || false,
         },
         contentDetails: {
@@ -141,8 +141,9 @@ export const validateRecords = functions
         // If the record is approved earlier, and the Finalization Date is not bumped
         if (
           record.approval.readyForArchive &&
-          (record.approval.timestamp <= existingRecord.approval.timestamp ||
-            !existingRecord.approval.timestamp)
+          // Using null comparison logic: null is less than any number
+          record.approval.timestamp <=
+            (existingRecord.approval.timestamp || null)
         ) {
           const changedColumns = getDiff(
             existingRecord.contentDetails,
