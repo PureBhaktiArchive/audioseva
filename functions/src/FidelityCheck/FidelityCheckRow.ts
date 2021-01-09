@@ -15,10 +15,19 @@ export interface FidelityCheckRow {
   'Series/Sastra Inputs': string;
   'Sound Rating': string;
   'AM/PM': string;
+  // Lookup columns
   'Done files': boolean;
+  // General Fidelity Check columns
+  'FC Initials': string;
   'Fidelity Checked': boolean;
-  'Ready For Archive': boolean;
   'FC Date': number;
-  Initials: string;
+  // Light Fidelity Check columns (without topics)
+  'Fidelity Checked without topics': boolean;
+  'FC Date without topics': number;
+  // Finalization columns
+  'Ready For Archive': boolean;
+  'Topics Ready': boolean;
+  'Finalization Date': number;
+  // Output column
   'Validation Status': string;
 }

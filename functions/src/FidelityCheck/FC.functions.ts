@@ -48,13 +48,21 @@ export const validateRecords = functions
 
       // Take only fidelity checked rows with numeric Archive ID into consideration.
       // Also, the file should be done in TE and SE.
-      if (row['Fidelity Checked'] !== true || row['Done files'] !== true)
+      if (
+        (row['Fidelity Checked'] !== true &&
+          row['Fidelity Checked without topics'] !== true) ||
+        row['Done files'] !== true
+      )
         return null;
 
       // Then a series of sanity checks are performed
 
+      const fidelityCheckDateSource = row['Fidelity Checked']
+        ? row['FC Date']
+        : row['FC Date without topics'];
+
       // All rows should have a valid FC Date
-      if (!Number.isFinite(row['FC Date'])) return 'No FC Date';
+      if (!Number.isFinite(fidelityCheckDateSource)) return 'No FC Date';
 
       const file = await StorageManager.getMostRecentFile(
         StorageManager.getCandidateFiles(row['Task ID'])
@@ -66,7 +74,7 @@ export const validateRecords = functions
       });
 
       const fidelityCheckDate = DateTimeConverter.fromSerialDate(
-        row['FC Date'],
+        fidelityCheckDateSource,
         sheet.timeZone
       );
 
@@ -88,7 +96,7 @@ export const validateRecords = functions
         fidelityCheck: {
           timestamp: fidelityCheckDate.toMillis(),
           approved: row['Ready For Archive'],
-          author: row.Initials,
+          author: row['FC Initials'],
         },
         contentDetails: {
           title: row['Suggested Title'],
