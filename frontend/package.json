@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@babel/preset-react": "7.12.10",
-    "@mdi/font": "5.8.55",
+    "@mdi/font": "5.9.55",
     "@storybook/addon-a11y": "6.1.14",
     "@storybook/addon-actions": "6.1.14",
     "@storybook/addon-knobs": "6.1.14",
