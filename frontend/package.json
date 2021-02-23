@@ -18,7 +18,7 @@
     "@casl/ability": "4.1.6",
     "@casl/vue": "1.2.2",
     "bluebird": "3.7.2",
-    "core-js": "3.8.3",
+    "core-js": "3.9.0",
     "firebase": "8.2.7",
     "firebaseui": "4.7.3",
     "lodash": "4.17.20",
