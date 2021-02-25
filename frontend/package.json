@@ -21,7 +21,7 @@
     "core-js": "3.9.0",
     "firebase": "8.2.9",
     "firebaseui": "4.7.3",
-    "lodash": "4.17.20",
+    "lodash": "4.17.21",
     "moment": "2.29.1",
     "moment-timezone": "0.5.33",
     "p-queue": "6.6.2",

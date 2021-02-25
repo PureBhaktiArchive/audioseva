@@ -24,7 +24,7 @@
     "get-audio-duration": "2.0.3",
     "glob": "7.1.6",
     "googleapis": "67.1.0",
-    "lodash": "4.17.20",
+    "lodash": "4.17.21",
     "luxon": "1.26.0",
     "morphism": "1.12.3",
     "p-map": "4.0.0",
