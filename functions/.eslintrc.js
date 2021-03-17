@@ -20,7 +20,6 @@ module.exports = {
     'plugin:jest/recommended',
     'plugin:jest/style',
     'prettier',
-    'prettier/@typescript-eslint',
   ],
   rules: {
     '@typescript-eslint/explicit-function-return-type': 'off',
