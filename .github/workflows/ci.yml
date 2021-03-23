@@ -15,11 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [frontend, gas, cli]
+        project: [frontend, functions, gas, cli]
         node: [12]
-        include:
-          - project: functions
-            node: 10
     steps:
       - uses: actions/checkout@v2
 
