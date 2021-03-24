@@ -3,20 +3,8 @@
  */
 
 import { StorageFileReference } from '../StorageFileReference';
+import { ContentDetails } from './ContentDetails';
 import { FidelityCheckRow } from './FidelityCheckRow';
-
-interface ContentDetails {
-  title: string;
-  topics: string;
-  date: string;
-  timeOfDay: string;
-  location: string;
-  category: string;
-  languages: string;
-  percentage: number;
-  seriesInputs: string;
-  soundQualityRating: string;
-}
 
 export interface FidelityCheckRecord {
   file: StorageFileReference;
