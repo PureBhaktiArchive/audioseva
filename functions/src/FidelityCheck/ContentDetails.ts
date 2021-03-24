@@ -5,7 +5,7 @@
 export interface ContentDetails {
   title: string;
   topics: string;
-  date: string;
+  date?: string;
   timeOfDay: string;
   location: string;
   category: string;

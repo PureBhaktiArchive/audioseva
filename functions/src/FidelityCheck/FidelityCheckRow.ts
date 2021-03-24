@@ -7,7 +7,7 @@ export interface FidelityCheckRow {
   'Task ID': string;
   Topics: string;
   'Suggested Title': string;
-  'Date (yyyymmdd format)': string;
+  'Date (yyyymmdd format)': string | number; // Sometimes Date can be formatted as number in the sheet
   Location: string;
   Category: string;
   'Lecture Language': string;

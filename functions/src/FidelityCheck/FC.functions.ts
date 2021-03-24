@@ -110,7 +110,7 @@ export const validateRecords = functions
         contentDetails: {
           title: row['Suggested Title'],
           topics: row.Topics,
-          date: row['Date (yyyymmdd format)'],
+          date: row['Date (yyyymmdd format)']?.toString(),
           timeOfDay: row['AM/PM'],
           location: row.Location,
           category: row.Category,
