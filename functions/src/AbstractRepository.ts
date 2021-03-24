@@ -3,24 +3,23 @@
  */
 
 import { database } from 'firebase-admin';
-import { createSchema, morphism, StrictSchema } from 'morphism';
 import { Allotment, AllotmentStatus, allotmentValidator } from './Allotment';
 import { AllotmentRow } from './AllotmentRow';
 import { DateTimeConverter } from './DateTimeConverter';
 import { flatten } from './flatten';
-import { RequireOnly } from './RequireOnly';
 import { Spreadsheet } from './Spreadsheet';
 import _ = require('lodash');
 
 export abstract class AbstractRepository<
   TRow extends AllotmentRow,
-  TTask extends Allotment & { [id in TId]: string },
-  TId extends keyof TTask
+  TIdColumn extends keyof TRow & string,
+  // TTask extends Allotment & { [id in TId]: string },
+  TId extends string
 > {
   constructor(
     private readonly spreadsheetId: string,
     private readonly idPropertyName: TId,
-    private readonly idColumnName: string,
+    private readonly idColumnName: TIdColumn,
     private readonly allotmentsRef: database.Reference
   ) {}
 
@@ -36,64 +35,77 @@ export abstract class AbstractRepository<
     return (await this.allotmentsSheet()).getRows();
   }
 
-  protected mapFromRows: (
+  protected mapFromRows = (
     rows: TRow[]
-  ) => Pick<TTask, TId | keyof Allotment>[] = morphism(
-    createSchema<Pick<TTask, TId | keyof Allotment>, TRow>({
-      [this.idPropertyName]: this.idColumnName,
-      status: ({ Status: status }) =>
-        (status?.trim() as AllotmentStatus) || AllotmentStatus.Spare,
-      timestampGiven: ({ 'Date Given': date }) =>
-        date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
-      timestampDone: ({ 'Date Done': date }) =>
-        date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
-      assignee: ({ Devotee: name, Email: emailAddress }) => ({
-        name: name?.trim() || null,
-        emailAddress: emailAddress?.trim() || null,
-      }),
-    } as StrictSchema<Pick<TTask, TId | keyof Allotment>, TRow>)
-  );
+  ): (Allotment & { [id in TId]: string })[] =>
+    rows?.map(
+      (row) =>
+        ({
+          [this.idPropertyName]: row[this.idColumnName],
+          status:
+            (row.Status?.trim() as AllotmentStatus) || AllotmentStatus.Spare,
+          timestampGiven: row['Date Given']
+            ? DateTimeConverter.fromSerialDate(row['Date Given']).toMillis()
+            : null,
+          timestampDone: row['Date Done']
+            ? DateTimeConverter.fromSerialDate(row['Date Done']).toMillis()
+            : null,
+          assignee: {
+            name: row.Devotee?.trim() || null,
+            emailAddress: row.Email?.trim() || null,
+          },
+        } as Allotment & { [id in TId]: string })
+    );
 
-  protected abstract mapToRows(tasks: TTask[]): TRow[];
+  protected abstract mapToRows(
+    tasks: (Allotment & { [id in TId]: string })[]
+  ): TRow[];
 
   protected getTaskRef = (id: string) => this.allotmentsRef.child(id);
 
-  public async getTask(id: string): Promise<TTask> {
+  public async getTask(
+    id: string
+  ): Promise<Allotment & { [id in TId]: string }> {
     const snapshot = await this.getTaskRef(id).once('value');
     return snapshot.exists() ? this.constructTask(id, snapshot.val()) : null;
   }
 
-  protected constructTask(id: string, data): TTask {
-    return { [this.idPropertyName]: id, ...data } as TTask;
+  protected constructTask(
+    id: string,
+    data
+  ): Allotment & { [id in TId]: string } {
+    return { [this.idPropertyName]: id, ...data };
   }
 
   public async getTasks(ids: string[]) {
     return await Promise.all(ids.map(async (id) => this.getTask(id)));
   }
 
-  public async save(...tasks: RequireOnly<TTask, TId>[]) {
+  public async save(...tasks: { [id in TId]: string }[]) {
     await this.saveToDatabase(tasks);
 
     const updatedTasks = await this.getTasks(
-      _.map(tasks, (task) => _.get(task, this.idPropertyName))
+      tasks.map((task) => task[this.idPropertyName])
     );
 
     await this.saveToSpreadsheet(updatedTasks);
     return updatedTasks;
   }
 
-  public async saveToDatabase(tasks: RequireOnly<TTask, TId>[]) {
+  public async saveToDatabase(tasks: { [id in TId]: string }[]) {
     await this.allotmentsRef.update(
       flatten(
         _.zipObject(
-          tasks.map((task) => _.get(task, this.idPropertyName)),
-          _.map(tasks, (task) => _.omit(task, this.idPropertyName))
+          tasks.map((task) => task[this.idPropertyName]),
+          tasks.map((task) => _.omit(task, this.idPropertyName))
         )
       )
     );
   }
 
-  public async saveToSpreadsheet(tasks: TTask[]) {
+  public async saveToSpreadsheet(
+    tasks: (Allotment & { [id in TId]: string })[]
+  ) {
     await (await this.allotmentsSheet()).updateOrAppendRows(
       this.idColumnName,
       this.mapToRows(tasks)
@@ -197,7 +209,7 @@ export abstract class AbstractRepository<
       })
       // Type casting is required to pass this successfully to `saveToDatabase`.
       // Asked question https://stackoverflow.com/q/63216805/3082178
-      .value() as RequireOnly<TTask, TId>[];
+      .value();
 
     if (dryRun) console.log(`DRY RUN, doing nothing.`);
     else {
