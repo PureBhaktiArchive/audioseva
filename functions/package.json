@@ -23,7 +23,7 @@
     "firebase-functions": "3.13.2",
     "get-audio-duration": "2.0.3",
     "glob": "7.1.6",
-    "googleapis": "67.1.1",
+    "googleapis": "68.0.0",
     "lodash": "4.17.21",
     "luxon": "1.26.0",
     "morphism": "1.12.3",
