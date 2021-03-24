@@ -60,3 +60,15 @@ describe('Duration conversion', () => {
     expect(duration.invalidReason).toEqual('Incorrect format');
   });
 });
+
+describe('Date', () => {
+  it.each`
+    input         | iso
+    ${'19960422'} | ${'1996-04-22'}
+    ${'19961100'} | ${'1996-11'}
+    ${'19910000'} | ${'1991'}
+    ${'19910010'} | ${null}
+  `('“$input” should be standardized to “$iso”', ({ input, iso }) => {
+    expect(DateTimeConverter.standardizeIsoDate(input)).toStrictEqual(iso);
+  });
+});

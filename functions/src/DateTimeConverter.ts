@@ -86,4 +86,16 @@ export class DateTimeConverter {
   public static secondsToHuman(seconds: number): string {
     return this.durationToHuman(Duration.fromObject({ seconds }));
   }
+
+  public static standardizeIsoDate(date: string): string {
+    const match = /^(\d{4})(\d{2})(\d{2})$/.exec(date);
+    if (match === null) return null;
+
+    const [, year, month, day] = match;
+
+    // Day cannot be specified if month is not specified
+    if (month === '00' && day !== '00') return null;
+
+    return [year, month, day].filter((u) => u !== '00').join('-');
+  }
 }
