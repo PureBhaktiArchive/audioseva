@@ -4,7 +4,7 @@
     <div class="pb-3">
       <h3>{{ $title }}</h3>
     </div>
-    <h3 class="headline mb-0">Audio Player</h3>
+    <h3 class="text-h5 mb-0">Audio Player</h3>
     <v-card color="#d9edf7" class="my-2">
       <v-card-title primary-title>
         <audio
