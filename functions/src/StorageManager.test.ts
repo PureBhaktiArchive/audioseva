@@ -88,17 +88,10 @@ describe('Uploaded SE file', () => {
     ${'a/b/c/ML2-1059-1.flac'}           | ${'ML2/ML2-1059-1.flac'}
     ${'HI-001-1.flac'}                   | ${'ML1/HI-001-1.flac'}
     ${'ML2-1113-1_v2-2.flac'}            | ${'ML2/ML2-1113-1.flac'}
-    ${'TST-001-1_1.flac'}                | ${null}
-    ${'ML2-97 B_V2.flac'}                | ${null}
-    ${'BR-01B v3.flac'}                  | ${null}
     ${'DIGI07-0001-1.mp3'}               | ${'DIGI07/DIGI07-0001-1.mp3'}
     ${'DIGI07-0306-1_v2_less_harsh.mp3'} | ${'DIGI07/DIGI07-0306-1.mp3'}
     ${'DIGI08-0015_V3 Sadananda.mp3'}    | ${'DIGI08/DIGI08-0015.mp3'}
-    ${'DIGI07-0214-1_Sadananda.mp3'}     | ${null}
     ${'DIGI04-0047-1_v1.2.mp3'}          | ${'DIGI04/DIGI04-0047-1.mp3'}
-    ${'DIGI04-0047-1 Sadanand.mp3'}      | ${null}
-    ${'BR-49A-2.mp3'}                    | ${null}
-    ${'RANI-93-2.flac.flac'}             | ${null}
     ${'test-93-2.flac'}                  | ${'TEST/TEST-93-2.flac'}
   `(
     `$sourceFileName should be saved to $destinationFileName`,
@@ -106,12 +99,23 @@ describe('Uploaded SE file', () => {
       const file = StorageManager.getDestinationFileForRestoredUpload(
         sourceFileName
       );
-      if (destinationFileName) {
-        expect(file).not.toBeNull();
-        expect(file.name).toEqual(destinationFileName);
-      } else {
-        expect(file).toBeNull();
-      }
+      expect(file.name).toEqual(destinationFileName);
     }
   );
+
+  test.each`
+    sourceFileName
+    ${'TST-001-1_1.flac'}
+    ${'ML2-97 B_V2.flac'}
+    ${'BR-01B v3.flac'}
+    ${'DIGI07-0214-1_Sadananda.mp3'}
+    ${'DIGI04-0047-1 Sadanand.mp3'}
+    ${'BR-49A-2.mp3'}
+    ${'RANI-93-2.flac.flac'}
+  `(`$sourceFileName should be rejected`, ({ sourceFileName }) => {
+    const file = StorageManager.getDestinationFileForRestoredUpload(
+      sourceFileName
+    );
+    expect(file).toBeNull();
+  });
 });
