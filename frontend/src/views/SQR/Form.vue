@@ -11,7 +11,7 @@
     </v-container>
     <v-container v-else-if="submitSuccess">
       <div class="submitSuccessBackground">
-        <p class="pa-4 title submitSuccessText">
+        <p class="pa-4 text-h6 submitSuccessText">
           Thank you! We have received your submission.
         </p>
       </div>

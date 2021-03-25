@@ -36,7 +36,7 @@ jobs:
         working-directory: ${{ matrix.project }}
       - run: npm ci
         working-directory: ${{ matrix.project }}
-      - run: npm run lint --if-present
+      - run: npm run lint --if-present -- --no-fix
         working-directory: ${{ matrix.project }}
       - run: npm run build --if-present
         working-directory: ${{ matrix.project }}
