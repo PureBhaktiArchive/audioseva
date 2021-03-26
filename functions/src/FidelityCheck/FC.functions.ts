@@ -89,6 +89,16 @@ export const validateRecords = functions
       )
         return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check`;
 
+      // Content Details sanity checks
+
+      if (
+        row['Date (yyyymmdd format)'] &&
+        DateTimeConverter.standardizePseudoIsoDate(
+          row['Date (yyyymmdd format)'].toString()
+        ) === null
+      )
+        return `Date “${row['Date (yyyymmdd format)']}” is not recognized.`;
+
       // Sanity checks are over. Now analyzing the record changes.
 
       const record: FidelityCheckRecord = {

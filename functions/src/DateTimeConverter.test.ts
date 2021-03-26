@@ -61,14 +61,25 @@ describe('Duration conversion', () => {
   });
 });
 
-describe('Date', () => {
+describe('Pseudo-ISO date', () => {
   it.each`
     input         | iso
     ${'19960422'} | ${'1996-04-22'}
     ${'19961100'} | ${'1996-11'}
     ${'19910000'} | ${'1991'}
     ${'19910010'} | ${null}
-  `('“$input” should be standardized to “$iso”', ({ input, iso }) => {
-    expect(DateTimeConverter.standardizeIsoDate(input)).toStrictEqual(iso);
+  `('“$input” should be standardized as “$iso”', ({ input, iso }) => {
+    expect(DateTimeConverter.standardizePseudoIsoDate(input)).toBe(iso);
+  });
+
+  it.each([
+    '19910010', // Month undefined but day defined
+    '19911310', // Non-existent month
+    '19910230', // Non-existent day of February
+    '19910132', // Non-existent day of January
+    '199105', // No day, even zeros
+    '2005-06-07', // Hyphens are not accepted
+  ])('“%s” should not be recognized as a pseudo-ISO date', (input) => {
+    expect(DateTimeConverter.standardizePseudoIsoDate(input)).toBeNull();
   });
 });
