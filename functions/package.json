@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@google-cloud/pubsub": "2.10.0",
-    "email-templates": "8.0.3",
+    "email-templates": "8.0.4",
     "express": "4.17.1",
     "firebase-admin": "9.5.0",
     "firebase-functions": "3.13.2",
