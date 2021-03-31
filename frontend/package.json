@@ -39,7 +39,7 @@
     "whatwg-fetch": "3.6.2"
   },
   "devDependencies": {
-    "@babel/preset-react": "7.12.13",
+    "@babel/preset-react": "7.13.13",
     "@mdi/font": "5.9.55",
     "@storybook/addon-a11y": "6.1.21",
     "@storybook/addon-actions": "6.1.21",
