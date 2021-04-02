@@ -4,8 +4,11 @@
 
 import { IValidationRule } from './IValidationRule';
 
+interface Predicate<T> {
+  (entity: T, index?: number, array?: T[]): boolean;
+}
 export class ValidationRule<T> implements IValidationRule<T> {
-  constructor(private spec: (entity: T) => boolean, public message: string) {}
+  constructor(private spec: Predicate<T>, public message: string) {}
 
   public validate(entity: T): boolean {
     return this.spec(entity);
