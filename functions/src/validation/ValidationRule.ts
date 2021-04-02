@@ -15,6 +15,14 @@ export class ValidationRule<T> implements IValidationRule<T> {
   }
 }
 
+export class ValidationIssue<T> implements IValidationRule<T> {
+  constructor(private violation: Predicate<T>, public message: string) {}
+
+  public validate(entity: T): boolean {
+    return !this.violation(entity);
+  }
+}
+
 export class ValidationRuleForEach<T> implements IValidationRule<T[]> {
   constructor(
     private spec: (value: T, index: number, array: T[]) => boolean,
