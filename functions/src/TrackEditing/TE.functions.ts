@@ -250,7 +250,8 @@ export const importTasks = functions
 
 export const processRechecked = functions
   .runWith({ timeoutSeconds: 120 })
-  .pubsub.schedule('every 4 hours from 07:55 to 00:00')
+  // Scheduling right after the allotments sync. This helps coordinator to reschedule Recheck quickly.
+  .pubsub.schedule('every 4 hours from 08:05 to 00:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const repository = new TasksRepository();
