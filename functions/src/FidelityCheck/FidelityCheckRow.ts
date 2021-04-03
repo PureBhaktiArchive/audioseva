@@ -14,6 +14,7 @@ export interface FidelityCheckRow {
   Category: string;
   'Lecture Language': string;
   'Srila Gurudeva Timing': number;
+  'Other Guru-varga': string;
   'Series/Sastra Inputs': string;
   'Sound Rating': string;
   'AM/PM': string;

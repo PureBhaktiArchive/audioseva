@@ -132,6 +132,7 @@ export const validateRecords = functions
         category: row.Category?.trim(),
         languages: row['Lecture Language']?.trim(),
         percentage: row['Srila Gurudeva Timing'],
+        otherSpeaker: row['Other Guru-varga']?.trim(),
         seriesInputs: row['Series/Sastra Inputs']?.trim(),
         soundQualityRating: row['Sound Rating']?.trim(),
       };

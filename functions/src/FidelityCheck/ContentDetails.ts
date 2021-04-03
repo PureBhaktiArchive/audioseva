@@ -13,6 +13,7 @@ export interface ContentDetails {
   category: string;
   languages: string;
   percentage: number;
+  otherSpeaker: string;
   seriesInputs: string;
   soundQualityRating: string;
 }
