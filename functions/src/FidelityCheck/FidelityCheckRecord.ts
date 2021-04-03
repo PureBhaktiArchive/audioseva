@@ -6,19 +6,23 @@ import { StorageFileReference } from '../StorageFileReference';
 import { ContentDetails } from './ContentDetails';
 import { FidelityCheckRow } from './FidelityCheckRow';
 
+export interface Approval {
+  readyForArchive: boolean;
+  timestamp: number;
+  topicsReady: boolean;
+}
+
+export interface FidelityCheck {
+  timestamp: number;
+  author: string;
+}
+
 export interface FidelityCheckRecord {
   file: StorageFileReference;
   taskId: string;
   contentDetails: ContentDetails;
-  fidelityCheck: {
-    timestamp: number;
-    author: string;
-  };
-  approval: {
-    readyForArchive: boolean;
-    timestamp: number;
-    topicsReady: boolean;
-  };
+  fidelityCheck: FidelityCheck;
+  approval: Approval;
 }
 
 export const backMapping: Record<
@@ -28,8 +32,10 @@ export const backMapping: Record<
   title: 'Suggested Title',
   topics: 'Topics',
   date: 'Date (yyyymmdd format)',
+  dateUncertain: 'Date uncertain',
   timeOfDay: 'AM/PM',
   location: 'Location',
+  locationUncertain: 'Location uncertain',
   category: 'Category',
   languages: 'Lecture Language',
   percentage: 'Srila Gurudeva Timing',
