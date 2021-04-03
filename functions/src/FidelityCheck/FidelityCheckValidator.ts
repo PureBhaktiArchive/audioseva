@@ -80,6 +80,15 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Invalid Finalization Date.'
       ),
       new ValidationIssue(
+        (row) =>
+          row['Finalization Date'] &&
+          row['Finalization Date'] <=
+            (row['Topics Ready']
+              ? row['FC Date']
+              : row['FC Date without topics']),
+        'Finalization Date is before FC Date.'
+      ),
+      new ValidationIssue(
         (row) => typeof (row['Topics Ready'] || false) !== 'boolean',
         'Invalid Topics Ready: should be true/false.'
       ),
