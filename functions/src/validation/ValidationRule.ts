@@ -10,16 +10,16 @@ interface Predicate<T> {
 export class ValidationRule<T> implements IValidationRule<T> {
   constructor(private spec: Predicate<T>, public message: string) {}
 
-  public validate(entity: T): boolean {
-    return this.spec(entity);
+  public validate(entity: T, index?: number, array?: T[]): boolean {
+    return this.spec(entity, index, array);
   }
 }
 
 export class ValidationIssue<T> implements IValidationRule<T> {
   constructor(private violation: Predicate<T>, public message: string) {}
 
-  public validate(entity: T): boolean {
-    return !this.violation(entity);
+  public validate(entity: T, index?: number, array?: T[]): boolean {
+    return !this.violation(entity, index, array);
   }
 }
 
