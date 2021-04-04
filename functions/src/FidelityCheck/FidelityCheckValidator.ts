@@ -40,12 +40,12 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
       ),
       new ValidationIssue(
         (row) => typeof (row['Date uncertain'] || false) !== 'boolean',
-        'Invalid Date uncertain: should be true/false.'
+        'Date uncertain should be true/false.'
       ),
       new ValidationIssue((row) => !row['Location'], 'Location is mandatory.'),
       new ValidationIssue(
         (row) => typeof (row['Location uncertain'] || false) !== 'boolean',
-        'Invalid Location uncertain: should be true/false.'
+        'Location uncertain should be true/false.'
       ),
       new ValidationIssue(
         // Coalescing to empty string due to “not bug” https://stackoverflow.com/q/2430578/3082178
@@ -62,7 +62,7 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
       new ValidationIssue(
         (row) =>
           row['Srila Gurudeva Timing'] < 0 || row['Srila Gurudeva Timing'] > 1,
-        'Srila Gurudeva Timing is not valid: should be 0-100%.'
+        'Srila Gurudeva Timing should be 0-100%.'
       ),
       new ValidationIssue(
         (row) =>
@@ -103,7 +103,7 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
       ),
       new ValidationIssue(
         (row) => typeof (row['Topics Ready'] || false) !== 'boolean',
-        'Invalid Topics Ready: should be true/false.'
+        'Topics Ready should be true/false.'
       ),
     ]);
   }
