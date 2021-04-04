@@ -25,7 +25,7 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Duplicate Task ID.'
       ),
       new ValidationIssue(
-        (row) => !row['Date (yyyymmdd format)'],
+        (row) => !row['Date (yyyymmdd format)']?.toString()?.trim(),
         'Date is mandatory.'
       ),
       new ValidationIssue(
@@ -42,7 +42,17 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         (row) => typeof (row['Date uncertain'] || false) !== 'boolean',
         'Date uncertain should be true/false.'
       ),
-      new ValidationIssue((row) => !row['Location'], 'Location is mandatory.'),
+      new ValidationIssue(
+        (row) => !row['Location']?.toString()?.trim(),
+        'Location is mandatory.'
+      ),
+      new ValidationIssue(
+        (row) =>
+          row['Location']?.toString()?.trim() &&
+          row['Location']?.toString()?.toUpperCase() !== 'UNKNOWN' &&
+          row['Location uncertain'] === true,
+        'Location uncertain is applicable only if Location is defined and not UNKNOWN.'
+      ),
       new ValidationIssue(
         (row) => typeof (row['Location uncertain'] || false) !== 'boolean',
         'Location uncertain should be true/false.'
