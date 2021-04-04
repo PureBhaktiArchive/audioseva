@@ -39,6 +39,7 @@ export const backMapping: Record<
   category: 'Category',
   languages: 'Lecture Language',
   percentage: 'Srila Gurudeva Timing',
+  otherSpeaker: 'Other Guru-varga',
   seriesInputs: 'Series/Sastra Inputs',
   soundQualityRating: 'Sound Rating',
 };
