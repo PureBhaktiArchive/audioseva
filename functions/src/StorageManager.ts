@@ -94,7 +94,7 @@ export class StorageManager {
       file.bucket.name.startsWith('original.') ? 0 : 1;
 
     return candidates
-      .filter((file) => file.metadata.name) // Filtering out non-existent files
+      .filter((file) => file.metadata?.name) // Filtering out non-existent files
       .sort(
         (a, b) =>
           // By bucket priority descending
