@@ -118,19 +118,19 @@ export const validateRecords = functions
       };
 
       const contentDetails: ContentDetails = {
-        title: row['Suggested Title']?.trim(),
-        topics: row.Topics?.trim(),
-        date: row['Date (yyyymmdd format)']?.toString(),
+        title: row['Suggested Title']?.toString()?.trim(),
+        topics: row.Topics?.toString()?.trim(),
+        date: row['Date (yyyymmdd format)']?.toString() || null,
         dateUncertain: row['Date uncertain'] || false,
-        timeOfDay: row['AM/PM']?.trim(),
-        location: row.Location?.trim(),
+        timeOfDay: row['AM/PM']?.toString()?.trim() || null,
+        location: row.Location?.toString()?.trim() || null,
         locationUncertain: row['Location uncertain'] || false,
-        category: row.Category?.trim(),
-        languages: row['Lecture Language']?.trim(),
+        category: row.Category?.toString()?.trim(),
+        languages: row['Lecture Language']?.toString()?.trim(),
         percentage: row['Srila Gurudeva Timing'],
-        otherSpeaker: row['Other Guru-varga']?.trim(),
-        seriesInputs: row['Series/Sastra Inputs']?.trim(),
-        soundQualityRating: row['Sound Rating']?.trim(),
+        otherSpeaker: row['Other Guru-varga']?.toString()?.trim() || null,
+        seriesInputs: row['Series/Sastra Inputs']?.toString()?.trim() || null,
+        soundQualityRating: row['Sound Rating']?.toString()?.trim(),
       };
 
       const backMapping: Record<
