@@ -79,6 +79,8 @@ describe('Pseudo-ISO date', () => {
     '19910132', // Non-existent day of January
     '199105', // No day, even zeros
     '2005-06-07', // Hyphens are not accepted
+    null, // Should consume `null` gracefully
+    undefined, // Should consume `undefined` gracefully
   ])('“%s” should not be recognized as a pseudo-ISO date', (input) => {
     expect(DateTimeConverter.standardizePseudoIsoDate(input)).toBeNull();
   });
