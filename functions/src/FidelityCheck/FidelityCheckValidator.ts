@@ -41,13 +41,16 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Invalid Location uncertain: should be true/false.'
       ),
       new ValidationIssue(
-        (row) => !/^\w+$/.test(row['Lecture Language']?.trim()),
-        'Category is not valid: should be one word.'
+        // Coalescing to empty string due to “not bug” https://stackoverflow.com/q/2430578/3082178
+        (row) => !/^\w+$/.test((row['Category'] ?? '').toString().trim()),
+        'Category should be one word.'
       ),
       new ValidationIssue(
         (row) =>
-          !/(\s*\w+\s*)(,\s*\w+\s*)*/.test(row['Lecture Language']?.trim()),
-        'Languages are not valid: should be a comma-separated list of words.'
+          !/(\s*\w+\s*)(,\s*\w+\s*)*/.test(
+            (row['Lecture Language'] ?? '').toString().trim()
+          ),
+        'Languages should be a comma-separated list of words.'
       ),
       new ValidationIssue(
         (row) =>
@@ -55,8 +58,11 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Srila Gurudeva Timing is not valid: should be 0-100%.'
       ),
       new ValidationIssue(
-        (row) => !/^(Good|Average|Low)$/.test(row['Sound Rating']?.trim()),
-        'Sound Rating is not valid: should be Good, Average or Low.'
+        (row) =>
+          !/^(Good|Average|Low)$/.test(
+            (row['Sound Rating'] ?? '').toString().trim()
+          ),
+        'Sound Rating should be Good, Average or Low.'
       ),
       new ValidationIssue(
         (row) => row['Done files'] !== true,
