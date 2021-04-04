@@ -25,17 +25,24 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Duplicate Task ID.'
       ),
       new ValidationIssue(
+        (row) => !row['Date (yyyymmdd format)'],
+        'Date is mandatory.'
+      ),
+      new ValidationIssue(
         (row) =>
           row['Date (yyyymmdd format)'] &&
+          row['Date (yyyymmdd format)'].toString().toUpperCase() !==
+            'UNKNOWN' &&
           DateTimeConverter.standardizePseudoIsoDate(
             row['Date (yyyymmdd format)'].toString()
           ) === null,
-        'Date is not valid: should be in YYYYMMDD format.'
+        'Date should be in YYYYMMDD format or UNKNOWN.'
       ),
       new ValidationIssue(
         (row) => typeof (row['Date uncertain'] || false) !== 'boolean',
         'Invalid Date uncertain: should be true/false.'
       ),
+      new ValidationIssue((row) => !row['Location'], 'Location is mandatory.'),
       new ValidationIssue(
         (row) => typeof (row['Location uncertain'] || false) !== 'boolean',
         'Invalid Location uncertain: should be true/false.'
