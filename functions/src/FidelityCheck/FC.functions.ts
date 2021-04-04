@@ -12,11 +12,7 @@ import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
 import { ContentDetails } from './ContentDetails';
-import {
-  backMapping,
-  FidelityCheck,
-  FidelityCheckRecord,
-} from './FidelityCheckRecord';
+import { FidelityCheck, FidelityCheckRecord } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
 import pMap = require('p-map');
@@ -135,6 +131,25 @@ export const validateRecords = functions
         otherSpeaker: row['Other Guru-varga']?.trim(),
         seriesInputs: row['Series/Sastra Inputs']?.trim(),
         soundQualityRating: row['Sound Rating']?.trim(),
+      };
+
+      const backMapping: Record<
+        keyof ContentDetails,
+        keyof FidelityCheckRow
+      > = {
+        title: 'Suggested Title',
+        topics: 'Topics',
+        date: 'Date (yyyymmdd format)',
+        dateUncertain: 'Date uncertain',
+        timeOfDay: 'AM/PM',
+        location: 'Location',
+        locationUncertain: 'Location uncertain',
+        category: 'Category',
+        languages: 'Lecture Language',
+        percentage: 'Srila Gurudeva Timing',
+        otherSpeaker: 'Other Guru-varga',
+        seriesInputs: 'Series/Sastra Inputs',
+        soundQualityRating: 'Sound Rating',
       };
 
       if (
