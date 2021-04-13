@@ -67,7 +67,6 @@ describe('Pseudo-ISO date', () => {
     ${'19960422'} | ${'1996-04-22'}
     ${'19961100'} | ${'1996-11'}
     ${'19910000'} | ${'1991'}
-    ${'19910010'} | ${null}
   `('“$input” should be standardized as “$iso”', ({ input, iso }) => {
     expect(DateTimeConverter.standardizePseudoIsoDate(input)).toBe(iso);
   });
