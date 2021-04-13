@@ -166,9 +166,8 @@ export const validateRecords = functions
               // Ignore topics changes if they were not approved earlier
               (existingRecord.approval?.topicsReady ||
                 d.path[0] !== 'topics') &&
-              // Check if the values really changed, using the “falsey” logic
-              !(d.op !== 'add' ? d.oldVal : undefined) !==
-                !(d.op !== 'delete' ? d.val : undefined)
+              // Absent value from Firebase is undefined, but `null` in the spreadsheet
+              !(d.op === 'add' && d.val === null)
           )
           .map((d) => backMapping[d.path[0]]);
 
