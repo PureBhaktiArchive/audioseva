@@ -25,12 +25,12 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Duplicate Task ID.'
       ),
       new ValidationIssue(
-        (row) => !row['Date (yyyymmdd format)']?.toString()?.trim(),
+        (row) => row['Date (yyyymmdd format)']?.toString()?.trim() === '',
         'Date is mandatory.'
       ),
       new ValidationIssue(
         (row) =>
-          row['Date (yyyymmdd format)'] &&
+          row['Date (yyyymmdd format)']?.toString()?.trim() !== '' &&
           row['Date (yyyymmdd format)'].toString().toUpperCase() !==
             'UNKNOWN' &&
           DateTimeConverter.standardizePseudoIsoDate(
@@ -43,7 +43,7 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Date uncertain should be true/false.'
       ),
       new ValidationIssue(
-        (row) => !row['Location']?.toString()?.trim(),
+        (row) => row['Location']?.toString()?.trim() === '',
         'Location is mandatory.'
       ),
       new ValidationIssue(
@@ -58,7 +58,7 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Location uncertain should be true/false.'
       ),
       new ValidationIssue(
-        (row) => !row['Category']?.toString()?.trim(),
+        (row) => row['Category']?.toString()?.trim() === '',
         'Category is mandatory.'
       ),
       new ValidationIssue(
@@ -67,7 +67,7 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Category should be one word.'
       ),
       new ValidationIssue(
-        (row) => !row['Lecture Language']?.toString()?.trim(),
+        (row) => row['Lecture Language']?.toString()?.trim() === '',
         'Lecture Language is mandatory.'
       ),
       new ValidationIssue(
