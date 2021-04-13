@@ -205,7 +205,12 @@ export const finalizeRecords = functions
         id,
         {
           file,
-          contentDetails,
+          contentDetails: {
+            ...contentDetails,
+            date: DateTimeConverter.standardizePseudoIsoDate(
+              contentDetails.date?.toString()
+            ),
+          },
         },
       ]);
     await database().ref('/final/records').set(Object.fromEntries(records));
