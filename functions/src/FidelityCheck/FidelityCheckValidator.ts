@@ -58,9 +58,17 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Location uncertain should be true/false.'
       ),
       new ValidationIssue(
+        (row) => !row['Category']?.toString()?.trim(),
+        'Category is mandatory.'
+      ),
+      new ValidationIssue(
         // Coalescing to empty string due to “not bug” https://stackoverflow.com/q/2430578/3082178
         (row) => !/^\w+$/.test((row['Category'] ?? '').toString().trim()),
         'Category should be one word.'
+      ),
+      new ValidationIssue(
+        (row) => !row['Lecture Language']?.toString()?.trim(),
+        'Lecture Language is mandatory.'
       ),
       new ValidationIssue(
         (row) =>
