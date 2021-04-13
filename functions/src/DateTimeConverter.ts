@@ -86,4 +86,30 @@ export class DateTimeConverter {
   public static secondsToHuman(seconds: number): string {
     return this.durationToHuman(Duration.fromObject({ seconds }));
   }
+
+  /**
+   * Converts a reduced precision date provided
+   * in a pseudo ISO 8601 format `YYYYMMDD`, where unknown components (month, day) are represented as `00`,
+   * into a real ISO date representation, where unknown components are omitted.
+   * @param input Pseudo-ISO date string, e.g. `20050700` or `19990000`.
+   * @returns ISO date string with reduced precision, e.g. `2005-07` or `1999`.
+   * Returns `null` if the input date is not recognied or is not a valid date.
+   */
+  public static standardizePseudoIsoDate(input: string): string {
+    const match = /^(\d{4})(\d{2})(\d{2})$/.exec(input);
+    if (match === null) return null;
+
+    const [, year, month, day] = match;
+
+    // Day cannot be specified if month is not specified
+    if (month === '00' && day !== '00') return null;
+
+    const iso = [year, month, day].filter((u) => u !== '00').join('-');
+    const date = DateTime.fromISO(iso, { zone: 'utc', locale: 'en' });
+
+    // Checking if the values provided constitutes a correct date.
+    if (!date.isValid) return null;
+
+    return iso;
+  }
 }

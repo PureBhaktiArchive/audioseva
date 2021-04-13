@@ -9,9 +9,12 @@ import { getDiff } from 'recursive-diff';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { flatten } from '../flatten';
 import { Spreadsheet } from '../Spreadsheet';
+import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
-import { backMapping, FidelityCheckRecord } from './FidelityCheckRecord';
+import { ContentDetails } from './ContentDetails';
+import { FidelityCheck, FidelityCheckRecord } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
+import { FidelityCheckValidator } from './FidelityCheckValidator';
 import pMap = require('p-map');
 
 export const validateRecords = functions
@@ -30,150 +33,153 @@ export const validateRecords = functions
       database().ref('/FC/records').once('value'),
     ]);
 
-    // Getting IDs for detecting duplicates later
-    const archiveIds = rows.map((row) => row['Archive ID']);
-    const taskIds = rows.map((row) => row['Task ID']);
-
-    const databaseUpdates: Record<string, FidelityCheckRecord> = {};
-
+    const validator = new FidelityCheckValidator();
     const spreadsheetStatuses = await pMap(rows, async (row, index) => {
-      if (!Number.isFinite(row['Archive ID'])) return 'No Archive ID';
+      // Basic row validation
+      const result = validator.validate(row, index, rows);
+      if (!result.isValid) return result.messages.join('\n');
 
-      // Archive Id should be unique per each row
-      if (archiveIds.indexOf(row['Archive ID']) < index)
-        return 'Duplicate Archive ID';
-
-      // Task Id should be unique per each row
-      if (taskIds.indexOf(row['Task ID']) < index) return 'Duplicate Task ID';
-
-      // Take only fidelity checked rows with numeric Archive ID into consideration.
-      // Also, the file should be done in TE and SE.
       if (
-        (row['Fidelity Checked'] !== true &&
-          row['Fidelity Checked without topics'] !== true) ||
-        row['Done files'] !== true
+        row['Fidelity Checked'] !== true &&
+        row['Fidelity Checked without topics'] !== true
       )
-        return null;
-
-      // Then a series of sanity checks are performed
+        return 'Awaiting FC.';
 
       // General fidelity check supercedes the quick one (without topics)
       const fidelityCheckDate = row['Fidelity Checked']
         ? row['FC Date']
         : row['FC Date without topics'];
 
-      // All rows should have a valid FC Date
-      if (!Number.isFinite(fidelityCheckDate)) return 'Invalid FC Date';
-
       const file = await StorageManager.getMostRecentFile(
         StorageManager.getCandidateFiles(row['Task ID'])
       );
       if (!file) return 'File not found';
 
-      const fileCreationTime = DateTime.fromISO(file.metadata.timeCreated, {
-        zone: sheet.timeZone, // Using sheet's timeZone to make date comparison below correct
-      });
+      const fileCreationTime = DateTime.fromISO(
+        file.metadata.timeCreated // ISO format, e.g. 2020-08-24T09:28:12.483Z
+      );
 
       const fidelityCheckTime = DateTimeConverter.fromSerialDate(
         fidelityCheckDate,
         sheet.timeZone
       );
 
+      /**
+       * If the date is midnight, it means that the date was entered manually during this day.
+       * Hence, using the end of that day as an “exact” FC time.
+       */
+      const exactFidelityCheckTime =
+        fidelityCheckTime === fidelityCheckTime.startOf('day')
+          ? fidelityCheckTime.endOf('day')
+          : fidelityCheckTime;
+
       // The FC Date should be later than the time when the file was created.
-      if (
-        fileCreationTime >
-        (fidelityCheckTime === fidelityCheckTime.startOf('day')
-          ? // If the time is midnight, it means that the date is entered manually, hence using the end of the day as a threshold
-            fidelityCheckTime.endOf('day')
-          : fidelityCheckTime)
-      )
-        return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check`;
+      if (fileCreationTime > exactFidelityCheckTime)
+        return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check on ${exactFidelityCheckTime.toISODate()}.`;
 
-      // Sanity checks are over. Now analyzing the record changes.
+      const recordSnapshot = snapshot.child(row['Archive ID'].toString());
+      const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
 
-      const record: FidelityCheckRecord = {
-        file: {
-          bucket: file.bucket.name,
-          name: file.name,
-          generation: file.metadata.generation, // file.generation is undefined
-        },
-        taskId: row['Task ID'],
-        fidelityCheck: {
-          timestamp: fidelityCheckTime.toMillis(),
-          author: row['FC Initials'],
-        },
-        approval: {
-          readyForArchive: row['Ready For Archive'] || false,
-          timestamp: row['Finalization Date'],
-          topicsReady: row['Topics Ready'] || false,
-        },
-        contentDetails: {
-          title: row['Suggested Title'],
-          topics: row.Topics,
-          date: row['Date (yyyymmdd format)'],
-          timeOfDay: row['AM/PM'],
-          location: row.Location,
-          category: row.Category,
-          languages: row['Lecture Language'],
-          percentage: row['Srila Gurudeva Timing'],
-          seriesInputs: row['Series/Sastra Inputs'],
-          soundQualityRating: row['Sound Rating'],
-        },
+      const fileReference: StorageFileReference = {
+        bucket: file.bucket.name,
+        name: file.name,
+        generation: file.metadata.generation,
+      };
+      const fidelityCheck: FidelityCheck = {
+        timestamp: exactFidelityCheckTime.toMillis(),
+        author: row['FC Initials'],
       };
 
-      const existingRecord = snapshot
-        .child(row['Archive ID'].toString())
-        .val() as FidelityCheckRecord;
-
-      /**
-       * If the record exists in the database, then comparing the records.
-       */
-      if (existingRecord) {
-        // Comparing file info if the FC Date is not bumped
-        if (
-          record.fidelityCheck.timestamp <=
-          existingRecord.fidelityCheck.timestamp
-        ) {
-          if (getDiff(existingRecord.file, record.file).length)
-            return 'File was updated since last fidelity check';
-        }
-
-        // If the record is approved earlier, and the Finalization Date is not bumped
-        if (
-          record.approval.readyForArchive &&
-          // Using null comparison logic: null is less than any number
-          record.approval.timestamp <=
-            (existingRecord.approval.timestamp || null)
-        ) {
-          const changedColumns = getDiff(
-            existingRecord.contentDetails,
-            record.contentDetails,
-            true // keep old values
-          )
-            .filter(
-              (d) =>
-                // Ignore topics changes if they were not approved earlier
-                (!existingRecord.approval?.topicsReady ||
-                  d.path[0] !== 'topics') &&
-                // Check if the values really changed, using the “falsey” logic
-                !(d.op !== 'add' ? d.oldVal : undefined) !==
-                  !(d.op !== 'delete' ? d.val : undefined)
-            )
-            .map((d) => backMapping[d.path[0]]);
-
-          if (changedColumns.length) {
-            return `Changed: ${changedColumns.join(', ')}`;
-          }
-        }
+      if (
+        // Using -Infinity to make sure that in absense of existing record the new record will be considered newer
+        fidelityCheck.timestamp <=
+        (existingRecord?.fidelityCheck?.timestamp || -Infinity)
+      ) {
+        // Comparing file info if the FC Date was not bumped
+        if (getDiff(existingRecord.file, fileReference).length)
+          return 'File was updated since last fidelity check.';
       }
+      // Updating the database if the FC Date was bumped
+      else
+        await recordSnapshot.ref.update(
+          flatten({ file: fileReference, fidelityCheck: fidelityCheck })
+        );
 
-      databaseUpdates[row['Archive ID']] = record;
+      if (row['Ready For Archive'] !== true)
+        return 'Awaiting Ready For Archive.';
+
+      const approval = {
+        readyForArchive: row['Ready For Archive'] || false,
+        timestamp: DateTimeConverter.fromSerialDate(
+          row['Finalization Date'],
+          sheet.timeZone
+        ).toMillis(),
+        topicsReady: row['Topics Ready'] || false,
+      };
+
+      const contentDetails: ContentDetails = {
+        title: row['Suggested Title']?.toString()?.trim(),
+        topics: row.Topics?.toString()?.trim(),
+        date: row['Date (yyyymmdd format)']?.toString() || null,
+        dateUncertain: row['Date uncertain'] || false,
+        timeOfDay: row['AM/PM']?.toString()?.trim() || null,
+        location: row.Location?.toString()?.trim() || null,
+        locationUncertain: row['Location uncertain'] || false,
+        category: row.Category?.toString()?.trim(),
+        languages: row['Lecture Language']?.toString()?.trim(),
+        percentage: row['Srila Gurudeva Timing'],
+        otherSpeaker: row['Other Guru-varga']?.toString()?.trim() || null,
+        seriesInputs: row['Series/Sastra Inputs']?.toString()?.trim() || null,
+        soundQualityRating: row['Sound Rating']?.toString()?.trim(),
+      };
+
+      const backMapping: Record<
+        keyof ContentDetails,
+        keyof FidelityCheckRow
+      > = {
+        title: 'Suggested Title',
+        topics: 'Topics',
+        date: 'Date (yyyymmdd format)',
+        dateUncertain: 'Date uncertain',
+        timeOfDay: 'AM/PM',
+        location: 'Location',
+        locationUncertain: 'Location uncertain',
+        category: 'Category',
+        languages: 'Lecture Language',
+        percentage: 'Srila Gurudeva Timing',
+        otherSpeaker: 'Other Guru-varga',
+        seriesInputs: 'Series/Sastra Inputs',
+        soundQualityRating: 'Sound Rating',
+      };
+
+      if (
+        // Using -Infinity to make sure that in absense of existing record the new record will be considered newer
+        approval.timestamp <= (existingRecord?.approval?.timestamp || -Infinity)
+      ) {
+        const changedColumns = getDiff(
+          existingRecord.contentDetails,
+          contentDetails,
+          true // keep old values
+        )
+          .filter(
+            (d) =>
+              // Ignore topics changes if they were not approved earlier
+              (existingRecord.approval?.topicsReady ||
+                d.path[0] !== 'topics') &&
+              // Absent value from Firebase is undefined, but `null` in the spreadsheet
+              !(d.op === 'add' && d.val === null)
+          )
+          .map((d) => backMapping[d.path[0]]);
+
+        if (changedColumns.length)
+          return `Changed after finalization: ${changedColumns.join(', ')}.`;
+      }
+      // Updating the database if the Finalization Date was bumped
+      else
+        await recordSnapshot.ref.update(flatten({ approval, contentDetails }));
 
       return 'OK';
     });
 
-    await Promise.all([
-      database().ref('/FC/records').update(flatten(databaseUpdates)),
-      sheet.updateColumn('Validation Status', spreadsheetStatuses),
-    ]);
+    await sheet.updateColumn('Validation Status', spreadsheetStatuses);
   });

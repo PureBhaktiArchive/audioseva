@@ -7,11 +7,14 @@ export interface FidelityCheckRow {
   'Task ID': string;
   Topics: string;
   'Suggested Title': string;
-  'Date (yyyymmdd format)': string;
+  'Date (yyyymmdd format)': string | number; // Sometimes Date can be formatted as number in the sheet
+  'Date uncertain': boolean;
   Location: string;
+  'Location uncertain': boolean;
   Category: string;
   'Lecture Language': string;
   'Srila Gurudeva Timing': number;
+  'Other Guru-varga': string;
   'Series/Sastra Inputs': string;
   'Sound Rating': string;
   'AM/PM': string;
