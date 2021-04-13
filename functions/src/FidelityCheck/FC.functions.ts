@@ -164,7 +164,7 @@ export const validateRecords = functions
           .filter(
             (d) =>
               // Ignore topics changes if they were not approved earlier
-              (!existingRecord.approval?.topicsReady ||
+              (existingRecord.approval?.topicsReady ||
                 d.path[0] !== 'topics') &&
               // Check if the values really changed, using the “falsey” logic
               !(d.op !== 'add' ? d.oldVal : undefined) !==
