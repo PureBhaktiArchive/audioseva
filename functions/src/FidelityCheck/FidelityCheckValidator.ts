@@ -30,7 +30,7 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
       ),
       new ValidationIssue(
         (row) =>
-          row['Date (yyyymmdd format)']?.toString()?.trim() !== '' &&
+          row['Date (yyyymmdd format)'] &&
           row['Date (yyyymmdd format)'].toString().toUpperCase() !==
             'UNKNOWN' &&
           DateTimeConverter.standardizePseudoIsoDate(
@@ -48,8 +48,8 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
       ),
       new ValidationIssue(
         (row) =>
-          row['Location']?.toString()?.trim() &&
-          row['Location']?.toString()?.toUpperCase() !== 'UNKNOWN' &&
+          (!row['Location']?.toString()?.trim() ||
+            row['Location']?.toString()?.toUpperCase() === 'UNKNOWN') &&
           row['Location uncertain'] === true,
         'Location uncertain is applicable only if Location is defined and not UNKNOWN.'
       ),
