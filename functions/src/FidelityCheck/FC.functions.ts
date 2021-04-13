@@ -15,6 +15,7 @@ import { ContentDetails } from './ContentDetails';
 import { FidelityCheck, FidelityCheckRecord } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
+import { FinalRecord } from './FinalRecord';
 import pMap = require('p-map');
 
 export const validateRecords = functions
@@ -182,4 +183,30 @@ export const validateRecords = functions
     });
 
     await sheet.updateColumn('Validation Status', spreadsheetStatuses);
+  });
+
+export const finalizeRecords = functions
+  .runWith({ timeoutSeconds: 120, memory: '1GB' })
+  .pubsub.topic('finalize')
+  .onPublish(async () => {
+    const snapshot = await database().ref('/FC/records').once('value');
+    if (!snapshot.exists()) return;
+
+    /**
+     * Since we are using integer keys, Firebase can return either array or map:
+     * https://firebase.googleblog.com/2014/04/best-practices-arrays-in-firebase.html
+     * For this reason we're using `Object.entries` which work identical for both data structures.
+     */
+    const records = Object.entries(
+      snapshot.val() as Record<string, FidelityCheckRecord>
+    )
+      .filter(([, record]) => record.approval.readyForArchive)
+      .map<[string, FinalRecord]>(([id, { file, contentDetails }]) => [
+        id,
+        {
+          file,
+          contentDetails,
+        },
+      ]);
+    await database().ref('/final/records').set(Object.fromEntries(records));
   });
