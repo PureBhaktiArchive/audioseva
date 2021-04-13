@@ -75,7 +75,7 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
           !/(\s*\w+\s*)(,\s*\w+\s*)*/.test(
             (row['Lecture Language'] ?? '').toString().trim()
           ),
-        'Languages should be a comma-separated list of words.'
+        'Lecture Language should be a comma-separated list of languages.'
       ),
       new ValidationIssue(
         (row) =>
@@ -117,7 +117,7 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
             (row['Topics Ready']
               ? row['FC Date']
               : row['FC Date without topics']),
-        'Finalization Date is before FC Date.'
+        'Finalization Date should be after FC Date.'
       ),
       new ValidationIssue(
         (row) => typeof (row['Topics Ready'] || false) !== 'boolean',
