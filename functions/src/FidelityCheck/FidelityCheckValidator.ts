@@ -25,56 +25,47 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Duplicate Task ID.'
       ),
       new ValidationIssue(
-        (row) => row['Date (yyyymmdd format)']?.toString()?.trim() === '',
+        (row) => !row['Date (yyyymmdd format)'],
         'Date is mandatory.'
       ),
       new ValidationIssue(
         (row) =>
           row['Date (yyyymmdd format)'] &&
-          row['Date (yyyymmdd format)'].toString().toUpperCase() !==
-            'UNKNOWN' &&
+          row['Date (yyyymmdd format)'].toUpperCase() !== 'UNKNOWN' &&
           DateTimeConverter.standardizePseudoIsoDate(
-            row['Date (yyyymmdd format)'].toString()
+            row['Date (yyyymmdd format)']
           ) === null,
         'Date should be in YYYYMMDD format or UNKNOWN.'
       ),
       new ValidationIssue(
-        (row) => typeof (row['Date uncertain'] || false) !== 'boolean',
+        (row) => typeof row['Date uncertain'] !== 'boolean',
         'Date uncertain should be true/false.'
       ),
-      new ValidationIssue(
-        (row) => row['Location']?.toString()?.trim() === '',
-        'Location is mandatory.'
-      ),
+      new ValidationIssue((row) => !row['Location'], 'Location is mandatory.'),
       new ValidationIssue(
         (row) =>
-          (!row['Location']?.toString()?.trim() ||
-            row['Location']?.toString()?.toUpperCase() === 'UNKNOWN') &&
+          (!row['Location'] || row['Location'].toUpperCase() === 'UNKNOWN') &&
           row['Location uncertain'] === true,
         'Location uncertain is applicable only if Location is defined and not UNKNOWN.'
       ),
       new ValidationIssue(
-        (row) => typeof (row['Location uncertain'] || false) !== 'boolean',
+        (row) => typeof row['Location uncertain'] !== 'boolean',
         'Location uncertain should be true/false.'
       ),
-      new ValidationIssue(
-        (row) => row['Category']?.toString()?.trim() === '',
-        'Category is mandatory.'
-      ),
+      new ValidationIssue((row) => !row['Category'], 'Category is mandatory.'),
       new ValidationIssue(
         // Coalescing to empty string due to “not bug” https://stackoverflow.com/q/2430578/3082178
-        (row) => !/^\w+$/.test((row['Category'] ?? '').toString().trim()),
+        (row) => row['Category'] && !/^\w+$/.test(row['Category']),
         'Category should be one word.'
       ),
       new ValidationIssue(
-        (row) => row['Lecture Language']?.toString()?.trim() === '',
+        (row) => !row['Lecture Language'],
         'Lecture Language is mandatory.'
       ),
       new ValidationIssue(
         (row) =>
-          !/(\s*\w+\s*)(,\s*\w+\s*)*/.test(
-            (row['Lecture Language'] ?? '').toString().trim()
-          ),
+          row['Lecture Language'] &&
+          !/(\s*\w+\s*)(,\s*\w+\s*)*/.test(row['Lecture Language']),
         'Lecture Language should be a comma-separated list of languages.'
       ),
       new ValidationIssue(
@@ -83,10 +74,13 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Srila Gurudeva Timing should be 0-100%.'
       ),
       new ValidationIssue(
+        (row) => !row['Sound Rating'],
+        'Sound Rating is mandatory.'
+      ),
+      new ValidationIssue(
         (row) =>
-          !/^(Good|Average|Low)$/.test(
-            (row['Sound Rating'] ?? '').toString().trim()
-          ),
+          row['Sound Rating'] &&
+          !/^(Good|Average|Low)$/.test(row['Sound Rating']),
         'Sound Rating should be Good, Average or Low.'
       ),
       new ValidationIssue(

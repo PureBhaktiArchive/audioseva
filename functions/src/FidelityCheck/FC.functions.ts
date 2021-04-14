@@ -34,7 +34,40 @@ export const validateRecords = functions
     ]);
 
     const validator = new FidelityCheckValidator();
+
+    const makeKeys = <K extends ReadonlyArray<keyof FidelityCheckRow>>(
+      keys: K
+    ) => keys;
+    const STRING_COLUMNS = makeKeys([
+      'AM/PM',
+      'Category',
+      'Date (yyyymmdd format)',
+      'Lecture Language',
+      'Location',
+      'Other Guru-varga',
+      'Series/Sastra Inputs',
+      'Sound Rating',
+      'Suggested Title',
+      'Topics',
+    ]);
+    const BOOLEAN_COLUMNS = makeKeys([
+      'Date uncertain',
+      'Location uncertain',
+      'Topics Ready',
+      'Ready For Archive',
+      'Fidelity Checked',
+      'Fidelity Checked without topics',
+    ]);
+
     const spreadsheetStatuses = await pMap(rows, async (row, index) => {
+      // Normalizing input data: fixing humans’ mistypings
+      STRING_COLUMNS.forEach((key) => {
+        row[key] = row[key]?.toString()?.trim() || null;
+      });
+      BOOLEAN_COLUMNS.forEach((key) => {
+        row[key] = row[key] || false;
+      });
+
       // Basic row validation
       const result = validator.validate(row, index, rows);
       if (!result.isValid) return result.messages.join('\n');
@@ -109,28 +142,28 @@ export const validateRecords = functions
         return 'Awaiting Ready For Archive.';
 
       const approval = {
-        readyForArchive: row['Ready For Archive'] || false,
+        readyForArchive: row['Ready For Archive'],
         timestamp: DateTimeConverter.fromSerialDate(
           row['Finalization Date'],
           sheet.timeZone
         ).toMillis(),
-        topicsReady: row['Topics Ready'] || false,
+        topicsReady: row['Topics Ready'],
       };
 
       const contentDetails: ContentDetails = {
-        title: row['Suggested Title']?.toString()?.trim(),
-        topics: row.Topics?.toString()?.trim(),
-        date: row['Date (yyyymmdd format)']?.toString() || null,
-        dateUncertain: row['Date uncertain'] || false,
-        timeOfDay: row['AM/PM']?.toString()?.trim() || null,
-        location: row.Location?.toString()?.trim() || null,
-        locationUncertain: row['Location uncertain'] || false,
-        category: row.Category?.toString()?.trim(),
-        languages: row['Lecture Language']?.toString()?.trim(),
+        title: row['Suggested Title'],
+        topics: row.Topics,
+        date: row['Date (yyyymmdd format)'],
+        dateUncertain: row['Date uncertain'],
+        timeOfDay: row['AM/PM'],
+        location: row.Location,
+        locationUncertain: row['Location uncertain'],
+        category: row.Category,
+        languages: row['Lecture Language'],
         percentage: row['Srila Gurudeva Timing'],
-        otherSpeaker: row['Other Guru-varga']?.toString()?.trim() || null,
-        seriesInputs: row['Series/Sastra Inputs']?.toString()?.trim() || null,
-        soundQualityRating: row['Sound Rating']?.toString()?.trim(),
+        otherSpeaker: row['Other Guru-varga'],
+        seriesInputs: row['Series/Sastra Inputs'],
+        soundQualityRating: row['Sound Rating'],
       };
 
       const backMapping: Record<
