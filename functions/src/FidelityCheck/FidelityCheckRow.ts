@@ -7,7 +7,7 @@ export interface FidelityCheckRow {
   'Task ID': string;
   Topics: string;
   'Suggested Title': string;
-  'Date (yyyymmdd format)': string | number; // Sometimes Date can be formatted as number in the sheet
+  'Date (yyyymmdd format)': string;
   'Date uncertain': boolean;
   Location: string;
   'Location uncertain': boolean;
