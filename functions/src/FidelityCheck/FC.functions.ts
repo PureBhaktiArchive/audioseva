@@ -213,5 +213,5 @@ export const finalizeRecords = functions
           },
         },
       ]);
-    await database().ref('/final/records').set(Object.fromEntries(records));
+    await database().ref('/final/entries').set(Object.fromEntries(records));
   });
