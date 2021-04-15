@@ -54,11 +54,6 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
       ),
       new ValidationIssue((row) => !row['Category'], 'Category is mandatory.'),
       new ValidationIssue(
-        // Coalescing to empty string due to “not bug” https://stackoverflow.com/q/2430578/3082178
-        (row) => row['Category'] && !/^\w+$/.test(row['Category']),
-        'Category should be one word.'
-      ),
-      new ValidationIssue(
         (row) => !row['Lecture Language'],
         'Lecture Language is mandatory.'
       ),
