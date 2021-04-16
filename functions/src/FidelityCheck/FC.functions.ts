@@ -192,6 +192,9 @@ export const finalizeRecords = functions
     const snapshot = await database().ref('/FC/records').once('value');
     if (!snapshot.exists()) return;
 
+    const coalesceUnknown = (input: string): string | null =>
+      input?.toUpperCase() === 'UNKNOWN' ? null : input;
+
     /**
      * Since we are using integer keys, Firebase can return either array or map:
      * https://firebase.googleblog.com/2014/04/best-practices-arrays-in-firebase.html
@@ -201,17 +204,21 @@ export const finalizeRecords = functions
       snapshot.val() as Record<string, FidelityCheckRecord>
     )
       .filter(([, record]) => record.approval.readyForArchive)
-      .map<[string, FinalRecord]>(([id, { file, contentDetails }]) => [
-        id,
-        {
-          file,
-          contentDetails: {
-            ...contentDetails,
-            date: DateTimeConverter.standardizePseudoIsoDate(
-              contentDetails.date?.toString()
-            ),
+      .map<[string, FinalRecord]>(
+        ([id, { approval, file, contentDetails }]) => [
+          id,
+          {
+            file,
+            contentDetails: {
+              ...contentDetails,
+              date: DateTimeConverter.standardizePseudoIsoDate(
+                coalesceUnknown(contentDetails.date)
+              ),
+              location: coalesceUnknown(contentDetails.location),
+              topicsReady: approval.topicsReady,
+            },
           },
-        },
-      ]);
+        ]
+      );
     await database().ref('/final/entries').set(Object.fromEntries(records));
   });
