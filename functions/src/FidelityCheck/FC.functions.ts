@@ -200,7 +200,7 @@ export const finalizeEntries = functions
      * https://firebase.googleblog.com/2014/04/best-practices-arrays-in-firebase.html
      * For this reason we're using `Object.entries` which work identical for both data structures.
      */
-    const records = Object.entries(
+    const entries = Object.entries(
       snapshot.val() as Record<string, FidelityCheckRecord>
     )
       .filter(([, record]) => record.approval?.readyForArchive)
@@ -220,5 +220,5 @@ export const finalizeEntries = functions
           },
         },
       ]);
-    await database().ref('/final/entries').set(Object.fromEntries(records));
+    await database().ref('/final/entries').set(Object.fromEntries(entries));
   });
