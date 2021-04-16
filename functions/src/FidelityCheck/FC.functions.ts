@@ -15,7 +15,7 @@ import { ContentDetails } from './ContentDetails';
 import { FidelityCheck, FidelityCheckRecord } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
-import { FinalRecord } from './FinalRecord';
+import { FinalEntry } from './FinalEntry';
 import pMap = require('p-map');
 
 export const validateRecords = functions
@@ -204,23 +204,21 @@ export const finalizeRecords = functions
       snapshot.val() as Record<string, FidelityCheckRecord>
     )
       .filter(([, record]) => record.approval?.readyForArchive)
-      .map<[string, FinalRecord]>(
-        ([id, { approval, file, contentDetails }]) => [
-          id,
-          {
-            file,
-            contentDetails: {
-              ...contentDetails,
-              date: DateTimeConverter.standardizePseudoIsoDate(
-                coalesceUnknown(contentDetails.date)
-              ),
-              dateUncertain: contentDetails.dateUncertain || null,
-              location: coalesceUnknown(contentDetails.location),
-              locationUncertain: contentDetails.locationUncertain || null,
-              topicsReady: approval.topicsReady,
-            },
+      .map<[string, FinalEntry]>(([id, { approval, file, contentDetails }]) => [
+        id,
+        {
+          file,
+          contentDetails: {
+            ...contentDetails,
+            date: DateTimeConverter.standardizePseudoIsoDate(
+              coalesceUnknown(contentDetails.date)
+            ),
+            dateUncertain: contentDetails.dateUncertain || null,
+            location: coalesceUnknown(contentDetails.location),
+            locationUncertain: contentDetails.locationUncertain || null,
+            topicsReady: approval.topicsReady,
           },
-        ]
-      );
+        },
+      ]);
     await database().ref('/final/entries').set(Object.fromEntries(records));
   });
