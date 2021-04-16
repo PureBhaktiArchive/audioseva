@@ -213,9 +213,13 @@ export const finalizeEntries = functions
             date: DateTimeConverter.standardizePseudoIsoDate(
               coalesceUnknown(contentDetails.date)
             ),
-            dateUncertain: contentDetails.dateUncertain || null,
+            dateUncertain: coalesceUnknown(contentDetails.date)
+              ? contentDetails.dateUncertain
+              : null,
             location: coalesceUnknown(contentDetails.location),
-            locationUncertain: contentDetails.locationUncertain || null,
+            locationUncertain: coalesceUnknown(contentDetails.location)
+              ? contentDetails.locationUncertain
+              : null,
             topicsReady: approval.topicsReady,
           },
         },
