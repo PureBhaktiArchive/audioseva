@@ -203,7 +203,7 @@ export const finalizeRecords = functions
     const records = Object.entries(
       snapshot.val() as Record<string, FidelityCheckRecord>
     )
-      .filter(([, record]) => record.approval.readyForArchive)
+      .filter(([, record]) => record.approval?.readyForArchive)
       .map<[string, FinalRecord]>(
         ([id, { approval, file, contentDetails }]) => [
           id,
