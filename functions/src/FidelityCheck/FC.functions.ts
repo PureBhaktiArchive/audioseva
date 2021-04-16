@@ -185,7 +185,7 @@ export const validateRecords = functions
     await sheet.updateColumn('Validation Status', spreadsheetStatuses);
   });
 
-export const finalizeRecords = functions
+export const finalizeEntries = functions
   .runWith({ timeoutSeconds: 120, memory: '1GB' })
   .pubsub.topic('finalize')
   .onPublish(async () => {
