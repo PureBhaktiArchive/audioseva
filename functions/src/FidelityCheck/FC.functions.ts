@@ -214,7 +214,9 @@ export const finalizeRecords = functions
               date: DateTimeConverter.standardizePseudoIsoDate(
                 coalesceUnknown(contentDetails.date)
               ),
+              dateUncertain: contentDetails.dateUncertain || null,
               location: coalesceUnknown(contentDetails.location),
+              locationUncertain: contentDetails.locationUncertain || null,
               topicsReady: approval.topicsReady,
             },
           },
