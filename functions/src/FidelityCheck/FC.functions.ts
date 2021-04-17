@@ -7,7 +7,6 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { getDiff } from 'recursive-diff';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { flatten } from '../flatten';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
@@ -135,9 +134,10 @@ export const validateRecords = functions
       }
       // Updating the database if the FC Date was bumped
       else
-        await recordSnapshot.ref.update(
-          flatten({ file: fileReference, fidelityCheck: fidelityCheck })
-        );
+        await recordSnapshot.ref.update({
+          file: fileReference,
+          fidelityCheck,
+        });
 
       if (row['Ready For Archive'] !== true)
         return 'Awaiting Ready For Archive.';
@@ -209,8 +209,7 @@ export const validateRecords = functions
           return `Changed after finalization: ${changedColumns.join(', ')}.`;
       }
       // Updating the database if the Finalization Date was bumped
-      else
-        await recordSnapshot.ref.update(flatten({ approval, contentDetails }));
+      else await recordSnapshot.ref.update({ approval, contentDetails });
 
       return 'OK';
     });
