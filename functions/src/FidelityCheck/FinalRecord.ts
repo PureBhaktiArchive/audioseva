@@ -5,7 +5,7 @@
 import { StorageFileReference } from '../StorageFileReference';
 import { ContentDetails } from './ContentDetails';
 
-export interface FinalEntry {
+export interface FinalRecord {
   file: StorageFileReference;
   contentDetails: ContentDetails & { topicsReady: boolean };
 }

@@ -15,7 +15,7 @@ import { ContentDetails } from './ContentDetails';
 import { FidelityCheck, FidelityCheckRecord } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
-import { FinalEntry } from './FinalEntry';
+import { FinalRecord } from './FinalRecord';
 import pMap = require('p-map');
 
 export const validateRecords = functions
@@ -200,29 +200,31 @@ export const exportForArchive = functions
      * https://firebase.googleblog.com/2014/04/best-practices-arrays-in-firebase.html
      * For this reason we're using `Object.entries` which work identical for both data structures.
      */
-    const entries = Object.entries(
+    const records = Object.entries(
       snapshot.val() as Record<string, FidelityCheckRecord>
     )
       .filter(([, record]) => record.approval?.readyForArchive)
-      .map<[string, FinalEntry]>(([id, { approval, file, contentDetails }]) => [
-        id,
-        {
-          file,
-          contentDetails: {
-            ...contentDetails,
-            date: DateTimeConverter.standardizePseudoIsoDate(
-              coalesceUnknown(contentDetails.date)
-            ),
-            dateUncertain: coalesceUnknown(contentDetails.date)
-              ? contentDetails.dateUncertain
-              : null,
-            location: coalesceUnknown(contentDetails.location),
-            locationUncertain: coalesceUnknown(contentDetails.location)
-              ? contentDetails.locationUncertain
-              : null,
-            topicsReady: approval.topicsReady,
+      .map<[string, FinalRecord]>(
+        ([id, { approval, file, contentDetails }]) => [
+          id,
+          {
+            file,
+            contentDetails: {
+              ...contentDetails,
+              date: DateTimeConverter.standardizePseudoIsoDate(
+                coalesceUnknown(contentDetails.date)
+              ),
+              dateUncertain: coalesceUnknown(contentDetails.date)
+                ? contentDetails.dateUncertain
+                : null,
+              location: coalesceUnknown(contentDetails.location),
+              locationUncertain: coalesceUnknown(contentDetails.location)
+                ? contentDetails.locationUncertain
+                : null,
+              topicsReady: approval.topicsReady,
+            },
           },
-        },
-      ]);
-    await database().ref('/final/entries').set(Object.fromEntries(entries));
+        ]
+      );
+    await database().ref('/final/records').set(Object.fromEntries(records));
   });
