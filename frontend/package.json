@@ -52,7 +52,7 @@
     "@types/jest": "26.0.22",
     "@types/lodash": "4.14.168",
     "@types/moment-timezone": "0.5.13",
-    "@types/node": "12.20.7",
+    "@types/node": "12.20.10",
     "@types/spark-md5": "3.0.2",
     "@typescript-eslint/eslint-plugin": "4.22.0",
     "@typescript-eslint/parser": "4.22.0",
