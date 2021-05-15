@@ -14,6 +14,9 @@
     "group:linters"
   ],
   "prConcurrentLimit": 2,
+  "vulnerabilityAlerts": {
+    "schedule": ["at any time"]
+  },
   "major": {
     "dependencyDashboardApproval": true
   },
@@ -25,6 +28,10 @@
     {
       "matchPackageNames": ["googleapis"],
       "dependencyDashboardApproval": false
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "extends": ["schedule:quarterly"]
     }
   ]
 }
