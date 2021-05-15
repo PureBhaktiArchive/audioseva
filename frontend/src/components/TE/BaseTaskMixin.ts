@@ -5,9 +5,11 @@ export default class BaseTaskMixin extends Vue {
   getLastVersion(task: any) {
     if (!task.versions) return null;
 
-    const [id, lastVersion] = (Object.entries(task.versions) as {
-      [key: string]: any;
-    }).pop();
+    const [id, lastVersion] = (
+      Object.entries(task.versions) as {
+        [key: string]: any;
+      }
+    ).pop();
     return {
       id,
       ...lastVersion,

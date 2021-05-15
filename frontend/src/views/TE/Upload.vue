@@ -398,9 +398,8 @@ export default class Upload extends Mixins<BaseTaskMixin>(BaseTaskMixin) {
         },
         async (error: any) => {
           if (error.code === 'storage/retry-limit-exceeded') {
-            const { retryAttempts = 0, retryDuration = 1000 } = this.getFile(
-              file
-            );
+            const { retryAttempts = 0, retryDuration = 1000 } =
+              this.getFile(file);
             if (retryAttempts < this.maxRetryAttempts) {
               const retry = this.backOff(retryDuration);
               this.updateFileFields(file, {
