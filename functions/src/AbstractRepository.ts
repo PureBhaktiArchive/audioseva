@@ -94,10 +94,9 @@ export abstract class AbstractRepository<
   }
 
   public async saveToSpreadsheet(tasks: TTask[]) {
-    await (await this.allotmentsSheet()).updateOrAppendRows(
-      this.idColumnName,
-      this.mapToRows(tasks)
-    );
+    await (
+      await this.allotmentsSheet()
+    ).updateOrAppendRows(this.idColumnName, this.mapToRows(tasks));
   }
 
   public get syncModeRef() {
@@ -174,9 +173,8 @@ export abstract class AbstractRepository<
           return false;
 
         /// Checking the sanity of the spreadsheet data
-        const validationResult = allotmentValidator.validate(
-          taskFromSpreadsheet
-        );
+        const validationResult =
+          allotmentValidator.validate(taskFromSpreadsheet);
         if (!validationResult.isValid) {
           console.warn(
             `Task ${id} is not valid in the spreadsheet:`,

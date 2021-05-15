@@ -27,9 +27,8 @@ export class SQRWorkflow {
   static allotmentsRef = SQRWorkflow.baseRef.child(`allotments`);
   static submissionsRef = SQRWorkflow.baseRef.child(`submissions`);
   static draftSubmissionsRef = SQRWorkflow.submissionsRef.child(`drafts`);
-  static completedSubmissionsRef = SQRWorkflow.submissionsRef.child(
-    `completed`
-  );
+  static completedSubmissionsRef =
+    SQRWorkflow.submissionsRef.child(`completed`);
   static finalSubmissionsRef = SQRWorkflow.submissionsRef.child(`final`);
 
   static async submissionsSheet() {
@@ -165,31 +164,30 @@ export class SQRWorkflow {
       });
 
     // Saving the submission to the spreadsheet
-    await (await this.submissionsSheet()).updateOrAppendRows(
-      'Audio File Name',
-      [
-        {
-          Completed: DateTimeConverter.toSerialDate(
-            DateTime.fromMillis(submission.completed)
-          ),
-          Updated: DateTimeConverter.toSerialDate(
-            DateTime.fromMillis(submission.changed)
-          ),
-          'Update Link': sqrSubmissionLink(fileName, token),
-          'Audio File Name': fileName,
-          'Unwanted Parts': submission.unwantedParts
-            ? formatAudioAnnotations(...submission.unwantedParts)
-            : null,
-          'Sound Issues': submission.soundIssues
-            ? formatAudioAnnotations(...submission.soundIssues)
-            : null,
-          'Sound Quality Rating': submission.soundQualityRating,
-          Comments: submission.comments,
-          Name: submission.author.name,
-          'Email Address': submission.author.emailAddress,
-        },
-      ]
-    );
+    await (
+      await this.submissionsSheet()
+    ).updateOrAppendRows('Audio File Name', [
+      {
+        Completed: DateTimeConverter.toSerialDate(
+          DateTime.fromMillis(submission.completed)
+        ),
+        Updated: DateTimeConverter.toSerialDate(
+          DateTime.fromMillis(submission.changed)
+        ),
+        'Update Link': sqrSubmissionLink(fileName, token),
+        'Audio File Name': fileName,
+        'Unwanted Parts': submission.unwantedParts
+          ? formatAudioAnnotations(...submission.unwantedParts)
+          : null,
+        'Sound Issues': submission.soundIssues
+          ? formatAudioAnnotations(...submission.soundIssues)
+          : null,
+        'Sound Quality Rating': submission.soundQualityRating,
+        Comments: submission.comments,
+        Name: submission.author.name,
+        'Email Address': submission.author.emailAddress,
+      },
+    ]);
 
     // Sending email notification for the coordinator
 

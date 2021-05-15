@@ -75,8 +75,8 @@ export const retryFailedEmails = functions.pubsub
 
     const keys = Object.keys(failedNotifications.val());
     for (const key of keys) {
-      await sendNotificationEmailSnapshot(
-        failedNotifications.child(key)
-      ).catch((reason) => console.warn(reason));
+      await sendNotificationEmailSnapshot(failedNotifications.child(key)).catch(
+        (reason) => console.warn(reason)
+      );
     }
   });

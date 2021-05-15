@@ -167,24 +167,22 @@ export const validateRecords = functions
         soundQualityRating: row['Sound Rating'],
       };
 
-      const backMapping: Record<
-        keyof ContentDetails,
-        keyof FidelityCheckRow
-      > = {
-        title: 'Suggested Title',
-        topics: 'Topics',
-        date: 'Date (yyyymmdd format)',
-        dateUncertain: 'Date uncertain',
-        timeOfDay: 'AM/PM',
-        location: 'Location',
-        locationUncertain: 'Location uncertain',
-        category: 'Category',
-        languages: 'Lecture Language',
-        percentage: 'Srila Gurudeva Timing',
-        otherSpeaker: 'Other Guru-varga',
-        seriesInputs: 'Series/Sastra Inputs',
-        soundQualityRating: 'Sound Rating',
-      };
+      const backMapping: Record<keyof ContentDetails, keyof FidelityCheckRow> =
+        {
+          title: 'Suggested Title',
+          topics: 'Topics',
+          date: 'Date (yyyymmdd format)',
+          dateUncertain: 'Date uncertain',
+          timeOfDay: 'AM/PM',
+          location: 'Location',
+          locationUncertain: 'Location uncertain',
+          category: 'Category',
+          languages: 'Lecture Language',
+          percentage: 'Srila Gurudeva Timing',
+          otherSpeaker: 'Other Guru-varga',
+          seriesInputs: 'Series/Sastra Inputs',
+          soundQualityRating: 'Sound Rating',
+        };
 
       if (
         // Using -Infinity to make sure that in absense of existing record the new record will be considered newer
