@@ -4,7 +4,7 @@
     ":dependencyDashboard",
     ":enableVulnerabilityAlertsWithLabel(security)",
     ":maintainLockFilesWeekly",
-    ":prNotPending",
+    ":prHourlyLimit2",
     ":separateMultipleMajorReleases",
     "helpers:disableTypesNodeMajor",
     "group:googleapis",
@@ -13,7 +13,7 @@
     "group:test",
     "group:linters"
   ],
-  "stabilityDays": 5,
+  "prConcurrentLimit": 2,
   "major": {
     "dependencyDashboardApproval": true
   },
