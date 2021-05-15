@@ -152,25 +152,27 @@ const getRootRouteChildren = (): any => {
 
 type RouteAbility = { action: string; subject: string };
 
-export const filterRoutesByClaims = (
-  filterCb: <T>(
-    route: RouteConfig,
-    parentAbility: RouteAbility | undefined,
+export const filterRoutesByClaims =
+  (
+    filterCb: <T>(
+      route: RouteConfig,
+      parentAbility: RouteAbility | undefined,
+      ...args: any[]
+    ) => any
+  ) =>
+  (
+    routes: RouteConfig[] = [],
+    parentAbility: RouteAbility | undefined = undefined,
     ...args: any[]
-  ) => any
-) => (
-  routes: RouteConfig[] = [],
-  parentAbility: RouteAbility | undefined = undefined,
-  ...args: any[]
-): RouteConfig[] => {
-  return routes.reduce((filteredRoutes, route) => {
-    const ability = _.get(route, 'meta.auth.ability', parentAbility);
+  ): RouteConfig[] => {
+    return routes.reduce((filteredRoutes, route) => {
+      const ability = _.get(route, 'meta.auth.ability', parentAbility);
 
-    const filteredRoute = filterCb<RouteConfig>(route, ability, ...args);
-    filteredRoute && filteredRoutes.push(filteredRoute);
-    return filteredRoutes;
-  }, [] as RouteConfig[]);
-};
+      const filteredRoute = filterCb<RouteConfig>(route, ability, ...args);
+      filteredRoute && filteredRoutes.push(filteredRoute);
+      return filteredRoutes;
+    }, [] as RouteConfig[]);
+  };
 
 const filterHomePageRoutes = filterRoutesByClaims((route, ability): any => {
   const homePageButton = _.get(route, 'meta.homePageLink', false);

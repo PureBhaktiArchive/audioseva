@@ -96,9 +96,8 @@ describe('Uploaded SE file', () => {
   `(
     `$sourceFileName should be saved to $destinationFileName`,
     ({ sourceFileName, destinationFileName }) => {
-      const file = StorageManager.getDestinationFileForRestoredUpload(
-        sourceFileName
-      );
+      const file =
+        StorageManager.getDestinationFileForRestoredUpload(sourceFileName);
       expect(file.name).toEqual(destinationFileName);
     }
   );
@@ -113,9 +112,8 @@ describe('Uploaded SE file', () => {
     ${'BR-49A-2.mp3'}
     ${'RANI-93-2.flac.flac'}
   `(`$sourceFileName should be rejected`, ({ sourceFileName }) => {
-    const file = StorageManager.getDestinationFileForRestoredUpload(
-      sourceFileName
-    );
+    const file =
+      StorageManager.getDestinationFileForRestoredUpload(sourceFileName);
     expect(file).toBeNull();
   });
 });
