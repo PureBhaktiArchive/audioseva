@@ -32,9 +32,10 @@ jobs:
           restore-keys: |
             node-${{ matrix.node }}-${{ runner.os }}-
 
-      - run: npx prettier --check .
-        working-directory: ${{ matrix.project }}
       - run: npm ci
+        working-directory: ${{ matrix.project }}
+      # prettier should be called after installing dependencies so that proper version be picked
+      - run: npx prettier --check .
         working-directory: ${{ matrix.project }}
       - run: npm run lint --if-present -- --no-fix
         working-directory: ${{ matrix.project }}
