@@ -13,6 +13,7 @@
     "group:test",
     "group:linters"
   ],
+  "schedule": ["on the 20th day of the month"],
   "prConcurrentLimit": 2,
   "vulnerabilityAlerts": {
     "schedule": ["at any time"]
