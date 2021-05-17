@@ -4,7 +4,6 @@
     ":automergeMinor",
     ":dependencyDashboard",
     ":enableVulnerabilityAlertsWithLabel(security)",
-    ":maintainLockFilesWeekly",
     ":prHourlyLimit2",
     ":separateMultipleMajorReleases",
     "helpers:disableTypesNodeMajor",
