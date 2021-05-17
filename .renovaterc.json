@@ -5,6 +5,7 @@
     ":dependencyDashboard",
     ":enableVulnerabilityAlertsWithLabel(security)",
     ":prHourlyLimit2",
+    ":prConcurrentLimit10",
     ":separateMultipleMajorReleases",
     "helpers:disableTypesNodeMajor",
     "group:googleapis",
@@ -14,7 +15,6 @@
     "group:linters"
   ],
   "schedule": ["on the 20th day of the month"],
-  "prConcurrentLimit": 2,
   "vulnerabilityAlerts": {
     "schedule": ["at any time"]
   },
