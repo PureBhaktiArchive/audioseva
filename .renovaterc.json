@@ -15,6 +15,7 @@
     "group:linters"
   ],
   "schedule": ["on the 20th day of the month"],
+  "suppressNotifications": ["prIgnoreNotification"],
   "vulnerabilityAlerts": {
     "schedule": ["at any time"]
   },
