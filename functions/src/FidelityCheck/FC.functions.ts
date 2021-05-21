@@ -72,11 +72,20 @@ export const validateRecords = functions
       const result = validator.validate(row, index, rows);
       if (!result.isValid) return result.messages.join('\n');
 
+      const recordSnapshot = snapshot.child(row['Archive ID'].toString());
+
       if (
         row['Fidelity Checked'] !== true &&
         row['Fidelity Checked without topics'] !== true
-      )
+      ) {
+        // Removing the snapshot
+        await recordSnapshot.ref.update({
+          file: null,
+          fidelityCheck: null,
+        });
+
         return 'Awaiting FC.';
+      }
 
       // General fidelity check supercedes the quick one (without topics)
       const fidelityCheckDate = row['Fidelity Checked']
@@ -110,7 +119,6 @@ export const validateRecords = functions
       if (fileCreationTime > exactFidelityCheckTime)
         return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check on ${exactFidelityCheckTime.toISODate()}.`;
 
-      const recordSnapshot = snapshot.child(row['Archive ID'].toString());
       const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
 
       const fileReference: StorageFileReference = {
@@ -139,8 +147,14 @@ export const validateRecords = functions
           fidelityCheck,
         });
 
-      if (row['Ready For Archive'] !== true)
+      if (row['Ready For Archive'] !== true) {
+        // Removing the snapshot
+        await recordSnapshot.ref.update({
+          approval: null,
+          contentDetails: null,
+        });
         return 'Awaiting Ready For Archive.';
+      }
 
       const approval = {
         readyForArchive: row['Ready For Archive'],
