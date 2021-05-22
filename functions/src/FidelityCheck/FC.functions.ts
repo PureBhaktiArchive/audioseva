@@ -79,13 +79,16 @@ export const validateRecords = functions
         return 'Duplicate Archive ID.';
 
       const recordSnapshot = snapshot.child(row['Archive ID'].toString());
+      const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
 
       // Removing the approval from the database if Ready For Archive is `false`
       // Doing this early ensures unpublishing of a file even if there are validation issues
-      if (row['Ready For Archive'] === false)
+      if (row['Ready For Archive'] === false && existingRecord?.approval) {
+        functions.logger.info('Removing approval from', row['Archive ID']);
         await recordSnapshot.ref.update({
           approval: null,
         });
+      }
 
       // Basic row validation
       const result = validator.validate(row, index, rows);
@@ -134,8 +137,6 @@ export const validateRecords = functions
       // The FC Date should be later than the time when the file was created.
       if (fileCreationTime > exactFidelityCheckTime)
         return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check on ${exactFidelityCheckTime.toISODate()}.`;
-
-      const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
 
       const fileReference: StorageFileReference = {
         bucket: file.bucket.name,
