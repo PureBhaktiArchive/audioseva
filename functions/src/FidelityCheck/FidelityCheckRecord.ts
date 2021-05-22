@@ -17,7 +17,6 @@ export interface FidelityCheck {
 
 export interface FidelityCheckRecord {
   file: StorageFileReference;
-  taskId: string;
   contentDetails: ContentDetails;
   fidelityCheck: FidelityCheck;
   approval: Approval;
