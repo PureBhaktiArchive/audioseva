@@ -11,7 +11,11 @@ import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
 import { ContentDetails } from './ContentDetails';
-import { FidelityCheck, FidelityCheckRecord } from './FidelityCheckRecord';
+import {
+  Approval,
+  FidelityCheck,
+  FidelityCheckRecord,
+} from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
 import { FinalRecord } from './FinalRecord';
@@ -68,6 +72,24 @@ export const validateRecords = functions
         row[key] = row[key] || false;
       });
 
+      // Checking for sanity of Archive ID
+      if (!Number.isFinite(row['Archive ID'])) return 'No Archive ID.';
+
+      if (rows.findIndex((x) => x['Archive ID'] === row['Archive ID']) < index)
+        return 'Duplicate Archive ID.';
+
+      const recordSnapshot = snapshot.child(row['Archive ID'].toString());
+      const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
+
+      // Removing the approval from the database if Ready For Archive is `false`
+      // Doing this early ensures unpublishing of a file even if there are validation issues
+      if (row['Ready For Archive'] === false && existingRecord?.approval) {
+        functions.logger.info('Removing approval from', row['Archive ID']);
+        await recordSnapshot.ref.update({
+          approval: null,
+        });
+      }
+
       // Basic row validation
       const result = validator.validate(row, index, rows);
       if (!result.isValid) return result.messages.join('\n');
@@ -75,8 +97,14 @@ export const validateRecords = functions
       if (
         row['Fidelity Checked'] !== true &&
         row['Fidelity Checked without topics'] !== true
-      )
+      ) {
+        // Removing the fidelity check from the database
+        await recordSnapshot.ref.update({
+          fidelityCheck: null,
+        });
+
         return 'Awaiting FC.';
+      }
 
       // General fidelity check supercedes the quick one (without topics)
       const fidelityCheckDate = row['Fidelity Checked']
@@ -110,9 +138,6 @@ export const validateRecords = functions
       if (fileCreationTime > exactFidelityCheckTime)
         return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check on ${exactFidelityCheckTime.toISODate()}.`;
 
-      const recordSnapshot = snapshot.child(row['Archive ID'].toString());
-      const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
-
       const fileReference: StorageFileReference = {
         bucket: file.bucket.name,
         name: file.name,
@@ -142,8 +167,7 @@ export const validateRecords = functions
       if (row['Ready For Archive'] !== true)
         return 'Awaiting Ready For Archive.';
 
-      const approval = {
-        readyForArchive: row['Ready For Archive'],
+      const approval: Approval = {
         timestamp: DateTimeConverter.fromSerialDate(
           row['Finalization Date'],
           sheet.timeZone
@@ -233,7 +257,7 @@ export const exportForArchive = functions
     const records = Object.entries(
       snapshot.val() as Record<string, FidelityCheckRecord>
     )
-      .filter(([, record]) => record.approval?.readyForArchive)
+      .filter(([, record]) => record.approval)
       .map<[string, FinalRecord]>(
         ([id, { approval, file, contentDetails }]) => [
           id,
