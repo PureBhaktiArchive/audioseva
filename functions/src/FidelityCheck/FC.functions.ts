@@ -257,7 +257,7 @@ export const exportForArchive = functions
     const records = Object.entries(
       snapshot.val() as Record<string, FidelityCheckRecord>
     )
-      .filter(([, record]) => record.approval !== null)
+      .filter(([, record]) => record.approval)
       .map<[string, FinalRecord]>(
         ([id, { approval, file, contentDetails }]) => [
           id,
