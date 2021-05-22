@@ -72,11 +72,24 @@ export const validateRecords = functions
         row[key] = row[key] || false;
       });
 
+      // Checking for sanity of Archive ID
+      if (!Number.isFinite(row['Archive ID'])) return 'No Archive ID.';
+
+      if (rows.findIndex((x) => x['Archive ID'] === row['Archive ID']) < index)
+        return 'Duplicate Archive ID.';
+
+      const recordSnapshot = snapshot.child(row['Archive ID'].toString());
+
+      // Removing the approval from the database if Ready For Archive is `false`
+      // Doing this early ensures unpublishing of a file even if there are validation issues
+      if (row['Ready For Archive'] === false)
+        await recordSnapshot.ref.update({
+          approval: null,
+        });
+
       // Basic row validation
       const result = validator.validate(row, index, rows);
       if (!result.isValid) return result.messages.join('\n');
-
-      const recordSnapshot = snapshot.child(row['Archive ID'].toString());
 
       if (
         row['Fidelity Checked'] !== true &&
@@ -150,13 +163,8 @@ export const validateRecords = functions
           fidelityCheck,
         });
 
-      if (row['Ready For Archive'] !== true) {
-        // Removing the approval from the database
-        await recordSnapshot.ref.update({
-          approval: null,
-        });
+      if (row['Ready For Archive'] !== true)
         return 'Awaiting Ready For Archive.';
-      }
 
       const approval: Approval = {
         timestamp: DateTimeConverter.fromSerialDate(

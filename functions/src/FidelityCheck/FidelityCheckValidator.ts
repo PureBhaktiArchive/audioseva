@@ -11,15 +11,6 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
   constructor() {
     super([
       new ValidationIssue(
-        (row) => !Number.isFinite(row['Archive ID']),
-        'No Archive ID.'
-      ),
-      new ValidationIssue(
-        (row, index, rows) =>
-          rows.findIndex((x) => x['Archive ID'] === row['Archive ID']) < index,
-        'Duplicate Archive ID.'
-      ),
-      new ValidationIssue(
         (row, index, rows) =>
           rows.findIndex((x) => x['Task ID'] === row['Task ID']) < index,
         'Duplicate Task ID.'
