@@ -82,9 +82,8 @@ export const validateRecords = functions
         row['Fidelity Checked'] !== true &&
         row['Fidelity Checked without topics'] !== true
       ) {
-        // Removing the snapshot
+        // Removing the fidelity check from the database
         await recordSnapshot.ref.update({
-          file: null,
           fidelityCheck: null,
         });
 
@@ -152,10 +151,9 @@ export const validateRecords = functions
         });
 
       if (row['Ready For Archive'] !== true) {
-        // Removing the snapshot
+        // Removing the approval from the database
         await recordSnapshot.ref.update({
           approval: null,
-          contentDetails: null,
         });
         return 'Awaiting Ready For Archive.';
       }
