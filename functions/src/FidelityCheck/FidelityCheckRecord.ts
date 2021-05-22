@@ -6,7 +6,6 @@ import { StorageFileReference } from '../StorageFileReference';
 import { ContentDetails } from './ContentDetails';
 
 export interface Approval {
-  readyForArchive: boolean;
   timestamp: number;
   topicsReady: boolean;
 }

@@ -11,7 +11,11 @@ import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
 import { ContentDetails } from './ContentDetails';
-import { FidelityCheck, FidelityCheckRecord } from './FidelityCheckRecord';
+import {
+  Approval,
+  FidelityCheck,
+  FidelityCheckRecord,
+} from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
 import { FinalRecord } from './FinalRecord';
@@ -156,8 +160,7 @@ export const validateRecords = functions
         return 'Awaiting Ready For Archive.';
       }
 
-      const approval = {
-        readyForArchive: row['Ready For Archive'],
+      const approval: Approval = {
         timestamp: DateTimeConverter.fromSerialDate(
           row['Finalization Date'],
           sheet.timeZone
@@ -247,7 +250,7 @@ export const exportForArchive = functions
     const records = Object.entries(
       snapshot.val() as Record<string, FidelityCheckRecord>
     )
-      .filter(([, record]) => record.approval?.readyForArchive)
+      .filter(([, record]) => record.approval !== null)
       .map<[string, FinalRecord]>(
         ([id, { approval, file, contentDetails }]) => [
           id,
