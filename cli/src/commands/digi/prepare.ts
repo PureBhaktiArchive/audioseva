@@ -3,7 +3,7 @@
  */
 
 import * as async from 'async';
-import ffmpeg from 'fluent-ffmpeg';
+import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import fs from 'fs';
 import getAudioDurationInSeconds from 'get-audio-duration';
 import glob from 'glob';
@@ -15,6 +15,8 @@ import util from 'util';
 import { Argv } from 'yargs';
 import { DigitalRecordingRow } from '../../DigitalRecordingRow';
 import { Spreadsheet } from '../../Spreadsheet';
+
+const ffprobe = util.promisify<string, FfprobeData>(ffmpeg.ffprobe);
 
 export const desc =
   'Convert and rename local files according to the codes in the spreadsheet';
@@ -74,18 +76,18 @@ export const handler = async ({
   spinner.succeed();
 
   const conversionQueue = async.queue<ConversionTask>((task, callback) => {
-    ffmpeg(task.source)
-      .withAudioCodec('libmp3lame')
-      .withAudioBitrate(256)
-      .output(task.destination)
-      .on('start', function () {
-        console.log(`Converting ${task.source} to ${task.destination}`);
-      })
-      .on('error', callback)
-      .on('end', function () {
-        callback();
-      })
-      .run();
+    ffprobe(task.source)
+      .then(({ format }) =>
+        ffmpeg(task.source)
+          .withAudioCodec('libmp3lame')
+          .withAudioBitrate(Math.max(format.bit_rate / 1000, 64))
+          .output(task.destination)
+          .on('start', console.log)
+          .on('error', callback)
+          .on('end', () => callback(null))
+          .run()
+      )
+      .catch(callback);
   }, os.cpus().length);
   conversionQueue.error((e, task) => {
     console.error(`Error converting ${task.source}`, e);
