@@ -73,20 +73,18 @@
             >
               <v-row justify="space-between">
                 <v-col cols="12" sm="9">
-                  <p class="d-inline">
-                    Version {{ index + 1 }} uploaded
-                    <span v-if="version.author">
-                      by {{ version.author.name }} ({{
-                        version.author.emailAddress
-                      }})</span
+                  <p>
+                    <version-download-link
+                      :versionId="key"
+                      :taskId="$route.params.taskId"
                     >
+                      Version {{ index + 1 }}
+                    </version-download-link>
+                    uploaded
+                    <template v-if="version.author">
+                      by {{ version.author.name }}
+                    </template>
                   </p>
-                  <version-download-link
-                    :versionId="key"
-                    :taskId="$route.params.taskId"
-                  >
-                    {{ task['.key'] }}.v{{ index + 1 }}
-                  </version-download-link>
                 </v-col>
                 <v-col class="text-right" sm="3" v-if="version.timestamp">{{
                   formatTimestamp(version.timestamp)
