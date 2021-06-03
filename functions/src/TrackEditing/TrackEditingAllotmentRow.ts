@@ -9,6 +9,7 @@ export interface TrackEditingAllotmentRow extends AllotmentRow {
   'SEd?': string;
   'Upload Link'?: string;
   'Upload Date'?: number;
+  'Uploaded By'?: string;
   'Latest Resolution'?: string;
   'Resolution Date'?: number;
   'Checked By'?: string;
