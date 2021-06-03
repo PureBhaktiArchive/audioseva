@@ -71,6 +71,9 @@ export class TasksRepository extends AbstractRepository<
                 DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
               )
             : null,
+        'Uploaded By': lastVersionKey
+          ? task.versions[lastVersionKey]?.author?.name
+          : null,
         'Latest Resolution': lastResolvedVersion
           ? lastResolvedVersion.resolution.isApproved
             ? 'Approved'

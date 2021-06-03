@@ -165,6 +165,7 @@ type StorageFileReference {
 type FileVersion {
   timestamp: InitialTimestamp,
   uploadPath: String, // Path in the `uploads` bucket
+  author: Person | Null,
   file: StorageFileReference | Null, // Explicit file reference for download
   resolution: FileResolution | Null,
 }

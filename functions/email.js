@@ -184,6 +184,9 @@ const teUpload = {
           timestamp: 1597518173253,
           uploadPath:
             'TwCkuLuxejdQ7qOcOwgluZzrXlv1/1597517749657/UMA-170-1.flac',
+          author: {
+            name: 'Krsna dasa',
+          },
         },
       },
     },

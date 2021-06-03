@@ -45,7 +45,7 @@
                     <p class="mb-0" :style="{ wordBreak: 'break-all' }">
                       Allotted to {{ task.assignee.name }} ({{
                         task.assignee.emailAddress
-                      }}).
+                      }})
                     </p>
                   </v-col>
                   <v-col cols="12" sm="3" class="pt-0">
@@ -73,15 +73,18 @@
             >
               <v-row justify="space-between">
                 <v-col cols="12" sm="9">
-                  <h4 class="pr-2 d-inline">
-                    Version {{ index + 1 }} uploaded:
-                  </h4>
-                  <version-download-link
-                    :versionId="key"
-                    :taskId="$route.params.taskId"
-                  >
-                    {{ task['.key'] }}
-                  </version-download-link>
+                  <p>
+                    <version-download-link
+                      :versionId="key"
+                      :taskId="$route.params.taskId"
+                    >
+                      <span>Version {{ index + 1 }}</span>
+                    </version-download-link>
+                    uploaded
+                    <template v-if="version.author">
+                      by {{ version.author.name }}
+                    </template>
+                  </p>
                 </v-col>
                 <v-col class="text-right" sm="3" v-if="version.timestamp">{{
                   formatTimestamp(version.timestamp)
