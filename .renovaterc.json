@@ -17,7 +17,8 @@
   "schedule": ["on the 20th day of the month"],
   "suppressNotifications": ["prIgnoreNotification"],
   "vulnerabilityAlerts": {
-    "schedule": ["at any time"]
+    "schedule": ["at any time"],
+    "automerge": true
   },
   "major": {
     "dependencyDashboardApproval": true
