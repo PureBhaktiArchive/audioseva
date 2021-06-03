@@ -1,4 +1,8 @@
 include ../recheck-prefix
 
 +recheck-prefix(task)
+- var latestVersionKey = Object.keys(task.versions).pop()
+- var latestVersion = task.versions[latestVersionKey]
 | TE Upload - #{task.assignee.name} - #{task.id} v#{Object.keys(task.versions).length}
+if latestVersion.author
+  |  by #{latestVersion.author.name}

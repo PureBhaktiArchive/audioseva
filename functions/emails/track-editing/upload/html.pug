@@ -1,10 +1,14 @@
 include ../../mixins
 +warnings(warnings)
+- var latestVersionKey = Object.keys(task.versions).pop()
+- var latestVersion = task.versions[latestVersionKey]
 p
   strong Track Edited File Link:
   |
   |
-  +frontendLink(`/te/tasks/${task.id}/versions/${Object.keys(task.versions).pop()}/file`)
+  +frontendLink(`/te/tasks/${task.id}/versions/${latestVersionKey}/file`)
     | download
   | .
 p See details of the task #[+frontendLink(`/te/tasks/${task.id}`) here].
+if latestVersion.author
+  p Uploaded by #{latestVersion.author.name}.
