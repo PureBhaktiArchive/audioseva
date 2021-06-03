@@ -158,6 +158,11 @@ export const processUpload = functions
     const version: FileVersion = {
       timestamp: DateTime.fromISO(object.timeCreated).toMillis(),
       uploadPath: object.name,
+      author: {
+        uid: user.uid,
+        emailAddress: user.email,
+        name: user.displayName,
+      },
     };
 
     task = await repository.saveNewVersion(taskId, version);
