@@ -78,7 +78,7 @@
                       :versionId="key"
                       :taskId="$route.params.taskId"
                     >
-                      Version {{ index + 1 }}
+                      <span>Version {{ index + 1 }}</span>
                     </version-download-link>
                     uploaded
                     <template v-if="version.author">
