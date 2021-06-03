@@ -139,6 +139,7 @@ export const processUpload = functions
 
     if (
       !user.customClaims?.roles?.TE?.coordinator &&
+      !user.customClaims?.roles?.TE?.checker &&
       task.assignee.emailAddress.trim() !== user.email
     ) {
       console.error(
