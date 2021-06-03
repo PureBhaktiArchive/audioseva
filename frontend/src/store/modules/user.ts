@@ -117,7 +117,7 @@ export default {
       }
 
       if (hasRole('TE.checker')) {
-        can(['resolve', 'view'], subjects.TE.task);
+        can(['upload', 'resolve', 'view'], subjects.TE.task);
         can('view', subjects.TE.tasks);
       }
       if (hasRole('TE.editor')) {
