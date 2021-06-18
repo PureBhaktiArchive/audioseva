@@ -204,6 +204,17 @@ export class TasksRepository extends AbstractRepository<
       // Skip empty rows and not yet rechecked
       if (!id || !row['Date checked']) return null;
 
+      const recheckTimestamp = DateTimeConverter.fromSerialDate(
+        row['Date checked']
+      );
+
+      if (recheckTimestamp > DateTime.now()) {
+        console.error(
+          `${id}: Date Checked ${recheckTimestamp.toISO()} is in the future.`
+        );
+        return null;
+      }
+
       const existingTask = existingTasks[id];
 
       if (existingTask?.status !== AllotmentStatus.Recheck) return null;
@@ -293,9 +304,7 @@ export class TasksRepository extends AbstractRepository<
               isApproved: false,
               isRechecked: true,
               feedback: `[RECHECK]: ${row.Feedback}`,
-              timestamp: DateTimeConverter.fromSerialDate(
-                row['Date checked']
-              ).toMillis(),
+              timestamp: recheckTimestamp.toMillis(),
             },
           },
         },
