@@ -25,10 +25,6 @@
   },
   "packageRules": [
     {
-      "packageNames": ["ts-jest"],
-      "groupName": "test packages"
-    },
-    {
       "matchPackageNames": ["googleapis"],
       "dependencyDashboardApproval": false
     },
