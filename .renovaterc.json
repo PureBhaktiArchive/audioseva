@@ -6,7 +6,6 @@
     ":enableVulnerabilityAlertsWithLabel(security)",
     ":prHourlyLimit2",
     ":prConcurrentLimit10",
-    ":separateMultipleMajorReleases",
     "helpers:disableTypesNodeMajor",
     "group:googleapis",
     "group:definitelyTyped",
