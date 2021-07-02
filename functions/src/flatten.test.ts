@@ -17,23 +17,16 @@ describe('flatten', () => {
         },
       },
       root2: {
-        second1: ['value1', 'value2', 3],
+        second2: ['value1', 'value2', 3],
       },
       root3: 'value right away',
+      root4: null,
+      root5: undefined,
+      root6: 0,
+      root7: '',
+      root8: NaN,
     };
 
-    const flattened = {
-      'prefix/root1/second1/leaf1': 'string',
-      'prefix/root1/second1/leaf2': 108,
-      'prefix/root1/second1/timestamp': {
-        '.sv': 'TIMESTAMP',
-      },
-      'prefix/root2/second1/0': 'value1',
-      'prefix/root2/second1/1': 'value2',
-      'prefix/root2/second1/2': 3,
-      'prefix/root3': 'value right away',
-    };
-
-    expect(flatten(source, 'prefix/')).toEqual(flattened);
+    expect(flatten(source, 'prefix/')).toMatchSnapshot();
   });
 });
