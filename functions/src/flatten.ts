@@ -11,13 +11,23 @@
  * @param prefix @string prefix to add to the property path
  * @param target target object
  */
-export const flatten = (source, prefix = '', target = {}) =>
-  Object.entries(source).reduce((memo, [key, val]) => {
+export const flatten = (source, prefix = '', target = {}) => {
+  Object.entries(source).forEach(([key, value]) => {
     const nestedKey = `${prefix}${key}`;
-    if (typeof val === 'object' && val && val['.sv'] === undefined) {
-      flatten(val, `${nestedKey}/`, memo);
-    } else {
-      target[nestedKey] = val;
-    }
-    return memo;
-  }, target);
+
+    // Some children should be kept as is
+    const keepAsIs =
+      // Only objects should be flattened
+      typeof value !== 'object' ||
+      // typeof null is object https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof#typeof_null
+      value === null ||
+      // Firebase Server Values should be kept as is
+      value['.sv'] !== undefined ||
+      // Arrays should be kept as is because otherwise other stale array elements are kept in the database
+      Array.isArray(value);
+
+    if (keepAsIs) target[nestedKey] = value;
+    else flatten(value, `${nestedKey}/`, target);
+  });
+  return target;
+};
