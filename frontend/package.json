@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@casl/ability": "4.1.6",
-    "@casl/vue": "1.2.2",
+    "@casl/vue": "1.2.3",
     "bluebird": "3.7.2",
     "core-js": "3.15.2",
     "firebase": "8.7.1",
