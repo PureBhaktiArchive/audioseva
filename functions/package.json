@@ -19,7 +19,7 @@
     "@google-cloud/pubsub": "2.16.6",
     "email-templates": "8.0.8",
     "express": "4.17.1",
-    "firebase-admin": "9.11.0",
+    "firebase-admin": "9.11.1",
     "firebase-functions": "3.14.1",
     "get-audio-duration": "2.0.3",
     "glob": "7.1.7",
