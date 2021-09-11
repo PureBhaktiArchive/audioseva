@@ -184,7 +184,7 @@ path /TE {
     index() { ["status", "assignee/emailAddress"] }
     read() {
       isSignedIn() && (
-        query.orderByChild == 'assignee/emailAddress' && query.equalTo == auth.token.email
+        query.orderByChild == 'assignee/emailAddress' && query.equalTo.toLowerCase() == auth.token.email.toLowerCase()
         || hasRole('TE', 'checker')
         || hasRole('TE', 'coordinator')
       )
