@@ -14,7 +14,7 @@
     "node": "12"
   },
   "dependencies": {
-    "async": "3.2.1",
+    "async": "3.2.2",
     "dsforest": "1.0.0",
     "fluent-ffmpeg": "2.1.2",
     "get-audio-duration": "2.0.3",
