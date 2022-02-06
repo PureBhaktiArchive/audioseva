@@ -6,6 +6,7 @@
     ":enableVulnerabilityAlertsWithLabel(security)",
     ":prHourlyLimit2",
     ":prConcurrentLimit10",
+    ":dependencyDashboardApproval",
     "helpers:disableTypesNodeMajor",
     "group:googleapis",
     "group:definitelyTyped",
@@ -13,23 +14,10 @@
     "group:test",
     "group:linters"
   ],
-  "schedule": ["on the 20th day of the month"],
   "suppressNotifications": ["prIgnoreNotification"],
   "vulnerabilityAlerts": {
     "schedule": ["at any time"],
-    "automerge": true
-  },
-  "major": {
-    "dependencyDashboardApproval": true
-  },
-  "packageRules": [
-    {
-      "matchPackageNames": ["googleapis"],
-      "dependencyDashboardApproval": false
-    },
-    {
-      "matchDepTypes": ["devDependencies"],
-      "extends": ["schedule:quarterly"]
-    }
-  ]
+    "automerge": true,
+    "dependencyDashboardApproval": false
+  }
 }
