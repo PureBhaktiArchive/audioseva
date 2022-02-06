@@ -47,7 +47,7 @@
     "@storybook/addon-notes": "5.3.21",
     "@storybook/addon-viewport": "6.3.9",
     "@storybook/addons": "6.3.9",
-    "@storybook/vue": "6.3.9",
+    "@storybook/vue": "6.4.13",
     "@types/bluebird": "3.5.36",
     "@types/jest": "26.0.24",
     "@types/lodash": "4.14.175",
