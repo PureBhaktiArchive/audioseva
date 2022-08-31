@@ -4,6 +4,7 @@
   },
   "storage": [
     {
+      "bucket": "",
       "target": "uploads",
       "rules": "storage.uploads.rules"
     }

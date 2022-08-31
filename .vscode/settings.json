@@ -18,6 +18,13 @@
   "html.format.maxPreserveNewLines": 0,
   "html.format.wrapAttributes": "aligned-multiple",
 
+  "json.schemas": [
+    {
+      "fileMatch": ["firebase.json"],
+      "url": "https://raw.githubusercontent.com/firebase/firebase-tools/master/schema/firebase-config.json"
+    }
+  ],
+
   "vetur.format.defaultFormatter.html": "prettyhtml",
   "git.ignoreLimitWarning": true,
 
