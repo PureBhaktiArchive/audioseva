@@ -244,7 +244,7 @@ export const validateRecords = functions
       },
       {
         // More than 5000 causes TeenyStatisticsWarning: Possible excessive concurrent requests detected.
-        concurrency: 1000,
+        concurrency: 100,
       }
     );
 
