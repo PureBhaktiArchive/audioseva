@@ -25,12 +25,12 @@
     "yargs": "17.2.1"
   },
   "devDependencies": {
-    "@types/async": "3.2.8",
-    "@types/fluent-ffmpeg": "2.1.18",
-    "@types/glob": "7.1.4",
-    "@types/lodash": "4.14.175",
-    "@types/node": "12.20.27",
-    "@types/yargs": "17.0.3",
+    "@types/async": "3.2.16",
+    "@types/fluent-ffmpeg": "2.1.20",
+    "@types/glob": "7.2.0",
+    "@types/lodash": "4.14.191",
+    "@types/node": "12.20.55",
+    "@types/yargs": "17.0.19",
     "@typescript-eslint/eslint-plugin": "4.32.0",
     "@typescript-eslint/parser": "4.32.0",
     "eslint": "7.32.0",
