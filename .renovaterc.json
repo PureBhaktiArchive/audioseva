@@ -9,7 +9,6 @@
     ":dependencyDashboardApproval",
     "helpers:disableTypesNodeMajor",
     "group:googleapis",
-    "group:definitelyTyped",
     "group:monorepos",
     "group:test",
     "group:linters"
