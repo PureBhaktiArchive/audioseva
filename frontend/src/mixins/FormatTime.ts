@@ -14,10 +14,9 @@ export default class FormatTime extends Vue {
   }
 
   formatTimestamp(time: moment.MomentInput) {
-    return moment(time).local().format(this.getDateFormat(time));
-  }
-
-  getDateFormat(timestamp: moment.MomentInput) {
-    return moment(timestamp).isSame(moment(), 'day') ? 'LT' : 'L';
+    const timeMoment = moment(time);
+    return timeMoment
+      .local()
+      .format(timeMoment.isSame(moment(), 'day') ? 'HH:mm' : 'YYYY-MM-DD');
   }
 }
