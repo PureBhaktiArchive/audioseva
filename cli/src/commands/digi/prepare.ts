@@ -11,6 +11,7 @@ import _ from 'lodash';
 import ora from 'ora';
 import os from 'os';
 import path from 'path';
+import { cwd } from 'process';
 import util from 'util';
 import { Argv } from 'yargs';
 import { DigitalRecordingRow } from '../../DigitalRecordingRow';
@@ -23,10 +24,16 @@ export const desc =
 
 export const builder = (yargs: Argv<Arguments>): Argv<Arguments> =>
   yargs.options({
-    path: {
+    sourcePath: {
       type: 'string',
       alias: 'p',
-      describe: 'root path of the audio files folder',
+      describe: 'path of the source audio files folder',
+      demandOption: true,
+    },
+    destinationPath: {
+      type: 'string',
+      alias: 'd',
+      describe: 'path of the renamed audio files folder',
       demandOption: true,
     },
     spreadsheetId: {
@@ -44,12 +51,14 @@ interface ConversionTask {
 }
 
 interface Arguments {
-  path: string;
+  sourcePath: string;
+  destinationPath: string;
   spreadsheetId: string;
 }
 
 export const handler = async ({
-  path: rootDirectory,
+  sourcePath,
+  destinationPath,
   spreadsheetId,
 }: Arguments): Promise<void> => {
   const spinner = ora();
@@ -63,8 +72,8 @@ export const handler = async ({
   spinner.succeed(`Fetched ${rows.length} rows`);
 
   spinner.start('Scanning directory');
-  const files = await util.promisify(glob)('Source/**/*.*', {
-    cwd: rootDirectory,
+  const files = await util.promisify(glob)('**/*.*', {
+    cwd: sourcePath,
     absolute: true,
   });
   const filesByBaseName = _.groupBy(files, (fileName) =>
@@ -94,7 +103,7 @@ export const handler = async ({
   });
   conversionQueue.pause();
 
-  const durationsCacheFile = path.join(rootDirectory, 'durations.txt');
+  const durationsCacheFile = path.join(cwd(), 'durations.txt');
   // Relative file path to Duration
   const durationsCache = new Map<string, number>(
     fs.existsSync(durationsCacheFile)
@@ -102,7 +111,7 @@ export const handler = async ({
       : []
   );
   async function getDuration(filePath: string) {
-    const relativePath = path.relative(rootDirectory, filePath);
+    const relativePath = path.relative(sourcePath, filePath);
     if (!durationsCache.has(relativePath))
       durationsCache.set(
         relativePath,
@@ -131,7 +140,7 @@ export const handler = async ({
     if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1)
       return 'CONTROVERSIAL';
 
-    const targetFolderPath = path.join(rootDirectory, 'Renamed', list);
+    const targetFolderPath = path.join(destinationPath, list);
     fs.mkdirSync(targetFolderPath, { recursive: true });
     const targetFilePath = path.join(targetFolderPath, `${code}.mp3`);
 
