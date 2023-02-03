@@ -14,6 +14,7 @@ import path from 'path';
 import { cwd } from 'process';
 import util from 'util';
 import { Argv } from 'yargs';
+import { groupBy } from '../../array';
 import { DigitalRecordingRow } from '../../DigitalRecordingRow';
 import { Spreadsheet } from '../../Spreadsheet';
 
@@ -76,13 +77,13 @@ export const handler = async ({
     cwd: sourcePath,
     absolute: true,
   });
-  const filesByBaseName = _.groupBy(files, (fileName) =>
+  const filesByBaseName = groupBy(files, (fileName) =>
     path
       .basename(fileName, path.extname(fileName))
       // Sometimes there are additional extensions, they are removed in the spreadsheet, so removing here also
       .replace(/\.(mp3|wav)$/, '')
   );
-  spinner.succeed(`Found ${files.length} files`);
+  spinner.succeed(`Found ${files.length} files, ${filesByBaseName.size}`);
 
   const conversionQueue = async.queue<ConversionTask>((task, callback) => {
     ffprobe(task.source)
@@ -130,8 +131,8 @@ export const handler = async ({
     const originalName = fileName.replace(/(_FINAL|\s+restored)$/, '');
     if (fileName !== originalName) return 'DERIVATIVE';
 
-    const found = filesByBaseName[fileName];
-    if (!found?.length) return 'MISSING';
+    if (!filesByBaseName.has[fileName]) return 'MISSING';
+    const found = filesByBaseName.get(fileName);
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const durations = await async.map<string, number>(found, getDuration);
