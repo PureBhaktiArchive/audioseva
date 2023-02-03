@@ -179,13 +179,10 @@ export const handler = async ({
   const resolutions = new Map<string, Resolution>();
 
   spinner.info('Processing files to launch');
-  for (const [code, fileName] of _(rows)
+  for (const { 'DIGI Code': code, 'File Name': fileName } of _(rows)
     .filter('DIGI Code') // Only those with DIGI Code
     .filter('Launch') // Only thouse marked to be launched
     .filter(['Launched', null])
-    .groupBy('DIGI Code')
-    .mapValues((rows) => rows[0]['File Name'])
-    .toPairs()
     .value()) {
     resolutions.set(code, await findAndConvertFile(code, fileName));
   }
