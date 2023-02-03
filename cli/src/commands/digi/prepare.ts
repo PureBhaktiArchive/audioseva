@@ -182,6 +182,7 @@ export const handler = async ({
   for (const [code, fileName] of _(rows)
     .filter('DIGI Code') // Only those with DIGI Code
     .filter('Launch') // Only thouse marked to be launched
+    .filter(['Launched', null])
     .groupBy('DIGI Code')
     .mapValues((rows) => rows[0]['File Name'])
     .toPairs()
