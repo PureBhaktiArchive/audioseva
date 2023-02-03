@@ -11,7 +11,6 @@ import _ from 'lodash';
 import ora from 'ora';
 import os from 'os';
 import path from 'path';
-import { cwd } from 'process';
 import util from 'util';
 import { Argv } from 'yargs';
 import { groupBy } from '../../array';
@@ -104,7 +103,7 @@ export const handler = async ({
   });
   conversionQueue.pause();
 
-  const durationsCacheFile = path.join(cwd(), 'durations.txt');
+  const durationsCacheFile = path.resolve(sourcePath, '../durations.txt');
   // Relative file path to Duration
   const durationsCache = new Map<string, number>(
     fs.existsSync(durationsCacheFile)
