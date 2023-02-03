@@ -82,7 +82,9 @@ export const handler = async ({
       // Sometimes there are additional extensions, they are removed in the spreadsheet, so removing here also
       .replace(/\.(mp3|wav)$/, '')
   );
-  spinner.succeed(`Found ${files.length} files, ${filesByBaseName.size}`);
+  spinner.succeed(
+    `Found ${files.length} files, ${filesByBaseName.size} unique base names`
+  );
 
   const conversionQueue = async.queue<ConversionTask>((task, callback) => {
     ffprobe(task.source)
