@@ -125,11 +125,8 @@ export const handler = async ({
     code: string,
     fileName: string
   ): Promise<Resolution> {
-    const [list] = code.split('-');
-
     // Skipping derivatives
-    const originalName = fileName.replace(/(_FINAL|\s+restored)$/, '');
-    if (fileName !== originalName) return 'DERIVATIVE';
+    if (/(_FINAL|\s+restored)$/.test(fileName)) return 'DERIVATIVE';
 
     if (!filesByBaseName.has[fileName]) return 'MISSING';
     const found = filesByBaseName.get(fileName);
@@ -141,7 +138,7 @@ export const handler = async ({
     if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1)
       return 'CONTROVERSIAL';
 
-    const targetFolderPath = path.join(destinationPath, list);
+    const targetFolderPath = path.join(destinationPath, code.split('-')[0]);
     fs.mkdirSync(targetFolderPath, { recursive: true });
     const targetFilePath = path.join(targetFolderPath, `${code}.mp3`);
 
