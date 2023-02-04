@@ -122,14 +122,17 @@ export const handler = async ({
     return durationsCache.get(relativePath);
   }
 
-  async function findAndConvertFile(
-    code: string,
-    fileName: string
-  ): Promise<Resolution> {
+  /**
+   *
+   * @param code DIGI code
+   * @param fileName Base file name
+   * @returns Tuple, where the first element is the status of the file and the second one is the found file path
+   */
+  async function findBestFile(fileName: string): Promise<[Resolution, string]> {
     // Skipping derivatives
-    if (/(_FINAL|\s+restored)$/.test(fileName)) return 'DERIVATIVE';
+    if (/(_FINAL|\s+restored)$/.test(fileName)) return ['DERIVATIVE', null];
 
-    if (!filesByBaseName.has[fileName]) return 'MISSING';
+    if (!filesByBaseName.has(fileName)) return ['MISSING', null];
     const found = filesByBaseName.get(fileName);
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -137,11 +140,7 @@ export const handler = async ({
 
     // Checking that all the durations are within interval of 1 second
     if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1)
-      return 'CONTROVERSIAL';
-
-    const targetFolderPath = path.join(destinationPath, code.split('-')[0]);
-    fs.mkdirSync(targetFolderPath, { recursive: true });
-    const targetFilePath = path.join(targetFolderPath, `${code}.mp3`);
+      return ['CONTROVERSIAL', null];
 
     // Finding the most appropriate file among all with the same name
     const bestSuitableFile = _(found)
@@ -165,25 +164,48 @@ export const handler = async ({
       )
       .first();
 
-    if (!fs.existsSync(targetFilePath))
-      void conversionQueue.push({
-        source: bestSuitableFile,
-        destination: targetFilePath,
-      });
-
-    return 'FOUND';
+    return ['FOUND', bestSuitableFile];
   }
 
   // Code → Resolution
   const resolutions = new Map<string, Resolution>();
 
   spinner.info('Processing files to launch');
-  for (const { 'DIGI Code': code, 'File Name': fileName } of _(rows)
+  const rowsToLaunch = _(rows)
     .filter('DIGI Code') // Only those with DIGI Code
     .filter('Launch') // Only those marked to be launched
     .filter(['Launched', null])
-    .value()) {
-    resolutions.set(code, await findAndConvertFile(code, fileName));
+    .value();
+  for (const {
+    'DIGI Code': code,
+    'File Name': fileName,
+    Extension: extension,
+  } of rowsToLaunch) {
+    const targetFolderPath = path.join(destinationPath, code.split('-')[0]);
+    fs.mkdirSync(targetFolderPath, { recursive: true });
+    const targetFilePath = path.join(targetFolderPath, `${code}.mp3`);
+
+    if (fs.existsSync(targetFilePath)) {
+      console.info(`${code} already exists`);
+      continue;
+    }
+
+    const [status, filePath] = await findBestFile(fileName);
+    resolutions.set(code, status);
+    if (filePath) {
+      console.info(
+        `${code} - ${path.relative(sourcePath, filePath)} ${
+          path.extname(filePath).toUpperCase() !== extension.toUpperCase()
+            ? '\x1b[31mdifferent extension\x1b[0m'
+            : ''
+        }`
+      );
+
+      void conversionQueue.push({
+        source: filePath,
+        destination: targetFilePath,
+      });
+    } else console.info(`${code} - \x1b[43m${status}\x1b[0m`);
   }
 
   spinner.start('Saving durations');
