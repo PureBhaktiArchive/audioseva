@@ -180,7 +180,7 @@ export const handler = async ({
   spinner.info('Processing files to launch');
   for (const { 'DIGI Code': code, 'File Name': fileName } of _(rows)
     .filter('DIGI Code') // Only those with DIGI Code
-    .filter('Launch') // Only thouse marked to be launched
+    .filter('Launch') // Only those marked to be launched
     .filter(['Launched', null])
     .value()) {
     resolutions.set(code, await findAndConvertFile(code, fileName));
