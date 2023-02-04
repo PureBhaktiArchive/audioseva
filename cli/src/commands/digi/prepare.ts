@@ -186,9 +186,9 @@ export const handler = async ({
     resolutions.set(code, await findAndConvertFile(code, fileName));
   }
 
-  spinner.start('Saving durations.txt');
+  spinner.start('Saving durations');
   fs.writeFileSync(durationsCacheFile, JSON.stringify([...durationsCache]));
-  spinner.succeed();
+  spinner.succeed(`Saved durations to ${durationsCacheFile}`);
 
   spinner.info('Starting conversion');
   conversionQueue.resume();
@@ -199,5 +199,5 @@ export const handler = async ({
     'File Status',
     rows.map((row) => resolutions.get(row['DIGI Code']) || null)
   );
-  spinner.succeed();
+  spinner.succeed('Saved statuses into the spreadsheet');
 };
