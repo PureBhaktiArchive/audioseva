@@ -121,8 +121,12 @@ export const handler = async ({
     const durations = await Promise.all(found.map(getAudioDurationInSeconds));
 
     // Checking that all the durations are within interval of 1 second
-    if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1)
+    if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1) {
+      found.forEach((filePath, index) =>
+        console.log(durations[index], path.relative(sourcePath, filePath))
+      );
       return ['CONTROVERSIAL', null];
+    }
 
     // Finding the most appropriate file among all with the same name
     const bestSuitableFile = _(found)
