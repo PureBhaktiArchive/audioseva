@@ -105,23 +105,6 @@ export const handler = async ({
   });
   conversionQueue.pause();
 
-  const durationsCacheFile = path.resolve(sourcePath, '../durations.txt');
-  // Relative file path to Duration
-  const durationsCache = new Map<string, number>(
-    fs.existsSync(durationsCacheFile)
-      ? JSON.parse(fs.readFileSync(durationsCacheFile, 'utf8'))
-      : []
-  );
-  async function getDuration(filePath: string) {
-    const relativePath = path.relative(sourcePath, filePath);
-    if (!durationsCache.has(relativePath))
-      durationsCache.set(
-        relativePath,
-        await getAudioDurationInSeconds(filePath).catch(() => undefined)
-      );
-    return durationsCache.get(relativePath);
-  }
-
   /**
    *
    * @param code DIGI code
@@ -135,8 +118,7 @@ export const handler = async ({
     if (!filesByBaseName.has(fileName)) return ['MISSING', null];
     const found = filesByBaseName.get(fileName);
 
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const durations = await async.map<string, number>(found, getDuration);
+    const durations = await Promise.all(found.map(getAudioDurationInSeconds));
 
     // Checking that all the durations are within interval of 1 second
     if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1)
@@ -207,10 +189,6 @@ export const handler = async ({
       });
     } else console.info(`${code} - \x1b[43m${status}\x1b[0m`);
   }
-
-  spinner.start('Saving durations');
-  fs.writeFileSync(durationsCacheFile, JSON.stringify([...durationsCache]));
-  spinner.succeed(`Saved durations to ${durationsCacheFile}`);
 
   spinner.info('Starting conversion');
   conversionQueue.resume();
