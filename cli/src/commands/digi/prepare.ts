@@ -166,6 +166,7 @@ export const handler = async ({
     'DIGI Code': code,
     'File Name': fileName,
     Extension: extension,
+    Directory: directory,
   } of rowsToLaunch) {
     const targetFolderPath = path.join(destinationPath, code.split('-')[0]);
     fs.mkdirSync(targetFolderPath, { recursive: true });
@@ -179,10 +180,12 @@ export const handler = async ({
     const [status, filePath] = await findBestFile(fileName);
     resolutions.set(code, status);
     if (filePath) {
+      const requestedFilePath = path.join(directory, fileName + extension);
+      const relativeFilePath = path.relative(sourcePath, filePath);
       console.info(
-        `${code} ${path.relative(sourcePath, filePath)} ${
-          path.extname(filePath).toUpperCase() !== extension.toUpperCase()
-            ? '\x1b[31mdifferent extension\x1b[0m'
+        `${code} \x1b[42m${status}\x1b[0m ${relativeFilePath} ${
+          relativeFilePath.toUpperCase() !== requestedFilePath.toUpperCase()
+            ? `\x1b[31minstead of ${requestedFilePath}\x1b[0m` // https://logfetch.com/js-console-colors/
             : ''
         }`
       );
