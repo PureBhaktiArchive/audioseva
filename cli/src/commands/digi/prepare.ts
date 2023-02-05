@@ -75,6 +75,7 @@ export const handler = async ({
   const files = await util.promisify(glob)('**/*.*', {
     cwd: sourcePath,
     absolute: true,
+    ignore: '**/_vti_cnf/**',
   });
   const filesByBaseName = groupBy(files, (fileName) =>
     path
