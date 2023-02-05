@@ -94,7 +94,6 @@ export const handler = async ({
           .withAudioCodec('libmp3lame')
           .withAudioBitrate(Math.max(format.bit_rate / 1000, 64))
           .output(task.destination)
-          .on('start', console.log)
           .on('error', callback)
           .on('end', () => callback(null))
           .run()
