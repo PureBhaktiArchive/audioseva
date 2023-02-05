@@ -176,7 +176,7 @@ export const handler = async ({
     resolutions.set(code, status);
     if (filePath) {
       console.info(
-        `${code} - ${path.relative(sourcePath, filePath)} ${
+        `${code} ${path.relative(sourcePath, filePath)} ${
           path.extname(filePath).toUpperCase() !== extension.toUpperCase()
             ? '\x1b[31mdifferent extension\x1b[0m'
             : ''
@@ -187,7 +187,7 @@ export const handler = async ({
         source: filePath,
         destination: targetFilePath,
       });
-    } else console.info(`${code} - \x1b[43m${status}\x1b[0m`);
+    } else console.info(`${code} \x1b[43m${status}\x1b[0m ${fileName}`);
   }
 
   spinner.info('Starting conversion');
