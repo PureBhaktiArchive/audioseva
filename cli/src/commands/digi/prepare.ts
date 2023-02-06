@@ -200,6 +200,7 @@ export const handler = async ({
   spinner.info('Starting conversion');
   conversionQueue.resume();
   await conversionQueue.drain();
+  spinner.succeed('Conversion complete');
 
   spinner.start('Saving statuses into the spreadsheet');
   await spreadsheet.updateColumn(
