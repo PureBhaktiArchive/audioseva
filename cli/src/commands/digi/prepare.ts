@@ -13,6 +13,7 @@ import os from 'os';
 import path from 'path';
 import util from 'util';
 import { Argv } from 'yargs';
+import { groupBy } from '../../array';
 import { DigitalRecordingRow } from '../../DigitalRecordingRow';
 import { Spreadsheet } from '../../Spreadsheet';
 
@@ -23,10 +24,16 @@ export const desc =
 
 export const builder = (yargs: Argv<Arguments>): Argv<Arguments> =>
   yargs.options({
-    path: {
+    sourcePath: {
       type: 'string',
       alias: 'p',
-      describe: 'root path of the audio files folder',
+      describe: 'path of the source audio files folder',
+      demandOption: true,
+    },
+    destinationPath: {
+      type: 'string',
+      alias: 'd',
+      describe: 'path of the renamed audio files folder',
       demandOption: true,
     },
     spreadsheetId: {
@@ -44,12 +51,14 @@ interface ConversionTask {
 }
 
 interface Arguments {
-  path: string;
+  sourcePath: string;
+  destinationPath: string;
   spreadsheetId: string;
 }
 
 export const handler = async ({
-  path: rootDirectory,
+  sourcePath,
+  destinationPath,
   spreadsheetId,
 }: Arguments): Promise<void> => {
   const spinner = ora();
@@ -63,17 +72,20 @@ export const handler = async ({
   spinner.succeed(`Fetched ${rows.length} rows`);
 
   spinner.start('Scanning directory');
-  const files = await util.promisify(glob)('Source/**/*.*', {
-    cwd: rootDirectory,
+  const files = await util.promisify(glob)('**/*.*', {
+    cwd: sourcePath,
     absolute: true,
+    ignore: '**/_vti_cnf/**',
   });
-  const filesByBaseName = _.groupBy(files, (fileName) =>
+  const filesByBaseName = groupBy(files, (fileName) =>
     path
       .basename(fileName, path.extname(fileName))
       // Sometimes there are additional extensions, they are removed in the spreadsheet, so removing here also
       .replace(/\.(mp3|wav)$/, '')
   );
-  spinner.succeed();
+  spinner.succeed(
+    `Found ${files.length} files, ${filesByBaseName.size} unique base names`
+  );
 
   const conversionQueue = async.queue<ConversionTask>((task, callback) => {
     ffprobe(task.source)
@@ -82,7 +94,6 @@ export const handler = async ({
           .withAudioCodec('libmp3lame')
           .withAudioBitrate(Math.max(format.bit_rate / 1000, 64))
           .output(task.destination)
-          .on('start', console.log)
           .on('error', callback)
           .on('end', () => callback(null))
           .run()
@@ -94,46 +105,28 @@ export const handler = async ({
   });
   conversionQueue.pause();
 
-  const durationsCacheFile = path.join(rootDirectory, 'durations.txt');
-  // Relative file path to Duration
-  const durationsCache = new Map<string, number>(
-    fs.existsSync(durationsCacheFile)
-      ? JSON.parse(fs.readFileSync(durationsCacheFile, 'utf8'))
-      : []
-  );
-  async function getDuration(filePath: string) {
-    const relativePath = path.relative(rootDirectory, filePath);
-    if (!durationsCache.has(relativePath))
-      durationsCache.set(
-        relativePath,
-        await getAudioDurationInSeconds(filePath).catch(() => undefined)
-      );
-    return durationsCache.get(relativePath);
-  }
-
-  async function findAndConvertFile(
-    code: string,
-    fileName: string
-  ): Promise<Resolution> {
-    const [list] = code.split('-');
-
+  /**
+   *
+   * @param code DIGI code
+   * @param fileName Base file name
+   * @returns Tuple, where the first element is the status of the file and the second one is the found file path
+   */
+  async function findBestFile(fileName: string): Promise<[Resolution, string]> {
     // Skipping derivatives
-    const originalName = fileName.replace(/(_FINAL|\s+restored)$/, '');
-    if (fileName !== originalName) return 'DERIVATIVE';
+    if (/(_FINAL|\s+restored)$/.test(fileName)) return ['DERIVATIVE', null];
 
-    const found = filesByBaseName[fileName];
-    if (!found?.length) return 'MISSING';
+    if (!filesByBaseName.has(fileName)) return ['MISSING', null];
+    const found = filesByBaseName.get(fileName);
 
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const durations = await async.map<string, number>(found, getDuration);
+    const durations = await Promise.all(found.map(getAudioDurationInSeconds));
 
     // Checking that all the durations are within interval of 1 second
-    if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1)
-      return 'CONTROVERSIAL';
-
-    const targetFolderPath = path.join(rootDirectory, 'Renamed', list);
-    fs.mkdirSync(targetFolderPath, { recursive: true });
-    const targetFilePath = path.join(targetFolderPath, `${code}.mp3`);
+    if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1) {
+      found.forEach((filePath, index) =>
+        console.log(durations[index], path.relative(sourcePath, filePath))
+      );
+      return ['CONTROVERSIAL', null];
+    }
 
     // Finding the most appropriate file among all with the same name
     const bestSuitableFile = _(found)
@@ -157,41 +150,62 @@ export const handler = async ({
       )
       .first();
 
-    if (!fs.existsSync(targetFilePath))
-      void conversionQueue.push({
-        source: bestSuitableFile,
-        destination: targetFilePath,
-      });
-
-    return 'FOUND';
+    return ['FOUND', bestSuitableFile];
   }
 
   // Code → Resolution
   const resolutions = new Map<string, Resolution>();
 
   spinner.info('Processing files to launch');
-  for (const [code, fileName] of _(rows)
+  const rowsToLaunch = _(rows)
     .filter('DIGI Code') // Only those with DIGI Code
-    .filter('Launch') // Only thouse marked to be launched
-    .groupBy('DIGI Code')
-    .mapValues((rows) => rows[0]['File Name'])
-    .toPairs()
-    .value()) {
-    resolutions.set(code, await findAndConvertFile(code, fileName));
-  }
+    .filter('Launch') // Only those marked to be launched
+    .filter(['Launched', null])
+    .value();
+  for (const {
+    'DIGI Code': code,
+    'File Name': fileName,
+    Extension: extension,
+    Directory: directory,
+  } of rowsToLaunch) {
+    const targetFolderPath = path.join(destinationPath, code.split('-')[0]);
+    fs.mkdirSync(targetFolderPath, { recursive: true });
+    const targetFilePath = path.join(targetFolderPath, `${code}.mp3`);
 
-  spinner.start('Saving durations.txt');
-  fs.writeFileSync(durationsCacheFile, JSON.stringify([...durationsCache]));
-  spinner.succeed();
+    if (fs.existsSync(targetFilePath)) {
+      console.info(`${code} already exists`);
+      continue;
+    }
+
+    const [status, filePath] = await findBestFile(fileName);
+    resolutions.set(code, status);
+    if (filePath) {
+      const requestedFilePath = path.join(directory, fileName + extension);
+      const relativeFilePath = path.relative(sourcePath, filePath);
+      console.info(
+        `${code} \x1b[42m${status}\x1b[0m ${relativeFilePath} ${
+          relativeFilePath.toUpperCase() !== requestedFilePath.toUpperCase()
+            ? `\x1b[31minstead of ${requestedFilePath}\x1b[0m` // https://logfetch.com/js-console-colors/
+            : ''
+        }`
+      );
+
+      void conversionQueue.push({
+        source: filePath,
+        destination: targetFilePath,
+      });
+    } else console.info(`${code} \x1b[43m${status}\x1b[0m ${fileName}`);
+  }
 
   spinner.info('Starting conversion');
   conversionQueue.resume();
   await conversionQueue.drain();
+  spinner.succeed('Conversion complete');
 
   spinner.start('Saving statuses into the spreadsheet');
   await spreadsheet.updateColumn(
     'File Status',
     rows.map((row) => resolutions.get(row['DIGI Code']) || null)
   );
-  spinner.succeed();
+  spinner.succeed('Saved statuses into the spreadsheet');
 };

@@ -1,5 +1,5 @@
 {
-  "name": "cli",
+  "name": "audioseva-cli",
   "version": "1.0.0",
   "main": "./dist/index.js",
   "bin": {
@@ -7,11 +7,12 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:watch": "tsc --watch",
     "start": "ts-node src/index.ts",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx"
   },
   "engines": {
-    "node": "12"
+    "node": ">=12"
   },
   "dependencies": {
     "async": "3.2.2",
