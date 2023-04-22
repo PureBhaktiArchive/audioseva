@@ -22,7 +22,7 @@ import { FinalRecord } from './FinalRecord';
 import pMap = require('p-map');
 
 export const validateRecords = functions
-  .runWith({ timeoutSeconds: 120, memory: '1GB' })
+  .runWith({ timeoutSeconds: 540, memory: '1GB' })
   .pubsub.schedule('every day 00:00')
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
