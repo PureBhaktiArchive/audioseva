@@ -14,20 +14,36 @@ const baseColumnsMapping = {
 };
 
 export function setDatesForCheckboxes(e: GoogleAppsScript.Events.SheetsOnEdit) {
-  const sheet = e.source.getActiveSheet();
+  const sheet = e.range.getSheet();
   if (sheet.getName() !== 'Fidelity Check') return;
 
-  const header = e.source
-    .getActiveSheet()
-    .getRange(1, 1, 1, sheet.getLastColumn())
-    .getValues()[0];
+  console.log('Changes detected', {
+    range: e.range.getA1Notation(),
+    value: e.range.getValue(),
+  });
 
-  if (e.range.getNumColumns() > 1 || e.range.getRow() === 1) return;
+  // Ignore header row changes
+  if (e.range.getRow() === 1) return;
 
+  if (e.range.getNumColumns() > 1 || e.range.getNumRows() > 1) {
+    console.warn(
+      'Multi-column and -row edits are ignored',
+      e.range.getA1Notation()
+    );
+    return;
+  }
+
+  const header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const changedColumnName = header[e.range.getColumn() - 1];
 
   const dateColumnName = dateColumnsMapping[changedColumnName];
-  if (!dateColumnName) return;
+
+  // Ignore irrelevant column changes
+  if (!dateColumnName) {
+    console.log('Irrelevant column "%s" was changed', changedColumnName);
+    return;
+  }
+
   const dateColumn = header.indexOf(dateColumnName) + 1;
   const dateColumnOffset = dateColumn - e.range.getColumn();
 
@@ -40,6 +56,7 @@ export function setDatesForCheckboxes(e: GoogleAppsScript.Events.SheetsOnEdit) {
   values.forEach(([value], rowOffset) => {
     const dateRange = e.range.offset(rowOffset, dateColumnOffset, 1, 1);
     if (baseColumn) {
+      // Updating the Finalization Date if the row is Ready For Archive and Topics Ready changed
       const baseRange = e.range.offset(rowOffset, baseColumnOffset, 1, 1);
       if (baseRange.isChecked() && value) dateRange.setValue(new Date());
     } else dateRange.setValue(value ? new Date() : null);
