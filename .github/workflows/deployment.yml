@@ -43,6 +43,7 @@ jobs:
           npm run build --prefix functions
 
       - name: Deploy to ${{ github.event.deployment.environment }}
+        # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
         run: |
           FIREBASE_PROJECT=${DEPLOYMENT_ENVIRONMENT^^}_FIREBASE_PROJECT
           PROJECT_DOMAIN=${DEPLOYMENT_ENVIRONMENT^^}_PROJECT_DOMAIN
