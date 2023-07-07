@@ -3,10 +3,10 @@
  */
 
 import * as functions from 'firebase-functions';
-import { abortCall, authorize } from '../auth';
 import { Person } from '../Person';
-import { SpareFile } from './SpareFile';
+import { abortCall, authorize } from '../auth';
 import { SQRWorkflow } from './SQRWorkflow';
+import { SpareFile } from './SpareFile';
 import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
 
@@ -77,7 +77,7 @@ export const getSpareFiles = functions
     return await SQRWorkflow.getSpareFiles(
       list,
       languages || [language],
-      count
+      count || 150
     );
   });
 
