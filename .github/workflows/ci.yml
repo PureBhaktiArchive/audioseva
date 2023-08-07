@@ -16,21 +16,14 @@ jobs:
     strategy:
       matrix:
         project: [frontend, functions, gas, cli]
-        node: [16]
     steps:
       - uses: actions/checkout@v3
 
       - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
-
-      - name: Cache NPM modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
-          key: node-${{ matrix.node }}-${{ runner.os }}-${{ matrix.project }}-${{ hashFiles(format('{0}/package-lock.json', matrix.project)) }}
-          restore-keys: |
-            node-${{ matrix.node }}-${{ runner.os }}-
+          node-version-file: ${{ matrix.project }}/package.json
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
 
       - run: npm ci
         working-directory: ${{ matrix.project }}

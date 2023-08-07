@@ -29,7 +29,12 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          # Using node version from functions because it's more likely to be the freshest
+          node-version-file: functions/package.json
+          cache: 'npm'
+          cache-dependency-path: |
+            functions/package-lock.json
+            frontend/package-lock.json
 
       - name: Install dependencies
         run: |
