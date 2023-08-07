@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         project: [frontend, functions, gas, cli]
-        node: [12]
+        node: [16]
     steps:
       - uses: actions/checkout@v2
 
