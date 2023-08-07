@@ -1,5 +1,8 @@
 {
   "name": "audioseva-appsscript",
+  "engines": {
+    "node": ">=16"
+  },
   "dependencies": {},
   "devDependencies": {
     "@types/google-apps-script": "1.0.37",
