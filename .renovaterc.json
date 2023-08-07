@@ -8,7 +8,6 @@
     ":prConcurrentLimit10",
     ":dependencyDashboardApproval",
     "helpers:disableTypesNodeMajor",
-    "group:googleapis",
     "group:monorepos",
     "group:test",
     "group:linters"
