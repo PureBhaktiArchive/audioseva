@@ -15,7 +15,6 @@
   "suppressNotifications": ["prIgnoreNotification"],
   "vulnerabilityAlerts": {
     "schedule": ["at any time"],
-    "automerge": true,
     "dependencyDashboardApproval": false
   }
 }
