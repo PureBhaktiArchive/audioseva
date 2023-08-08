@@ -10,7 +10,7 @@ import { Settings as DateTimeSettings } from 'luxon';
 
 admin.initializeApp();
 
-DateTimeSettings.defaultZoneName = functions.config().coordinator.timezone;
+DateTimeSettings.defaultZone = functions.config().coordinator.timezone;
 
 /*********************************************
  **
