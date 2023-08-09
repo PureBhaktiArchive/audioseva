@@ -6,18 +6,12 @@ name: Pull Request Deployment
 on:
   pull_request:
     types: [labeled]
+  workflow_dispatch:
 
 jobs:
-  create-deployment:
-    name: Create deployment
-    runs-on: ubuntu-latest
+  deployment:
+    name: Deployment
     if: contains( github.event.pull_request.labels.*.name, 'deploy:staging')
-    steps:
-      - name: Create deployment
-        uses: maxkomarychev/oction-create-deployment@v0.7.1
-        with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          ref: ${{ github.head_ref }}
-          environment: staging
-          required_contexts: <<EMPTY>>
-          description: Deploying PR#${{ github.event.number }} from ${{ github.workflow }}
+    uses: ./.github/workflows/deployment.yml
+    with:
+      environment: staging
