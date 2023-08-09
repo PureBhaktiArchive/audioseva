@@ -16,6 +16,7 @@ jobs:
     uses: ./.github/workflows/deployment.yml
     with:
       environment: production
+    secrets: inherit
   tag:
     name: Tag
     needs: deployment
