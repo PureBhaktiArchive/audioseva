@@ -53,5 +53,5 @@ jobs:
 
       - name: Deploy to ${{ input.environment }}
         run: |
-          firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN --project $GCP_PROJECT_ID
-          firebase deploy --non-interactive --force --project $GCP_PROJECT_ID
+          firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN --project $FIREBASE_PROJECT
+          firebase deploy --non-interactive --force --project $FIREBASE_PROJECT
