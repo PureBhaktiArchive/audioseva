@@ -53,7 +53,7 @@ jobs:
         run: |
           npm i -g firebase-tools@11.29.1 firebase-bolt
           firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN --project $FIREBASE_PROJECT
-          firebase deploy --non-interactive --force --debug --project $FIREBASE_PROJECT
+          firebase deploy --non-interactive --force --project $FIREBASE_PROJECT
       - name: Setup tmate session
         if: failure()
         uses: mxschmitt/action-tmate@v3
