@@ -4,12 +4,12 @@
 
 import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { DateTime } from 'luxon';
 import { getDiff } from 'recursive-diff';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
+import { modificationTime } from '../modification-time';
 import { ContentDetails } from './ContentDetails';
 import {
   Approval,
@@ -120,9 +120,7 @@ export const validateRecords = functions
         );
         if (!file) return 'File not found';
 
-        const fileCreationTime = DateTime.fromISO(
-          file.metadata.timeCreated // ISO format, e.g. 2020-08-24T09:28:12.483Z
-        );
+        const fileCreationTime = modificationTime(file);
 
         const fidelityCheckTime = DateTimeConverter.fromSerialDate(
           fidelityCheckDate,
