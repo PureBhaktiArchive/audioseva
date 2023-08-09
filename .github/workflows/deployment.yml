@@ -44,7 +44,6 @@ jobs:
         run: |
           npm ci --prefix frontend
           npm ci --prefix functions
-          npm install -g firebase-bolt
 
       - name: Build
         run: |
@@ -53,6 +52,7 @@ jobs:
 
       - name: Deploy to ${{ inputs.environment }}
         run: |
+          npm i -g firebase-tools@11.29.1
           firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN --project $FIREBASE_PROJECT
           firebase deploy --non-interactive --force --debug --project $FIREBASE_PROJECT
       - name: Setup tmate session
