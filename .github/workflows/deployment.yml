@@ -55,3 +55,7 @@ jobs:
         run: |
           firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN --project $FIREBASE_PROJECT
           firebase deploy --non-interactive --force --project $FIREBASE_PROJECT
+      - name: Show error logs
+        if: failure()
+        run: |
+          cat /home/runner/.npm/_logs/*.log
