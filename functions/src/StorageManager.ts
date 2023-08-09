@@ -90,7 +90,7 @@ export class StorageManager {
       candidates.map((file) => file.getMetadata().catch(() => null))
     );
 
-    const bucketPriority = (file: File) =>
+    const bucketWeight = (file: File) =>
       // Original files are of least priority, other buckets are equal
       file.bucket.name.startsWith('original.') ? 0 : 1;
 
@@ -98,8 +98,8 @@ export class StorageManager {
       .filter((file) => file.metadata?.name) // Filtering out non-existent files
       .sort(
         (a, b) =>
-          // By bucket priority descending
-          -(bucketPriority(a) - bucketPriority(b)) ||
+          // By bucket weight descending
+          -(bucketWeight(a) - bucketWeight(b)) ||
           // By time created descending
           -(modificationTime(a).toSeconds() - modificationTime(b).toSeconds())
       )
