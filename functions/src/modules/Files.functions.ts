@@ -10,11 +10,12 @@ import getAudioDurationInSeconds from 'get-audio-duration';
 import { DateTime } from 'luxon';
 import * as os from 'os';
 import * as path from 'path';
-import { asyncHandler } from '../asyncHandler';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { flatten } from '../flatten';
 import { Spreadsheet } from '../Spreadsheet';
 import { BucketName, StorageManager } from '../StorageManager';
+import { asyncHandler } from '../asyncHandler';
+import { flatten } from '../flatten';
+import { modificationTime } from '../modification-time';
 import pMap = require('p-map');
 import functions = require('firebase-functions');
 import express = require('express');
@@ -88,7 +89,7 @@ interface FileMetadata {
   name: string;
   duration?: number;
   size: number;
-  timeCreated: number;
+  modificationTime: number;
   timeDeleted?: number;
   crc32c: string;
   md5Hash: string;
@@ -127,7 +128,7 @@ export const saveMetadataToDatabase = functions
           const metadataForDatabase: FileMetadata = {
             name: file.name,
             size: file.metadata.size,
-            timeCreated: new Date(file.metadata.timeCreated).valueOf(),
+            modificationTime: modificationTime(file).toMillis(),
             timeDeleted: file.metadata.timeDeleted
               ? new Date(file.metadata.timeDeleted).valueOf()
               : null,
@@ -221,7 +222,7 @@ export const exportMetadataToSpreadsheet = functions.pubsub
               Generation: generation,
               Checksum: metadata.crc32c || null,
               'Creation Date': DateTimeConverter.toSerialDate(
-                DateTime.fromMillis(metadata.timeCreated)
+                DateTime.fromMillis(metadata.modificationTime)
               ),
               'Deletion Date': metadata.timeDeleted
                 ? DateTimeConverter.toSerialDate(

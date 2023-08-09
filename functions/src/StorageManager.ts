@@ -3,6 +3,7 @@
  */
 
 import { File } from '@google-cloud/storage';
+import { modificationTime } from './modification-time';
 import functions = require('firebase-functions');
 import admin = require('firebase-admin');
 import path = require('path');
@@ -100,10 +101,7 @@ export class StorageManager {
           // By bucket priority descending
           -(bucketPriority(a) - bucketPriority(b)) ||
           // By time created descending
-          -(
-            new Date(a.metadata.timeCreated).valueOf() -
-            new Date(b.metadata.timeCreated).valueOf()
-          )
+          -(modificationTime(a).toSeconds() - modificationTime(b).toSeconds())
       )
       .shift(); // And returning the most recent one
   }
