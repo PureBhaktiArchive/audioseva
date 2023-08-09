@@ -28,7 +28,6 @@ jobs:
       - run: echo $SERVICE_ACCOUNT > $GOOGLE_APPLICATION_CREDENTIALS
         env:
           SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      - run: curl -sL firebase.tools | analytics=false bash
 
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
