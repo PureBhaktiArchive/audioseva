@@ -90,7 +90,7 @@ interface FileMetadata {
   duration?: number;
   size: number;
   modificationTime: number;
-  timeDeleted?: number;
+  deletionTime?: number;
   crc32c: string;
   md5Hash: string;
 }
@@ -129,7 +129,7 @@ export const saveMetadataToDatabase = functions
             name: file.name,
             size: file.metadata.size,
             modificationTime: modificationTime(file).toMillis(),
-            timeDeleted: file.metadata.timeDeleted
+            deletionTime: file.metadata.timeDeleted
               ? new Date(file.metadata.timeDeleted).valueOf()
               : null,
             crc32c: file.metadata.crc32c,
@@ -224,9 +224,9 @@ export const exportMetadataToSpreadsheet = functions.pubsub
               'Creation Date': DateTimeConverter.toSerialDate(
                 DateTime.fromMillis(metadata.modificationTime)
               ),
-              'Deletion Date': metadata.timeDeleted
+              'Deletion Date': metadata.deletionTime
                 ? DateTimeConverter.toSerialDate(
-                    DateTime.fromMillis(metadata.timeDeleted)
+                    DateTime.fromMillis(metadata.deletionTime)
                   )
                 : null,
               'File Size': metadata.size || null,
