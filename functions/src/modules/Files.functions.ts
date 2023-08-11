@@ -110,6 +110,12 @@ export const saveMetadataToDatabase = functions
   .timeZone(functions.config().coordinator.timezone)
   .onRun(async () => {
     const snapshot = await rootFilesMetadataRef.once('value');
+    const updateAllMetadata = snapshot
+      .child('updateAllMetadata')
+      .val() as boolean;
+    const updateAllDurations = snapshot
+      .child('updateAllDurations')
+      .val() as boolean;
     const durationExtractionTopic = pubsub.topic(
       DURATION_EXTRACTION_TOPIC_NAME
     );
@@ -124,7 +130,7 @@ export const saveMetadataToDatabase = functions
 
       const updates = files.reduce((accumulator, file) => {
         const path = getFileMetadataPath(file);
-        if (!snapshot.child(path).exists()) {
+        if (!snapshot.child(path).exists() || updateAllMetadata) {
           const metadataForDatabase: FileMetadata = {
             name: file.name,
             size: file.metadata.size,
@@ -144,7 +150,9 @@ export const saveMetadataToDatabase = functions
         // Triggering duration extraction
         pMap(
           files.filter(
-            (file) => !snapshot.child(getFileDurationPath(file)).exists()
+            (file) =>
+              !snapshot.child(getFileDurationPath(file)).exists() ||
+              updateAllDurations
           ),
           (file) =>
             durationExtractionTopic.publishMessage({
