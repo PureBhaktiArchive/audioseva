@@ -26,5 +26,5 @@ jobs:
       - name: Create tag
         run: |
           DATE=$(date +'%Y-%m-%d')
-          git tag $DATE
-          git push origin $DATE
+          git tag -f $DATE
+          git push -f origin $DATE
