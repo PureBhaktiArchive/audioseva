@@ -10,12 +10,29 @@ on:
       - master
 
 jobs:
+  changes:
+    name: Detect changes in sub-projects
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.filter.outputs.changes }}
+    steps:
+      # Checkout to use filters from file
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: .github/path-filters.yml
+
   build:
     name: Build and test (${{ matrix.project }})
     runs-on: ubuntu-latest
+    needs: changes
     strategy:
       matrix:
-        project: [frontend, functions, gas, cli]
+        project: ${{ fromJSON(needs.changes.outputs.projects) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
     steps:
       - uses: actions/checkout@v3
 
@@ -26,13 +43,8 @@ jobs:
           cache-dependency-path: ${{ matrix.project }}/package-lock.json
 
       - run: npm ci
-        working-directory: ${{ matrix.project }}
       # prettier should be called after installing dependencies so that proper version be picked
       - run: npx prettier --check .
-        working-directory: ${{ matrix.project }}
       - run: npm run lint --if-present -- --no-fix
-        working-directory: ${{ matrix.project }}
       - run: npm run build --if-present
-        working-directory: ${{ matrix.project }}
       - run: npm run test --if-present -- --ci
-        working-directory: ${{ matrix.project }}
