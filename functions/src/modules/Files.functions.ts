@@ -147,10 +147,12 @@ export const saveMetadataToDatabase = functions
             (file) => !snapshot.child(getFileDurationPath(file)).exists()
           ),
           (file) =>
-            durationExtractionTopic.publishJSON({
-              bucketName: file.bucket.name,
-              fileName: file.name,
-              generation: file.generation,
+            durationExtractionTopic.publishMessage({
+              json: {
+                bucketName: file.bucket.name,
+                fileName: file.name,
+                generation: file.generation,
+              },
             })
         ),
         // Saving new metadata to the database
