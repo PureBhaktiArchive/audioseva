@@ -4,17 +4,15 @@
 
 # Used in GitHub Actions workflows for detecting which paths were changed
 # https://github.com/dorny/paths-filter#advanced-options
-ci: &ci
-  - .github/workflows/ci.*
 frontend:
   - 'frontend/**'
-  - *ci
+  - .github/workflows/ci.*
 functions:
   - 'functions/**'
-  - *ci
+  - .github/workflows/ci.*
 cli:
   - 'cli/**'
-  - *ci
+  - .github/workflows/ci.*
 gas:
   - 'gas/**'
-  - *ci
+  - .github/workflows/ci.*

@@ -18,7 +18,7 @@ jobs:
       functions: ${{ steps.filter.outputs.functions }}
       cli: ${{ steps.filter.outputs.cli }}
       gas: ${{ steps.filter.outputs.gas }}
-      changes: ${{ steps.filter.outputs.changes }}
+      list: ${{ steps.filter.outputs.changes }}
     steps:
       # Checkout to use filters from file
       - uses: actions/checkout@v2
@@ -33,7 +33,7 @@ jobs:
     needs: changes
     strategy:
       matrix:
-        project: [gas]
+        project: ${{ fromJSON(needs.changes.outputs.list) }}
     # Comparing to string, because the job output is a strings, not boolean
     # if: needs.changes.outputs.${{ matrix.project }} == 'true'
     defaults:
@@ -41,10 +41,6 @@ jobs:
         working-directory: ${{ matrix.project }}
     steps:
       - uses: actions/checkout@v3
-
-      - run: echo $CHANGES
-        env:
-          CHANGES: ${{ needs.changes.outputs.changes }}
 
       - uses: actions/setup-node@v3
         with:
