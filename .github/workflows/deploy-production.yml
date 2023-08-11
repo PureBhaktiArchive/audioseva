@@ -7,16 +7,23 @@ on:
   push:
     branches:
       - production
+  workflow_dispatch:
 
 jobs:
-  create-deployment:
-    name: Create deployment
+  deployment:
+    name: Deployment
+    uses: ./.github/workflows/deployment.yml
+    with:
+      environment: production
+    secrets: inherit
+  tag:
+    name: Tag
+    needs: deployment
     runs-on: ubuntu-latest
     steps:
-      - name: Create deployment
-        uses: maxkomarychev/oction-create-deployment@v0.7.1
-        with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
-          ref: ${{ github.ref }}
-          environment: production
-          required_contexts: <<EMPTY>>
+      - uses: actions/checkout@v3
+      - name: Create tag
+        run: |
+          DATE=$(date +'%Y-%m-%d')
+          git tag -f $DATE
+          git push -f origin $DATE

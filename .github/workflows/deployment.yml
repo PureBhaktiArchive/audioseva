@@ -3,35 +3,38 @@
 #
 
 name: Deployment
-on: deployment
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ inputs.environment }}_deployment
+  cancel-in-progress: true
 
 jobs:
   deployment:
     name: Deployment to Firebase
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      FIREBASE_PROJECT: ${{ vars.FIREBASE_PROJECT }}
+      PROJECT_DOMAIN: ${{ vars.PROJECT_DOMAIN }}
 
     steps:
-      - name: Turnstyle
-        uses: softprops/turnstyle@v0.1.5
-        with:
-          continue-after-seconds: 180
+      - run: echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/service-account.json" >> $GITHUB_ENV
+      - run: echo $SERVICE_ACCOUNT > $GOOGLE_APPLICATION_CREDENTIALS
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Report deployment status in progress
-        uses: maxkomarychev/oction-create-deployment-status@v0.7.1
-        with:
-          token: ${{ github.token }}
-          deployment_id: ${{ github.event.deployment.id }}
-          state: in_progress
+          SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - uses: actions/checkout@v3
-
       - uses: actions/setup-node@v3
         with:
           # Using node version from functions because it's more likely to be the freshest
           node-version-file: functions/package.json
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: |
             functions/package-lock.json
             frontend/package-lock.json
@@ -40,61 +43,20 @@ jobs:
         run: |
           npm ci --prefix frontend
           npm ci --prefix functions
-          npm install -g firebase-bolt firebase-tools
+          npm i -g firebase-tools@11.29.1 firebase-bolt
 
       - name: Build
         run: |
           npm run build --prefix frontend
           npm run build --prefix functions
 
-      - name: Deploy to ${{ github.event.deployment.environment }}
-        # https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
+      - name: Deploy to ${{ inputs.environment }}
         run: |
-          FIREBASE_PROJECT=${DEPLOYMENT_ENVIRONMENT^^}_FIREBASE_PROJECT
-          PROJECT_DOMAIN=${DEPLOYMENT_ENVIRONMENT^^}_PROJECT_DOMAIN
-          SERVICE_ACCOUNT=${DEPLOYMENT_ENVIRONMENT^^}_SERVICE_ACCOUNT
-          echo ${!SERVICE_ACCOUNT} > service-account.json
-          firebase use ${!FIREBASE_PROJECT}
-          firebase target:apply storage uploads te.uploads.${!PROJECT_DOMAIN}
-          firebase deploy --non-interactive --force
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
-          DEPLOYMENT_ENVIRONMENT: ${{ github.event.deployment.environment }}
-          STAGING_FIREBASE_PROJECT: ${{ secrets.STAGING_FIREBASE_PROJECT }}
-          STAGING_PROJECT_DOMAIN: ${{ secrets.STAGING_PROJECT_DOMAIN }}
-          STAGING_SERVICE_ACCOUNT: ${{ secrets.STAGING_FIREBASE_SERVICE_ACCOUNT }}
-          PRODUCTION_FIREBASE_PROJECT: ${{ secrets.PRODUCTION_FIREBASE_PROJECT }}
-          PRODUCTION_PROJECT_DOMAIN: ${{ secrets.PRODUCTION_PROJECT_DOMAIN }}
-          PRODUCTION_SERVICE_ACCOUNT: ${{ secrets.PRODUCTION_FIREBASE_SERVICE_ACCOUNT }}
+          firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN --project $FIREBASE_PROJECT
+          firebase deploy --non-interactive --force --project $FIREBASE_PROJECT
 
-      - name: Report deployment success
-        if: success()
-        uses: maxkomarychev/oction-create-deployment-status@v0.7.1
-        with:
-          token: ${{ github.token }}
-          deployment_id: ${{ github.event.deployment.id }}
-          state: success
-
-      - name: Report deployment failure
+      - name: Setup tmate session
         if: failure()
-        uses: maxkomarychev/oction-create-deployment-status@v0.7.1
+        uses: mxschmitt/action-tmate@v3
         with:
-          token: ${{ github.token }}
-          deployment_id: ${{ github.event.deployment.id }}
-          state: failure
-
-  tag:
-    name: Tag
-    needs: deployment
-    if: ${{ github.event.deployment.environment == 'production' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get current date
-        id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-      - uses: actions/checkout@v3
-      - name: Create tag
-        uses: tvdias/github-tagger@v0.0.2
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.date.outputs.date }}
+          limit-access-to-actor: true
