@@ -170,6 +170,9 @@ export const extractDuration = functions
       .bucket(bucketName)
       .file(fileName, { generation });
 
+    // Getting file metadata for `metadata.id` to work. Since some update, metadata doesn't get retrieved on `download`.
+    await file.getMetadata();
+
     try {
       const filePath = path.join(os.tmpdir(), path.basename(file.name));
       await file.download({ destination: filePath });
