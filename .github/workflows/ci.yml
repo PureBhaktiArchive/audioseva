@@ -14,11 +14,7 @@ jobs:
     name: Detect changes in sub-projects
     runs-on: ubuntu-latest
     outputs:
-      frontend: ${{ steps.filter.outputs.frontend }}
-      functions: ${{ steps.filter.outputs.functions }}
-      cli: ${{ steps.filter.outputs.cli }}
-      gas: ${{ steps.filter.outputs.gas }}
-      list: ${{ steps.filter.outputs.changes }}
+      projects: ${{ steps.filter.outputs.changes }}
     steps:
       # Checkout to use filters from file
       - uses: actions/checkout@v2
@@ -33,9 +29,7 @@ jobs:
     needs: changes
     strategy:
       matrix:
-        project: ${{ fromJSON(needs.changes.outputs.list) }}
-    # Comparing to string, because the job output is a strings, not boolean
-    # if: needs.changes.outputs.${{ matrix.project }} == 'true'
+        project: ${{ fromJSON(needs.changes.outputs.projects) }}
     defaults:
       run:
         working-directory: ${{ matrix.project }}
