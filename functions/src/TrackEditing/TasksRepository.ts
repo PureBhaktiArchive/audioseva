@@ -5,16 +5,13 @@
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { AbstractRepository } from '../AbstractRepository';
-import { Allotment, AllotmentStatus } from '../Allotment';
+import { AllotmentStatus } from '../Allotment';
 import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
 import { trackEditingVersionOutputLink } from '../Frontend';
-import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
-import { StorageManager } from '../StorageManager';
 import { ChunkRow } from './ChunkRow';
-import { RecheckRow } from './RecheckRow';
 import { TaskValidator } from './TaskValidator';
 import { TrackEditingAllotmentRow } from './TrackEditingAllotmentRow';
 import { TrackEditingTask } from './TrackEditingTask';
@@ -154,162 +151,5 @@ export class TasksRepository extends AbstractRepository<
 
     await this.saveToDatabase(tasks);
     return tasks.length;
-  }
-
-  public async getRecheckedTasksUpdates() {
-    const recheckSheet = await Spreadsheet.open<RecheckRow>(
-      functions.config().te.spreadsheet.id,
-      'Recheck files'
-    );
-
-    /// Getting spreadsheet rows and database snapshot in parallel
-    const [rows, snapshot] = await Promise.all([
-      recheckSheet.getRows(),
-      tasksRef.once('value'),
-    ]);
-
-    const existingTasks = _.chain(snapshot.val())
-      .mapValues((value, key) => this.constructTask(key, value))
-      .value();
-
-    const aliasToPerson = new Map(
-      await Promise.all(
-        _.map(
-          (
-            await admin
-              .database()
-              .ref('/users')
-              // Filtering only those with filled `alias`: https://stackoverflow.com/a/39148596/3082178
-              .orderByChild('alias')
-              .startAt('!')
-              .endAt('~')
-              .once('value')
-          ).val(),
-          async (record, uid): Promise<[string, Person]> => [
-            record.alias as string,
-            {
-              uid,
-              name: (await admin.auth().getUser(uid)).displayName,
-              emailAddress: record.emailAddress,
-            } as Person,
-          ]
-        )
-      )
-    );
-
-    type Update = Pick<TrackEditingTask, 'id' | keyof Allotment | 'versions'>;
-
-    const updates = rows.map<Promise<Update>>(async (row) => {
-      const id = row['Task ID'];
-      // Skip empty rows and not yet rechecked
-      if (!id || !row['Date checked']) return null;
-
-      const recheckTimestamp = DateTimeConverter.fromSerialDate(
-        row['Date checked']
-      );
-
-      if (recheckTimestamp > DateTime.now()) {
-        console.error(
-          `${id}: Date Checked ${recheckTimestamp.toISO()} is in the future.`
-        );
-        return null;
-      }
-
-      const existingTask = existingTasks[id];
-
-      if (existingTask?.status !== AllotmentStatus.Recheck) return null;
-
-      if (row.Feedback?.toUpperCase()?.trim() === 'OK') {
-        console.log(`Marking rechecked task ${id} as Done.`);
-        return {
-          id,
-          status: AllotmentStatus.Done,
-        };
-      }
-
-      const newAssigneeEmail = row['New assignee email']?.trim();
-      if (!newAssigneeEmail) return null;
-
-      const newAssignee = await admin
-        .auth()
-        .getUserByEmail(newAssigneeEmail)
-        .catch((error: admin.FirebaseError) => {
-          console.error(
-            `Error getting user by email '${newAssigneeEmail}': ${error.code}, ${error.message}`
-          );
-        });
-
-      if (!newAssignee) {
-        console.error(`${id}: could not find user ${newAssigneeEmail}.`);
-        return null;
-      }
-
-      const checker = aliasToPerson.get(row['Rechecked by']);
-
-      if (!checker) {
-        console.error(
-          `${id}: could not find user by alias ${row['Rechecked by']}`
-        );
-        return null;
-      }
-
-      const latestVersionKey = _.findLastKey(existingTask.versions);
-
-      // Final file could be sound engineered before rechecked, thus searching for it in both buckets
-      const finalFile = await StorageManager.getMostRecentFile(
-        StorageManager.getCandidateFiles(id)
-      );
-
-      if (!finalFile) {
-        console.error(
-          `${id}: could not find final file neither in “restored” nor in “edited” bucket.`
-        );
-        return null;
-      }
-
-      // Getting the final file metadata to get its generation
-      // https://googleapis.dev/nodejs/storage/latest/File.html#getMetadata-examples
-      const [finalFileMetadata] = await finalFile.getMetadata();
-
-      // Logging just in case to have the previous state of the task
-      console.info(`${id}: updating the task. Current state is`, existingTask);
-
-      // Constructing the update for the task
-      return {
-        id,
-        status: AllotmentStatus.WIP,
-        timestampGiven: admin.database.ServerValue.TIMESTAMP as number,
-        timestampDone: null,
-        assignee: {
-          name: newAssignee.displayName,
-          emailAddress: newAssignee.email,
-        },
-        versions: {
-          // Adding a fake version if none exists
-          [latestVersionKey || this.getNewVersionRef(id).key]: {
-            // First inheriting the previous values of the latest version
-            ...existingTask.versions?.[latestVersionKey],
-            // Pinning the final file to get it later at any time
-            file: {
-              bucket: finalFile.bucket.name,
-              name: finalFile.name,
-              generation: finalFileMetadata.generation as number,
-            },
-            // Replacing the resolution altogether
-            resolution: {
-              author: aliasToPerson.get(row['Rechecked by']) || {
-                name: row['Rechecked by'],
-                emailAddress: row['Rechecked by'],
-              },
-              isApproved: false,
-              isRechecked: true,
-              feedback: `[RECHECK]: ${row.Feedback}`,
-              timestamp: recheckTimestamp.toMillis(),
-            },
-          },
-        },
-      };
-    });
-    return _.filter(await Promise.all(updates));
   }
 }

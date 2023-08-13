@@ -6,12 +6,12 @@ import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import * as path from 'path';
 import { AllotmentStatus } from '../Allotment';
-import { asyncHandler } from '../asyncHandler';
-import { abortCall, authorize } from '../auth';
 import { FileResolution } from '../FileResolution';
 import { FileVersion } from '../FileVersion';
 import { Person } from '../Person';
 import { StorageManager } from '../StorageManager';
+import { asyncHandler } from '../asyncHandler';
+import { abortCall, authorize } from '../auth';
 import { TasksRepository } from './TasksRepository';
 import express = require('express');
 import _ = require('lodash');
@@ -252,17 +252,6 @@ export const importTasks = functions
     const repository = new TasksRepository();
     const count: number = await repository.importTasks();
     console.info(`Imported ${count} tasks.`);
-  });
-
-export const processRechecked = functions
-  .runWith({ timeoutSeconds: 120 })
-  // Scheduling right after the allotments sync. This helps coordinator to reschedule Recheck quickly.
-  .pubsub.schedule('every 4 hours from 08:05 to 00:00')
-  .timeZone(functions.config().coordinator.timezone)
-  .onRun(async () => {
-    const repository = new TasksRepository();
-    const updates = await repository.getRecheckedTasksUpdates();
-    await repository.save(...updates);
   });
 
 export const syncAllotments = functions
