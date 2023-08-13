@@ -194,7 +194,7 @@ export const extractDuration = functions
 
       await rootFilesMetadataRef.child(getFileDurationPath(file)).set(duration);
     } catch (error) {
-      console.error(
+      console.warn(
         `Failed to extract duration for ${file.metadata.id}`,
         `with message: ${error.message}`
       );
