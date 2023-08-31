@@ -116,6 +116,9 @@ export const saveMetadataToDatabase = functions
     const updateAllDurations = snapshot
       .child('updateAllDurations')
       .val() as boolean;
+    const removeNonExistent = snapshot
+      .child('removeNonExistent')
+      .val() as boolean;
     const durationExtractionTopic = pubsub.topic(
       DURATION_EXTRACTION_TOPIC_NAME
     );
@@ -146,6 +149,21 @@ export const saveMetadataToDatabase = functions
         return accumulator;
       }, {});
 
+      if (removeNonExistent)
+        snapshot.child(bucketName).forEach((fileSnapshot) =>
+          fileSnapshot.forEach((generationSnapshot) => {
+            if (
+              !files.some(
+                (file) =>
+                  file.name === generationSnapshot.child('name').val() &&
+                  file.generation === +generationSnapshot.key
+              )
+            )
+              updates[
+                `${bucketName}/${fileSnapshot.key}/${generationSnapshot.key}`
+              ] = null;
+          })
+        );
       await Promise.all([
         // Triggering duration extraction
         pMap(
