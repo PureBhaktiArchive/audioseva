@@ -1,5 +1,7 @@
 export const currencies = [
   'usd',
+  'inr',
+  'eur',
   'aed',
   'afn',
   'all',
@@ -38,7 +40,6 @@ export const currencies = [
   'dzd',
   'egp',
   'etb',
-  'eur',
   'fjd',
   'fkp',
   'gbp',
@@ -55,7 +56,6 @@ export const currencies = [
   'huf',
   'idr',
   'ils',
-  'inr',
   'isk',
   'jmd',
   'jpy',
