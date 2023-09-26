@@ -108,7 +108,8 @@ export const validateRecords = functions
 
         // Basic row validation
         const result = validator.validate(row, index, rows);
-        if (!result.isValid) return result.messages.join('\n');
+        if (!result.isValid)
+          return ['Data is invalid:', ...result.messages].join('\n');
 
         // General fidelity check supercedes the quick one (without topics)
         const fidelityCheckDate = row['Fidelity Checked']
