@@ -111,10 +111,9 @@ export const validateRecords = functions
         if (!result.isValid)
           return ['Data is invalid:', ...result.messages].join('\n');
 
-        // General fidelity check supercedes the quick one (without topics)
-        const fidelityCheckDate = row['Fidelity Checked']
-          ? row['FC Date']
-          : row['FC Date without topics'];
+        /**
+         * Validating Fidelity Check
+         */
 
         const file = await StorageManager.getMostRecentFile(
           StorageManager.getCandidateFiles(row['Task ID'])
@@ -123,8 +122,11 @@ export const validateRecords = functions
 
         const fileCreationTime = modificationTime(file);
 
-        const fidelityCheckTime = DateTimeConverter.fromSerialDate(
-          fidelityCheckDate,
+        let fidelityCheckTime = DateTimeConverter.fromSerialDate(
+          // General fidelity check supercedes the quick one (without topics)
+          row['Fidelity Checked']
+            ? row['FC Date']
+            : row['FC Date without topics'],
           sheet.timeZone
         );
 
@@ -132,14 +134,12 @@ export const validateRecords = functions
          * If the date is midnight, it means that the date was entered manually during this day.
          * Hence, using the end of that day as an “exact” FC time.
          */
-        const exactFidelityCheckTime =
-          fidelityCheckTime === fidelityCheckTime.startOf('day')
-            ? fidelityCheckTime.endOf('day')
-            : fidelityCheckTime;
+        if (fidelityCheckTime === fidelityCheckTime.startOf('day'))
+          fidelityCheckTime = fidelityCheckTime.endOf('day');
 
         // The FC Date should be later than the time when the file was created.
-        if (fileCreationTime > exactFidelityCheckTime)
-          return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check on ${exactFidelityCheckTime.toISODate()}.`;
+        if (fileCreationTime > fidelityCheckTime)
+          return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check on ${fidelityCheckTime.toISODate()}.`;
 
         const fileReference: StorageFileReference = {
           bucket: file.bucket.name,
@@ -147,7 +147,7 @@ export const validateRecords = functions
           generation: file.metadata.generation,
         };
         const fidelityCheck: FidelityCheck = {
-          timestamp: exactFidelityCheckTime.toMillis(),
+          timestamp: fidelityCheckTime.toMillis(),
           author: row['FC Initials'],
         };
 
