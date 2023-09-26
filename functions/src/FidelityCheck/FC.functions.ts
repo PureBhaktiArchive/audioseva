@@ -152,9 +152,8 @@ export const validateRecords = functions
         };
 
         if (
-          // Using -Infinity to make sure that in absense of existing record the new record will be considered newer
-          fidelityCheck.timestamp <=
-          (existingRecord?.fidelityCheck?.timestamp || -Infinity)
+          existingRecord?.fidelityCheck &&
+          fidelityCheck.timestamp <= existingRecord.fidelityCheck.timestamp
         ) {
           // Comparing file info if the FC Date was not bumped
           if (getDiff(existingRecord.file, fileReference).length)
@@ -214,9 +213,8 @@ export const validateRecords = functions
         };
 
         if (
-          // Using -Infinity to make sure that in absense of existing record the new record will be considered newer
-          approval.timestamp <=
-          (existingRecord?.approval?.timestamp || -Infinity)
+          existingRecord?.approval &&
+          approval.timestamp <= existingRecord.approval.timestamp
         ) {
           const changedColumns = getDiff(
             existingRecord.contentDetails,
