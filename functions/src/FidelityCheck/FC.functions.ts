@@ -166,6 +166,10 @@ export const validateRecords = functions
           fidelityCheck,
         });
 
+        /**
+         * Validating Ready For Archive
+         */
+
         if (row['Ready For Archive'] !== true)
           return 'Awaiting Ready For Archive.';
 
