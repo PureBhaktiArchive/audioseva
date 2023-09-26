@@ -94,10 +94,6 @@ export const validateRecords = functions
           });
         }
 
-        // Basic row validation
-        const result = validator.validate(row, index, rows);
-        if (!result.isValid) return result.messages.join('\n');
-
         if (
           row['Fidelity Checked'] !== true &&
           row['Fidelity Checked without topics'] !== true
@@ -107,8 +103,12 @@ export const validateRecords = functions
             fidelityCheck: null,
           });
 
-          return 'Awaiting FC.';
+          return null;
         }
+
+        // Basic row validation
+        const result = validator.validate(row, index, rows);
+        if (!result.isValid) return result.messages.join('\n');
 
         // General fidelity check supercedes the quick one (without topics)
         const fidelityCheckDate = row['Fidelity Checked']
