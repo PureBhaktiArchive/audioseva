@@ -153,18 +153,18 @@ export const validateRecords = functions
 
         if (
           existingRecord?.fidelityCheck &&
-          fidelityCheck.timestamp <= existingRecord.fidelityCheck.timestamp
-        ) {
-          // Comparing file info if the FC Date was not bumped
-          if (getDiff(existingRecord.file, fileReference).length)
-            return 'File was updated since last fidelity check.';
-        }
-        // Updating the database if the FC Date was bumped
-        else
-          await recordSnapshot.ref.update({
-            file: fileReference,
-            fidelityCheck,
-          });
+          // FC Date was not bumped
+          fidelityCheck.timestamp <= existingRecord.fidelityCheck.timestamp &&
+          existingRecord?.file?.name &&
+          !existingRecord.file.name.includes(row['Task ID'])
+        )
+          return `Fidelity Check was done against another file name ${existingRecord.file.name}`;
+
+        // Saving the file info into the database
+        await recordSnapshot.ref.update({
+          file: fileReference,
+          fidelityCheck,
+        });
 
         if (row['Ready For Archive'] !== true)
           return 'Awaiting Ready For Archive.';
