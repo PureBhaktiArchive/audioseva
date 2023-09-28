@@ -99,9 +99,10 @@ export const validateRecords = functions
           row['Fidelity Checked without topics'] !== true
         ) {
           // Removing the fidelity check from the database
-          await recordSnapshot.ref.update({
-            fidelityCheck: null,
-          });
+          if (existingRecord?.fidelityCheck)
+            await recordSnapshot.ref.update({
+              fidelityCheck: null,
+            });
 
           return null;
         }
