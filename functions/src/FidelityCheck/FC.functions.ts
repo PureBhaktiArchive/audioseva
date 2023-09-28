@@ -85,8 +85,11 @@ export const validateRecords = functions
         const recordSnapshot = snapshot.child(row['Archive ID'].toString());
         const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
 
-        // Removing the approval from the database if Ready For Archive is `false`
-        // Doing this early ensures unpublishing of a file even if there are validation issues
+        /**
+         * Removing the approval from the database if Ready For Archive is `false`
+         * Doing this early ensures unpublishing of a file even if there are validation issues
+         */
+
         if (row['Ready For Archive'] === false && existingRecord?.approval) {
           functions.logger.info('Removing approval from', row['Archive ID']);
           await recordSnapshot.ref.update({
@@ -104,16 +107,20 @@ export const validateRecords = functions
               fidelityCheck: null,
             });
 
+          // Until fidelity check is done, there is nothing to validate
           return null;
         }
 
-        // Basic row validation
+        /**
+         * Basic row validation
+         */
+
         const result = validator.validate(row, index, rows);
         if (!result.isValid)
           return ['Data is invalid:', ...result.messages].join('\n');
 
         /**
-         * Validating Fidelity Check
+         * Verifying that the fidelity check corresponds to the current file
          */
 
         const file = await StorageManager.getMostRecentFile(
@@ -131,10 +138,8 @@ export const validateRecords = functions
           sheet.timeZone
         );
 
-        /**
-         * If the date is midnight, it means that the date was entered manually during this day.
-         * Hence, using the end of that day as an “exact” FC time.
-         */
+        // If the FC time is midnight, it means that the date was entered manually during this day.
+        // Hence, using the end of that day to ensure correct comparison to the file time.
         if (fidelityCheckTime === fidelityCheckTime.startOf('day'))
           fidelityCheckTime = fidelityCheckTime.endOf('day');
 
@@ -168,7 +173,7 @@ export const validateRecords = functions
         });
 
         /**
-         * Validating Ready For Archive
+         * Checking for the content changes after approval
          */
 
         if (row['Ready For Archive'] !== true)
