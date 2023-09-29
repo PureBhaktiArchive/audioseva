@@ -24,7 +24,7 @@ jobs:
           filters: .github/path-filters.yml
 
   build:
-    name: Build and test (${{ matrix.project }})
+    name: Build and test
     runs-on: ubuntu-latest
     needs: changes
     strategy:
@@ -52,6 +52,7 @@ jobs:
   # https://emmer.dev/blog/skippable-github-status-checks-aren-t-really-required/
   # https://github.com/orgs/community/discussions/26822#discussioncomment-3305794
   check:
+    name: Summary check
     if: always()
     needs: build
     runs-on: ubuntu-latest
