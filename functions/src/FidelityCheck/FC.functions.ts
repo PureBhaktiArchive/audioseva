@@ -187,40 +187,32 @@ export const validateRecords = functions
           topicsReady: row['Topics Ready'],
         };
 
-        const contentDetails: ContentDetails = {
-          title: row['Suggested Title'],
-          topics: row.Topics,
-          date: row['Date (yyyymmdd format)'],
-          dateUncertain: row['Date uncertain'],
-          timeOfDay: row['AM/PM'],
-          location: row.Location,
-          locationUncertain: row['Location uncertain'],
-          category: row.Category,
-          languages: row['Lecture Language'],
-          percentage: row['Srila Gurudeva Timing'],
-          otherSpeaker: row['Other Guru-varga'],
-          seriesInputs: row['Series/Sastra Inputs'],
-          soundQualityRating: row['Sound Rating'],
-        };
-
-        const backMapping: Record<
+        const contentDetailsMapping = new Map<
           keyof ContentDetails,
           keyof FidelityCheckRow
-        > = {
-          title: 'Suggested Title',
-          topics: 'Topics',
-          date: 'Date (yyyymmdd format)',
-          dateUncertain: 'Date uncertain',
-          timeOfDay: 'AM/PM',
-          location: 'Location',
-          locationUncertain: 'Location uncertain',
-          category: 'Category',
-          languages: 'Lecture Language',
-          percentage: 'Srila Gurudeva Timing',
-          otherSpeaker: 'Other Guru-varga',
-          seriesInputs: 'Series/Sastra Inputs',
-          soundQualityRating: 'Sound Rating',
-        };
+        >([
+          ['title', 'Suggested Title'],
+          ['topics', 'Topics'],
+          ['date', 'Date (yyyymmdd format)'],
+          ['dateUncertain', 'Date uncertain'],
+          ['timeOfDay', 'AM/PM'],
+          ['location', 'Location'],
+          ['locationUncertain', 'Location uncertain'],
+          ['category', 'Category'],
+          ['languages', 'Lecture Language'],
+          ['percentage', 'Srila Gurudeva Timing'],
+          ['otherSpeaker', 'Other Guru-varga'],
+          ['seriesInputs', 'Series/Sastra Inputs'],
+          ['soundQualityRating', 'Sound Rating'],
+        ]);
+
+        // Constructing the content details
+        const contentDetails = Object.fromEntries(
+          [...contentDetailsMapping.entries()].map(([key, columnName]) => [
+            key,
+            row[columnName],
+          ])
+        ) as unknown as ContentDetails;
 
         if (
           existingRecord?.approval &&
@@ -239,7 +231,9 @@ export const validateRecords = functions
                 // Absent value from Firebase is undefined, but `null` in the spreadsheet
                 !(d.op === 'add' && d.val === null)
             )
-            .map((d) => backMapping[d.path[0]]);
+            .map((d) =>
+              contentDetailsMapping.get(d.path[0] as keyof ContentDetails)
+            );
 
           if (changedColumns.length)
             return `Changed after finalization: ${changedColumns.join(', ')}.`;
