@@ -48,3 +48,13 @@ jobs:
       - run: npm run lint --if-present -- --no-fix
       - run: npm run build --if-present
       - run: npm run test --if-present -- --ci
+
+  # https://emmer.dev/blog/skippable-github-status-checks-aren-t-really-required/
+  # https://github.com/orgs/community/discussions/26822#discussioncomment-3305794
+  check:
+    if: always()
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - run: exit 1
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
