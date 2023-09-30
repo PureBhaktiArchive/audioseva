@@ -201,7 +201,7 @@ export const validateRecords = functions
           ['category', 'Category'],
           ['languages', 'Lecture Language'],
           ['percentage', 'Srila Gurudeva Timing'],
-          ['otherSpeaker', 'Other Guru-varga'],
+          ['otherSpeakers', 'Other Guru-varga'],
           ['seriesInputs', 'Series/Sastra Inputs'],
           ['soundQualityRating', 'Sound Rating'],
         ]);

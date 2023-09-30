@@ -74,6 +74,10 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'File is not Done in TE/SE.'
       ),
       new ValidationIssue(
+        (row) => row['Srila Gurudeva Timing'] === 0 && !row['Other Guru-varga'],
+        'Other Guru-varga is mandatory if Srila Gurudeva Timing is zero.'
+      ),
+      new ValidationIssue(
         (row) =>
           row['Fidelity Checked'] === true && !Number.isFinite(row['FC Date']),
         'Invalid FC Date.'
