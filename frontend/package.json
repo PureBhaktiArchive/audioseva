@@ -12,7 +12,7 @@
     "test:unit": "npm run test"
   },
   "engines": {
-    "node": "18"
+    "node": "16"
   },
   "dependencies": {
     "@casl/ability": "4.1.6",
