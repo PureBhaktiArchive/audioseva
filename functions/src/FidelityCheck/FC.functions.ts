@@ -63,191 +63,206 @@ export const validateRecords = functions
       'Fidelity Checked without topics',
     ]);
 
-    const spreadsheetStatuses = await pMap(
-      rows,
-      async (row, index) => {
-        // Normalizing input data: fixing humans’ mistypings
-        STRING_COLUMNS.forEach((key) => {
-          row[key] = row[key]?.toString()?.trim() || null;
+    const processRow = async (
+      row: FidelityCheckRow,
+      index: number
+    ): Promise<string> => {
+      // Normalizing input data: fixing humans’ mistypings
+      STRING_COLUMNS.forEach((key) => {
+        row[key] = row[key]?.toString()?.trim() || null;
+      });
+      BOOLEAN_COLUMNS.forEach((key) => {
+        row[key] = row[key] || false;
+      });
+
+      // Skipping rows with empty Task ID
+      if (!row['Task ID']) return null;
+
+      // Checking for sanity of the Task ID
+      if (/^[A-Z]+\d?-\d+-\d+$/.test(row['Task ID'])) return 'Invalid Task ID.';
+
+      if (rows.findIndex((x) => x['Task ID'] === row['Task ID']) < index)
+        return 'Duplicate Task ID.';
+
+      const recordSnapshot = snapshot.child(row['Task ID']);
+      const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
+
+      /**
+       * Removing the approval from the database if Ready For Archive is `false`
+       * Doing this early ensures unpublishing of a file even if there are validation issues
+       */
+
+      if (row['Ready For Archive'] === false && existingRecord?.approval) {
+        functions.logger.info('Removing approval from', row['Task ID']);
+        await recordSnapshot.ref.update({
+          approval: null,
         });
-        BOOLEAN_COLUMNS.forEach((key) => {
-          row[key] = row[key] || false;
-        });
+      }
 
-        // Checking for sanity of Archive ID
-        if (!Number.isFinite(row['Archive ID'])) return 'No Archive ID.';
-
-        if (
-          rows.findIndex((x) => x['Archive ID'] === row['Archive ID']) < index
-        )
-          return 'Duplicate Archive ID.';
-
-        const recordSnapshot = snapshot.child(row['Archive ID'].toString());
-        const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
-
-        /**
-         * Removing the approval from the database if Ready For Archive is `false`
-         * Doing this early ensures unpublishing of a file even if there are validation issues
-         */
-
-        if (row['Ready For Archive'] === false && existingRecord?.approval) {
-          functions.logger.info('Removing approval from', row['Archive ID']);
+      if (
+        row['Fidelity Checked'] !== true &&
+        row['Fidelity Checked without topics'] !== true
+      ) {
+        // Removing the fidelity check from the database
+        if (existingRecord?.fidelityCheck)
           await recordSnapshot.ref.update({
-            approval: null,
+            fidelityCheck: null,
           });
-        }
 
-        if (
-          row['Fidelity Checked'] !== true &&
-          row['Fidelity Checked without topics'] !== true
-        ) {
-          // Removing the fidelity check from the database
-          if (existingRecord?.fidelityCheck)
-            await recordSnapshot.ref.update({
-              fidelityCheck: null,
-            });
+        // Until fidelity check is done, there is nothing to validate
+        return null;
+      }
 
-          // Until fidelity check is done, there is nothing to validate
-          return null;
-        }
+      /**
+       * Basic row validation
+       */
 
-        /**
-         * Basic row validation
-         */
+      const result = validator.validate(row, index, rows);
+      if (!result.isValid)
+        return ['Data is invalid:', ...result.messages].join('\n');
 
-        const result = validator.validate(row, index, rows);
-        if (!result.isValid)
-          return ['Data is invalid:', ...result.messages].join('\n');
+      /**
+       * Verifying that the fidelity check corresponds to the current file
+       */
 
-        /**
-         * Verifying that the fidelity check corresponds to the current file
-         */
+      // General fidelity check supercedes the quick one (without topics)
+      const fidelityCheckSerialDate = row['Fidelity Checked']
+        ? row['FC Date']
+        : row['FC Date without topics'];
 
-        const file = await StorageManager.getMostRecentFile(
-          StorageManager.getCandidateFiles(row['Task ID'])
-        );
-        if (!file) return 'File not found';
+      if (!Number.isFinite(fidelityCheckSerialDate)) return 'Invalid FC Date.';
 
-        const fileCreationTime = modificationTime(file);
+      let fidelityCheckTime = DateTimeConverter.fromSerialDate(
+        fidelityCheckSerialDate,
+        sheet.timeZone
+      );
 
-        let fidelityCheckTime = DateTimeConverter.fromSerialDate(
-          // General fidelity check supercedes the quick one (without topics)
-          row['Fidelity Checked']
-            ? row['FC Date']
-            : row['FC Date without topics'],
-          sheet.timeZone
-        );
+      // If the FC time is midnight, it means that the date was entered manually during this day.
+      // Hence, using the end of that day to ensure correct comparison to the file time.
+      if (fidelityCheckTime === fidelityCheckTime.startOf('day'))
+        fidelityCheckTime = fidelityCheckTime.endOf('day');
 
-        // If the FC time is midnight, it means that the date was entered manually during this day.
-        // Hence, using the end of that day to ensure correct comparison to the file time.
-        if (fidelityCheckTime === fidelityCheckTime.startOf('day'))
-          fidelityCheckTime = fidelityCheckTime.endOf('day');
+      const file = await StorageManager.getMostRecentFile(
+        StorageManager.getCandidateFiles(row['Task ID'])
+      );
+      if (!file) return 'File not found';
 
-        // The FC Date should be later than the time when the file was created.
-        if (fileCreationTime > fidelityCheckTime)
-          return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check on ${fidelityCheckTime.toISODate()}.`;
+      const fileCreationTime = modificationTime(file);
 
-        const fileReference: StorageFileReference = {
-          bucket: file.bucket.name,
-          name: file.name,
-          generation: file.metadata.generation,
-        };
-        const fidelityCheck: FidelityCheck = {
-          timestamp: fidelityCheckTime.toMillis(),
-          author: row['FC Initials'],
-        };
+      // The FC Date should be later than the time when the file was created.
+      if (fileCreationTime > fidelityCheckTime)
+        return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check on ${fidelityCheckTime.toISODate()}.`;
 
-        if (
-          existingRecord?.fidelityCheck &&
-          // FC Date was not bumped
-          fidelityCheck.timestamp <= existingRecord.fidelityCheck.timestamp &&
-          existingRecord?.file?.name &&
-          !existingRecord.file.name.includes(row['Task ID'])
-        )
-          return `Fidelity Check was done against another file name ${existingRecord.file.name}`;
+      const fileReference: StorageFileReference = {
+        bucket: file.bucket.name,
+        name: file.name,
+        generation: file.metadata.generation,
+      };
+      const fidelityCheck: FidelityCheck = {
+        timestamp: fidelityCheckTime.toMillis(),
+        author: row['FC Initials'],
+      };
 
-        // Saving the file info into the database
+      if (
+        existingRecord &&
+        existingRecord.file &&
+        existingRecord.fidelityCheck &&
+        fidelityCheck.timestamp <= existingRecord.fidelityCheck.timestamp
+      ) {
+        // Comparing file info if the FC Date was not bumped
+        if (getDiff(existingRecord.file, fileReference).length)
+          // It is unlikely we get here due to the dates comparison earlier. But as a safety net we keep this check.
+          return 'Fidelity Check was done against another file version.';
+      }
+      // Updating the database if the FC Date was bumped
+      else
         await recordSnapshot.ref.update({
           file: fileReference,
           fidelityCheck,
         });
 
-        /**
-         * Checking for the content changes after approval
-         */
+      /**
+       * Checking for the content changes after approval
+       */
 
-        if (row['Ready For Archive'] !== true)
-          return 'Awaiting Ready For Archive.';
+      if (row['Ready For Archive'] !== true)
+        return 'Awaiting Ready For Archive.';
 
-        const approval: Approval = {
-          timestamp: DateTimeConverter.fromSerialDate(
-            row['Finalization Date'],
-            sheet.timeZone
-          ).toMillis(),
-          topicsReady: row['Topics Ready'],
-        };
+      if (!Number.isFinite(row['Finalization Date']))
+        return 'Invalid Finalization Date.';
 
-        const contentDetailsMapping = new Map<
-          keyof ContentDetails,
-          keyof FidelityCheckRow
-        >([
-          ['title', 'Suggested Title'],
-          ['topics', 'Topics'],
-          ['date', 'Date (yyyymmdd format)'],
-          ['dateUncertain', 'Date uncertain'],
-          ['timeOfDay', 'AM/PM'],
-          ['location', 'Location'],
-          ['locationUncertain', 'Location uncertain'],
-          ['category', 'Category'],
-          ['languages', 'Lecture Language'],
-          ['percentage', 'Srila Gurudeva Timing'],
-          ['otherSpeakers', 'Other Guru-varga'],
-          ['seriesInputs', 'Series/Sastra Inputs'],
-          ['soundQualityRating', 'Sound Rating'],
-        ]);
+      const approval: Approval = {
+        timestamp: DateTimeConverter.fromSerialDate(
+          row['Finalization Date'],
+          sheet.timeZone
+        ).toMillis(),
+        topicsReady: row['Topics Ready'],
+      };
 
-        // Constructing the content details
-        const contentDetails = Object.fromEntries(
-          [...contentDetailsMapping.entries()].map(([key, columnName]) => [
-            key,
-            row[columnName],
-          ])
-        ) as unknown as ContentDetails;
+      if (approval.timestamp <= fidelityCheck.timestamp)
+        return 'Finalization Date must be greater than FC Date.';
 
-        if (
-          existingRecord?.approval &&
-          approval.timestamp <= existingRecord.approval.timestamp
-        ) {
-          const changedColumns = getDiff(
-            existingRecord.contentDetails,
-            contentDetails,
-            true // keep old values
+      const contentDetailsMapping = new Map<
+        keyof ContentDetails,
+        keyof FidelityCheckRow
+      >([
+        ['title', 'Suggested Title'],
+        ['topics', 'Topics'],
+        ['date', 'Date (yyyymmdd format)'],
+        ['dateUncertain', 'Date uncertain'],
+        ['timeOfDay', 'AM/PM'],
+        ['location', 'Location'],
+        ['locationUncertain', 'Location uncertain'],
+        ['category', 'Category'],
+        ['languages', 'Lecture Language'],
+        ['percentage', 'Srila Gurudeva Timing'],
+        ['otherSpeakers', 'Other Guru-varga'],
+        ['seriesInputs', 'Series/Sastra Inputs'],
+        ['soundQualityRating', 'Sound Rating'],
+      ]);
+
+      // Constructing the content details
+      const contentDetails = Object.fromEntries(
+        [...contentDetailsMapping.entries()].map(([key, columnName]) => [
+          key,
+          row[columnName],
+        ])
+      ) as unknown as ContentDetails;
+
+      if (
+        existingRecord?.approval &&
+        approval.timestamp <= existingRecord.approval.timestamp
+      ) {
+        const changedColumns = getDiff(
+          existingRecord.contentDetails,
+          contentDetails,
+          true // keep old values
+        )
+          .filter(
+            (d) =>
+              // Ignore topics changes if they were not approved earlier
+              (existingRecord.approval?.topicsReady ||
+                d.path[0] !== 'topics') &&
+              // Absent value from Firebase is undefined, but `null` in the spreadsheet
+              !(d.op === 'add' && d.val === null)
           )
-            .filter(
-              (d) =>
-                // Ignore topics changes if they were not approved earlier
-                (existingRecord.approval?.topicsReady ||
-                  d.path[0] !== 'topics') &&
-                // Absent value from Firebase is undefined, but `null` in the spreadsheet
-                !(d.op === 'add' && d.val === null)
-            )
-            .map((d) =>
-              contentDetailsMapping.get(d.path[0] as keyof ContentDetails)
-            );
+          .map((d) =>
+            contentDetailsMapping.get(d.path[0] as keyof ContentDetails)
+          );
 
-          if (changedColumns.length)
-            return `Changed after finalization: ${changedColumns.join(', ')}.`;
-        }
-        // Updating the database if the Finalization Date was bumped
-        else await recordSnapshot.ref.update({ approval, contentDetails });
-
-        return 'OK';
-      },
-      {
-        // More than 5000 causes TeenyStatisticsWarning: Possible excessive concurrent requests detected.
-        concurrency: 100,
+        if (changedColumns.length)
+          return `Changed after finalization: ${changedColumns.join(', ')}.`;
       }
-    );
+      // Updating the database if the Finalization Date was bumped
+      else await recordSnapshot.ref.update({ approval, contentDetails });
+
+      return 'OK';
+    };
+
+    const spreadsheetStatuses = await pMap(rows, processRow, {
+      // More than 5000 causes TeenyStatisticsWarning: Possible excessive concurrent requests detected.
+      concurrency: 100,
+    });
 
     await sheet.updateColumn('Validation Status', spreadsheetStatuses);
   });

@@ -78,32 +78,6 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Other Guru-varga is mandatory if Srila Gurudeva Timing is zero.'
       ),
       new ValidationIssue(
-        (row) =>
-          row['Fidelity Checked'] === true && !Number.isFinite(row['FC Date']),
-        'Invalid FC Date.'
-      ),
-      new ValidationIssue(
-        (row) =>
-          row['Fidelity Checked without topics'] === true &&
-          !Number.isFinite(row['FC Date without topics']),
-        'Invalid FC Date without topics.'
-      ),
-      new ValidationIssue(
-        (row) =>
-          row['Ready For Archive'] === true &&
-          !Number.isFinite(row['Finalization Date']),
-        'Invalid Finalization Date.'
-      ),
-      new ValidationIssue(
-        (row) =>
-          row['Finalization Date'] &&
-          row['Finalization Date'] <=
-            (row['Topics Ready']
-              ? row['FC Date']
-              : row['FC Date without topics']),
-        'Finalization Date should be after FC Date.'
-      ),
-      new ValidationIssue(
         (row) => typeof (row['Topics Ready'] || false) !== 'boolean',
         'Topics Ready should be true/false.'
       ),
