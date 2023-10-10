@@ -4,6 +4,7 @@
 
 import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { DateTime } from 'luxon';
 import { getDiff } from 'recursive-diff';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
@@ -20,6 +21,9 @@ import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
 import { FinalRecord } from './FinalRecord';
 import pMap = require('p-map');
+
+const dateToEndOfDay = (date: DateTime) =>
+  date === date.startOf('day') ? date.endOf('day') : date;
 
 export const validateRecords = functions
   .runWith({ timeoutSeconds: 540, memory: '1GB' })
@@ -133,15 +137,17 @@ export const validateRecords = functions
 
       if (!Number.isFinite(fidelityCheckSerialDate)) return 'Invalid FC Date.';
 
-      let fidelityCheckTime = DateTimeConverter.fromSerialDate(
-        fidelityCheckSerialDate,
-        sheet.timeZone
-      );
-
-      // If the FC time is midnight, it means that the date was entered manually during this day.
-      // Hence, using the end of that day to ensure correct comparison to the file time.
-      if (fidelityCheckTime === fidelityCheckTime.startOf('day'))
-        fidelityCheckTime = fidelityCheckTime.endOf('day');
+      const fidelityCheck: FidelityCheck = {
+        // If the FC time is midnight, it means that the date was entered manually during this day.
+        // Hence, using the end of that day to ensure correct comparison to the file time.
+        timestamp: dateToEndOfDay(
+          DateTimeConverter.fromSerialDate(
+            fidelityCheckSerialDate,
+            sheet.timeZone
+          )
+        ).toMillis(),
+        author: row['FC Initials'],
+      };
 
       const file = await StorageManager.getMostRecentFile(
         StorageManager.getCandidateFiles(row['Task ID'])
@@ -151,17 +157,13 @@ export const validateRecords = functions
       const fileCreationTime = modificationTime(file);
 
       // The FC Date should be later than the time when the file was created.
-      if (fileCreationTime > fidelityCheckTime)
-        return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check on ${fidelityCheckTime.toISODate()}.`;
+      if (fileCreationTime.toMillis() > fidelityCheck.timestamp)
+        return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check.`;
 
       const fileReference: StorageFileReference = {
         bucket: file.bucket.name,
         name: file.name,
         generation: file.metadata.generation,
-      };
-      const fidelityCheck: FidelityCheck = {
-        timestamp: fidelityCheckTime.toMillis(),
-        author: row['FC Initials'],
       };
 
       if (
@@ -193,14 +195,16 @@ export const validateRecords = functions
         return 'Invalid Finalization Date.';
 
       const approval: Approval = {
-        timestamp: DateTimeConverter.fromSerialDate(
-          row['Finalization Date'],
-          sheet.timeZone
+        timestamp: dateToEndOfDay(
+          DateTimeConverter.fromSerialDate(
+            row['Finalization Date'],
+            sheet.timeZone
+          )
         ).toMillis(),
         topicsReady: row['Topics Ready'],
       };
 
-      if (approval.timestamp <= fidelityCheck.timestamp)
+      if (approval.timestamp < fidelityCheck.timestamp)
         return 'Finalization Date must be greater than FC Date.';
 
       const contentDetailsMapping = new Map<
