@@ -70,10 +70,6 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         'Sound Rating should be Good, Average or Low.'
       ),
       new ValidationIssue(
-        (row) => row['Done files'] !== true,
-        'File is not Done in TE/SE.'
-      ),
-      new ValidationIssue(
         (row) => row['Srila Gurudeva Timing'] === 0 && !row['Other Guru-varga'],
         'Other Guru-varga is mandatory if Srila Gurudeva Timing is zero.'
       ),
