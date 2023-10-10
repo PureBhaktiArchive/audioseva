@@ -64,7 +64,6 @@ export const validateRecords = functions
       'Topics Ready',
       'Ready For Archive',
       'Fidelity Checked',
-      'Fidelity Checked without topics',
     ]);
 
     const processRow = async (
@@ -104,10 +103,7 @@ export const validateRecords = functions
         });
       }
 
-      if (
-        row['Fidelity Checked'] !== true &&
-        row['Fidelity Checked without topics'] !== true
-      ) {
+      if (row['Fidelity Checked'] !== true) {
         // Removing the fidelity check from the database
         if (existingRecord?.fidelityCheck)
           await recordSnapshot.ref.update({
@@ -126,25 +122,13 @@ export const validateRecords = functions
       if (!result.isValid)
         return ['Data is invalid:', ...result.messages].join('\n');
 
-      /**
-       * Verifying that the fidelity check corresponds to the current file
-       */
-
-      // General fidelity check supercedes the quick one (without topics)
-      const fidelityCheckSerialDate = row['Fidelity Checked']
-        ? row['FC Date']
-        : row['FC Date without topics'];
-
-      if (!Number.isFinite(fidelityCheckSerialDate)) return 'Invalid FC Date.';
+      if (!Number.isFinite(row['FC Date'])) return 'Invalid FC Date.';
 
       const fidelityCheck: FidelityCheck = {
         // If the FC time is midnight, it means that the date was entered manually during this day.
         // Hence, using the end of that day to ensure correct comparison to the file time.
         timestamp: dateToEndOfDay(
-          DateTimeConverter.fromSerialDate(
-            fidelityCheckSerialDate,
-            sheet.timeZone
-          )
+          DateTimeConverter.fromSerialDate(row['FC Date'], sheet.timeZone)
         ).toMillis(),
         author: row['FC Initials'],
       };
