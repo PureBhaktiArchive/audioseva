@@ -78,8 +78,9 @@ export const validateRecords = functions
       // Skipping rows with empty Task ID
       if (!row['Task ID']) return null;
 
-      // Checking for sanity of the Task ID
-      if (/^[A-Z]+\d?-\d+-\d+$/.test(row['Task ID'])) return 'Invalid Task ID.';
+      // Validating the format of the Task ID
+      if (!/^[A-Z]+\d*-\d+-\d+$/.test(row['Task ID']))
+        return 'Invalid Task ID.';
 
       if (rows.findIndex((x) => x['Task ID'] === row['Task ID']) < index)
         return 'Duplicate Task ID.';
