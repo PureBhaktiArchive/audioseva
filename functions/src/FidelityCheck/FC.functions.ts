@@ -109,8 +109,7 @@ export const validateRecords = functions
             fidelityCheck: null,
           });
 
-        // Until fidelity check is done, there is nothing to validate
-        return null;
+        return 'Awaiting FC';
       }
 
       /**
