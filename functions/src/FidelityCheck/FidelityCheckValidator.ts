@@ -13,11 +13,11 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
       new ValidationIssue(
         (row, index, rows) =>
           rows.findIndex((x) => x['Task ID'] === row['Task ID']) < index,
-        'Duplicate Task ID.'
+        'Duplicate Task ID'
       ),
       new ValidationIssue(
         (row) => !row['Date (yyyymmdd format)'],
-        'Date is mandatory.'
+        'Date is mandatory'
       ),
       new ValidationIssue(
         (row) =>
@@ -26,52 +26,52 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
           DateTimeConverter.standardizePseudoIsoDate(
             row['Date (yyyymmdd format)']
           ) === null,
-        'Date should be in YYYYMMDD format or UNKNOWN.'
+        'Date should be in YYYYMMDD format or UNKNOWN'
       ),
       new ValidationIssue(
         (row) => typeof row['Date uncertain'] !== 'boolean',
-        'Date uncertain should be true/false.'
+        'Date uncertain should be true/false'
       ),
-      new ValidationIssue((row) => !row['Location'], 'Location is mandatory.'),
+      new ValidationIssue((row) => !row['Location'], 'Location is mandatory'),
       new ValidationIssue(
         (row) =>
           (!row['Location'] || row['Location'].toUpperCase() === 'UNKNOWN') &&
           row['Location uncertain'] === true,
-        'Location uncertain is applicable only if Location is defined and not UNKNOWN.'
+        'Location uncertain is applicable only if Location is defined and not UNKNOWN'
       ),
       new ValidationIssue(
         (row) => typeof row['Location uncertain'] !== 'boolean',
-        'Location uncertain should be true/false.'
+        'Location uncertain should be true/false'
       ),
-      new ValidationIssue((row) => !row['Category'], 'Category is mandatory.'),
+      new ValidationIssue((row) => !row['Category'], 'Category is mandatory'),
       new ValidationIssue(
         (row) => !row['Lecture Language'],
-        'Lecture Language is mandatory.'
+        'Lecture Language is mandatory'
       ),
       new ValidationIssue(
         (row) =>
           row['Lecture Language'] &&
           !/(\s*\w+\s*)(,\s*\w+\s*)*/.test(row['Lecture Language']),
-        'Lecture Language should be a comma-separated list of languages.'
+        'Lecture Language should be a comma-separated list of languages'
       ),
       new ValidationIssue(
         (row) =>
           row['Srila Gurudeva Timing'] < 0 || row['Srila Gurudeva Timing'] > 1,
-        'Srila Gurudeva Timing should be 0-100%.'
+        'Srila Gurudeva Timing should be 0-100%'
       ),
       new ValidationIssue(
         (row) => !row['Sound Rating'],
-        'Sound Rating is mandatory.'
+        'Sound Rating is mandatory'
       ),
       new ValidationIssue(
         (row) =>
           row['Sound Rating'] &&
           !/^(Good|Average|Low)$/.test(row['Sound Rating']),
-        'Sound Rating should be Good, Average or Low.'
+        'Sound Rating should be Good, Average or Low'
       ),
       new ValidationIssue(
         (row) => row['Srila Gurudeva Timing'] === 0 && !row['Other Guru-varga'],
-        'Other Guru-varga is mandatory if Srila Gurudeva Timing is zero.'
+        'Other Guru-varga is mandatory if Srila Gurudeva Timing is zero'
       ),
     ]);
   }

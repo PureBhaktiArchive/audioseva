@@ -82,11 +82,10 @@ export const validateRecords = functions
       if (!row['Task ID']) return null;
 
       // Validating the format of the Task ID
-      if (!/^[A-Z]+\d*-\d+-\d+$/.test(row['Task ID']))
-        return 'Invalid Task ID.';
+      if (!/^[A-Z]+\d*-\d+-\d+$/.test(row['Task ID'])) return 'Invalid Task ID';
 
       if (rows.findIndex((x) => x['Task ID'] === row['Task ID']) < index)
-        return 'Duplicate Task ID.';
+        return 'Duplicate Task ID';
 
       const recordSnapshot = snapshot.child(row['Task ID']);
       const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
@@ -122,7 +121,7 @@ export const validateRecords = functions
       if (!result.isValid)
         return ['Data is invalid:', ...result.messages].join('\n');
 
-      if (!Number.isFinite(row['FC Date'])) return 'Invalid FC Date.';
+      if (!Number.isFinite(row['FC Date'])) return 'Invalid FC Date';
 
       const fidelityCheck: FidelityCheck = {
         // If the FC time is midnight, it means that the date was entered manually during this day.
@@ -142,7 +141,7 @@ export const validateRecords = functions
 
       // The FC Date should be later than the time when the file was created.
       if (fileCreationTime.toMillis() > fidelityCheck.timestamp)
-        return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check.`;
+        return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check`;
 
       const fileReference: StorageFileReference = {
         bucket: file.bucket.name,
@@ -159,7 +158,7 @@ export const validateRecords = functions
         // Comparing file info if the FC Date was not bumped
         if (getDiff(existingRecord.file, fileReference).length)
           // It is unlikely we get here due to the dates comparison earlier. But as a safety net we keep this check.
-          return 'Fidelity Check was done against another file version.';
+          return 'Fidelity Check was done against another file version';
       }
       // Updating the database if the FC Date was bumped
       else
@@ -173,10 +172,10 @@ export const validateRecords = functions
        */
 
       if (row['Ready For Archive'] !== true)
-        return 'Awaiting Ready For Archive.';
+        return 'Awaiting Ready For Archive';
 
       if (!Number.isFinite(row['Finalization Date']))
-        return 'Invalid Finalization Date.';
+        return 'Invalid Finalization Date';
 
       const approval: Approval = {
         timestamp: dateToEndOfDay(
@@ -188,7 +187,7 @@ export const validateRecords = functions
       };
 
       if (approval.timestamp < fidelityCheck.timestamp)
-        return 'Finalization Date must be greater than FC Date.';
+        return 'Finalization Date must be greater than FC Date';
 
       if (typeof (row['Topics Ready'] || false) !== 'boolean')
         return 'Topics Ready must be ticked';
