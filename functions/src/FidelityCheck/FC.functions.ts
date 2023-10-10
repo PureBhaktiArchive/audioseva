@@ -185,11 +185,13 @@ export const validateRecords = functions
             sheet.timeZone
           )
         ).toMillis(),
-        topicsReady: row['Topics Ready'],
       };
 
       if (approval.timestamp < fidelityCheck.timestamp)
         return 'Finalization Date must be greater than FC Date.';
+
+      if (typeof (row['Topics Ready'] || false) !== 'boolean')
+        return 'Topics Ready must be ticked';
 
       const contentDetailsMapping = new Map<
         keyof ContentDetails,
@@ -229,9 +231,6 @@ export const validateRecords = functions
         )
           .filter(
             (d) =>
-              // Ignore topics changes if they were not approved earlier
-              (existingRecord.approval?.topicsReady ||
-                d.path[0] !== 'topics') &&
               // Absent value from Firebase is undefined, but `null` in the spreadsheet
               !(d.op === 'add' && d.val === null)
           )
@@ -275,27 +274,24 @@ export const exportForArchive = functions
       snapshot.val() as Record<string, FidelityCheckRecord>
     )
       .filter(([, record]) => record.approval)
-      .map<[string, FinalRecord]>(
-        ([id, { approval, file, contentDetails }]) => [
-          id,
-          {
-            file,
-            contentDetails: {
-              ...contentDetails,
-              date: DateTimeConverter.standardizePseudoIsoDate(
-                coalesceUnknown(contentDetails.date)
-              ),
-              dateUncertain: coalesceUnknown(contentDetails.date)
-                ? contentDetails.dateUncertain
-                : null,
-              location: coalesceUnknown(contentDetails.location),
-              locationUncertain: coalesceUnknown(contentDetails.location)
-                ? contentDetails.locationUncertain
-                : null,
-              topicsReady: approval.topicsReady,
-            },
+      .map<[string, FinalRecord]>(([id, { file, contentDetails }]) => [
+        id,
+        {
+          file,
+          contentDetails: {
+            ...contentDetails,
+            date: DateTimeConverter.standardizePseudoIsoDate(
+              coalesceUnknown(contentDetails.date)
+            ),
+            dateUncertain: coalesceUnknown(contentDetails.date)
+              ? contentDetails.dateUncertain
+              : null,
+            location: coalesceUnknown(contentDetails.location),
+            locationUncertain: coalesceUnknown(contentDetails.location)
+              ? contentDetails.locationUncertain
+              : null,
           },
-        ]
-      );
+        },
+      ]);
     await database().ref('/final/records').set(Object.fromEntries(records));
   });

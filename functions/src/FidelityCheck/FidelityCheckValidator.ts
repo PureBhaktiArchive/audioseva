@@ -73,10 +73,6 @@ export class FidelityCheckValidator extends Validator<FidelityCheckRow> {
         (row) => row['Srila Gurudeva Timing'] === 0 && !row['Other Guru-varga'],
         'Other Guru-varga is mandatory if Srila Gurudeva Timing is zero.'
       ),
-      new ValidationIssue(
-        (row) => typeof (row['Topics Ready'] || false) !== 'boolean',
-        'Topics Ready should be true/false.'
-      ),
     ]);
   }
 }
