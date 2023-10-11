@@ -16,12 +16,5 @@
   "vulnerabilityAlerts": {
     "schedule": ["at any time"],
     "dependencyDashboardApproval": false
-  },
-  "packageRules": [
-    {
-      "matchFileNames": ["frontend/**"],
-      "matchCategories": ["node"],
-      "enabled": false
-    }
-  ]
+  }
 }
