@@ -1,7 +1,9 @@
 module.exports = {
   configureWebpack: {
     output: {
-      hashFunction: 'xxhash64',
+      // https://github.com/webpack/webpack/issues/14532
+      // https://stackoverflow.com/a/73465262/3082178
+      hashFunction: 'sha256',
     },
   },
   chainWebpack: (config) => {
