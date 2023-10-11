@@ -24,9 +24,6 @@ export interface FidelityCheckRow {
   'FC Initials': string;
   'Fidelity Checked': boolean;
   'FC Date': number;
-  // Light Fidelity Check columns (without topics)
-  'Fidelity Checked without topics': boolean;
-  'FC Date without topics': number;
   // Finalization columns
   'Ready For Archive': boolean;
   'Topics Ready': boolean;

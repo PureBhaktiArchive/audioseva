@@ -7,7 +7,6 @@ import { ContentDetails } from './ContentDetails';
 
 export interface Approval {
   timestamp: number;
-  topicsReady: boolean;
 }
 
 export interface FidelityCheck {

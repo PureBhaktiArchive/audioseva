@@ -7,5 +7,5 @@ import { ContentDetails } from './ContentDetails';
 
 export interface FinalRecord {
   file: StorageFileReference;
-  contentDetails: ContentDetails & { topicsReady: boolean };
+  contentDetails: ContentDetails;
 }
