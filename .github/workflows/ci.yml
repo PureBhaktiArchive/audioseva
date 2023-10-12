@@ -27,6 +27,8 @@ jobs:
     name: Build and test
     runs-on: ubuntu-latest
     needs: changes
+    # Run only if something was changed in the defiled path filters
+    if: needs.changes.outputs.projects != '[]'
     strategy:
       matrix:
         project: ${{ fromJSON(needs.changes.outputs.projects) }}
