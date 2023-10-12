@@ -20,7 +20,7 @@ module.exports = {
     console.log('Original hash function is', config.output.hashFunction);
     // https://github.com/webpack/webpack/issues/14532
     // https://stackoverflow.com/a/73465262/3082178
-    // config.output.hashFunction = 'md5';
+    config.output.hashFunction = 'md5';
   },
   chainWebpack: (config) => {
     config.plugins.delete('prefetch');
