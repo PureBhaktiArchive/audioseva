@@ -5,6 +5,7 @@
 export interface FidelityCheckRow {
   'Archive ID': number;
   'Task ID': string;
+  'Replacement Task ID': string;
   Topics: string;
   'Suggested Title': string;
   'Date (yyyymmdd format)': string;

@@ -57,6 +57,7 @@ export const validateRecords = functions
       'Sound Rating',
       'Suggested Title',
       'Topics',
+      'Replacement Task ID',
     ]);
     const BOOLEAN_COLUMNS = makeKeys([
       'Date uncertain',
@@ -89,6 +90,25 @@ export const validateRecords = functions
 
       const recordSnapshot = snapshot.child(row['Task ID']);
       const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
+
+      /**
+       * Marking the record as replaced
+       */
+      if (row['Replacement Task ID']) {
+        if (!recordSnapshot.child('replacement').exists())
+          await recordSnapshot.ref.update({
+            replacement: {
+              taskId: row['Replacement Task ID'],
+              timestamp: DateTime.now().toMillis(),
+            },
+          });
+        return 'Replaced';
+      }
+
+      if (recordSnapshot.child('replacement').exists())
+        return `Was replaced by ${recordSnapshot
+          .child('replacement/taskId')
+          .val()}`;
 
       /**
        * Removing the approval from the database if Ready For Archive is `false`
