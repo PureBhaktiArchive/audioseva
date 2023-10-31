@@ -14,9 +14,15 @@ export interface FidelityCheck {
   author: string;
 }
 
+export interface Replacement {
+  timestamp: number;
+  taskId: string;
+}
+
 export interface FidelityCheckRecord {
-  file: StorageFileReference;
-  contentDetails: ContentDetails;
-  fidelityCheck: FidelityCheck;
-  approval: Approval;
+  file?: StorageFileReference;
+  contentDetails?: ContentDetails;
+  fidelityCheck?: FidelityCheck;
+  approval?: Approval;
+  replacement?: Replacement;
 }

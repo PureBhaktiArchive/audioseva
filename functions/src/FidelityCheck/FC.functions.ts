@@ -16,6 +16,7 @@ import {
   Approval,
   FidelityCheck,
   FidelityCheckRecord,
+  Replacement,
 } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
@@ -100,12 +101,13 @@ export const validateRecords = functions
             replacement: {
               taskId: row['Replacement Task ID'],
               timestamp: DateTime.now().toMillis(),
-            },
+            } as Replacement,
           });
         return 'Replaced';
       }
 
       if (recordSnapshot.child('replacement').exists())
+        // Replacement should be removed from the database only manually, it's too error-prone for automation
         return `Was replaced by ${recordSnapshot
           .child('replacement/taskId')
           .val()}`;
