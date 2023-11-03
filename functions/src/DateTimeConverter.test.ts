@@ -32,6 +32,7 @@ describe('Duration conversion', () => {
     ${'1:03:54'} | ${'PT1H3M54S'}  | ${null}
     ${'0:07:23'} | ${'PT7M23S'}    | ${'7:23'}
     ${'3:59:59'} | ${'PT3H59M59S'} | ${null}
+    ${'5:59:59'} | ${'PT5H59M59S'} | ${null}
   `('parses $timing as $iso', ({ timing, iso, formatted }) => {
     expect(DateTimeConverter.durationFromHuman(timing).valueOf()).toEqual(
       Duration.fromISO(iso).valueOf()
@@ -46,11 +47,12 @@ describe('Duration conversion', () => {
     input
     ${'1:12.4'}
     ${'1.12:4'}
-    ${'4:01:02'}
+    ${'6:01:02'}
     ${'1:60:02'}
     ${'6:60'}
     ${'1:03:54:33'}
     ${'7:130'}
+    ${'1320'}
     ${null}
     ${''}
     ${0.002777777777777778}

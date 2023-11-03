@@ -51,21 +51,18 @@ export class DateTimeConverter {
    * @returns duration object
    */
   public static durationFromHuman(timing: string): Duration {
-    const patterns = [
-      /^(?:(0?[0-3]):)?([0-5]?\d):([0-5]?\d)$/,
-      /^(?:(0?[0-3])\.)?([0-5]?\d)\.([0-5]?\d)$/,
-    ];
-    for (const pattern of patterns) {
-      const match = pattern.exec((timing || '').toString().trim());
-      if (!match) continue;
-      const [, hours = 0, minutes, seconds] = match;
-      return Duration.fromObject({
-        seconds: +seconds,
-        minutes: +minutes,
-        hours: +hours,
-      });
-    }
-    return Duration.invalid('Incorrect format');
+    const pattern =
+      // Using backreference to enforce same separators (colon or period)
+      // Using lookbehinds to use a character set for the separator instead of a backreference for a case without hours
+      /^(?:(?<hours>0?[0-5])(?<separator>[:.]))?(?<minutes>[0-5]?\d)((?<!^\k<minutes>)\k<separator>|(?<=^\k<minutes>)[:.])(?<seconds>[0-5]?\d)$/;
+    const match = pattern.exec((timing || '').toString().trim());
+    if (!match) return Duration.invalid('Incorrect format');
+    const { hours = 0, minutes, seconds } = match.groups;
+    return Duration.fromObject({
+      seconds: +seconds,
+      minutes: +minutes,
+      hours: +hours,
+    });
   }
 
   /**
