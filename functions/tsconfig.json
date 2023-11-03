@@ -2,6 +2,9 @@
   "compilerOptions": {
     "lib": ["ES2019"],
     "module": "commonjs",
+    "allowJs": true,
+    "checkJs": true,
+
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "skipLibCheck": true, // Added by suggestion https://github.com/DefinitelyTyped/DefinitelyTyped/pull/49748/files#r606848851
