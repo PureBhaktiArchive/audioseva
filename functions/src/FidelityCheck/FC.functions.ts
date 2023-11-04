@@ -21,6 +21,7 @@ import {
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
 import { FinalRecord } from './FinalRecord';
+import { createFinalRecords } from './finalization';
 import pMap = require('p-map');
 
 const dateToEndOfDay = (date: DateTime) =>
@@ -117,7 +118,7 @@ export const validateRecords = functions
        * Doing this early ensures unpublishing of a file even if there are validation issues
        */
 
-      if (row['Ready For Archive'] === false && existingRecord?.approval) {
+      if (row['Ready For Archive'] === false && 'approval' in existingRecord) {
         functions.logger.info('Removing approval from', row['Task ID']);
         await recordSnapshot.ref.update({
           approval: null,
@@ -241,7 +242,7 @@ export const validateRecords = functions
       ) as unknown as ContentDetails;
 
       if (
-        existingRecord?.approval &&
+        'approval' in existingRecord &&
         approval.timestamp <= existingRecord.approval.timestamp
       ) {
         const changedColumns = getDiff(
@@ -275,43 +276,33 @@ export const validateRecords = functions
     await sheet.updateColumn('Validation Status', spreadsheetStatuses);
   });
 
-export const exportForArchive = functions
-  .runWith({ timeoutSeconds: 120, memory: '1GB' })
-  .pubsub.topic('finalize')
-  .onPublish(async () => {
-    const snapshot = await database().ref('/FC/records').once('value');
-    if (!snapshot.exists()) return;
+export const finalize = functions.database
+  .ref('/final/trigger')
+  .onWrite(async () => {
+    const [fidelitySnapshot, finalSnapshot] = await Promise.all([
+      database().ref('/FC/records').once('value'),
+      database().ref('/final/records').once('value'),
+    ]);
 
-    const coalesceUnknown = (input: string): string | null =>
-      input?.toUpperCase() === 'UNKNOWN' ? null : input;
+    if (!fidelitySnapshot.exists()) return;
 
     /**
-     * Since we are using integer keys, Firebase can return either array or map:
+     * Since we are using integer keys, Firebase can return either an array or an object
      * https://firebase.googleblog.com/2014/04/best-practices-arrays-in-firebase.html
-     * For this reason we're using `Object.entries` which work identical for both data structures.
+     * For this reason we’re using `Object.entries` which work identical for both data structures.
      */
-    const records = Object.entries(
-      snapshot.val() as Record<string, FidelityCheckRecord>
-    )
-      .filter(([, record]) => record.approval)
-      .map<[string, FinalRecord]>(([id, { file, contentDetails }]) => [
-        id,
-        {
-          file,
-          contentDetails: {
-            ...contentDetails,
-            date: DateTimeConverter.standardizePseudoIsoDate(
-              coalesceUnknown(contentDetails.date)
-            ),
-            dateUncertain: coalesceUnknown(contentDetails.date)
-              ? contentDetails.dateUncertain
-              : null,
-            location: coalesceUnknown(contentDetails.location),
-            locationUncertain: coalesceUnknown(contentDetails.location)
-              ? contentDetails.locationUncertain
-              : null,
-          },
-        },
-      ]);
-    await database().ref('/final/records').set(Object.fromEntries(records));
+
+    const fidelityRecords = Object.entries<FidelityCheckRecord>(
+      fidelitySnapshot.val()
+    );
+
+    const finalRecords = Object.entries<FinalRecord>(finalSnapshot.val()).map(
+      ([fileId, record]): [number, FinalRecord] =>
+        // Keeping only numeric keys (just in case, should be only numeric)
+        /\d+/.test(fileId) ? [+fileId, record] : null
+    );
+
+    await finalSnapshot.ref.set(
+      Object.fromEntries(createFinalRecords(fidelityRecords, finalRecords))
+    );
   });

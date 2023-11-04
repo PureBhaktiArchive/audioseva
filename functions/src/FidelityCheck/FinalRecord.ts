@@ -5,7 +5,14 @@
 import { StorageFileReference } from '../StorageFileReference';
 import { ContentDetails } from './ContentDetails';
 
-export interface FinalRecord {
+export type FinalRecord = NormalRecord | RedirectRecord;
+
+export interface NormalRecord {
+  taskId: string;
   file: StorageFileReference;
   contentDetails: ContentDetails;
+}
+
+export interface RedirectRecord {
+  redirectTo: number;
 }

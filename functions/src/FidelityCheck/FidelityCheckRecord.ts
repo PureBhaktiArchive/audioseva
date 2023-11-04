@@ -19,10 +19,16 @@ export interface Replacement {
   taskId: string;
 }
 
-export interface FidelityCheckRecord {
-  file?: StorageFileReference;
-  contentDetails?: ContentDetails;
-  fidelityCheck?: FidelityCheck;
-  approval?: Approval;
+export type FidelityCheckRecord = (CheckedRecord | ApprovedRecord) & {
   replacement?: Replacement;
+};
+
+export interface CheckedRecord {
+  file: StorageFileReference;
+  fidelityCheck: FidelityCheck;
+}
+
+export interface ApprovedRecord extends CheckedRecord {
+  contentDetails: ContentDetails;
+  approval: Approval;
 }
