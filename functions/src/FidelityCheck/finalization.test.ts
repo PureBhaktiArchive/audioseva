@@ -10,7 +10,7 @@ import {
   FidelityCheckRecord,
   Replacement,
 } from './FidelityCheckRecord';
-import { FinalRecord } from './FinalRecord';
+import { FinalRecord, NormalRecord, RedirectRecord } from './FinalRecord';
 import { createFinalRecords } from './finalization';
 
 describe('Finalization', () => {
@@ -94,7 +94,7 @@ describe('Finalization', () => {
     fileId: number,
     taskId: string,
     contentDetails?: ContentDetails
-  ): [number, FinalRecord] => [
+  ): [number, NormalRecord] => [
     fileId,
     {
       taskId,
@@ -102,6 +102,11 @@ describe('Finalization', () => {
       ...(contentDetails ? { contentDetails } : {}),
     },
   ];
+
+  const finalR = (
+    fileId: number,
+    redirectTo: number
+  ): [number, RedirectRecord] => [fileId, { redirectTo }];
 
   const doTest = (
     cases: {
@@ -204,6 +209,34 @@ describe('Finalization', () => {
         fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
         before: [],
         after: [final(1, 'B', contentDetails2Final)],
+      },
+    ]);
+  });
+
+  describe('Complex replacements', () => {
+    doTest([
+      // Chain replacement
+      {
+        fcrs: [
+          fcr('A', contentDetails1, repl('B')),
+          fcr('B', contentDetails2, repl('C')),
+          fcr('C', contentDetails3),
+        ],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [final(5, 'C', contentDetails3Final)],
+      },
+      // Merger
+      {
+        fcrs: [
+          fcr('A', contentDetails1, repl('C')),
+          fcr('B', contentDetails2, repl('C')),
+          fcr('C', contentDetails3),
+        ],
+        before: [
+          final(5, 'A', contentDetails1Final),
+          final(89, 'B', contentDetails2Final),
+        ],
+        after: [final(5, 'C', contentDetails3Final), finalR(89, 5)],
       },
     ]);
   });

@@ -1,7 +1,7 @@
 import { DateTimeConverter } from '../DateTimeConverter';
 import { ContentDetails } from './ContentDetails';
 import { FidelityCheckRecord } from './FidelityCheckRecord';
-import { FinalRecord } from './FinalRecord';
+import { FinalRecord, NormalRecord } from './FinalRecord';
 import { createIdGenerator } from './id-generator';
 
 const coalesceUnknown = (input: string): string | null =>
@@ -51,15 +51,15 @@ export const createFinalRecords = function* (
     }
   };
 
-  const publishedTaskIds = new Set<string>();
+  const publishedTasks = new Map<string, number>();
   const existingFileIds = new Set<number>();
   const fileIdGenerator = createIdGenerator((id) => existingFileIds.has(id));
 
-  const generateFinalRecords = (
+  const generateNormalRecord = (
     taskId: string,
     record: FidelityCheckRecord,
     fileId: number | Iterator<number>
-  ): [number, FinalRecord][] =>
+  ): [number, NormalRecord][] =>
     'approval' in record && // Narrowing https://www.typescriptlang.org/docs/handbook/2/narrowing.html#the-in-operator-narrowing
     record.approval
       ? [
@@ -86,8 +86,11 @@ export const createFinalRecords = function* (
       existingFileIds.add(fileId);
       if ('taskId' in record) {
         const [taskId, fidelityRecord] = resolveReplacementChain(record.taskId);
-        publishedTaskIds.add(taskId);
-        return generateFinalRecords(taskId, fidelityRecord, fileId);
+        // Generating a redirect record if the target task has been already published under another file ID
+        if (publishedTasks.has(taskId))
+          return [[fileId, { redirectTo: publishedTasks.get(taskId) }]];
+        publishedTasks.set(taskId, fileId);
+        return generateNormalRecord(taskId, fidelityRecord, fileId);
       } else return [[fileId, record]];
     });
 
@@ -97,8 +100,8 @@ export const createFinalRecords = function* (
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap#for_adding_and_removing_items_during_a_map
     .flatMap(([taskId, record]) =>
       // Ignoring already published and replaced records
-      publishedTaskIds.has(taskId) || record.replacement
+      publishedTasks.has(taskId) || record.replacement
         ? []
-        : generateFinalRecords(taskId, record, fileIdGenerator)
+        : generateNormalRecord(taskId, record, fileIdGenerator)
     );
 };
