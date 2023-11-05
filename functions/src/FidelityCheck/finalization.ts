@@ -40,18 +40,24 @@ export const createFinalRecords = function* (
   const resolveReplacementChain = (
     taskId: string
   ): [string, FidelityCheckRecord] => {
-    let pastIds: Set<string>;
+    const pastIds = new Set<string>();
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const record = fidelityRecordsMap.get(taskId);
+      if (!record) throw `Missing record for ${taskId}`;
       if (!record.replacement) return [taskId, record];
-      (pastIds ??= new Set()).add(taskId);
+      pastIds.add(taskId);
       taskId = record.replacement.taskId;
       if (pastIds.has(taskId)) throw `Circular replacement at ${taskId}`;
     }
   };
 
-  const publishedTasks = new Map<string, number>();
+  // We need to know all the published task IDs in order to detect redirects properly
+  const publishedTasks = new Map(
+    finalRecords.flatMap(([fileId, record]) =>
+      'redirectTo' in record ? [] : [[record.taskId, fileId]]
+    )
+  );
   const existingFileIds = new Set<number>();
   const fileIdGenerator = createIdGenerator((id) => existingFileIds.has(id));
 
@@ -84,14 +90,19 @@ export const createFinalRecords = function* (
     // We have to type the return value explicitly to avoid an issue caused by alternate types NormalRecord and RedirectRecord
     .flatMap(([fileId, record]): [number, FinalRecord][] => {
       existingFileIds.add(fileId);
-      if ('taskId' in record) {
-        const [taskId, fidelityRecord] = resolveReplacementChain(record.taskId);
-        // Generating a redirect record if the target task has been already published under another file ID
-        if (publishedTasks.has(taskId))
-          return [[fileId, { redirectTo: publishedTasks.get(taskId) }]];
-        publishedTasks.set(taskId, fileId);
-        return generateNormalRecord(taskId, fidelityRecord, fileId);
-      } else return [[fileId, record]];
+
+      // Keeping redirect records as is
+      if ('redirectTo' in record) return [[fileId, record]];
+
+      const [taskId, fidelityRecord] = resolveReplacementChain(record.taskId);
+
+      // Generating a redirect record if the target task has been already published under another file ID
+      if (publishedTasks.has(taskId) && publishedTasks.get(taskId) !== fileId)
+        return [[fileId, { redirectTo: publishedTasks.get(taskId) }]];
+
+      // Saving again because the task ID could change due to replacements
+      publishedTasks.set(taskId, fileId);
+      return generateNormalRecord(taskId, fidelityRecord, fileId);
     });
 
   // Generating new final records

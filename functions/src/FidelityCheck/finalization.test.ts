@@ -238,6 +238,24 @@ describe('Finalization', () => {
         ],
         after: [final(5, 'C', contentDetails3Final), finalR(89, 5)],
       },
+      // Redirect to the forward record
+      {
+        fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
+        before: [
+          final(5, 'A', contentDetails1Final),
+          final(89, 'B', contentDetails2Final),
+        ],
+        after: [finalR(5, 89), final(89, 'B', contentDetails2Final)],
+      },
+      // Redirect to the past record
+      {
+        fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2, repl('A'))],
+        before: [
+          final(5, 'A', contentDetails1Final),
+          final(89, 'B', contentDetails2Final),
+        ],
+        after: [final(5, 'A', contentDetails1Final), finalR(89, 5)],
+      },
     ]);
   });
 
@@ -257,6 +275,22 @@ describe('Finalization', () => {
           );
         }
       );
+
+    describe('Throws on missing record', () => {
+      doTest(
+        [
+          {
+            fcrs: [],
+            before: [final(5, 'A', contentDetails1Final)],
+          },
+          {
+            fcrs: [fcr('A', contentDetails1, repl('B'))],
+            before: [final(5, 'A', contentDetails1Final)],
+          },
+        ],
+        /missing/i
+      );
+    });
 
     describe('Throws on circular replacement', () => {
       doTest(
