@@ -207,4 +207,49 @@ describe('Finalization', () => {
       },
     ]);
   });
+
+  describe('Invalid cases', () => {
+    const doTest = (
+      cases: {
+        fcrs: [string, FidelityCheckRecord][];
+        before: [number, FinalRecord][];
+      }[],
+      errorRegexp: RegExp
+    ) =>
+      test.each(cases)(
+        '%#', // Using this specifier because $variable seems to not be supported in our version of Jest. See https://github.com/jestjs/jest/issues/12562
+        ({ fcrs, before }) => {
+          expect(() => [...createFinalRecords(fcrs, before)]).toThrow(
+            errorRegexp
+          );
+        }
+      );
+
+    describe('Throws on circular replacement', () => {
+      doTest(
+        [
+          {
+            fcrs: [
+              fcr('A', undefined, repl('B')),
+              fcr('B', undefined, repl('C')),
+              fcr('C', undefined, repl('A')),
+            ],
+            before: [final(5, 'A')],
+          },
+          {
+            fcrs: [
+              fcr('A', undefined, repl('B')),
+              fcr('B', undefined, repl('A')),
+            ],
+            before: [final(5, 'A')],
+          },
+          {
+            fcrs: [fcr('A', undefined, repl('A'))],
+            before: [final(5, 'A')],
+          },
+        ],
+        /circular/i
+      );
+    });
+  });
 });
