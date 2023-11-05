@@ -122,6 +122,7 @@ export const validateRecords = functions
         functions.logger.info('Removing approval from', row['Task ID']);
         await recordSnapshot.ref.update({
           approval: null,
+          contentDetails: null,
         });
       }
 
@@ -130,6 +131,7 @@ export const validateRecords = functions
         if (existingRecord?.fidelityCheck)
           await recordSnapshot.ref.update({
             fidelityCheck: null,
+            file: null,
           });
 
         return 'Awaiting FC';
