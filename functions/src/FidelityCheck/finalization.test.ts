@@ -5,11 +5,16 @@
 import { DateTime } from 'luxon';
 import { StorageFileReference } from '../StorageFileReference';
 import { ContentDetails } from './ContentDetails';
-import { FidelityCheck, FidelityCheckRecord } from './FidelityCheckRecord';
-import { createFinalRecords, tuple } from './finalization';
+import {
+  FidelityCheck,
+  FidelityCheckRecord,
+  Replacement,
+} from './FidelityCheckRecord';
+import { FinalRecord } from './FinalRecord';
+import { createFinalRecords } from './finalization';
 
 describe('Finalization', () => {
-  const contentDetailsFC1: ContentDetails = {
+  const contentDetails1: ContentDetails = {
     topics: 'Some topics',
     title: 'Some title',
     date: '19980830',
@@ -22,131 +27,180 @@ describe('Finalization', () => {
     soundQualityRating: 'Average',
     timeOfDay: 'AM',
   };
-
-  const contentDetailsFC2 = {
-    ...contentDetailsFC1,
-    title: 'ANOTHER',
+  const contentDetails2: ContentDetails = {
+    topics: 'Another topics',
+    title: 'Another title',
+    date: '19960514',
+    dateUncertain: false,
+    location: 'Holland',
+    locationUncertain: false,
+    category: 'Lecture',
+    languages: 'English',
+    percentage: 100,
+    soundQualityRating: 'Good',
+    timeOfDay: 'AM',
+  };
+  const contentDetails3: ContentDetails = {
+    topics: 'Third topics',
+    title: 'Third title',
+    date: '20001013',
+    dateUncertain: true,
+    location: 'Vrindavan',
+    locationUncertain: false,
+    category: 'Darshan',
+    languages: 'English',
+    percentage: 100,
+    soundQualityRating: 'Good',
+    timeOfDay: 'PM',
   };
 
-  const contentDetailsFinal1 = {
-    ...contentDetailsFC1,
-    date: '1998-08-30',
-  };
+  const contentDetails1Final = { ...contentDetails1, date: '1998-08-30' };
+  const contentDetails2Final = { ...contentDetails2, date: '1996-05-14' };
+  const contentDetails3Final = { ...contentDetails3, date: '2000-10-13' };
 
-  const contentDetailsFinal2 = {
-    ...contentDetailsFinal1,
-    title: 'ANOTHER',
-  };
-
-  const file1: StorageFileReference = {
-    name: 'SOME.flac',
-    bucket: 'final',
-    generation: 1234567,
-  };
-
-  const file2: StorageFileReference = {
-    ...file1,
-    name: 'ANOTHER.flac',
-  };
-
-  const fidelityCheck: FidelityCheck = {
-    author: 'someone',
-    timestamp: 123,
-  };
-
+  const file = (taskId: string): StorageFileReference => ({
+    name: `${taskId}.flac`,
+    bucket: 'bucket',
+    generation: 123,
+  });
+  const fidelityCheck: FidelityCheck = { author: 'someone', timestamp: 123 };
   const approval = { timestamp: DateTime.now().valueOf() };
 
-  function* generateFidelityRecords(
-    taskId: string,
-    approved: boolean,
-    replacementTaskId: string
-  ): Generator<[string, FidelityCheckRecord], void, unknown> {
-    const replacement = {
-      replacement: replacementTaskId
-        ? {
-            taskId: replacementTaskId,
-            timestamp: DateTime.now().valueOf(),
-          }
-        : undefined,
-    };
+  const repl = (taskId: string): Replacement => ({
+    taskId,
+    timestamp: DateTime.now().valueOf(),
+  });
 
-    yield [
-      taskId,
-      approved
+  const fcr = (
+    taskId: string,
+    contentDetails?: ContentDetails,
+    replacement?: Replacement
+  ): [string, FidelityCheckRecord] => [
+    taskId,
+    {
+      ...(contentDetails
         ? {
             approval,
-            contentDetails: contentDetailsFC1,
-            file: file1,
-            fidelityCheck,
-            ...replacement,
+            contentDetails,
           }
-        : { file: file1, fidelityCheck, ...replacement },
-    ];
-    if (replacementTaskId)
-      yield [
-        replacementTaskId,
-        {
-          approval,
-          contentDetails: contentDetailsFC2,
-          file: file2,
-          fidelityCheck,
-        },
-      ];
-  }
+        : {}),
+      file: file(taskId),
+      fidelityCheck,
+      replacement,
+    },
+  ];
 
-  // Replacement task is supposed to be approved in this test case
-  test.each`
-    taskId        | approved | replacementTaskId | existingAssignments  | expectedAssignments
-    ${'SOME-1-1'} | ${false} | ${undefined}      | ${[]}                | ${[]}
-    ${'SOME-1-2'} | ${false} | ${'ANOTHER-1-2'}  | ${[]}                | ${[[1, 'ANOTHER-1-2']]}
-    ${'SOME-1-3'} | ${false} | ${undefined}      | ${[[5, 'SOME-1-3']]} | ${[]}
-    ${'SOME-1-4'} | ${false} | ${'ANOTHER-1-4'}  | ${[[5, 'SOME-1-4']]} | ${[[5, 'ANOTHER-1-4']]}
-    ${'SOME-2-1'} | ${true}  | ${undefined}      | ${[]}                | ${[[1, 'SOME-2-1']]}
-    ${'SOME-2-2'} | ${true}  | ${'ANOTHER-2-2'}  | ${[]}                | ${[[1, 'ANOTHER-2-2']]}
-    ${'SOME-2-3'} | ${true}  | ${undefined}      | ${[[5, 'SOME-2-3']]} | ${[[5, 'SOME-2-3']]}
-    ${'SOME-2-4'} | ${true}  | ${'ANOTHER-2-4'}  | ${[[5, 'SOME-2-4']]} | ${[[5, 'ANOTHER-2-4']]}
-  `(
-    '$taskId',
-    ({
-      taskId,
-      approved,
-      replacementTaskId,
-      existingAssignments,
-      expectedAssignments,
-    }: {
-      taskId: string;
-      approved: boolean;
-      replacementTaskId: string;
-      existingAssignments: [number, string][];
-      expectedAssignments: [number, string][];
-    }) => {
-      const existingFinalRecords = (existingAssignments || []).map(
-        ([fileId, taskId]) =>
-          tuple([
-            fileId,
-            { taskId, file: file1, contentDetails: contentDetailsFC1 },
-          ])
-      );
+  const final = (
+    fileId: number,
+    taskId: string,
+    contentDetails?: ContentDetails
+  ): [number, FinalRecord] => [
+    fileId,
+    { taskId, file: file(taskId), contentDetails },
+  ];
 
-      const expectedFinalRecords = (expectedAssignments || []).map(
-        ([fileId, taskId]) => [
-          fileId,
-          {
-            taskId,
-            file: replacementTaskId ? file2 : file1,
-            contentDetails: replacementTaskId
-              ? contentDetailsFinal2
-              : contentDetailsFinal1,
-          },
-        ]
-      );
+  const doTest = (
+    cases: {
+      fcrs: [string, FidelityCheckRecord][];
+      before: [number, FinalRecord][];
+      after: [number, FinalRecord][];
+    }[]
+  ) =>
+    test.each(cases)(
+      '%#', // Using this specifier because $variable seems to not be supported in our version of Jest. See https://github.com/jestjs/jest/issues/12562
+      ({ fcrs, before, after }) => {
+        expect([...createFinalRecords(fcrs, before)]).toStrictEqual(after);
+      }
+    );
 
-      expect([
-        ...createFinalRecords(
-          [...generateFidelityRecords(taskId, approved, replacementTaskId)],
-          existingFinalRecords
-        ),
-      ]).toStrictEqual(expectedFinalRecords);
-    }
-  );
+  describe('No replacement', () => {
+    doTest([
+      // Ignoring not approved
+      {
+        fcrs: [fcr('A')],
+        before: [],
+        after: [],
+      },
+      // Unpublishing not approved
+      {
+        fcrs: [fcr('A')],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [],
+      },
+      // Publishing newly approved
+      {
+        fcrs: [fcr('A', contentDetails1)],
+        before: [],
+        after: [final(1, 'A', contentDetails1Final)],
+      },
+      // Keeping published and approved
+      {
+        fcrs: [fcr('A', contentDetails1)],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [final(5, 'A', contentDetails1Final)],
+      },
+      // Updating existing published record
+      {
+        fcrs: [fcr('A', contentDetails3)],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [final(5, 'A', contentDetails3Final)],
+      },
+    ]);
+  });
+
+  describe('Simple replacement', () => {
+    doTest([
+      /** Published → not published */
+      // Unpublishing an approved record replaced with a not approved one
+      {
+        fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B')],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [],
+      },
+      // Unpublishing a not approved record replaced with a not approved one
+      {
+        fcrs: [fcr('A', undefined, repl('B')), fcr('B')],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [],
+      },
+      // Replacing an approved record with another approved one
+      {
+        fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [final(5, 'B', contentDetails2Final)],
+      },
+      // Replacing a not approved record with an approved one
+      {
+        fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [final(5, 'B', contentDetails2Final)],
+      },
+
+      /** Not published → not published */
+      // approved → not approved
+      {
+        fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B')],
+        before: [],
+        after: [],
+      },
+      // not approved → not approved
+      {
+        fcrs: [fcr('A', undefined, repl('B')), fcr('B')],
+        before: [],
+        after: [],
+      },
+      // approved → approved
+      {
+        fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
+        before: [],
+        after: [final(1, 'B', contentDetails2Final)],
+      },
+      // not approved → approved
+      {
+        fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
+        before: [],
+        after: [final(1, 'B', contentDetails2Final)],
+      },
+    ]);
+  });
 });
