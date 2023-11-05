@@ -96,7 +96,11 @@ describe('Finalization', () => {
     contentDetails?: ContentDetails
   ): [number, FinalRecord] => [
     fileId,
-    { taskId, file: file(taskId), contentDetails },
+    {
+      taskId,
+      file: file(taskId),
+      ...(contentDetails ? { contentDetails } : {}),
+    },
   ];
 
   const doTest = (
@@ -125,7 +129,7 @@ describe('Finalization', () => {
       {
         fcrs: [fcr('A')],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [],
+        after: [final(5, 'A')],
       },
       // Publishing newly approved
       {
@@ -155,13 +159,13 @@ describe('Finalization', () => {
       {
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B')],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [],
+        after: [final(5, 'B')],
       },
       // Unpublishing a not approved record replaced with a not approved one
       {
         fcrs: [fcr('A', undefined, repl('B')), fcr('B')],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [],
+        after: [final(5, 'B')],
       },
       // Replacing an approved record with another approved one
       {

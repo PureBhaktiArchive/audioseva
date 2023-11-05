@@ -10,7 +10,7 @@ export type FinalRecord = NormalRecord | RedirectRecord;
 export interface NormalRecord {
   taskId: string;
   file: StorageFileReference;
-  contentDetails: ContentDetails;
+  contentDetails?: ContentDetails; // Absent when a record is unpublished
 }
 
 export interface RedirectRecord {

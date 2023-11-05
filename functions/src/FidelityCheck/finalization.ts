@@ -4,13 +4,6 @@ import { FidelityCheckRecord } from './FidelityCheckRecord';
 import { FinalRecord } from './FinalRecord';
 import { createIdGenerator } from './id-generator';
 
-/**
- * A function to help implictly infer tuple types
- * @see https://stackoverflow.com/a/66953684/3082178
- * @returns A properly typed tuple
- */
-export const tuple = <T extends unknown[]>(args: [...T]): T => args;
-
 const coalesceUnknown = (input: string): string | null =>
   input?.toUpperCase() === 'UNKNOWN' ? null : input;
 
@@ -58,7 +51,7 @@ export const createFinalRecords = function* (
     }
   };
 
-  const taskIdToFileId = new Map<string, number>();
+  const publishedTaskIds = new Set<string>();
   const existingFileIds = new Set<number>();
   const fileIdGenerator = createIdGenerator((id) => existingFileIds.has(id));
 
@@ -66,49 +59,46 @@ export const createFinalRecords = function* (
     taskId: string,
     record: FidelityCheckRecord,
     fileId: number | Iterator<number>
-  ) =>
+  ): [number, FinalRecord][] =>
     'approval' in record && // Narrowing https://www.typescriptlang.org/docs/handbook/2/narrowing.html#the-in-operator-narrowing
-    record.approval &&
-    !taskIdToFileId.has(taskId) &&
-    !record.replacement
+    record.approval
       ? [
-          tuple([
-            // Adding taskId→fileId and extracting the same fileId to avoid a separate statement
-            taskIdToFileId
-              .set(
-                taskId,
-                typeof fileId === 'number' ? fileId : fileId.next().value
-              )
-              .get(taskId),
+          [
+            typeof fileId === 'number' ? fileId : fileId.next().value,
             {
               taskId,
               file: record.file,
               contentDetails: createContentDetails(record.contentDetails),
             },
-          ]),
+          ],
         ]
+      : typeof fileId === 'number'
+      ? // Unpublishing, but keeping the fileId→taskId association
+        [[fileId, { taskId, file: record.file }]]
       : [];
 
-  // Yielding existing (previously finalized) records
+  // Updating existing (previously finalized) records
   yield* finalRecords
     // Using flatMap to remove items when necessary.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap#for_adding_and_removing_items_during_a_map
     // We have to type the return value explicitly to avoid an issue caused by alternate types NormalRecord and RedirectRecord
     .flatMap(([fileId, record]): [number, FinalRecord][] => {
       existingFileIds.add(fileId);
-      return 'taskId' in record
-        ? generateFinalRecords(
-            ...resolveReplacementChain(record.taskId),
-            fileId
-          )
-        : [[fileId, record]];
+      if ('taskId' in record) {
+        const [taskId, fidelityRecord] = resolveReplacementChain(record.taskId);
+        publishedTaskIds.add(taskId);
+        return generateFinalRecords(taskId, fidelityRecord, fileId);
+      } else return [[fileId, record]];
     });
 
-  // Yielding new assignments
+  // Generating new final records
   yield* fidelityRecords
     // Using flatMap to remove items when necessary.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap#for_adding_and_removing_items_during_a_map
     .flatMap(([taskId, record]) =>
-      generateFinalRecords(taskId, record, fileIdGenerator)
+      // Ignoring already published and replaced records
+      publishedTaskIds.has(taskId) || record.replacement
+        ? []
+        : generateFinalRecords(taskId, record, fileIdGenerator)
     );
 };
