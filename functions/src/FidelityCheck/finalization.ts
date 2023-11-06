@@ -1,7 +1,7 @@
 import { DateTimeConverter } from '../DateTimeConverter';
 import { ContentDetails } from './ContentDetails';
 import { FidelityCheckRecord } from './FidelityCheckRecord';
-import { FinalRecord, NormalRecord } from './FinalRecord';
+import { FinalRecord } from './FinalRecord';
 import { createIdGenerator } from './id-generator';
 
 const coalesceUnknown = (input: string): string | null =>
@@ -44,7 +44,7 @@ export const createFinalRecords = function* (
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const record = fidelityRecordsMap.get(taskId);
-      if (!record) throw `Missing record for ${taskId}`;
+      if (!record) return [taskId, null];
       if (!record.replacement) return [taskId, record];
       pastIds.add(taskId);
       taskId = record.replacement.taskId;
@@ -61,34 +61,12 @@ export const createFinalRecords = function* (
   const existingFileIds = new Set<number>();
   const fileIdGenerator = createIdGenerator((id) => existingFileIds.has(id));
 
-  const generateNormalRecord = (
-    taskId: string,
-    record: FidelityCheckRecord,
-    fileId: number | Iterator<number>
-  ): [number, NormalRecord][] =>
-    'approval' in record && // Narrowing https://www.typescriptlang.org/docs/handbook/2/narrowing.html#the-in-operator-narrowing
-    record.approval
-      ? [
-          [
-            typeof fileId === 'number' ? fileId : fileId.next().value,
-            {
-              taskId,
-              file: record.file,
-              contentDetails: createContentDetails(record.contentDetails),
-            },
-          ],
-        ]
-      : typeof fileId === 'number'
-      ? // Unpublishing, but keeping the fileId→taskId association
-        [[fileId, { taskId, file: record.file }]]
-      : [];
-
   // Updating existing (previously finalized) records
   yield* finalRecords
     // Using flatMap to remove items when necessary.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap#for_adding_and_removing_items_during_a_map
     // We have to type the return value explicitly to avoid an issue caused by alternate types NormalRecord and RedirectRecord
-    .flatMap(([fileId, record]): [number, FinalRecord][] => {
+    .flatMap<[number, FinalRecord]>(([fileId, record]) => {
       existingFileIds.add(fileId);
 
       // Keeping redirect records as is
@@ -102,17 +80,46 @@ export const createFinalRecords = function* (
 
       // Saving again because the task ID could change due to replacements
       publishedTasks.set(taskId, fileId);
-      return generateNormalRecord(taskId, fidelityRecord, fileId);
+
+      return [
+        [
+          fileId,
+          fidelityRecord && 'approval' in fidelityRecord
+            ? // Normal record
+              {
+                taskId,
+                file: fidelityRecord.file,
+                contentDetails: createContentDetails(
+                  fidelityRecord.contentDetails
+                ),
+              }
+            : // Unpublishing, but keeping the fileId association
+              { taskId },
+        ],
+      ];
     });
 
   // Generating new final records
   yield* fidelityRecords
     // Using flatMap to remove items when necessary.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap#for_adding_and_removing_items_during_a_map
-    .flatMap(([taskId, record]) =>
+    .flatMap<[number, FinalRecord]>(([taskId, fidelityRecord]) =>
       // Ignoring already published and replaced records
-      publishedTasks.has(taskId) || record.replacement
+      publishedTasks.has(taskId) ||
+      fidelityRecord.replacement ||
+      !('approval' in fidelityRecord)
         ? []
-        : generateNormalRecord(taskId, record, fileIdGenerator)
+        : [
+            [
+              fileIdGenerator.next().value,
+              {
+                taskId,
+                file: fidelityRecord.file,
+                contentDetails: createContentDetails(
+                  fidelityRecord.contentDetails
+                ),
+              },
+            ],
+          ]
     );
 };

@@ -10,7 +10,7 @@ import {
   FidelityCheckRecord,
   Replacement,
 } from './FidelityCheckRecord';
-import { FinalRecord, NormalRecord, RedirectRecord } from './FinalRecord';
+import { FinalRecord, RedirectRecord } from './FinalRecord';
 import { createFinalRecords } from './finalization';
 
 describe('Finalization', () => {
@@ -94,12 +94,16 @@ describe('Finalization', () => {
     fileId: number,
     taskId: string,
     contentDetails?: ContentDetails
-  ): [number, NormalRecord] => [
+  ): [number, FinalRecord] => [
     fileId,
     {
       taskId,
-      file: file(taskId),
-      ...(contentDetails ? { contentDetails } : {}),
+      ...(contentDetails
+        ? {
+            file: file(taskId),
+            contentDetails,
+          }
+        : {}),
     },
   ];
 
@@ -122,33 +126,45 @@ describe('Finalization', () => {
       }
     );
 
-  describe('No replacement', () => {
+  describe('Simple updates', () => {
     doTest([
-      // Ignoring not approved
+      // Ignoring an unapproved record
       {
         fcrs: [fcr('A')],
         before: [],
         after: [],
       },
-      // Unpublishing not approved
+      // Unpublishing an unapproved record
       {
         fcrs: [fcr('A')],
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'A')],
       },
-      // Publishing newly approved
+      // Unpublishing a missing record
+      {
+        fcrs: [],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [final(5, 'A')],
+      },
+      // Publishing a previously unpublished record
+      {
+        fcrs: [fcr('A', contentDetails1)],
+        before: [final(5, 'A')],
+        after: [final(5, 'A', contentDetails1Final)],
+      },
+      // Publishing an approved record
       {
         fcrs: [fcr('A', contentDetails1)],
         before: [],
         after: [final(1, 'A', contentDetails1Final)],
       },
-      // Keeping published and approved
+      // Keeping a published record
       {
         fcrs: [fcr('A', contentDetails1)],
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'A', contentDetails1Final)],
       },
-      // Updating existing published record
+      // Updating a published record
       {
         fcrs: [fcr('A', contentDetails3)],
         before: [final(5, 'A', contentDetails1Final)],
@@ -160,13 +176,19 @@ describe('Finalization', () => {
   describe('Simple replacement', () => {
     doTest([
       /** Published → not published */
-      // Unpublishing an approved record replaced with a not approved one
+      // Unpublishing an approved record replaced with a missing one
+      {
+        fcrs: [fcr('A', contentDetails1, repl('B'))],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [final(5, 'B')],
+      },
+      // Unpublishing an approved record replaced with an unapproved one
       {
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B')],
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'B')],
       },
-      // Unpublishing a not approved record replaced with a not approved one
+      // Unpublishing an unapproved record replaced with an unapproved one
       {
         fcrs: [fcr('A', undefined, repl('B')), fcr('B')],
         before: [final(5, 'A', contentDetails1Final)],
@@ -178,7 +200,7 @@ describe('Finalization', () => {
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'B', contentDetails2Final)],
       },
-      // Replacing a not approved record with an approved one
+      // Replacing an unapproved record with an approved one
       {
         fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
         before: [final(5, 'A', contentDetails1Final)],
@@ -186,25 +208,38 @@ describe('Finalization', () => {
       },
 
       /** Not published → not published */
-      // approved → not approved
+
+      // Not publishing a missing record replacing an approved one
+      {
+        fcrs: [fcr('A', contentDetails1, repl('B'))],
+        before: [],
+        after: [],
+      },
+      // Not publishing a missing record replacing an unapproved one
+      {
+        fcrs: [fcr('A', undefined, repl('B'))],
+        before: [],
+        after: [],
+      },
+      // Not publishing an unapproved record replacing an approved one
       {
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B')],
         before: [],
         after: [],
       },
-      // not approved → not approved
+      // Not publishing an unapproved record replacing an unapproved one
       {
         fcrs: [fcr('A', undefined, repl('B')), fcr('B')],
         before: [],
         after: [],
       },
-      // approved → approved
+      // Publishing an approved record replacing an approved one
       {
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
         before: [],
         after: [final(1, 'B', contentDetails2Final)],
       },
-      // not approved → approved
+      // Publishing an approved record replacing an unapproved one
       {
         fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
         before: [],
@@ -225,6 +260,15 @@ describe('Finalization', () => {
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'C', contentDetails3Final)],
       },
+      // Chain replacement with a missing record
+      {
+        fcrs: [
+          fcr('A', contentDetails1, repl('B')),
+          fcr('B', contentDetails2, repl('C')),
+        ],
+        before: [final(5, 'A', contentDetails1Final)],
+        after: [final(5, 'C')],
+      },
       // Merger
       {
         fcrs: [
@@ -238,6 +282,18 @@ describe('Finalization', () => {
         ],
         after: [final(5, 'C', contentDetails3Final), finalR(89, 5)],
       },
+      // Merger into a missing record
+      {
+        fcrs: [
+          fcr('A', contentDetails1, repl('C')),
+          fcr('B', contentDetails2, repl('C')),
+        ],
+        before: [
+          final(5, 'A', contentDetails1Final),
+          final(89, 'B', contentDetails2Final),
+        ],
+        after: [final(5, 'C'), finalR(89, 5)],
+      },
       // Redirect to the forward record
       {
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
@@ -248,6 +304,15 @@ describe('Finalization', () => {
         after: [finalR(5, 89), final(89, 'B', contentDetails2Final)],
       },
       // Redirect to the past record
+      {
+        fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2, repl('A'))],
+        before: [
+          final(5, 'A', contentDetails1Final),
+          final(89, 'B', contentDetails2Final),
+        ],
+        after: [final(5, 'A', contentDetails1Final), finalR(89, 5)],
+      },
+      // Redirect to a missing record
       {
         fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2, repl('A'))],
         before: [
@@ -275,22 +340,6 @@ describe('Finalization', () => {
           );
         }
       );
-
-    describe('Throws on missing record', () => {
-      doTest(
-        [
-          {
-            fcrs: [],
-            before: [final(5, 'A', contentDetails1Final)],
-          },
-          {
-            fcrs: [fcr('A', contentDetails1, repl('B'))],
-            before: [final(5, 'A', contentDetails1Final)],
-          },
-        ],
-        /missing/i
-      );
-    });
 
     describe('Throws on circular replacement', () => {
       doTest(
