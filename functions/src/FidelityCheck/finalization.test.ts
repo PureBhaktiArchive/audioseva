@@ -10,7 +10,12 @@ import {
   FidelityCheckRecord,
   Replacement,
 } from './FidelityCheckRecord';
-import { FinalRecord, RedirectRecord } from './FinalRecord';
+import {
+  AssignmentRecord,
+  FinalRecord,
+  NormalRecord,
+  RedirectRecord,
+} from './FinalRecord';
 import { createFinalRecords } from './finalization';
 
 describe('Finalization', () => {
@@ -90,24 +95,21 @@ describe('Finalization', () => {
     },
   ];
 
+  const assign = (
+    fileId: number,
+    taskId: string
+  ): [number, AssignmentRecord] => [fileId, { taskId }];
+
   const final = (
     fileId: number,
     taskId: string,
     contentDetails?: ContentDetails
-  ): [number, FinalRecord] => [
+  ): [number, NormalRecord] => [
     fileId,
-    {
-      taskId,
-      ...(contentDetails
-        ? {
-            file: file(taskId),
-            contentDetails,
-          }
-        : {}),
-    },
+    { taskId, file: file(taskId), contentDetails },
   ];
 
-  const finalR = (
+  const redir = (
     fileId: number,
     redirectTo: number
   ): [number, RedirectRecord] => [fileId, { redirectTo }];
@@ -138,18 +140,18 @@ describe('Finalization', () => {
       {
         fcrs: [fcr('A')],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'A')],
+        after: [assign(5, 'A')],
       },
       // Unpublishing a missing record
       {
         fcrs: [],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'A')],
+        after: [assign(5, 'A')],
       },
       // Publishing a previously unpublished record
       {
         fcrs: [fcr('A', contentDetails1)],
-        before: [final(5, 'A')],
+        before: [assign(5, 'A')],
         after: [final(5, 'A', contentDetails1Final)],
       },
       // Publishing an approved record
@@ -180,19 +182,19 @@ describe('Finalization', () => {
       {
         fcrs: [fcr('A', contentDetails1, repl('B'))],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'B')],
+        after: [assign(5, 'B')],
       },
       // Unpublishing an approved record replaced with an unapproved one
       {
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B')],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'B')],
+        after: [assign(5, 'B')],
       },
       // Unpublishing an unapproved record replaced with an unapproved one
       {
         fcrs: [fcr('A', undefined, repl('B')), fcr('B')],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'B')],
+        after: [assign(5, 'B')],
       },
       // Replacing an approved record with another approved one
       {
@@ -267,7 +269,7 @@ describe('Finalization', () => {
           fcr('B', contentDetails2, repl('C')),
         ],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'C')],
+        after: [assign(5, 'C')],
       },
       // Merger
       {
@@ -280,7 +282,7 @@ describe('Finalization', () => {
           final(5, 'A', contentDetails1Final),
           final(89, 'B', contentDetails2Final),
         ],
-        after: [final(5, 'C', contentDetails3Final), finalR(89, 5)],
+        after: [final(5, 'C', contentDetails3Final), redir(89, 5)],
       },
       // Merger into a missing record
       {
@@ -292,7 +294,7 @@ describe('Finalization', () => {
           final(5, 'A', contentDetails1Final),
           final(89, 'B', contentDetails2Final),
         ],
-        after: [final(5, 'C'), finalR(89, 5)],
+        after: [assign(5, 'C'), redir(89, 5)],
       },
       // Redirect to the forward record
       {
@@ -301,7 +303,7 @@ describe('Finalization', () => {
           final(5, 'A', contentDetails1Final),
           final(89, 'B', contentDetails2Final),
         ],
-        after: [finalR(5, 89), final(89, 'B', contentDetails2Final)],
+        after: [redir(5, 89), final(89, 'B', contentDetails2Final)],
       },
       // Redirect to the past record
       {
@@ -310,7 +312,7 @@ describe('Finalization', () => {
           final(5, 'A', contentDetails1Final),
           final(89, 'B', contentDetails2Final),
         ],
-        after: [final(5, 'A', contentDetails1Final), finalR(89, 5)],
+        after: [final(5, 'A', contentDetails1Final), redir(89, 5)],
       },
       // Redirect to a missing record
       {
@@ -319,7 +321,7 @@ describe('Finalization', () => {
           final(5, 'A', contentDetails1Final),
           final(89, 'B', contentDetails2Final),
         ],
-        after: [final(5, 'A', contentDetails1Final), finalR(89, 5)],
+        after: [final(5, 'A', contentDetails1Final), redir(89, 5)],
       },
     ]);
   });
@@ -350,18 +352,18 @@ describe('Finalization', () => {
               fcr('B', undefined, repl('C')),
               fcr('C', undefined, repl('A')),
             ],
-            before: [final(5, 'A')],
+            before: [assign(5, 'A')],
           },
           {
             fcrs: [
               fcr('A', undefined, repl('B')),
               fcr('B', undefined, repl('A')),
             ],
-            before: [final(5, 'A')],
+            before: [assign(5, 'A')],
           },
           {
             fcrs: [fcr('A', undefined, repl('A'))],
-            before: [final(5, 'A')],
+            before: [assign(5, 'A')],
           },
         ],
         /circular/i
