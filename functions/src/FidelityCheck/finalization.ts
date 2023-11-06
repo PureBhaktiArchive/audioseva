@@ -104,12 +104,10 @@ export const createFinalRecords = function* (
     // Using flatMap to remove items when necessary.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap#for_adding_and_removing_items_during_a_map
     .flatMap<[number, FinalRecord]>(([taskId, fidelityRecord]) =>
-      // Ignoring already published and replaced records
-      publishedTasks.has(taskId) ||
-      fidelityRecord.replacement ||
-      !('approval' in fidelityRecord)
-        ? []
-        : [
+      'approval' in fidelityRecord &&
+      !fidelityRecord.replacement &&
+      !publishedTasks.has(taskId)
+        ? [
             [
               fileIdGenerator.next().value,
               {
@@ -121,5 +119,7 @@ export const createFinalRecords = function* (
               },
             ],
           ]
+        : // Skipping unapproved, already published or replaced records
+          []
     );
 };
