@@ -114,60 +114,61 @@ describe('Finalization', () => {
     redirectTo: number
   ): [number, RedirectRecord] => [fileId, { redirectTo }];
 
-  const doTest = (
+  const runTestCases = (
     cases: {
+      name: string;
       fcrs: [string, FidelityCheckRecord][];
       before: [number, FinalRecord][];
       after: [number, FinalRecord][];
     }[]
   ) =>
-    test.each(cases)(
-      '%#', // Using this specifier because $variable seems to not be supported in our version of Jest. See https://github.com/jestjs/jest/issues/12562
-      ({ fcrs, before, after }) => {
-        expect([...createFinalRecords(fcrs, before)]).toStrictEqual(after);
-      }
+    // Iterating because $variable seems to not be supported for a table from a variable in our version of Jest.
+    // See https://github.com/jestjs/jest/issues/12562
+    cases.forEach(({ name, fcrs, before, after }) =>
+      test(`${name}`, () =>
+        expect([...createFinalRecords(fcrs, before)]).toStrictEqual(after))
     );
 
   describe('Simple updates', () => {
-    doTest([
-      // Ignoring an unapproved record
+    runTestCases([
       {
+        name: 'Ignoring an unapproved record',
         fcrs: [fcr('A')],
         before: [],
         after: [],
       },
-      // Unpublishing an unapproved record
       {
+        name: 'Unpublishing an unapproved record',
         fcrs: [fcr('A')],
         before: [final(5, 'A', contentDetails1Final)],
         after: [assign(5, 'A')],
       },
-      // Unpublishing a missing record
       {
+        name: 'Unpublishing a missing record',
         fcrs: [],
         before: [final(5, 'A', contentDetails1Final)],
         after: [assign(5, 'A')],
       },
-      // Publishing a previously unpublished record
       {
+        name: 'Publishing a previously unpublished record',
         fcrs: [fcr('A', contentDetails1)],
         before: [assign(5, 'A')],
         after: [final(5, 'A', contentDetails1Final)],
       },
-      // Publishing an approved record
       {
+        name: 'Publishing an approved record',
         fcrs: [fcr('A', contentDetails1)],
         before: [],
         after: [final(1, 'A', contentDetails1Final)],
       },
-      // Keeping a published record
       {
+        name: 'Keeping a published record',
         fcrs: [fcr('A', contentDetails1)],
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'A', contentDetails1Final)],
       },
-      // Updating a published record
       {
+        name: 'Updating a published record',
         fcrs: [fcr('A', contentDetails3)],
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'A', contentDetails3Final)],
@@ -176,34 +177,34 @@ describe('Finalization', () => {
   });
 
   describe('Simple replacement', () => {
-    doTest([
+    runTestCases([
       /** Published → not published */
-      // Unpublishing an approved record replaced with a missing one
       {
+        name: 'Unpublishing an approved record replaced with a missing one',
         fcrs: [fcr('A', contentDetails1, repl('B'))],
         before: [final(5, 'A', contentDetails1Final)],
         after: [assign(5, 'B')],
       },
-      // Unpublishing an approved record replaced with an unapproved one
       {
+        name: 'Unpublishing an approved record replaced with an unapproved one',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B')],
         before: [final(5, 'A', contentDetails1Final)],
         after: [assign(5, 'B')],
       },
-      // Unpublishing an unapproved record replaced with an unapproved one
       {
+        name: 'Unpublishing an unapproved record replaced with an unapproved one',
         fcrs: [fcr('A', undefined, repl('B')), fcr('B')],
         before: [final(5, 'A', contentDetails1Final)],
         after: [assign(5, 'B')],
       },
-      // Replacing an approved record with another approved one
       {
+        name: 'Replacing an approved record with another approved one',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'B', contentDetails2Final)],
       },
-      // Replacing an unapproved record with an approved one
       {
+        name: 'Replacing an unapproved record with an approved one',
         fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'B', contentDetails2Final)],
@@ -211,38 +212,38 @@ describe('Finalization', () => {
 
       /** Not published → not published */
 
-      // Not publishing a missing record replacing an approved one
       {
+        name: 'Not publishing a missing record replacing an approved one',
         fcrs: [fcr('A', contentDetails1, repl('B'))],
         before: [],
         after: [],
       },
-      // Not publishing a missing record replacing an unapproved one
       {
+        name: 'Not publishing a missing record replacing an unapproved one',
         fcrs: [fcr('A', undefined, repl('B'))],
         before: [],
         after: [],
       },
-      // Not publishing an unapproved record replacing an approved one
       {
+        name: 'Not publishing an unapproved record replacing an approved one',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B')],
         before: [],
         after: [],
       },
-      // Not publishing an unapproved record replacing an unapproved one
       {
+        name: 'Not publishing an unapproved record replacing an unapproved one',
         fcrs: [fcr('A', undefined, repl('B')), fcr('B')],
         before: [],
         after: [],
       },
-      // Publishing an approved record replacing an approved one
       {
+        name: 'Publishing an approved record replacing an approved one',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
         before: [],
         after: [final(1, 'B', contentDetails2Final)],
       },
-      // Publishing an approved record replacing an unapproved one
       {
+        name: 'Publishing an approved record replacing an unapproved one',
         fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
         before: [],
         after: [final(1, 'B', contentDetails2Final)],
@@ -251,9 +252,9 @@ describe('Finalization', () => {
   });
 
   describe('Complex replacements', () => {
-    doTest([
-      // Chain replacement
+    runTestCases([
       {
+        name: 'Chain replacement',
         fcrs: [
           fcr('A', contentDetails1, repl('B')),
           fcr('B', contentDetails2, repl('C')),
@@ -262,8 +263,8 @@ describe('Finalization', () => {
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'C', contentDetails3Final)],
       },
-      // Chain replacement with a missing record
       {
+        name: 'Chain replacement with a missing record',
         fcrs: [
           fcr('A', contentDetails1, repl('B')),
           fcr('B', contentDetails2, repl('C')),
@@ -271,8 +272,8 @@ describe('Finalization', () => {
         before: [final(5, 'A', contentDetails1Final)],
         after: [assign(5, 'C')],
       },
-      // Merger
       {
+        name: 'Merger',
         fcrs: [
           fcr('A', contentDetails1, repl('C')),
           fcr('B', contentDetails2, repl('C')),
@@ -284,8 +285,8 @@ describe('Finalization', () => {
         ],
         after: [final(5, 'C', contentDetails3Final), redir(89, 5)],
       },
-      // Merger into a missing record
       {
+        name: 'Merger into a missing record',
         fcrs: [
           fcr('A', contentDetails1, repl('C')),
           fcr('B', contentDetails2, repl('C')),
@@ -296,8 +297,8 @@ describe('Finalization', () => {
         ],
         after: [assign(5, 'C'), redir(89, 5)],
       },
-      // Redirect to the forward record
       {
+        name: 'Redirect to the forward record',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
         before: [
           final(5, 'A', contentDetails1Final),
@@ -305,8 +306,8 @@ describe('Finalization', () => {
         ],
         after: [redir(5, 89), final(89, 'B', contentDetails2Final)],
       },
-      // Redirect to the past record
       {
+        name: 'Redirect to the past record',
         fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2, repl('A'))],
         before: [
           final(5, 'A', contentDetails1Final),
@@ -314,8 +315,8 @@ describe('Finalization', () => {
         ],
         after: [final(5, 'A', contentDetails1Final), redir(89, 5)],
       },
-      // Redirect to a missing record
       {
+        name: 'Redirect to a missing record',
         fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2, repl('A'))],
         before: [
           final(5, 'A', contentDetails1Final),
@@ -327,26 +328,26 @@ describe('Finalization', () => {
   });
 
   describe('Invalid cases', () => {
-    const doTest = (
+    const runTestCases = (
       cases: {
+        name: string;
         fcrs: [string, FidelityCheckRecord][];
         before: [number, FinalRecord][];
       }[],
       errorRegexp: RegExp
     ) =>
-      test.each(cases)(
-        '%#', // Using this specifier because $variable seems to not be supported in our version of Jest. See https://github.com/jestjs/jest/issues/12562
-        ({ fcrs, before }) => {
+      cases.forEach(({ name, fcrs, before }) =>
+        test(`${name}`, () =>
           expect(() => [...createFinalRecords(fcrs, before)]).toThrow(
             errorRegexp
-          );
-        }
+          ))
       );
 
     describe('Throws on circular replacement', () => {
-      doTest(
+      runTestCases(
         [
           {
+            name: 'Three records',
             fcrs: [
               fcr('A', undefined, repl('B')),
               fcr('B', undefined, repl('C')),
@@ -355,6 +356,7 @@ describe('Finalization', () => {
             before: [assign(5, 'A')],
           },
           {
+            name: 'Two records',
             fcrs: [
               fcr('A', undefined, repl('B')),
               fcr('B', undefined, repl('A')),
@@ -362,6 +364,7 @@ describe('Finalization', () => {
             before: [assign(5, 'A')],
           },
           {
+            name: 'Self',
             fcrs: [fcr('A', undefined, repl('A'))],
             before: [assign(5, 'A')],
           },
