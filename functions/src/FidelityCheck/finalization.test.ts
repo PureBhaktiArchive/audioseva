@@ -173,6 +173,18 @@ describe('Finalization', () => {
         before: [final(5, 'A', contentDetails1Final)],
         after: [final(5, 'A', contentDetails3Final)],
       },
+      {
+        name: 'Keeping redirects untouched',
+        fcrs: [],
+        before: [redir(5, 46)],
+        after: [redir(5, 46)],
+      },
+      {
+        name: 'Keeping assignments untouched',
+        fcrs: [],
+        before: [assign(5, 'A')],
+        after: [assign(5, 'A')],
+      },
     ]);
   });
 
