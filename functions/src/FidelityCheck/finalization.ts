@@ -32,12 +32,11 @@ export const createFinalRecords = function* (
   const fidelityRecordsMap = new Map(fidelityRecords);
 
   /**
-   * Finds an ultimate replacement record for a given record.
-   * Also, keeps record of all the existing
+   * Finds a fidelity record for a given task ID. Resolves the replacement chain.
    * @param taskId
-   * @returns `taskId` along with the record itself
+   * @returns `taskId` along with the record itself. `null` instead of the record if it's not found.
    */
-  const resolveReplacementChain = (
+  const resolveFidelityRecord = (
     taskId: string
   ): [string, FidelityCheckRecord] => {
     const pastIds = new Set<string>();
@@ -66,35 +65,34 @@ export const createFinalRecords = function* (
     // Using flatMap to remove items when necessary.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap#for_adding_and_removing_items_during_a_map
     // We have to type the return value explicitly to avoid an issue caused by alternate types NormalRecord and RedirectRecord
-    .flatMap<[number, FinalRecord]>(([fileId, record]) => {
+    .flatMap(([fileId, record]): [number, FinalRecord][] => {
       existingFileIds.add(fileId);
 
-      // Keeping redirect records as is
-      if ('redirectTo' in record) return [[fileId, record]];
-
-      const [taskId, fidelityRecord] = resolveReplacementChain(record.taskId);
-
-      // Generating a redirect record if the target task has been already published under another file ID
-      if (publishedTasks.has(taskId) && publishedTasks.get(taskId) !== fileId)
-        return [[fileId, { redirectTo: publishedTasks.get(taskId) }]];
-
-      // Saving again because the task ID could change due to replacements
-      publishedTasks.set(taskId, fileId);
+      const [taskId, fidelityRecord] = resolveFidelityRecord(record.taskId);
 
       return [
         [
           fileId,
           fidelityRecord && 'approval' in fidelityRecord
-            ? // Normal record
-              {
-                taskId,
-                file: fidelityRecord.file,
-                contentDetails: createContentDetails(
-                  fidelityRecord.contentDetails
-                ),
-              }
-            : // Unpublishing, but keeping the fileId association
-              { taskId },
+            ? // Generating a redirect record if the target task has been already published under another file ID
+              publishedTasks.has(taskId) &&
+              publishedTasks.get(taskId) !== fileId
+              ? {
+                  taskId: record.taskId,
+                  redirectTo: publishedTasks.get(taskId),
+                }
+              : // Saving again because the task ID could change due to replacements
+                (publishedTasks.set(taskId, fileId),
+                // Normal record
+                {
+                  taskId: record.taskId,
+                  file: fidelityRecord.file,
+                  contentDetails: createContentDetails(
+                    fidelityRecord.contentDetails
+                  ),
+                })
+            : // Unpublishing, but keeping the original fileId association
+              { taskId: record.taskId },
         ],
       ];
     });
@@ -103,7 +101,7 @@ export const createFinalRecords = function* (
   yield* fidelityRecords
     // Using flatMap to remove items when necessary.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap#for_adding_and_removing_items_during_a_map
-    .flatMap<[number, FinalRecord]>(([taskId, fidelityRecord]) =>
+    .flatMap(([taskId, fidelityRecord]): [number, FinalRecord][] =>
       'approval' in fidelityRecord &&
       !fidelityRecord.replacement &&
       !publishedTasks.has(taskId)
