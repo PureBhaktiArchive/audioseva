@@ -118,7 +118,11 @@ export const importRecords = functions
        * Doing this early ensures unpublishing of a file even if there are validation issues
        */
 
-      if (row['Ready For Archive'] === false && 'approval' in existingRecord) {
+      if (
+        row['Ready For Archive'] === false &&
+        existingRecord &&
+        'approval' in existingRecord
+      ) {
         functions.logger.info('Removing approval from', row['Task ID']);
         await recordSnapshot.ref.update({
           approval: null,
@@ -244,6 +248,7 @@ export const importRecords = functions
       ) as unknown as ContentDetails;
 
       if (
+        existingRecord &&
         'approval' in existingRecord &&
         approval.timestamp <= existingRecord.approval.timestamp
       ) {
