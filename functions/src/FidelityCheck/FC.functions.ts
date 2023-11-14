@@ -27,7 +27,7 @@ import pMap = require('p-map');
 const dateToEndOfDay = (date: DateTime) =>
   date === date.startOf('day') ? date.endOf('day') : date;
 
-export const validateRecords = functions
+export const importRecords = functions
   .runWith({ timeoutSeconds: 540, memory: '1GB' })
   .pubsub.schedule('every day 18:30')
   .timeZone(functions.config().coordinator.timezone)
