@@ -303,10 +303,11 @@ export const finalize = functions.database
       fidelitySnapshot.val()
     );
 
-    const finalRecords = Object.entries<FinalRecord>(finalSnapshot.val()).map(
-      ([fileId, record]): [number, FinalRecord] =>
-        // Keeping only numeric keys (just in case, should be only numeric)
-        /\d+/.test(fileId) ? [+fileId, record] : null
+    const finalRecords = Object.entries<FinalRecord>(
+      finalSnapshot.val()
+    ).flatMap(([fileId, record]): [number, FinalRecord][] =>
+      // Keeping only numeric keys (just in case, should be only numeric)
+      /\d+/.test(fileId) ? [[+fileId, record]] : []
     );
 
     await finalSnapshot.ref.set(
