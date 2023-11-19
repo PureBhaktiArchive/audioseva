@@ -215,7 +215,9 @@ export default class Allotment extends Mixins<TaskMixin>(TaskMixin) {
       );
       this.submissionStatus = 'complete';
     } catch (error) {
-      alert(error.message);
+      if (error instanceof Error) {
+        alert(error.message);
+      }
       this.submissionStatus = 'error';
     }
   }

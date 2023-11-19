@@ -3,11 +3,8 @@
  */
 
 import * as functions from 'firebase-functions';
-import { DateTime } from 'luxon';
-import { createSchema, morphism } from 'morphism';
 import { AbstractRepository } from '../AbstractRepository';
-import { AllotmentStatus, isActiveAllotment } from '../Allotment';
-import { DateTimeConverter } from '../DateTimeConverter';
+import { isActiveAllotment } from '../Allotment';
 import { ReportingAllotmentRow } from '../ReportingAllotmentRow';
 import { ReportingTask } from '../ReportingTask';
 import { SpareFile } from './SpareFile';
@@ -31,28 +28,9 @@ export class TasksRepository extends AbstractRepository<
     );
   }
 
-  protected mapToRows = morphism(
-    createSchema<ReportingAllotmentRow, ReportingTask>({
-      'File Name': 'fileName',
-      Status: ({ status }) =>
-        status === undefined
-          ? undefined
-          : status === AllotmentStatus.Spare
-          ? null
-          : status,
-      'Date Given': ({ timestampGiven }) =>
-        timestampGiven
-          ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampGiven))
-          : null,
-      'Date Done': ({ timestampDone }) =>
-        timestampDone
-          ? DateTimeConverter.toSerialDate(DateTime.fromMillis(timestampDone))
-          : null,
-      Devotee: 'assignee.name',
-      Email: 'assignee.emailAddress',
-      Notes: 'notes',
-    })
-  );
+  protected mapTask = (task: ReportingTask): ReportingAllotmentRow => ({
+    'File Name': task.fileName,
+  });
 
   public async getLists() {
     return _(await this.getRows())

@@ -303,7 +303,7 @@ export default class Task extends Mixins<TaskMixin, FormatTime>(
       this.task = _.merge({}, this.task, this.cancelData());
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.error(e.message);
+      console.error(e);
     }
   }
 
