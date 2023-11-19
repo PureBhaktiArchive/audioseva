@@ -3,19 +3,20 @@
  */
 
 import { database } from 'firebase-admin';
-import { createSchema, morphism, StrictSchema } from 'morphism';
 import { Allotment, AllotmentStatus, allotmentValidator } from './Allotment';
 import { AllotmentRow } from './AllotmentRow';
 import { DateTimeConverter } from './DateTimeConverter';
-import { flatten } from './flatten';
 import { RequireOnly } from './RequireOnly';
 import { Spreadsheet } from './Spreadsheet';
+import { flatten } from './flatten';
 import _ = require('lodash');
+
+type BaseTask<TId extends string> = Allotment & Record<TId, string>;
 
 export abstract class AbstractRepository<
   TRow extends AllotmentRow,
-  TTask extends Allotment & { [id in TId]: string },
-  TId extends keyof TTask
+  TTask extends BaseTask<TId>,
+  TId extends keyof TTask & string
 > {
   constructor(
     private readonly spreadsheetId: string,
@@ -36,23 +37,30 @@ export abstract class AbstractRepository<
     return (await this.allotmentsSheet()).getRows();
   }
 
-  protected mapFromRows: (
-    rows: TRow[]
-  ) => Pick<TTask, TId | keyof Allotment>[] = morphism(
-    createSchema<Pick<TTask, TId | keyof Allotment>, TRow>({
-      [this.idPropertyName]: this.idColumnName,
-      status: ({ Status: status }) =>
-        (status?.trim() as AllotmentStatus) || AllotmentStatus.Spare,
-      timestampGiven: ({ 'Date Given': date }) =>
-        date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
-      timestampDone: ({ 'Date Done': date }) =>
-        date ? DateTimeConverter.fromSerialDate(date).toMillis() : null,
-      assignee: ({ Devotee: name, Email: emailAddress }) => ({
-        name: name?.trim() || null,
-        emailAddress: emailAddress?.trim() || null,
-      }),
-    } as StrictSchema<Pick<TTask, TId | keyof Allotment>, TRow>)
-  );
+  protected mapFromRows = (rows: TRow[]): BaseTask<TId>[] =>
+    rows.map(
+      ({
+        Status: status,
+        'Date Given': dateGiven,
+        'Date Done': dateDone,
+        Devotee: name,
+        Email: emailAddress,
+      }) =>
+        ({
+          [this.idPropertyName]: this.idColumnName,
+          status: (status?.trim() as AllotmentStatus) || AllotmentStatus.Spare,
+          timestampGiven: dateGiven
+            ? DateTimeConverter.fromSerialDate(dateGiven).toMillis()
+            : null,
+          timestampDone: dateDone
+            ? DateTimeConverter.fromSerialDate(dateDone).toMillis()
+            : null,
+          assignee: {
+            name: name?.trim() || null,
+            emailAddress: emailAddress?.trim() || null,
+          },
+        } as BaseTask<TId>)
+    );
 
   protected abstract mapToRows(tasks: TTask[]): TRow[];
 
@@ -75,7 +83,7 @@ export abstract class AbstractRepository<
     await this.saveToDatabase(tasks);
 
     const updatedTasks = await this.getTasks(
-      _.map(tasks, (task) => _.get(task, this.idPropertyName))
+      tasks.map((task) => task[this.idPropertyName])
     );
 
     await this.saveToSpreadsheet(updatedTasks);
@@ -132,7 +140,7 @@ export abstract class AbstractRepository<
     /// Adding missing tasks from the database to the spreadsheet
 
     const idsInSpreadsheet = new Set(
-      _.map(tasksFromSpreadsheet, (task) => _.get(task, this.idPropertyName))
+      tasksFromSpreadsheet.map((task) => task[this.idPropertyName])
     );
 
     const tasksForSpreadsheet = _.chain(tasksFromDatabase)
@@ -148,8 +156,8 @@ export abstract class AbstractRepository<
 
     /// Updating allotment info from the spreadsheet to the database
 
-    const tasksForDatabase = _.chain(tasksFromSpreadsheet)
-      .filter((taskFromSpreadsheet) => {
+    const tasksForDatabase = tasksFromSpreadsheet.filter(
+      (taskFromSpreadsheet) => {
         const id = taskFromSpreadsheet[this.idPropertyName];
 
         if (id.match(/[.#$/[\]]/)) {
@@ -192,10 +200,11 @@ export abstract class AbstractRepository<
         );
 
         return true;
-      })
+      }
       // Type casting is required to pass this successfully to `saveToDatabase`.
       // Asked question https://stackoverflow.com/q/63216805/3082178
-      .value() as RequireOnly<TTask, TId>[];
+      // It is also discussed in https://stackoverflow.com/q/56788853/3082178
+    ) as RequireOnly<TTask, TId>[];
 
     if (dryRun) console.log(`DRY RUN, doing nothing.`);
     else {
