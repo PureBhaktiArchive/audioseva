@@ -27,7 +27,6 @@
     "googleapis": "123.0.0",
     "lodash": "4.17.21",
     "luxon": "3.3.0",
-    "morphism": "1.12.3",
     "p-map": "4.0.0",
     "pug": "3.0.2",
     "recursive-diff": "1.0.8",

@@ -3,6 +3,7 @@
  */
 
 import { database } from 'firebase-admin';
+import { DateTime } from 'luxon';
 import { Allotment, AllotmentStatus, allotmentValidator } from './Allotment';
 import { AllotmentRow } from './AllotmentRow';
 import { DateTimeConverter } from './DateTimeConverter';
@@ -62,7 +63,30 @@ export abstract class AbstractRepository<
         } as BaseTask<TId>)
     );
 
-  protected abstract mapToRows(tasks: TTask[]): TRow[];
+  protected mapAllotment = (task: TTask): AllotmentRow => ({
+    [this.idColumnName]: task[this.idPropertyName],
+    Status:
+      task.status === undefined
+        ? undefined
+        : task.status === AllotmentStatus.Spare
+        ? null
+        : task.status,
+    'Date Given': task.timestampGiven
+      ? DateTimeConverter.toSerialDate(DateTime.fromMillis(task.timestampGiven))
+      : null,
+    'Date Done': task.timestampDone
+      ? DateTimeConverter.toSerialDate(DateTime.fromMillis(task.timestampDone))
+      : null,
+    Devotee: task.assignee?.name || null,
+    Email: task.assignee?.emailAddress || null,
+  });
+
+  protected abstract mapTask(task: TTask): TRow;
+  protected mapToRows = (tasks: TTask[]): TRow[] =>
+    tasks.map((task) => ({
+      ...this.mapAllotment(task),
+      ...this.mapTask(task),
+    }));
 
   protected getTaskRef = (id: string) => this.allotmentsRef.child(id);
 
