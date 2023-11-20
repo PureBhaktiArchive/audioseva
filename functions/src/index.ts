@@ -6,7 +6,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 // https://github.com/firebase/firebase-functions/issues/1351
 import 'firebase-functions/logger/compat';
-import * as glob from 'glob';
+import { globSync } from 'glob';
 import { Settings as DateTimeSettings } from 'luxon';
 
 admin.initializeApp();
@@ -25,7 +25,7 @@ DateTimeSettings.defaultZone = functions.config().coordinator.timezone;
  **
  **********************************************/
 
-const functionFiles = glob.sync('./**/*.functions.js', { cwd: __dirname });
+const functionFiles = globSync('./**/*.functions.js', { cwd: __dirname });
 
 functionFiles.forEach((file: string) => {
   const moduleName = file.split('/').pop().split('.').shift();
