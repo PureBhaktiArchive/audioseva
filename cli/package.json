@@ -28,7 +28,6 @@
   "devDependencies": {
     "@types/async": "3.2.8",
     "@types/fluent-ffmpeg": "2.1.18",
-    "@types/glob": "7.1.4",
     "@types/lodash": "4.14.175",
     "@types/node": "16.18.39",
     "@types/yargs": "17.0.3",

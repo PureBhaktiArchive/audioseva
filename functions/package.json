@@ -34,7 +34,6 @@
   },
   "devDependencies": {
     "@types/email-templates": "8.0.4",
-    "@types/glob": "7.1.4",
     "@types/jest": "29.5.8",
     "@types/lodash": "4.14.175",
     "@types/luxon": "3.3.1",
