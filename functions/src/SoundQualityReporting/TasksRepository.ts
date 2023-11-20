@@ -21,7 +21,7 @@ export class TasksRepository extends AbstractRepository<
 > {
   constructor() {
     super(
-      functions.config().sqr.spreadsheet_id,
+      functions.config().sqr.spreadsheet_id as string,
       'fileName',
       'File Name',
       allotmentsRef

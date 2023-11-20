@@ -28,10 +28,10 @@ const dateToEndOfDay = (date: DateTime) =>
 export const validateRecords = functions
   .runWith({ timeoutSeconds: 540, memory: '1GB' })
   .pubsub.schedule('every day 18:30')
-  .timeZone(functions.config().coordinator.timezone)
+  .timeZone(functions.config().coordinator.timezone as string)
   .onRun(async () => {
     const sheet = await Spreadsheet.open<FidelityCheckRow>(
-      functions.config().fc.spreadsheet.id,
+      functions.config().fc.spreadsheet.id as string,
       'Fidelity Check'
     );
 

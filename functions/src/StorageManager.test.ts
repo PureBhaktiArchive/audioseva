@@ -5,6 +5,8 @@
 import { MockStorage } from './MockStorage';
 import { StorageManager } from './StorageManager';
 
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 jest.mock('firebase-functions', () => ({
   config: () => ({ project: { domain: 'test' } }),
 }));

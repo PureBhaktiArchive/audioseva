@@ -4,6 +4,8 @@
 
 import { Spreadsheet } from './Spreadsheet';
 
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 describe('Spreadsheet.toA1Notation', () => {
   test.each`
     c1           | r1           | c2           | r2           | result
@@ -13,7 +15,7 @@ describe('Spreadsheet.toA1Notation', () => {
     ${'B'}       | ${undefined} | ${'N'}       | ${undefined} | ${'B:N'}
     ${'M'}       | ${4}         | ${undefined} | ${undefined} | ${'M4'}
   `('Sheet $c1 $r1 $c2 $r2 → $result', ({ c1, r1, c2, r2, result }) => {
-    expect(Spreadsheet.toA1Notation('Sheet', c1, r1, c2, r2)).toEqual(
+    expect(Spreadsheet.toA1Notation('Sheet', c1, r1, c2, r2)).toBe(
       `Sheet!${result}`
     );
   });
