@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`flatten should flatten pure object 1`] = `
-Object {
+{
   "prefix/root1/second1/leaf1": "string",
   "prefix/root1/second1/leaf2": 108,
-  "prefix/root1/second1/timestamp": Object {
+  "prefix/root1/second1/timestamp": {
     ".sv": "TIMESTAMP",
   },
-  "prefix/root2/second2": Array [
+  "prefix/root2/second2": [
     "value1",
     "value2",
     3,
