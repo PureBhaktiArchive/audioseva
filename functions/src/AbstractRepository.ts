@@ -17,7 +17,7 @@ type BaseTask<TId extends string> = Allotment & Record<TId, string>;
 export abstract class AbstractRepository<
   TRow extends AllotmentRow,
   TTask extends BaseTask<TId>,
-  TId extends keyof TTask & string
+  TId extends keyof TTask & string,
 > {
   constructor(
     private readonly spreadsheetId: string,
@@ -60,7 +60,7 @@ export abstract class AbstractRepository<
             name: name?.trim() || null,
             emailAddress: emailAddress?.trim() || null,
           },
-        } as BaseTask<TId>)
+        }) as BaseTask<TId>
     );
 
   protected mapAllotment = (task: TTask): AllotmentRow => ({
@@ -69,8 +69,8 @@ export abstract class AbstractRepository<
       task.status === undefined
         ? undefined
         : task.status === AllotmentStatus.Spare
-        ? null
-        : task.status,
+          ? null
+          : task.status,
     'Date Given': task.timestampGiven
       ? DateTimeConverter.toSerialDate(DateTime.fromMillis(task.timestampGiven))
       : null,
