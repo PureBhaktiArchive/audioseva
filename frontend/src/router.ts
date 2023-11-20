@@ -205,7 +205,7 @@ export const getHomePageRoutes = () => {
 
 const filterMenuItems = filterRoutesByClaims(
   (route: RouteConfig, ability): any => {
-    if (route.meta.activator) {
+    if (route.meta?.activator) {
       const childRoutes = filterMenuItems(route.children, ability);
       if (childRoutes.length) return { ...route, children: childRoutes };
     } else if (
