@@ -3,7 +3,6 @@
  */
 
 import { PubSub } from '@google-cloud/pubsub';
-import { File } from '@google-cloud/storage';
 import { database } from 'firebase-admin';
 import * as fs from 'fs';
 import getAudioDurationInSeconds from 'get-audio-duration';
@@ -13,7 +12,7 @@ import * as path from 'path';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
-import { BucketName, StorageManager } from '../StorageManager';
+import { BucketName, File, StorageManager } from '../StorageManager';
 import { asyncHandler } from '../asyncHandler';
 import { flatten } from '../flatten';
 import { modificationTime } from '../modification-time';

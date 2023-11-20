@@ -2,8 +2,8 @@
  * sri sri guru gauranga jayatah
  */
 
-import { File } from '@google-cloud/storage';
 import { DateTime } from 'luxon';
+import { File } from './StorageManager';
 
 /**
  * The `goog-reserved-file-mtime` custom metadata overrides timeCreated
