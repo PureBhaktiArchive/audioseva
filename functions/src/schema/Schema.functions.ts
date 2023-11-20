@@ -4,7 +4,7 @@
 
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import glob = require('glob');
+import { globSync } from 'glob';
 import _ = require('lodash');
 
 type Step = () => Promise<void>;
@@ -12,7 +12,7 @@ type Step = () => Promise<void>;
 export const applyMigrations = functions.pubsub
   .topic('database-migration')
   .onPublish(async () => {
-    const migrations = glob.sync('./migrations/**/*.js', {
+    const migrations = globSync('./migrations/**/*.js', {
       cwd: __dirname,
     });
 

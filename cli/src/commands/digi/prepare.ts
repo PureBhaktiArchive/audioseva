@@ -6,16 +6,16 @@ import * as async from 'async';
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import fs from 'fs';
 import getAudioDurationInSeconds from 'get-audio-duration';
-import glob from 'glob';
+import { glob } from 'glob';
 import _ from 'lodash';
 import ora from 'ora';
 import os from 'os';
 import path from 'path';
 import util from 'util';
 import { Argv } from 'yargs';
-import { groupBy } from '../../array';
 import { DigitalRecordingRow } from '../../DigitalRecordingRow';
 import { Spreadsheet } from '../../Spreadsheet';
+import { groupBy } from '../../array';
 
 const ffprobe = util.promisify<string, FfprobeData>(ffmpeg.ffprobe);
 
@@ -72,7 +72,7 @@ export const handler = async ({
   spinner.succeed(`Fetched ${rows.length} rows`);
 
   spinner.start('Scanning directory');
-  const files = await util.promisify(glob)('**/*.*', {
+  const files = await glob('**/*.*', {
     cwd: sourcePath,
     absolute: true,
     ignore: '**/_vti_cnf/**',
