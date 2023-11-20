@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import { formatAudioAnnotations } from './AudioAnnotation';
+import { AudioAnnotation, formatAudioAnnotations } from './AudioAnnotation';
 
 describe('Audio Annotation formatting', () => {
   test.each`
@@ -11,6 +11,6 @@ describe('Audio Annotation formatting', () => {
     ${'7:23–7:46: irrelevant — Haribol'}             | ${null}    | ${'7:23'} | ${'7:46'} | ${'irrelevant'}                  | ${'Haribol'}
     ${'Entire file: Speed is faster than normal — '} | ${true}    | ${null}   | ${null}   | ${'Speed is faster than normal'} | ${''}
   `('$text', ({ text, ...annotation }) => {
-    expect(formatAudioAnnotations(annotation)).toEqual(text);
+    expect(formatAudioAnnotations(annotation as AudioAnnotation)).toEqual(text);
   });
 });

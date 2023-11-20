@@ -4,6 +4,8 @@
 import { DateTime, Duration } from 'luxon';
 import { DateTimeConverter } from './DateTimeConverter';
 
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 describe.each`
   serialDate          | iso
   ${43379}            | ${'2018-10-06T00:00:00+05:30'}
@@ -59,7 +61,7 @@ describe('Duration conversion', () => {
   `('returns invalid Duration for “$input”', ({ input }) => {
     const duration = DateTimeConverter.durationFromHuman(input);
     expect(duration.isValid).toBeFalsy();
-    expect(duration.invalidReason).toEqual('Incorrect format');
+    expect(duration.invalidReason).toBe('Incorrect format');
   });
 });
 

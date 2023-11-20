@@ -26,7 +26,12 @@ export class TasksRepository extends AbstractRepository<
   'id'
 > {
   constructor() {
-    super(functions.config().te.spreadsheet.id, 'id', 'Task ID', tasksRef);
+    super(
+      functions.config().te.spreadsheet.id as string,
+      'id',
+      'Task ID',
+      tasksRef
+    );
   }
 
   protected mapTask = (task: TrackEditingTask): TrackEditingAllotmentRow => {
@@ -83,7 +88,7 @@ export class TasksRepository extends AbstractRepository<
 
   public async importTasks() {
     const tasksSheet = await Spreadsheet.open<ChunkRow>(
-      functions.config().te.spreadsheet.id,
+      functions.config().te.spreadsheet.id as string,
       'Tasks'
     );
 

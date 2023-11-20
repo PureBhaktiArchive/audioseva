@@ -82,7 +82,7 @@ export const processAllotment = functions
   );
 
 export const cancelAllotment = functions.https.onCall(
-  async ({ taskId }, context) => {
+  async ({ taskId }: { taskId: string }, context) => {
     authorize(context, ['TE.coordinator']);
 
     if (!taskId) abortCall('invalid-argument', 'Task ID is required.');
@@ -247,7 +247,7 @@ export const processResolution = functions
 export const importTasks = functions
   .runWith({ timeoutSeconds: 120 })
   .pubsub.schedule('every day 00:00')
-  .timeZone(functions.config().coordinator.timezone)
+  .timeZone(functions.config().coordinator.timezone as string)
   .onRun(async () => {
     const repository = new TasksRepository();
     const count: number = await repository.importTasks();
@@ -257,7 +257,7 @@ export const importTasks = functions
 export const syncAllotments = functions
   .runWith({ timeoutSeconds: 120 })
   .pubsub.schedule('every 1 hours from 05:00 to 00:00')
-  .timeZone(functions.config().coordinator.timezone)
+  .timeZone(functions.config().coordinator.timezone as string)
   .onRun(async () => {
     const repository = new TasksRepository();
     await repository.syncAllotments();

@@ -5,6 +5,7 @@
 import * as functions from 'firebase-functions';
 import { Person } from '../Person';
 import { abortCall, authorize } from '../auth';
+import { SQRSubmission } from './SQRSubmission';
 import { SQRWorkflow } from './SQRWorkflow';
 import { SpareFile } from './SpareFile';
 import { TasksRepository } from './TasksRepository';
@@ -50,7 +51,7 @@ export const processSubmission = functions
     await SQRWorkflow.processSubmission(
       fileName,
       token,
-      change.after.val(),
+      change.after.val() as SQRSubmission,
       change.before.exists()
     );
   });
@@ -75,22 +76,27 @@ export const getSpareFiles = functions
   .https.onCall(async ({ list, language, languages, count }, context) => {
     authorize(context, ['SQR.coordinator']);
     return await SQRWorkflow.getSpareFiles(
-      list,
-      languages || [language],
-      count || 150
+      list as string,
+      (languages as string[]) || [language as string],
+      (count as number) || 150
     );
   });
 
 export const cancelAllotment = functions.https.onCall(
   async ({ fileName, comments, token, reason }) => {
-    await SQRWorkflow.cancelAllotment(fileName, token, comments, reason);
+    await SQRWorkflow.cancelAllotment(
+      fileName as string,
+      token as string,
+      comments as string,
+      reason as string
+    );
   }
 );
 
 export const syncAllotments = functions
   .runWith({ timeoutSeconds: 120 })
   .pubsub.schedule('every 1 hours from 05:00 to 00:00')
-  .timeZone(functions.config().coordinator.timezone)
+  .timeZone(functions.config().coordinator.timezone as string)
   .onRun(async () => {
     const repository = new TasksRepository();
     await repository.syncAllotments({ createTasksInDatabase: true });

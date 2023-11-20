@@ -21,7 +21,7 @@ export class TasksRepository extends AbstractRepository<
 > {
   constructor() {
     super(
-      functions.config().sqr.spreadsheet_id,
+      functions.config().sqr.spreadsheet_id as string,
       'fileName',
       'File Name',
       allotmentsRef
@@ -77,7 +77,7 @@ export class TasksRepository extends AbstractRepository<
         // Considering only ones with Given Timestamp, as after cancelation the assignee can be kept.
         .filter(([, value]) => Number.isInteger(value.timestampGiven))
         .map<ReportingTask>(
-          ([fileName, item]) => ({ fileName, ...item } as ReportingTask)
+          ([fileName, item]) => ({ fileName, ...item }) as ReportingTask
         )
         .value()
     );
