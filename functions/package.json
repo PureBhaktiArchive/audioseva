@@ -21,7 +21,7 @@
     "email-templates": "8.0.8",
     "express": "4.17.3",
     "firebase-admin": "11.4.1",
-    "firebase-functions": "4.4.1",
+    "firebase-functions": "4.5.0",
     "get-audio-duration": "2.0.3",
     "glob": "7.2.0",
     "googleapis": "123.0.0",
