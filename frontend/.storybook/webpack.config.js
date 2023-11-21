@@ -11,8 +11,6 @@ module.exports = async ({ config }) => {
     '.vue',
     '.css',
     '.less',
-    '.scss',
-    '.sass',
     '.html'
   );
 
@@ -33,12 +31,6 @@ module.exports = async ({ config }) => {
         },
       },
     ],
-  });
-
-  config.module.rules.push({
-    test: /\.s(a|c)ss$/,
-    use: ['style-loader', 'css-loader', 'sass-loader'],
-    include: path.resolve(__dirname, '../'),
   });
 
   config.plugins.push(new ForkTsCheckerWebpackPlugin());
