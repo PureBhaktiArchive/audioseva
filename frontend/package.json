@@ -88,6 +88,9 @@
     "vue-storybook": "1.2.0",
     "vue-template-compiler": "2.7.15"
   },
+  "overrides": {
+    "terser-webpack-plugin": "2.3.8"
+  },
   "jest": {
     "setupFiles": [
       "<rootDir>/tests/unit/setupTests.ts"
