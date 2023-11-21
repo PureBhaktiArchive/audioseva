@@ -91,7 +91,7 @@
   },
   "overrides": {
     "@vue/vue-loader-v15": "vue-loader@legacy",
-    "webpack": "4.44.2"
+    "webpack": "4.47.0"
   },
   "jest": {
     "setupFiles": [
