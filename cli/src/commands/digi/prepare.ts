@@ -118,7 +118,9 @@ export const handler = async ({
     if (!filesByBaseName.has(fileName)) return ['MISSING', null];
     const found = filesByBaseName.get(fileName);
 
-    const durations = await Promise.all(found.map(getAudioDurationInSeconds));
+    const durations = await Promise.all(
+      found.map((filePath) => getAudioDurationInSeconds(filePath))
+    );
 
     // Checking that all the durations are within interval of 1 second
     if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1) {
