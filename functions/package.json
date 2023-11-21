@@ -28,7 +28,7 @@
     "luxon": "3.3.0",
     "p-map": "4.0.0",
     "pug": "3.0.2",
-    "recursive-diff": "1.0.8",
+    "recursive-diff": "1.0.9",
     "uuid": "8.3.2"
   },
   "devDependencies": {
