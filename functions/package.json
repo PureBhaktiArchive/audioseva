@@ -16,7 +16,7 @@
     "node": "18"
   },
   "dependencies": {
-    "@google-cloud/pubsub": "2.18.3",
+    "@google-cloud/pubsub": "4.0.7",
     "email-templates": "11.1.1",
     "express": "4.17.3",
     "firebase-admin": "11.11.0",
