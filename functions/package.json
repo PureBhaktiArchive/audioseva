@@ -21,7 +21,7 @@
     "express": "4.17.3",
     "firebase-admin": "11.11.0",
     "firebase-functions": "4.5.0",
-    "get-audio-duration": "2.0.3",
+    "get-audio-duration": "4.0.1",
     "glob": "10.3.10",
     "googleapis": "128.0.0",
     "lodash": "4.17.21",
