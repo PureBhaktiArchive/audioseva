@@ -7,14 +7,24 @@ import Vuetify from 'vuetify';
 const localVue = createLocalVue();
 
 describe('SQRFormCancelListItem', () => {
-  let vuetify: typeof Vuetify;
-  let propsData: { [key: string]: any };
-
   const getWrapper = (props: any = {}) =>
     mount(CancelListItem, {
       localVue,
-      vuetify,
-      propsData,
+      vuetify: new Vuetify(vuetifyOptions),
+      propsData: {
+        header: 'CLICK HERE if you are unable to play or download the audio',
+        label: "I'm unable to play or download the audio",
+        placeholder:
+          'Please describe the problem here, we will allot you new lectures shortly',
+        styles: {
+          backgroundColor: '#fcf8e3',
+          color: '#8a6d3b',
+          border: 'solid .2rem #faebcc',
+          whiteSpace: 'none',
+          width: '100%',
+        },
+        selected: false,
+      },
       ...props,
     });
 
@@ -22,24 +32,6 @@ describe('SQRFormCancelListItem', () => {
     wrapper.find("[role='button']").trigger('click');
     return Vue.nextTick();
   };
-
-  beforeEach(() => {
-    vuetify = new Vuetify(vuetifyOptions);
-    propsData = {
-      header: 'CLICK HERE if you are unable to play or download the audio',
-      label: "I'm unable to play or download the audio",
-      placeholder:
-        'Please describe the problem here, we will allot you new lectures shortly',
-      styles: {
-        backgroundColor: '#fcf8e3',
-        color: '#8a6d3b',
-        border: 'solid .2rem #faebcc',
-        whiteSpace: 'none',
-        width: '100%',
-      },
-      selected: false,
-    };
-  });
 
   it('should render', () => {
     const wrapper = getWrapper();
