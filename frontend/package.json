@@ -6,6 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "test": "jest",
+    "test:watch": "jest --watch",
     "lint": "vue-cli-service lint",
     "deploy": "firebase deploy --only hosting",
     "serve:storybook": "start-storybook -p 6006",
