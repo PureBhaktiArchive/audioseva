@@ -18,10 +18,13 @@ When hosted on Firebase Hosting, all Firebase configuration will be automaticall
 
 For local debugging add the following variables into your `.env.development.local` file:
 
+- `VUE_APP_FIREBASE_PROJECT_ID`
 - `VUE_APP_FIREBASE_API_KEY`
 - `VUE_APP_FIREBASE_AUTH_DOMAIN`
 - `VUE_APP_FIREBASE_DATABASE_URL`
 - `VUE_APP_FIREBASE_STORAGE_BUCKET`
+
+Values can be obtained from https://console.firebase.google.com/project/_/settings/general/
 
 Also add other variables from the [Frontend environment variables](#frontend-environment-variables) section.
 
