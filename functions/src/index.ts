@@ -8,6 +8,7 @@ import * as functions from 'firebase-functions';
 import 'firebase-functions/logger/compat';
 import { globSync } from 'glob';
 import { Settings as DateTimeSettings } from 'luxon';
+import * as path from 'path';
 
 admin.initializeApp();
 
@@ -25,10 +26,14 @@ DateTimeSettings.defaultZone = functions.config().coordinator.timezone;
  **
  **********************************************/
 
-const functionFiles = globSync('./**/*.functions.js', { cwd: __dirname });
+const functionFiles = globSync('./**/*.functions.js', {
+  cwd: __dirname,
+  dotRelative: true,
+  posix: true,
+});
 
 functionFiles.forEach((file: string) => {
-  const moduleName = file.split('/').pop().split('.').shift();
+  const moduleName = path.basename(file).split('.').shift();
   // See https://cloud.google.com/functions/docs/env-var#nodejs_10_and_subsequent_runtimes
   const functionName = process.env.FUNCTION_NAME || process.env.K_SERVICE;
   if (!functionName || functionName.startsWith(moduleName)) {
