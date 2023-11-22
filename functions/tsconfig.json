@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "lib": ["ES2019"],
-    "module": "commonjs",
+    "lib": ["ES2021"],
+    "module": "Node16",
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "skipLibCheck": true, // Added by suggestion https://github.com/DefinitelyTyped/DefinitelyTyped/pull/49748/files#r606848851
     "outDir": "lib",
     "sourceMap": true,
-    "target": "ES2019"
+    "target": "ES2021"
   },
   "compileOnSave": true,
   "include": ["src"]

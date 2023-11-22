@@ -1,7 +1,7 @@
 {
   "name": "functions",
   "scripts": {
-    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint src",
     "build": "tsc",
     "postbuild": "cp -r emails lib/",
     "build:watch": "tsc --watch",

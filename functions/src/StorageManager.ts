@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import { Storage } from 'firebase-admin/lib/storage/storage';
+import { Storage } from 'firebase-admin/storage';
 import { modificationTime } from './modification-time';
 import functions = require('firebase-functions');
 import admin = require('firebase-admin');
