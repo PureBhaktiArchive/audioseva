@@ -40,7 +40,7 @@ export default class HomePageButtons extends Vue {
     };
     routes.forEach((route) => {
       const fullPath = `${parentPath}${route.path}`;
-      if (route.meta.homePageLink) {
+      if (route.meta?.homePageLink) {
         this.routeButtons.push({
           text: route.meta.homePageLink.text,
           props: {

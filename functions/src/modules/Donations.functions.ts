@@ -11,8 +11,8 @@ export const processDonations = functions.database
     const donation = snapshot.val();
 
     const sheet = await Spreadsheet.open(
-      functions.config().donations.cash.spreadsheet.id,
-      functions.config().donations.cash.spreadsheet.name
+      functions.config().donations.cash.spreadsheet.id as string,
+      functions.config().donations.cash.spreadsheet.name as string
     );
 
     await sheet.appendRows([

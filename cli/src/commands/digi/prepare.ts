@@ -6,16 +6,16 @@ import * as async from 'async';
 import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import fs from 'fs';
 import getAudioDurationInSeconds from 'get-audio-duration';
-import glob from 'glob';
+import { glob } from 'glob';
 import _ from 'lodash';
 import ora from 'ora';
 import os from 'os';
 import path from 'path';
 import util from 'util';
 import { Argv } from 'yargs';
-import { groupBy } from '../../array';
 import { DigitalRecordingRow } from '../../DigitalRecordingRow';
 import { Spreadsheet } from '../../Spreadsheet';
+import { groupBy } from '../../array';
 
 const ffprobe = util.promisify<string, FfprobeData>(ffmpeg.ffprobe);
 
@@ -72,7 +72,7 @@ export const handler = async ({
   spinner.succeed(`Fetched ${rows.length} rows`);
 
   spinner.start('Scanning directory');
-  const files = await util.promisify(glob)('**/*.*', {
+  const files = await glob('**/*.*', {
     cwd: sourcePath,
     absolute: true,
     ignore: '**/_vti_cnf/**',
@@ -118,7 +118,9 @@ export const handler = async ({
     if (!filesByBaseName.has(fileName)) return ['MISSING', null];
     const found = filesByBaseName.get(fileName);
 
-    const durations = await Promise.all(found.map(getAudioDurationInSeconds));
+    const durations = await Promise.all(
+      found.map((filePath) => getAudioDurationInSeconds(filePath))
+    );
 
     // Checking that all the durations are within interval of 1 second
     if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1) {
@@ -139,10 +141,10 @@ export const handler = async ({
           fileName.includes('from Brajanath Prabhu')
             ? -1
             : fileName.includes('Srila BV Narayan Maharaja  mp3')
-            ? 99
-            : /clean|restored/.test(fileName)
-            ? 100
-            : 0,
+              ? 99
+              : /clean|restored/.test(fileName)
+                ? 100
+                : 0,
         /**
          * WMA are more likely to be the originals
          */

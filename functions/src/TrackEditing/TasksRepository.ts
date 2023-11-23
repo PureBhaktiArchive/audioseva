@@ -5,7 +5,6 @@
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { AbstractRepository } from '../AbstractRepository';
-import { AllotmentStatus } from '../Allotment';
 import { AudioChunk } from '../AudioChunk';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
@@ -27,66 +26,51 @@ export class TasksRepository extends AbstractRepository<
   'id'
 > {
   constructor() {
-    super(functions.config().te.spreadsheet.id, 'id', 'Task ID', tasksRef);
+    super(
+      functions.config().te.spreadsheet.id as string,
+      'id',
+      'Task ID',
+      tasksRef
+    );
   }
 
-  protected mapToRows(tasks: TrackEditingTask[]): TrackEditingAllotmentRow[] {
-    return tasks.map((task) => {
-      const lastVersionKey = _.findLastKey(task.versions);
-      const lastResolvedVersion = _.findLast(
-        task.versions,
-        (version) => !!version.resolution
-      );
+  protected mapTask = (task: TrackEditingTask): TrackEditingAllotmentRow => {
+    const lastVersionKey = _.findLastKey(task.versions);
+    const lastResolvedVersion = _.findLast(
+      task.versions,
+      (version) => !!version.resolution
+    );
 
-      return {
-        'Task ID': task.id,
-        'SEd?': task.isRestored ? 'SEd' : 'non-SEd',
-        Status:
-          task.status === undefined
-            ? undefined
-            : task.status === AllotmentStatus.Spare
-            ? null
-            : task.status,
-        'Date Given': task.timestampGiven
+    return {
+      'Task ID': task.id,
+      'SEd?': task.isRestored ? 'SEd' : 'non-SEd',
+      'Upload Link': lastVersionKey
+        ? trackEditingVersionOutputLink(task.id, lastVersionKey)
+        : null,
+      'Upload Date':
+        lastVersionKey && task.versions[lastVersionKey]?.timestamp
           ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(task.timestampGiven)
+              DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
             )
           : null,
-        'Date Done': task.timestampDone
-          ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(task.timestampDone)
-            )
-          : null,
-        Devotee: task.assignee?.name || null,
-        Email: task.assignee?.emailAddress || null,
-        'Upload Link': lastVersionKey
-          ? trackEditingVersionOutputLink(task.id, lastVersionKey)
-          : null,
-        'Upload Date':
-          lastVersionKey && task.versions[lastVersionKey]?.timestamp
-            ? DateTimeConverter.toSerialDate(
-                DateTime.fromMillis(task.versions[lastVersionKey].timestamp)
-              )
-            : null,
-        'Uploaded By': lastVersionKey
-          ? task.versions[lastVersionKey]?.author?.name
-          : null,
-        'Latest Resolution': lastResolvedVersion
-          ? lastResolvedVersion.resolution.isApproved
-            ? 'Approved'
-            : `Disapproved: ${lastResolvedVersion.resolution.feedback}`
-          : null,
-        'Resolution Date': lastResolvedVersion
-          ? DateTimeConverter.toSerialDate(
-              DateTime.fromMillis(lastResolvedVersion.resolution.timestamp)
-            )
-          : null,
-        'Checked By': lastResolvedVersion
-          ? lastResolvedVersion.resolution.author?.name || null
-          : null,
-      };
-    });
-  }
+      'Uploaded By': lastVersionKey
+        ? task.versions[lastVersionKey]?.author?.name
+        : null,
+      'Latest Resolution': lastResolvedVersion
+        ? lastResolvedVersion.resolution.isApproved
+          ? 'Approved'
+          : `Disapproved: ${lastResolvedVersion.resolution.feedback}`
+        : null,
+      'Resolution Date': lastResolvedVersion
+        ? DateTimeConverter.toSerialDate(
+            DateTime.fromMillis(lastResolvedVersion.resolution.timestamp)
+          )
+        : null,
+      'Checked By': lastResolvedVersion
+        ? lastResolvedVersion.resolution.author?.name || null
+        : null,
+    };
+  };
 
   public getNewVersionRef(taskId: string) {
     return this.getTaskRef(taskId).child('versions').push();
@@ -104,7 +88,7 @@ export class TasksRepository extends AbstractRepository<
 
   public async importTasks() {
     const tasksSheet = await Spreadsheet.open<ChunkRow>(
-      functions.config().te.spreadsheet.id,
+      functions.config().te.spreadsheet.id as string,
       'Tasks'
     );
 

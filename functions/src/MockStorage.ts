@@ -27,7 +27,10 @@ export class MockBucket {
 }
 
 export class MockFile {
-  constructor(public bucket: MockBucket, public name: string) {}
+  constructor(
+    public bucket: MockBucket,
+    public name: string
+  ) {}
 
   delete() {
     return Promise.resolve();

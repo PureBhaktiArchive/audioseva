@@ -3,9 +3,9 @@
  */
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { authorize } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
+import { authorize } from '../auth';
 
 enum RegistrationColumns {
   Details = 'Details',
@@ -46,7 +46,7 @@ export const importUserRegistrationData = functions.https.onCall(
     authorize(context, ['coordinator']);
 
     const sheet = await Spreadsheet.open(
-      functions.config().registrations.spreadsheet_id,
+      functions.config().registrations.spreadsheet_id as string,
       'Registrations'
     );
 
@@ -57,12 +57,12 @@ export const importUserRegistrationData = functions.https.onCall(
         notes: row[RegistrationColumns.Details],
         status: row[RegistrationColumns.Status],
         timestamp: DateTimeConverter.fromSerialDate(
-          row[RegistrationColumns.Timestamp],
+          row[RegistrationColumns.Timestamp] as number,
           sheet.timeZone
         ).toMillis(),
         name: row[RegistrationColumns.Name],
         location: row[RegistrationColumns.Country],
-        emailAddress: row[RegistrationColumns.EmailAddress],
+        emailAddress: row[RegistrationColumns.EmailAddress] as string,
         phoneNumber: row[RegistrationColumns.PhoneNumber],
         isAvailableOnWhatsApp: row[RegistrationColumns.WhatsApp],
         languages: (row[RegistrationColumns.Languages] as string)
@@ -117,7 +117,7 @@ export const restructureRegistrationData = functions.database
       .database()
       .ref('/users/')
       .orderByChild('/emailAddress')
-      .equalTo(webform.email_address)
+      .equalTo(webform.email_address as string)
       .once('value');
 
     // If the user already exists stop the execution and log the error
@@ -147,7 +147,9 @@ export const restructureRegistrationData = functions.database
       }, {}),
       location: webform.country,
       name: webform.your_name,
-      services: Object.values(webform.seva).join(', '),
+      services: Object.values(webform.seva as Record<string, string>).join(
+        ', '
+      ),
       experience: webform.experience,
       influencer: webform.where_did_u_hear_about_this_seva,
       recommendedBy: webform.recommended_by,
@@ -167,10 +169,7 @@ export const restructureRegistrationData = functions.database
 export const updateUserClaims = functions.database
   .ref('/users/{uid}/roles')
   .onWrite(async (change, { params: { uid } }) => {
-    const user = await admin
-      .auth()
-      .getUser(uid)
-      .catch(() => null);
+    const user = await admin.auth().getUser(uid);
 
     if (!user) {
       console.warn(`User ${uid} does not exist.`);
@@ -202,7 +201,7 @@ export const getAssignees = functions.https.onCall(
     authorize(context, ['SQR.coordinator', 'TE.coordinator']);
 
     const registrationsSheet = await Spreadsheet.open(
-      functions.config().registrations.spreadsheet_id,
+      functions.config().registrations.spreadsheet_id as string,
       'Registrations'
     );
 

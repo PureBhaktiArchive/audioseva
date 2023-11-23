@@ -18,12 +18,22 @@ When hosted on Firebase Hosting, all Firebase configuration will be automaticall
 
 For local debugging add the following variables into your `.env.development.local` file:
 
+- `VUE_APP_FIREBASE_PROJECT_ID`
 - `VUE_APP_FIREBASE_API_KEY`
 - `VUE_APP_FIREBASE_AUTH_DOMAIN`
 - `VUE_APP_FIREBASE_DATABASE_URL`
 - `VUE_APP_FIREBASE_STORAGE_BUCKET`
 
+Values can be obtained from https://console.firebase.google.com/project/_/settings/general/
+
 Also add other variables from the [Frontend environment variables](#frontend-environment-variables) section.
+
+### Dependencies
+
+- `webpack` is overriden to avoid having v5 installed.
+- `css-loader` is overriden to v3 because later versions require `webpack@^5`.
+- `terser-webpack-plugin` is overriden to v2 in order to use newer MD4 implementation (https://github.com/webpack-contrib/terser-webpack-plugin/releases/tag/v2.3.4). Naturally, `@vue/cli-service` requires v1 of `terser-webpack-plugin`. But it works fine with v2.
+- `react-dom` is overriden to avoid resolution issue caused by `react-select`.
 
 # Firebase project set up
 

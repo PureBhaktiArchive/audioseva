@@ -1,8 +1,8 @@
 /*
  * sri sri guru gauranga jayatah
  */
-import { GaxiosResponse } from 'gaxios';
 import { google, sheets_v4 as sheets } from 'googleapis';
+import { GaxiosResponse } from 'googleapis-common';
 import _ = require('lodash');
 
 enum IValueInputOption {

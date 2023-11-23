@@ -10,12 +10,10 @@ import { mockClaims } from '../../helpers';
 
 describe('MainLayout', () => {
   let localVue: typeof Vue;
-  let vuetify: typeof Vuetify;
 
   beforeEach(() => {
     localVue = createLocalVue();
     localVue.use(VueRouter);
-    vuetify = new Vuetify(vuetifyOptions);
   });
 
   test.each`
@@ -29,7 +27,7 @@ describe('MainLayout', () => {
       const wrapper = shallowMount(MainLayout, {
         localVue,
         router,
-        vuetify,
+        vuetify: new Vuetify(vuetifyOptions),
         computed: {
           currentUser() {
             return {};
@@ -37,9 +35,6 @@ describe('MainLayout', () => {
           roles() {
             return claims;
           },
-        },
-        methods: {
-          signOut: () => {},
         },
       });
       await flushPromises();

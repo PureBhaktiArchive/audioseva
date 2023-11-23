@@ -2,12 +2,26 @@
  * sri sri guru gauranga jayatah
  */
 
-import { File } from '@google-cloud/storage';
+import { Storage } from 'firebase-admin/storage';
 import { modificationTime } from './modification-time';
 import functions = require('firebase-functions');
 import admin = require('firebase-admin');
 import path = require('path');
 import _ = require('lodash');
+
+/*
+ * Extracting these types from the transient dependency `@google-cloud/storage`.
+ * This package is an optional dependency of `firebase-admin`.
+ * This question was discussed in https://github.com/firebase/firebase-admin-node/discussions/1605#discussioncomment-4825470
+ * We cannot add `@google-cloud/storage` as a direct dependency to the project
+ * because `firebase-admin` refers to an older version of `@google-cloud/storage`,
+ * and there will be a type mismatch if we update the direct dependency to the latest version.
+ *
+ * We cannot import types from a transient dependency, as described in https://github.com/microsoft/TypeScript/issues/38768.
+ * Though, we use a workaround described in https://stackoverflow.com/a/70812944/3082178.
+ */
+export type Bucket = ReturnType<typeof Storage.prototype.bucket>;
+export type File = ReturnType<Bucket['file']>;
 
 export type BucketName =
   | 'original'

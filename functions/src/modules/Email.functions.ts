@@ -60,7 +60,7 @@ export const sendNotificationEmail = functions.database
 
 export const retryFailedEmails = functions.pubsub
   .schedule('every day 09:00')
-  .timeZone(functions.config().coordinator.timezone)
+  .timeZone(functions.config().coordinator.timezone as string)
   .onRun(async () => {
     const failedNotifications = await admin
       .database()
@@ -73,7 +73,7 @@ export const retryFailedEmails = functions.pubsub
       `Found ${failedNotifications.numChildren()} not sent notifications.`
     );
 
-    const keys = Object.keys(failedNotifications.val());
+    const keys = Object.keys(failedNotifications.val() as unknown);
     for (const key of keys) {
       await sendNotificationEmailSnapshot(failedNotifications.child(key)).catch(
         (reason) => console.warn(reason)

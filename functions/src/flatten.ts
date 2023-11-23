@@ -11,7 +11,7 @@
  * @param prefix @string prefix to add to the property path
  * @param target target object
  */
-export const flatten = (source, prefix = '', target = {}) => {
+export const flatten = (source: unknown, prefix = '', target = {}) => {
   Object.entries(source).forEach(([key, value]) => {
     const nestedKey = `${prefix}${key}`;
 

@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import { File } from '@google-cloud/storage';
+import { File } from './StorageManager';
 import { modificationTime } from './modification-time';
 
 describe('File modification time', () => {

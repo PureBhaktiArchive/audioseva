@@ -3,7 +3,6 @@
  */
 
 import { PubSub } from '@google-cloud/pubsub';
-import { File } from '@google-cloud/storage';
 import { database } from 'firebase-admin';
 import * as fs from 'fs';
 import getAudioDurationInSeconds from 'get-audio-duration';
@@ -12,7 +11,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
-import { BucketName, StorageManager } from '../StorageManager';
+import { StorageFileReference } from '../StorageFileReference';
+import { BucketName, File, StorageManager } from '../StorageManager';
 import { asyncHandler } from '../asyncHandler';
 import { flatten } from '../flatten';
 import { modificationTime } from '../modification-time';
@@ -107,7 +107,7 @@ const DURATION_EXTRACTION_TOPIC_NAME = 'extract-file-duration';
 export const saveMetadataToDatabase = functions
   .runWith({ timeoutSeconds: 120, memory: '512MB' })
   .pubsub.schedule('every day 23:00')
-  .timeZone(functions.config().coordinator.timezone)
+  .timeZone(functions.config().coordinator.timezone as string)
   .onRun(async () => {
     const snapshot = await rootFilesMetadataRef.once('value');
     const updateAllMetadata = snapshot
@@ -139,7 +139,7 @@ export const saveMetadataToDatabase = functions
             size: file.metadata.size,
             timeCreated: modificationTime(file).toMillis(),
             timeDeleted: file.metadata.timeDeleted
-              ? new Date(file.metadata.timeDeleted).valueOf()
+              ? new Date(file.metadata.timeDeleted as string).valueOf()
               : null,
             crc32c: file.metadata.crc32c,
             md5Hash: file.metadata.md5Hash,
@@ -175,10 +175,10 @@ export const saveMetadataToDatabase = functions
           (file) =>
             durationExtractionTopic.publishMessage({
               json: {
-                bucketName: file.bucket.name,
-                fileName: file.name,
+                bucket: file.bucket.name,
+                name: file.name,
                 generation: file.generation,
-              },
+              } as StorageFileReference,
             })
         ),
         // Saving new metadata to the database
@@ -191,12 +191,9 @@ export const extractDuration = functions
   .runWith({ memory: '1GB', timeoutSeconds: 120 })
   .pubsub.topic(DURATION_EXTRACTION_TOPIC_NAME)
   .onPublish(async (message) => {
-    const { bucketName, fileName, generation } = message.json;
+    const { bucket, name, generation } = message.json as StorageFileReference;
 
-    const file = admin
-      .storage()
-      .bucket(bucketName)
-      .file(fileName, { generation });
+    const file = admin.storage().bucket(bucket).file(name, { generation });
 
     // Getting file metadata for `metadata.id` to work. Since some update, metadata doesn't get retrieved on `download`.
     await file.getMetadata();
@@ -221,7 +218,7 @@ export const extractDuration = functions
 
 export const exportMetadataToSpreadsheet = functions.pubsub
   .schedule('every day 04:00')
-  .timeZone(functions.config().coordinator.timezone)
+  .timeZone(functions.config().coordinator.timezone as string)
   .onRun(async () => {
     type Source = 'SE' | 'TE' | 'Original';
     interface DurationsRow {
@@ -270,7 +267,7 @@ export const exportMetadataToSpreadsheet = functions.pubsub
       .value();
 
     const sheet = await Spreadsheet.open<DurationsRow>(
-      functions.config().te.spreadsheet.id,
+      functions.config().te.spreadsheet.id as string,
       'Durations'
     );
 

@@ -2,8 +2,8 @@
  * sri sri guru gauranga jayatah
  */
 
-import { File } from '@google-cloud/storage';
 import { DateTime } from 'luxon';
+import { File } from './StorageManager';
 
 /**
  * The `goog-reserved-file-mtime` custom metadata overrides timeCreated
@@ -23,5 +23,5 @@ export const modificationTime = (file: File): DateTime => {
     ? // This metadata contains time in Unix epoch seconds
       DateTime.fromSeconds(+mtime)
     : // RFC 3339 (in fact ISO), e.g. 2020-08-24T09:28:12.483Z - see https://cloud.google.com/storage/docs/json_api/v1/objects#resource
-      DateTime.fromISO(file.metadata.timeCreated);
+      DateTime.fromISO(file.metadata?.timeCreated as string);
 };

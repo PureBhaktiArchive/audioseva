@@ -8,7 +8,6 @@ import { DateTime } from 'luxon';
 import { v4 as uuidv4 } from 'uuid';
 import { AllotmentStatus, isActiveAllotment } from '../Allotment';
 import { formatAudioAnnotations } from '../AudioAnnotation';
-import { abortCall } from '../auth';
 import { DateTimeConverter } from '../DateTimeConverter';
 import {
   listeningPageLink,
@@ -18,6 +17,7 @@ import {
 } from '../Frontend';
 import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
+import { abortCall } from '../auth';
 import { SQRSubmission } from './SQRSubmission';
 import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
@@ -33,7 +33,7 @@ export class SQRWorkflow {
 
   static async submissionsSheet() {
     return await Spreadsheet.open(
-      functions.config().sqr.spreadsheet_id,
+      functions.config().sqr.spreadsheet_id as string,
       'Submissions'
     );
   }

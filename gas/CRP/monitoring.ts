@@ -78,7 +78,11 @@ export function trackChanges(e: GoogleAppsScript.Events.SheetsOnEdit) {
 
   if (!changelogSheet) return;
 
-  const [headers] = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues();
+  const headers = sheet
+    .getRange(1, 1, 1, sheet.getLastColumn())
+    .getValues()
+    .shift()
+    .flatMap((x) => (typeof x === 'string' ? x : null));
 
   /// skipping sheets not having any of the standard columns
   if (
@@ -143,9 +147,11 @@ export function trackChanges(e: GoogleAppsScript.Events.SheetsOnEdit) {
       return;
     }
 
-    const [changelogHeaders] = changelogSheet
+    const changelogHeaders = changelogSheet
       .getRange(1, 1, 1, changelogSheet.getLastColumn())
-      .getValues();
+      .getValues()
+      .shift()
+      .flatMap((x) => (typeof x === 'string' ? x : null));
 
     editedColumns.forEach((columnName) => {
       changelogSheet.appendRow(
