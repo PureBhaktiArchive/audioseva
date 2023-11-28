@@ -30,4 +30,32 @@ describe('Sanitizer', () => {
       '- topic1\n- topic2\n- topic3'
     );
   });
+
+  test('should normalize spaces', () => {
+    expect(sanitizeTopics('- topic1\n- topic\twith\ttabs')).toBe(
+      '- topic1\n- topic with tabs'
+    );
+  });
+
+  test('should remove empty lines', () => {
+    expect(sanitizeTopics('- topic1\n\n   \n\t- topic2\n')).toBe(
+      '- topic1\n- topic2'
+    );
+  });
+
+  describe('Removing ORIGINAL', () => {
+    const text = '- topic1\n- topic2';
+
+    test('On a separate line', () => {
+      expect(
+        sanitizeTopics(`${text}\n      ORIGINAL something goes\nhere`)
+      ).toBe(text);
+    });
+
+    test('On the same line', () => {
+      expect(sanitizeTopics(`${text}   ORIGINAL something goes\nhere`)).toBe(
+        text
+      );
+    });
+  });
 });

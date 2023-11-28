@@ -4,15 +4,13 @@
  */
 export const sanitizeTopics = (topics: string) =>
   topics
-    .replaceAll('\r\n', '\n')
+    // Remove original text
+    .replace(/\s*ORIGINAL.*$/s, '')
+    // Normalize line endings and spaces
+    .replaceAll('\r', '\n')
     .replaceAll('\t', ' ')
-    // Remove spaces in the beginning of the line
-    .replaceAll(/^\s*/gm, '')
-    // Add hyphen in the beginning of the line
-    .replaceAll(/^(?!-)/gm, '-')
-    // Remove extra spaces after hyphen
-    .replaceAll(/(?<=^-\s)\s*/gm, '')
-    // Add space after hyphen in the beginning of the line
-    .replaceAll(/(?<=^-)(?!\s)/gm, ' ')
-    // Remove original text kept in the end of the cell
-    .replace(/\n*\s*ORIGINAL.*$/s, '');
+    // Remove leading and trailing spaces, including empty lines
+    .replaceAll(/^\s+/gm, '')
+    .replaceAll(/\s+$/gm, '')
+    // Ensure hyphen with a space in the beginning of a line
+    .replaceAll(/^(-\s*)?/gm, '- ');
