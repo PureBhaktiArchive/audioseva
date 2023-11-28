@@ -300,11 +300,11 @@ export const finalize = functions.database
      */
 
     const fidelityRecords = Object.entries<FidelityCheckRecord>(
-      fidelitySnapshot.val()
+      fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
     );
 
     const finalRecords = Object.entries<FinalRecord>(
-      finalSnapshot.val()
+      finalSnapshot.val() as Record<string, FinalRecord>
     ).flatMap(([fileId, record]): [number, FinalRecord][] =>
       // Keeping only numeric keys (just in case, should be only numeric)
       /\d+/.test(fileId) ? [[+fileId, record]] : []
