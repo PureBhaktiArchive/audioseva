@@ -38,8 +38,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: ${{ matrix.project }}/package.json
-          cache: 'npm'
-          cache-dependency-path: ${{ matrix.project }}/package-lock.json
 
       - run: npm ci
       # prettier should be called after installing dependencies so that proper version be picked
