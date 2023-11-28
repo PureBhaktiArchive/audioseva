@@ -7,7 +7,7 @@
     ":prHourlyLimit2",
     ":prConcurrentLimit10",
     ":dependencyDashboardApproval",
-    "helpers:disableTypesNodeMajor",
+    "workarounds:typesNodeVersioning",
     "group:monorepos",
     "group:test",
     "group:linters"
