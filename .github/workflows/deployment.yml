@@ -35,10 +35,6 @@ jobs:
           # Using node version from frontend because it's more sensitive in this regard
           # See https://github.com/nodejs/node/issues/49911#issuecomment-1756119733
           node-version-file: frontend/package.json
-          cache: npm
-          cache-dependency-path: |
-            functions/package-lock.json
-            frontend/package-lock.json
 
       - name: Install dependencies
         run: |
