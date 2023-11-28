@@ -3,12 +3,14 @@ import { ContentDetails } from './ContentDetails';
 import { FidelityCheckRecord } from './FidelityCheckRecord';
 import { FinalRecord } from './FinalRecord';
 import { createIdGenerator } from './id-generator';
+import { sanitizeTopics } from './sanitizer';
 
 const coalesceUnknown = (input: string): string | null =>
   input?.toUpperCase() === 'UNKNOWN' ? null : input;
 
 const createContentDetails = (contentDetails: ContentDetails) => ({
   ...contentDetails,
+  topics: sanitizeTopics(contentDetails.topics),
   date: DateTimeConverter.standardizePseudoIsoDate(
     coalesceUnknown(contentDetails.date)
   ),

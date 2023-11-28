@@ -20,7 +20,7 @@ import { createFinalRecords } from './finalization';
 
 describe('Finalization', () => {
   const contentDetails1: ContentDetails = {
-    topics: 'Some topics',
+    topics: '- Some topics',
     title: 'Some title',
     date: '19980830',
     dateUncertain: false,
@@ -33,7 +33,7 @@ describe('Finalization', () => {
     timeOfDay: 'AM',
   };
   const contentDetails2: ContentDetails = {
-    topics: 'Another topics',
+    topics: '- Another topics',
     title: 'Another title',
     date: '19960514',
     dateUncertain: false,
@@ -46,7 +46,7 @@ describe('Finalization', () => {
     timeOfDay: 'AM',
   };
   const contentDetails3: ContentDetails = {
-    topics: 'Third topics',
+    topics: '- Third topics',
     title: 'Third title',
     date: '20001013',
     dateUncertain: true,
