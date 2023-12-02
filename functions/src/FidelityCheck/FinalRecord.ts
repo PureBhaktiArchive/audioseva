@@ -3,7 +3,7 @@
  */
 
 import { StorageFileReference } from '../StorageFileReference';
-import { ContentDetails } from './ContentDetails';
+import { FinalContentDetails } from './ContentDetails';
 
 export type FinalRecord = AssignmentRecord | NormalRecord | RedirectRecord;
 
@@ -16,7 +16,7 @@ export interface AssignmentRecord {
 
 export interface NormalRecord extends AssignmentRecord {
   file: StorageFileReference;
-  contentDetails: ContentDetails;
+  contentDetails: FinalContentDetails;
 }
 
 /**

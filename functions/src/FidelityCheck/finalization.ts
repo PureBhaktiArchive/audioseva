@@ -1,28 +1,37 @@
 import { DateTimeConverter } from '../DateTimeConverter';
-import { ContentDetails } from './ContentDetails';
+import { ContentDetails, FinalContentDetails } from './ContentDetails';
 import { FidelityCheckRecord } from './FidelityCheckRecord';
 import { FinalRecord } from './FinalRecord';
 import { createIdGenerator } from './id-generator';
 import { sanitizeTopics } from './sanitizer';
 
-const coalesceUnknown = (input: string): string | null =>
+const unknownToNull = (input: string): string =>
   input?.toUpperCase() === 'UNKNOWN' ? null : input;
 
 const sanitizeContentDetails = (
   contentDetails: ContentDetails
-): ContentDetails => ({
-  ...contentDetails,
+): FinalContentDetails => ({
+  // Listing all properties explicitly to avoid leakage of unexpected other properties.
+  title: contentDetails.title,
   topics: sanitizeTopics(contentDetails.topics),
   date: DateTimeConverter.standardizePseudoIsoDate(
-    coalesceUnknown(contentDetails.date)
+    unknownToNull(contentDetails.date)
   ),
-  dateUncertain: coalesceUnknown(contentDetails.date)
+  dateUncertain: unknownToNull(contentDetails.date)
     ? contentDetails.dateUncertain
     : null,
-  location: coalesceUnknown(contentDetails.location),
-  locationUncertain: coalesceUnknown(contentDetails.location)
+  timeOfDay: contentDetails.timeOfDay,
+  location: unknownToNull(contentDetails.location),
+  locationUncertain: unknownToNull(contentDetails.location)
     ? contentDetails.locationUncertain
     : null,
+  category: contentDetails.category,
+  languages: contentDetails.languages?.split(',')?.map((value) => value.trim()),
+  percentage: contentDetails.percentage,
+  otherSpeakers: contentDetails.otherSpeakers
+    ?.split('&')
+    ?.map((value) => value.trim()),
+  soundQualityRating: contentDetails.soundQualityRating,
 });
 
 /**

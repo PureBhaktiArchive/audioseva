@@ -2,18 +2,26 @@
  * sri sri guru gauranga jayatah
  */
 
-export interface ContentDetails {
+interface CommonContentDetails {
   title: string;
   topics: string;
-  date?: string;
+  date: string;
   dateUncertain: boolean;
   timeOfDay: string;
   location: string;
   locationUncertain: boolean;
   category: string;
-  languages: string;
   percentage: number;
-  otherSpeakers?: string;
-  seriesInputs?: string;
   soundQualityRating: string;
+}
+
+export interface ContentDetails extends CommonContentDetails {
+  languages: string;
+  otherSpeakers: string;
+  seriesInputs?: string;
+}
+
+export interface FinalContentDetails extends CommonContentDetails {
+  languages: string[];
+  otherSpeakers: string[];
 }

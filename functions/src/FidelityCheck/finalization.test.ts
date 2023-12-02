@@ -4,7 +4,7 @@
 
 import { DateTime } from 'luxon';
 import { StorageFileReference } from '../StorageFileReference';
-import { ContentDetails } from './ContentDetails';
+import { ContentDetails, FinalContentDetails } from './ContentDetails';
 import {
   FidelityCheck,
   FidelityCheckRecord,
@@ -44,6 +44,7 @@ describe('Finalization', () => {
     percentage: 100,
     soundQualityRating: 'Good',
     timeOfDay: 'AM',
+    otherSpeakers: 'Speaker 1 & Speaker 2',
   };
   const contentDetails3: ContentDetails = {
     topics: '- Third topics',
@@ -59,9 +60,24 @@ describe('Finalization', () => {
     timeOfDay: 'PM',
   };
 
-  const contentDetails1Final = { ...contentDetails1, date: '1998-08-30' };
-  const contentDetails2Final = { ...contentDetails2, date: '1996-05-14' };
-  const contentDetails3Final = { ...contentDetails3, date: '2000-10-13' };
+  const contentDetails1Final: FinalContentDetails = {
+    ...contentDetails1,
+    date: '1998-08-30',
+    languages: ['Hindi', 'English'],
+    otherSpeakers: undefined,
+  };
+  const contentDetails2Final: FinalContentDetails = {
+    ...contentDetails2,
+    date: '1996-05-14',
+    languages: ['English'],
+    otherSpeakers: ['Speaker 1', 'Speaker 2'],
+  };
+  const contentDetails3Final: FinalContentDetails = {
+    ...contentDetails3,
+    date: '2000-10-13',
+    languages: ['English'],
+    otherSpeakers: undefined,
+  };
 
   const file = (taskId: string): StorageFileReference => ({
     name: `${taskId}.flac`,
@@ -103,7 +119,7 @@ describe('Finalization', () => {
   const final = (
     fileId: number,
     taskId: string,
-    contentDetails: ContentDetails,
+    contentDetails: FinalContentDetails,
     effectiveTaskId?: string
   ): [number, NormalRecord] => [
     fileId,
