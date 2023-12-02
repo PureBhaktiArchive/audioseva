@@ -8,7 +8,9 @@ import { sanitizeTopics } from './sanitizer';
 const coalesceUnknown = (input: string): string | null =>
   input?.toUpperCase() === 'UNKNOWN' ? null : input;
 
-const createContentDetails = (contentDetails: ContentDetails) => ({
+const sanitizeContentDetails = (
+  contentDetails: ContentDetails
+): ContentDetails => ({
   ...contentDetails,
   topics: sanitizeTopics(contentDetails.topics),
   date: DateTimeConverter.standardizePseudoIsoDate(
@@ -89,7 +91,7 @@ export const createFinalRecords = function* (
                 {
                   taskId: record.taskId,
                   file: fidelityRecord.file,
-                  contentDetails: createContentDetails(
+                  contentDetails: sanitizeContentDetails(
                     fidelityRecord.contentDetails
                   ),
                 })
@@ -113,7 +115,7 @@ export const createFinalRecords = function* (
               {
                 taskId,
                 file: fidelityRecord.file,
-                contentDetails: createContentDetails(
+                contentDetails: sanitizeContentDetails(
                   fidelityRecord.contentDetails
                 ),
               },
