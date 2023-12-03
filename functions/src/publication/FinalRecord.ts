@@ -2,8 +2,8 @@
  * sri sri guru gauranga jayatah
  */
 
+import { FinalContentDetails } from '../ContentDetails';
 import { StorageFileReference } from '../StorageFileReference';
-import { FinalContentDetails } from './ContentDetails';
 
 export type FinalRecord = AssignmentRecord | NormalRecord | RedirectRecord;
 

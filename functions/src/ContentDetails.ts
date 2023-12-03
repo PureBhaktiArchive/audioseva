@@ -17,11 +17,11 @@ interface CommonContentDetails {
 
 export interface ContentDetails extends CommonContentDetails {
   languages: string;
-  otherSpeakers: string;
+  otherSpeakers?: string;
   seriesInputs?: string;
 }
 
 export interface FinalContentDetails extends CommonContentDetails {
   languages: string[];
-  otherSpeakers: string[];
+  otherSpeakers?: string[];
 }

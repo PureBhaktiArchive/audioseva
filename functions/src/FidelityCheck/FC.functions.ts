@@ -6,12 +6,12 @@ import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { getDiff } from 'recursive-diff';
+import { ContentDetails } from '../ContentDetails';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
 import { modificationTime } from '../modification-time';
-import { ContentDetails } from './ContentDetails';
 import {
   Approval,
   FidelityCheck,
@@ -20,8 +20,6 @@ import {
 } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
-import { FinalRecord } from './FinalRecord';
-import { createFinalRecords } from './finalization';
 import pMap = require('p-map');
 
 const dateToEndOfDay = (date: DateTime) =>
@@ -281,36 +279,4 @@ export const importRecords = functions
     });
 
     await sheet.updateColumn('Validation Status', spreadsheetStatuses);
-  });
-
-export const finalize = functions.database
-  .ref('/final/trigger')
-  .onWrite(async () => {
-    const [fidelitySnapshot, finalSnapshot] = await Promise.all([
-      database().ref('/FC/records').once('value'),
-      database().ref('/final/records').once('value'),
-    ]);
-
-    if (!fidelitySnapshot.exists()) return;
-
-    /**
-     * Since we are using integer keys, Firebase can return either an array or an object
-     * https://firebase.googleblog.com/2014/04/best-practices-arrays-in-firebase.html
-     * For this reason we’re using `Object.entries` which work identical for both data structures.
-     */
-
-    const fidelityRecords = Object.entries<FidelityCheckRecord>(
-      fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
-    );
-
-    const finalRecords = Object.entries<FinalRecord>(
-      finalSnapshot.val() as Record<string, FinalRecord>
-    ).flatMap(([fileId, record]): [number, FinalRecord][] =>
-      // Keeping only numeric keys (just in case, should be only numeric)
-      /\d+/.test(fileId) ? [[+fileId, record]] : []
-    );
-
-    await finalSnapshot.ref.set(
-      Object.fromEntries(createFinalRecords(fidelityRecords, finalRecords))
-    );
   });

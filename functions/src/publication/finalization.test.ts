@@ -3,13 +3,13 @@
  */
 
 import { DateTime } from 'luxon';
-import { StorageFileReference } from '../StorageFileReference';
-import { ContentDetails, FinalContentDetails } from './ContentDetails';
+import { ContentDetails, FinalContentDetails } from '../ContentDetails';
 import {
   FidelityCheck,
   FidelityCheckRecord,
   Replacement,
-} from './FidelityCheckRecord';
+} from '../FidelityCheck/FidelityCheckRecord';
+import { StorageFileReference } from '../StorageFileReference';
 import {
   AssignmentRecord,
   FinalRecord,
