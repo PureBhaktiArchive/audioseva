@@ -20,17 +20,17 @@ const sanitizeContentDetails = (
   dateUncertain: unknownToNull(contentDetails.date)
     ? contentDetails.dateUncertain
     : null,
-  timeOfDay: contentDetails.timeOfDay,
+  timeOfDay: contentDetails.timeOfDay || null,
   location: unknownToNull(contentDetails.location),
   locationUncertain: unknownToNull(contentDetails.location)
     ? contentDetails.locationUncertain
     : null,
   category: contentDetails.category,
-  languages: contentDetails.languages?.split(',')?.map((value) => value.trim()),
+  languages: contentDetails.languages.split(',').map((value) => value.trim()),
   percentage: contentDetails.percentage,
-  otherSpeakers: contentDetails.otherSpeakers
-    ?.split('&')
-    ?.map((value) => value.trim()),
+  otherSpeakers:
+    contentDetails.otherSpeakers?.split('&')?.map((value) => value.trim()) ||
+    null,
   soundQualityRating: contentDetails.soundQualityRating,
 });
 
