@@ -64,7 +64,7 @@ describe('Finalization', () => {
     ...contentDetails1,
     date: '1998-08-30',
     languages: ['Hindi', 'English'],
-    otherSpeakers: undefined,
+    otherSpeakers: null,
   };
   const contentDetails2Final: FinalContentDetails = {
     ...contentDetails2,
@@ -76,7 +76,7 @@ describe('Finalization', () => {
     ...contentDetails3,
     date: '2000-10-13',
     languages: ['English'],
-    otherSpeakers: undefined,
+    otherSpeakers: null,
   };
 
   const file = (taskId: string): StorageFileReference => ({
