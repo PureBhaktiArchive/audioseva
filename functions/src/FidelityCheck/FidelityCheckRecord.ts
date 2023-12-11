@@ -2,8 +2,8 @@
  * sri sri guru gauranga jayatah
  */
 
+import { ContentDetails } from '../ContentDetails';
 import { StorageFileReference } from '../StorageFileReference';
-import { ContentDetails } from './ContentDetails';
 
 export interface Approval {
   timestamp: number;
@@ -14,9 +14,21 @@ export interface FidelityCheck {
   author: string;
 }
 
-export interface FidelityCheckRecord {
+export interface Replacement {
+  timestamp: number;
+  taskId: string;
+}
+
+export type FidelityCheckRecord = (CheckedRecord | ApprovedRecord) & {
+  replacement?: Replacement;
+};
+
+export interface CheckedRecord {
   file: StorageFileReference;
-  contentDetails: ContentDetails;
   fidelityCheck: FidelityCheck;
+}
+
+export interface ApprovedRecord extends CheckedRecord {
+  contentDetails: ContentDetails;
   approval: Approval;
 }

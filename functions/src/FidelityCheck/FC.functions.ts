@@ -6,26 +6,26 @@ import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { getDiff } from 'recursive-diff';
+import { ContentDetails } from '../ContentDetails';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
 import { modificationTime } from '../modification-time';
-import { ContentDetails } from './ContentDetails';
 import {
   Approval,
   FidelityCheck,
   FidelityCheckRecord,
+  Replacement,
 } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
-import { FinalRecord } from './FinalRecord';
 import pMap = require('p-map');
 
 const dateToEndOfDay = (date: DateTime) =>
   date === date.startOf('day') ? date.endOf('day') : date;
 
-export const validateRecords = functions
+export const importRecords = functions
   .runWith({ timeoutSeconds: 540, memory: '1GB' })
   .pubsub.schedule('every day 18:30')
   .timeZone(functions.config().coordinator.timezone as string)
@@ -57,6 +57,7 @@ export const validateRecords = functions
       'Sound Rating',
       'Suggested Title',
       'Topics',
+      'Replacement Task ID',
     ]);
     const BOOLEAN_COLUMNS = makeKeys([
       'Date uncertain',
@@ -91,14 +92,39 @@ export const validateRecords = functions
       const existingRecord = recordSnapshot.val() as FidelityCheckRecord;
 
       /**
+       * Marking the record as replaced
+       */
+      if (row['Replacement Task ID']) {
+        if (!recordSnapshot.child('replacement').exists())
+          await recordSnapshot.ref.update({
+            replacement: {
+              taskId: row['Replacement Task ID'],
+              timestamp: DateTime.now().toMillis(),
+            } as Replacement,
+          });
+        return 'Replaced';
+      }
+
+      if (recordSnapshot.child('replacement').exists())
+        // Replacement should be removed from the database only manually, it's too error-prone for automation
+        return `Was replaced by ${recordSnapshot
+          .child('replacement/taskId')
+          .val()}`;
+
+      /**
        * Removing the approval from the database if Ready For Archive is `false`
        * Doing this early ensures unpublishing of a file even if there are validation issues
        */
 
-      if (row['Ready For Archive'] === false && existingRecord?.approval) {
+      if (
+        row['Ready For Archive'] === false &&
+        existingRecord &&
+        'approval' in existingRecord
+      ) {
         functions.logger.info('Removing approval from', row['Task ID']);
         await recordSnapshot.ref.update({
           approval: null,
+          contentDetails: null,
         });
       }
 
@@ -107,6 +133,7 @@ export const validateRecords = functions
         if (existingRecord?.fidelityCheck)
           await recordSnapshot.ref.update({
             fidelityCheck: null,
+            file: null,
           });
 
         return 'Awaiting FC';
@@ -219,7 +246,8 @@ export const validateRecords = functions
       ) as unknown as ContentDetails;
 
       if (
-        existingRecord?.approval &&
+        existingRecord &&
+        'approval' in existingRecord &&
         approval.timestamp <= existingRecord.approval.timestamp
       ) {
         const changedColumns = getDiff(
@@ -251,45 +279,4 @@ export const validateRecords = functions
     });
 
     await sheet.updateColumn('Validation Status', spreadsheetStatuses);
-  });
-
-export const exportForArchive = functions
-  .runWith({ timeoutSeconds: 120, memory: '1GB' })
-  .pubsub.topic('finalize')
-  .onPublish(async () => {
-    const snapshot = await database().ref('/FC/records').once('value');
-    if (!snapshot.exists()) return;
-
-    const coalesceUnknown = (input: string): string | null =>
-      input?.toUpperCase() === 'UNKNOWN' ? null : input;
-
-    /**
-     * Since we are using integer keys, Firebase can return either array or map:
-     * https://firebase.googleblog.com/2014/04/best-practices-arrays-in-firebase.html
-     * For this reason we're using `Object.entries` which work identical for both data structures.
-     */
-    const records = Object.entries(
-      snapshot.val() as Record<string, FidelityCheckRecord>
-    )
-      .filter(([, record]) => record.approval)
-      .map<[string, FinalRecord]>(([id, { file, contentDetails }]) => [
-        id,
-        {
-          file,
-          contentDetails: {
-            ...contentDetails,
-            date: DateTimeConverter.standardizePseudoIsoDate(
-              coalesceUnknown(contentDetails.date)
-            ),
-            dateUncertain: coalesceUnknown(contentDetails.date)
-              ? contentDetails.dateUncertain
-              : null,
-            location: coalesceUnknown(contentDetails.location),
-            locationUncertain: coalesceUnknown(contentDetails.location)
-              ? contentDetails.locationUncertain
-              : null,
-          },
-        },
-      ]);
-    await database().ref('/final/records').set(Object.fromEntries(records));
   });
