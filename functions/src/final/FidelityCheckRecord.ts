@@ -2,8 +2,8 @@
  * sri sri guru gauranga jayatah
  */
 
-import { ContentDetails } from '../ContentDetails';
 import { StorageFileReference } from '../StorageFileReference';
+import { ContentDetails } from './ContentDetails';
 
 export interface Approval {
   timestamp: number;
