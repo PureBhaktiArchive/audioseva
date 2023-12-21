@@ -283,8 +283,8 @@ export const importRecords = functions
     await sheet.updateColumn('Validation Status', spreadsheetStatuses);
   });
 
-export const finalize = functions.database
-  .ref('/final/trigger')
+export const publish = functions.database
+  .ref('/FC/publish/trigger')
   .onWrite(async () => {
     const [fidelitySnapshot, finalSnapshot] = await Promise.all([
       database().ref('/FC/records').once('value'),
