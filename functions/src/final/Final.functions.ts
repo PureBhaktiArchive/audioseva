@@ -2,6 +2,13 @@
  * sri sri guru gauranga jayatah
  */
 
+import {
+  createDirectus,
+  readItems,
+  rest,
+  staticToken,
+  updateItem,
+} from '@directus/sdk';
 import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
@@ -20,7 +27,7 @@ import {
 } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
-import { FinalRecord } from './FinalRecord';
+import { FinalRecord, NormalRecord } from './FinalRecord';
 import { createFinalRecords } from './finalization';
 import pMap = require('p-map');
 
@@ -286,10 +293,7 @@ export const importRecords = functions
 export const publish = functions.database
   .ref('/FC/publish/trigger')
   .onWrite(async () => {
-    const [fidelitySnapshot, finalSnapshot] = await Promise.all([
-      database().ref('/FC/records').once('value'),
-      database().ref('/final/records').once('value'),
-    ]);
+    const fidelitySnapshot = await database().ref('/FC/records').once('value');
 
     if (!fidelitySnapshot.exists()) return;
 
@@ -303,14 +307,27 @@ export const publish = functions.database
       fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
     );
 
-    const finalRecords = Object.entries<FinalRecord>(
-      finalSnapshot.val() as Record<string, FinalRecord>
-    ).flatMap(([fileId, record]): [number, FinalRecord][] =>
-      // Keeping only numeric keys (just in case, should be only numeric)
-      /\d+/.test(fileId) ? [[+fileId, record]] : []
+    type Schema = {
+      audios: (NormalRecord & { id: number })[];
+    };
+    const client = createDirectus<Schema>(
+      functions.config().directus.url as string
+    )
+      .with(staticToken(functions.config().directus.token as string))
+      .with(rest());
+
+    // TODO: fetch duration
+    const finalRecords = (await client.request(readItems('audios'))).map(
+      (record): [number, FinalRecord] => [record.id, record]
     );
 
-    await finalSnapshot.ref.set(
-      Object.fromEntries(createFinalRecords(fidelityRecords, finalRecords))
+    // TODO: copy file to the final bucket
+
+    pMap(
+      createFinalRecords(fidelityRecords, finalRecords),
+      ([id, record]) => client.request(updateItem('audios', id, record)),
+      { concurrency: 10 }
     );
+
+    // TODO: support a preview mode (readonly)
   });
