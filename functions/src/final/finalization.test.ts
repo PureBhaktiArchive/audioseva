@@ -111,33 +111,34 @@ describe('Finalization', () => {
     },
   ];
 
-  const assign = (
-    fileId: number,
-    taskId: string
-  ): [number, AssignmentRecord] => [fileId, { taskId }];
+  const assign = (id: number, taskId: string): AssignmentRecord => ({
+    id,
+    metadata: { taskId },
+  });
 
   const final = (
-    fileId: number,
+    id: number,
     taskId: string,
     contentDetails: FinalContentDetails,
     effectiveTaskId?: string
-  ): [number, NormalRecord] => [
-    fileId,
-    { taskId, file: file(effectiveTaskId ?? taskId), contentDetails },
-  ];
+  ): NormalRecord => ({
+    id,
+    metadata: { taskId },
+    ...contentDetails,
+  });
 
   const redir = (
-    fileId: number,
+    id: number,
     taskId: string,
     redirectTo: number
-  ): [number, RedirectRecord] => [fileId, { taskId, redirectTo }];
+  ): RedirectRecord => ({ id, metadata: { taskId }, redirectTo });
 
   const runTestCases = (
     cases: {
       name: string;
       fcrs: [string, FidelityCheckRecord][];
-      before: [number, FinalRecord][];
-      after: [number, FinalRecord][];
+      before: FinalRecord[];
+      after: FinalRecord[];
     }[]
   ) =>
     // Iterating because $variable seems to not be supported for a table from a variable in our version of Jest.
@@ -414,7 +415,7 @@ describe('Finalization', () => {
       cases: {
         name: string;
         fcrs: [string, FidelityCheckRecord][];
-        before: [number, FinalRecord][];
+        before: FinalRecord[];
       }[],
       errorRegexp: RegExp
     ) =>

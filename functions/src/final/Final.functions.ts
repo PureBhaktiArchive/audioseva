@@ -27,7 +27,7 @@ import {
 } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
-import { FinalRecord, NormalRecord } from './FinalRecord';
+import { FinalRecord } from './FinalRecord';
 import { createFinalRecords } from './finalization';
 import pMap = require('p-map');
 
@@ -308,7 +308,7 @@ export const publish = functions.database
     );
 
     type Schema = {
-      audios: (NormalRecord & { id: number })[];
+      audios: FinalRecord[];
     };
     const client = createDirectus<Schema>(
       functions.config().directus.url as string
@@ -317,15 +317,13 @@ export const publish = functions.database
       .with(rest());
 
     // TODO: fetch duration
-    const finalRecords = (await client.request(readItems('audios'))).map(
-      (record): [number, FinalRecord] => [record.id, record]
-    );
+    const finalRecords = await client.request(readItems('audios'));
 
     // TODO: copy file to the final bucket
 
     pMap(
       createFinalRecords(fidelityRecords, finalRecords),
-      ([id, record]) => client.request(updateItem('audios', id, record)),
+      (record) => client.request(updateItem('audios', record.id, record)),
       { concurrency: 10 }
     );
 

@@ -2,22 +2,22 @@
  * sri sri guru gauranga jayatah
  */
 
-import { StorageFileReference } from '../StorageFileReference';
 import { FinalContentDetails } from './ContentDetails';
 
 export type FinalRecord = AssignmentRecord | NormalRecord | RedirectRecord;
 
 /**
- * Only task ID is preserved when a source record is missing or unpublished
+ * Only task ID is preserved when a source record is missing or unpublished.
  */
 export interface AssignmentRecord {
-  taskId: string;
+  /** The File ID in the Archive */
+  id: number;
+  metadata?: {
+    taskId?: string;
+  };
 }
 
-export interface NormalRecord extends AssignmentRecord {
-  file: StorageFileReference;
-  contentDetails: FinalContentDetails;
-}
+export type NormalRecord = AssignmentRecord & FinalContentDetails;
 
 /**
  * When a previously published record is considered a duplicate of another one.

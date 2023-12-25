@@ -40,8 +40,8 @@ const sanitizeContentDetails = (
  */
 export const createFinalRecords = function* (
   fidelityRecords: [string, FidelityCheckRecord][],
-  finalRecords: [number, FinalRecord][]
-): Generator<[number, FinalRecord], void, undefined> {
+  finalRecords: FinalRecord[]
+): Generator<FinalRecord, void, undefined> {
   const fidelityRecordsMap = new Map(fidelityRecords);
 
   /**
@@ -66,70 +66,59 @@ export const createFinalRecords = function* (
 
   // We need to know all the published task IDs in order to detect redirects properly
   const publishedTasks = new Map(
-    finalRecords.flatMap(([fileId, record]) =>
-      'redirectTo' in record ? [] : [[record.taskId, fileId]]
+    finalRecords.flatMap((record) =>
+      'redirectTo' in record || !record.metadata?.taskId
+        ? []
+        : [[record.metadata.taskId, record.id]]
     )
   );
   const existingFileIds = new Set<number>();
   const fileIdGenerator = createIdGenerator((id) => existingFileIds.has(id));
 
   // Updating existing (previously finalized) records
-  yield* finalRecords
-    // Using flatMap to remove items when necessary.
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap#for_adding_and_removing_items_during_a_map
-    // We have to type the return value explicitly to avoid an issue caused by alternate types NormalRecord and RedirectRecord
-    .flatMap(([fileId, record]): [number, FinalRecord][] => {
-      existingFileIds.add(fileId);
+  yield* finalRecords.map((record) => {
+    existingFileIds.add(record.id);
 
-      const [taskId, fidelityRecord] = resolveFidelityRecord(record.taskId);
+    // Returning a record without a task ID as it is
+    if (!record.metadata?.taskId) return record;
 
-      return [
-        [
-          fileId,
-          fidelityRecord && 'approval' in fidelityRecord
-            ? // Generating a redirect record if the target task has been already published under another file ID
-              publishedTasks.has(taskId) &&
-              publishedTasks.get(taskId) !== fileId
-              ? {
-                  taskId: record.taskId,
-                  redirectTo: publishedTasks.get(taskId),
-                }
-              : // Saving again because the task ID could change due to replacements
-                (publishedTasks.set(taskId, fileId),
-                // Normal record
-                {
-                  taskId: record.taskId,
-                  file: fidelityRecord.file,
-                  contentDetails: sanitizeContentDetails(
-                    fidelityRecord.contentDetails
-                  ),
-                })
-            : // Unpublishing, but keeping the original fileId association
-              { taskId: record.taskId },
-        ],
-      ];
-    });
+    const [taskId, fidelityRecord] = resolveFidelityRecord(
+      record.metadata.taskId
+    );
+
+    return {
+      id: record.id,
+      metadata: record.metadata,
+      ...(fidelityRecord && 'approval' in fidelityRecord
+        ? // Generating a redirect record if the target task has been already published under another file ID
+          publishedTasks.has(taskId) && publishedTasks.get(taskId) !== record.id
+          ? {
+              redirectTo: publishedTasks.get(taskId),
+            }
+          : // Normal record
+            // Saving again because the task ID could have changed due to replacements
+            (publishedTasks.set(taskId, record.id),
+            sanitizeContentDetails(fidelityRecord.contentDetails))
+        : // Unpublishing, but keeping the original fileId association
+          null),
+    };
+  });
 
   // Generating new final records
   yield* fidelityRecords
     // Using flatMap to remove items when necessary.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap#for_adding_and_removing_items_during_a_map
-    .flatMap(([taskId, fidelityRecord]): [number, FinalRecord][] =>
+    .flatMap<FinalRecord>(([taskId, fidelityRecord]) =>
       'approval' in fidelityRecord &&
       !fidelityRecord.replacement &&
       !publishedTasks.has(taskId)
-        ? [
-            [
-              fileIdGenerator.next().value,
-              {
-                taskId,
-                file: fidelityRecord.file,
-                contentDetails: sanitizeContentDetails(
-                  fidelityRecord.contentDetails
-                ),
-              },
-            ],
-          ]
+        ? {
+            id: fileIdGenerator.next().value,
+            metadata: {
+              taskId,
+            },
+            ...sanitizeContentDetails(fidelityRecord.contentDetails),
+          }
         : // Skipping unapproved, already published or replaced records
           []
     );
