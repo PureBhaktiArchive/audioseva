@@ -321,7 +321,7 @@ export const publish = functions.database
 
     // TODO: copy file to the final bucket
 
-    pMap(
+    await pMap(
       createFinalRecords(fidelityRecords, finalRecords),
       (record) => client.request(updateItem('audios', record.id, record)),
       { concurrency: 10 }
