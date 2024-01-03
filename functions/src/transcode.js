@@ -1,4 +1,4 @@
-import * as ffmpeg from 'fluent-ffmpeg';
+import ffmpeg from 'fluent-ffmpeg';
 import { Duration } from 'luxon';
 import { Readable, Writable } from 'stream';
 
