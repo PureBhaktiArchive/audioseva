@@ -2,7 +2,7 @@
  * sri sri guru gaurangau jayatah
  */
 
-import { FinalContentDetails } from './ContentDetails';
+import { NormalRecord } from './FinalRecord';
 import {
   abbreviateLanguages,
   composeFileName,
@@ -50,7 +50,8 @@ describe('File', () => {
   `(
     '$id should have file name "$filename"',
     ({ id, date, timeOfDay, languages, title, location, filename }) => {
-      const contentDetails: FinalContentDetails = {
+      const record: NormalRecord = {
+        id,
         date,
         timeOfDay,
         dateUncertain: false,
@@ -64,20 +65,21 @@ describe('File', () => {
         soundQualityRating: 'Good',
       };
 
-      expect(composeFileName(id, contentDetails)).toBe(filename);
+      expect(composeFileName(record)).toBe(filename);
     }
   );
 
   it.each`
-    id     | date            | title
-    ${'1'} | ${'1998-06-22'} | ${'Deep moods of Gopi Gita'}
-    ${'2'} | ${'2000-11'}    | ${'Kartika Mahima'}
-    ${'3'} | ${'1991'}       | ${'Ragavartma Candrika'}
-    ${'4'} | ${null}         | ${'Another lecture'}
+    id   | date            | title
+    ${1} | ${'1998-06-22'} | ${'Deep moods of Gopi Gita'}
+    ${2} | ${'2000-11'}    | ${'Kartika Mahima'}
+    ${3} | ${'1991'}       | ${'Ragavartma Candrika'}
+    ${4} | ${null}         | ${'Another lecture'}
   `(
     '$id should have proper media metadata',
-    ({ id, date, title }: Partial<FinalContentDetails> & { id: string }) => {
-      const contentDetails: FinalContentDetails = {
+    ({ id, date, title }: Partial<NormalRecord>) => {
+      const record: NormalRecord = {
+        id,
         date,
         dateUncertain: false,
         timeOfDay: '',
@@ -91,7 +93,7 @@ describe('File', () => {
         soundQualityRating: 'Good',
       };
 
-      expect(composeMediaMetadata(id, contentDetails)).toEqual({
+      expect(composeMediaMetadata(record)).toEqual({
         'BVNM Archive ID': id,
         title: title,
         date: date?.substring(0, 4),

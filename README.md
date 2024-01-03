@@ -80,6 +80,7 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 | `te.spreadsheet.id`               | Track Editing spreadsheet id                       |
 | `te.coordinator.email_address`    | Track Editing coordinator mailbox                  |
 | `fc.spreadsheet.id`               | Fidelity Check spreadsheet id                      |
+| `final.public.bucket`             | A bucket for publicly-accessible MP3 files         |
 
 ## Frontend environment variables
 

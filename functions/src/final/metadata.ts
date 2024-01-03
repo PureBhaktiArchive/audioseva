@@ -3,7 +3,7 @@
  */
 
 import contentDisposition from 'content-disposition';
-import { FinalContentDetails } from './ContentDetails';
+import { NormalRecord } from './FinalRecord';
 import languageCodes from './language-codes.json';
 
 // Languages should come in this order, all other languages afterwards.
@@ -38,17 +38,14 @@ export const abbreviateLanguages = (languages: string[]): string =>
     .join(',')
     .toUpperCase() || null; // Converting an empty string to `null`
 
-export function composeFileName(
-  id: string,
-  contentDetails: FinalContentDetails
-): string {
+export function composeFileName(record: NormalRecord): string {
   return [
-    contentDetails.date ?? 'UNDATED',
-    contentDetails.timeOfDay?.toUpperCase(),
-    abbreviateLanguages(contentDetails.languages),
+    record.date ?? 'UNDATED',
+    record.timeOfDay?.toUpperCase(),
+    abbreviateLanguages(record.languages),
     '—',
-    [contentDetails.title, contentDetails.location].filter(Boolean).join(', '),
-    `(#${String(id).padStart(4, '0')}).mp3`,
+    [record.title, record.location].filter(Boolean).join(', '),
+    `(#${String(record.id).padStart(4, '0')}).mp3`,
   ]
     .filter(Boolean) // removing empty/undefined components
     .join(' ')
@@ -56,12 +53,11 @@ export function composeFileName(
 }
 
 export const composeMediaMetadata = (
-  id: string,
-  contentDetails: FinalContentDetails
+  record: NormalRecord
 ): Record<string, string> => ({
-  'BVNM Archive ID': id,
-  title: contentDetails.title,
-  date: contentDetails.date?.substring(0, 4),
+  'BVNM Archive ID': String(record.id),
+  title: record.title,
+  date: record.date?.substring(0, 4),
 });
 
 export const composeStorageMetadata = (

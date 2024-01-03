@@ -2,13 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import {
-  createDirectus,
-  readItems,
-  rest,
-  staticToken,
-  updateItem,
-} from '@directus/sdk';
+import { readItems, updateItem } from '@directus/sdk';
 import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
@@ -27,7 +21,7 @@ import {
 } from './FidelityCheckRecord';
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
-import { FinalRecord } from './FinalRecord';
+import { directus } from './directus';
 import { createFinalRecords } from './finalization';
 import pMap = require('p-map');
 
@@ -307,23 +301,14 @@ export const publish = functions.database
       fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
     );
 
-    type Schema = {
-      audios: FinalRecord[];
-    };
-    const client = createDirectus<Schema>(
-      functions.config().directus.url as string
-    )
-      .with(staticToken(functions.config().directus.token as string))
-      .with(rest());
-
     // TODO: fetch duration
-    const finalRecords = await client.request(readItems('audios'));
+    const finalRecords = await directus.request(readItems('audios'));
 
     // TODO: copy file to the final bucket
 
     await pMap(
       createFinalRecords(fidelityRecords, finalRecords),
-      (record) => client.request(updateItem('audios', record.id, record)),
+      (record) => directus.request(updateItem('audios', record.id, record)),
       { concurrency: 10 }
     );
 
