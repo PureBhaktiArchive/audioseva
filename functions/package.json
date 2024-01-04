@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@types/email-templates": "8.0.4",
-    "@types/jest": "29.5.8",
+    "@types/jest": "29.5.11",
     "@types/lodash": "4.14.175",
     "@types/luxon": "3.3.8",
     "@types/uuid": "8.3.1",
