@@ -136,7 +136,7 @@ export const saveMetadataToDatabase = functions
         if (!snapshot.child(path).exists() || updateAllMetadata) {
           const metadataForDatabase: FileMetadata = {
             name: file.name,
-            size: file.metadata.size,
+            size: +file.metadata.size,
             timeCreated: modificationTime(file).toMillis(),
             timeDeleted: file.metadata.timeDeleted
               ? new Date(file.metadata.timeDeleted as string).valueOf()
