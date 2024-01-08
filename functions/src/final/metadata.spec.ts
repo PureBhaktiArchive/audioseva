@@ -94,7 +94,7 @@ describe('File', () => {
       };
 
       expect(composeMediaMetadata(record)).toEqual({
-        'BVNM Archive ID': id,
+        'BVNM Archive ID': String(id),
         title: title,
         date: date?.substring(0, 4),
       });
