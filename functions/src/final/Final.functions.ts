@@ -2,10 +2,12 @@
  * sri sri guru gauranga jayatah
  */
 
-import { readItems, updateItem } from '@directus/sdk';
+import { createItem, readItems, updateItem } from '@directus/sdk';
 import { database } from 'firebase-admin';
+import { getStorage } from 'firebase-admin/storage';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
+import * as path from 'path';
 import { getDiff } from 'recursive-diff';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
@@ -22,7 +24,8 @@ import {
 import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
 import { directus } from './directus';
-import { createFinalRecords } from './finalization';
+import { createFinalRecords as generateFinalRecords } from './finalization';
+import { makeIterable } from './utils';
 import pMap = require('p-map');
 
 const dateToEndOfDay = (date: DateTime) =>
@@ -291,26 +294,49 @@ export const publish = functions.database
 
     if (!fidelitySnapshot.exists()) return;
 
-    /**
-     * Since we are using integer keys, Firebase can return either an array or an object
-     * https://firebase.googleblog.com/2014/04/best-practices-arrays-in-firebase.html
-     * For this reason we’re using `Object.entries` which work identical for both data structures.
-     */
-
-    const fidelityRecords = Object.entries<FidelityCheckRecord>(
-      fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
+    const fidelityRecords = new Map(
+      makeIterable(
+        fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
+      )
     );
+
+    console.log('Got FC records:', fidelityRecords.size);
 
     // TODO: fetch duration
     const finalRecords = await directus.request(readItems('audios'));
-
-    // TODO: copy file to the final bucket
-
     await pMap(
-      createFinalRecords(fidelityRecords, finalRecords),
-      (record) => directus.request(updateItem('audios', record.id, record)),
-      { concurrency: 10 }
-    );
-
-    // TODO: support a preview mode (readonly)
+      generateFinalRecords(fidelityRecords, finalRecords.slice(0, 1)),
+      ({ isNew, file, record }) => {
+        return Promise.all([
+          // Copying the finalized file into a separate `final` bucket
+          getStorage()
+            .bucket(file.bucket)
+            .file(file.name, { generation: file.generation })
+            .copy(
+              StorageManager.getBucket('final').file(
+                `${record.id}${path.extname(file.name)}`
+              ),
+              {
+                contentType: 'audio/flac',
+                metadata: {
+                  metadata: {
+                    source: `${file.bucket}/${file.name}#${file.generation}`,
+                  },
+                },
+              }
+            ),
+          // Saving the record into the CMS
+          directus.request(
+            // Upsert functionality is not yet available in Directus, though being considered: https://github.com/directus/directus/discussions/5706
+            // Until then we have to separately update and create
+            isNew
+              ? (console.log('creating', record.id),
+                createItem('audios', record))
+              : (console.log('updating', record.id),
+                updateItem('audios', record.id, record))
+          ),
+        ]);
+      },
+      { concurrency: 1 }
+    ).catch(console.error);
   });

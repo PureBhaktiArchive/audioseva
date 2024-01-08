@@ -4,25 +4,13 @@
 
 import { FinalContentDetails } from './ContentDetails';
 
-export type FinalRecord = AssignmentRecord | NormalRecord | RedirectRecord;
-
-/**
- * Only task ID is preserved when a source record is missing or unpublished.
- */
-export interface AssignmentRecord {
+export interface NormalRecord extends FinalContentDetails {
   /** The File ID in the Archive */
   id: number;
-  metadata?: {
-    taskId?: string;
-  };
 }
 
-export type NormalRecord = AssignmentRecord & FinalContentDetails;
-
-/**
- * When a previously published record is considered a duplicate of another one.
- * The assignment to a task ID is preserved.
- */
-export interface RedirectRecord extends AssignmentRecord {
+export interface FinalRecord extends NormalRecord {
+  sourceFileId: string;
+  approvalDate: string; // ISO format
   redirectTo: number;
 }
