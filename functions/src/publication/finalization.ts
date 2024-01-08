@@ -1,7 +1,7 @@
+import { ContentDetails, FinalContentDetails } from '../ContentDetails';
 import { DateTimeConverter } from '../DateTimeConverter';
+import { FidelityCheckRecord } from '../FidelityCheck/FidelityCheckRecord';
 import { StorageFileReference } from '../StorageFileReference';
-import { ContentDetails, FinalContentDetails } from './ContentDetails';
-import { FidelityCheckRecord } from './FidelityCheckRecord';
 import { FinalRecord } from './FinalRecord';
 import { createIdGenerator } from './id-generator';
 import { sanitizeTopics } from './sanitizer';

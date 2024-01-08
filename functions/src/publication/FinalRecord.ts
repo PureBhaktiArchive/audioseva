@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import { FinalContentDetails } from './ContentDetails';
+import { FinalContentDetails } from '../ContentDetails';
 
 export interface NormalRecord extends FinalContentDetails {
   /** The File ID in the Archive */

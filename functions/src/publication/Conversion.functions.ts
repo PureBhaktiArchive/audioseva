@@ -4,7 +4,7 @@ import * as functions from 'firebase-functions';
 import { finished } from 'node:stream/promises';
 import * as path from 'path';
 import { StorageManager } from '../StorageManager';
-import { addMediaMetadata, convertToMp3, transcode } from '../transcode';
+import { addMediaMetadata, convertToMp3, transcode } from './transcode';
 import { directus } from './directus';
 import {
   composeFileName,
