@@ -10,16 +10,15 @@ import {
   Replacement,
 } from '../FidelityCheck/FidelityCheckRecord';
 import { StorageFileReference } from '../StorageFileReference';
-import { FinalRecord } from './FinalRecord';
 import {
-  FinalizationResult,
-  createFinalRecords,
-  emptyContentDetails,
-} from './finalization';
+  AssignmentRecord,
+  FinalRecord,
+  NormalRecord,
+  RedirectRecord,
+} from './FinalRecord';
+import { createFinalRecords } from './finalization';
 
 describe('Finalization', () => {
-  const approvalDate = new Date();
-
   const contentDetails1: ContentDetails = {
     topics: '- Some topics',
     title: 'Some title',
@@ -86,7 +85,7 @@ describe('Finalization', () => {
     generation: 123,
   });
   const fidelityCheck: FidelityCheck = { author: 'someone', timestamp: 123 };
-  const approval = { timestamp: approvalDate.valueOf() };
+  const approval = { timestamp: DateTime.now().valueOf() };
 
   const repl = (taskId: string): Replacement => ({
     taskId,
@@ -112,59 +111,35 @@ describe('Finalization', () => {
     },
   ];
 
-  const assign = (id: number, taskId: string): FinalRecord => ({
+  const assign = (id: number, taskId: string): AssignmentRecord => ({
     id,
-    sourceFileId: taskId,
-    redirectTo: null,
-    approvalDate: null,
-    ...emptyContentDetails,
+    taskId,
   });
 
   const final = (
     id: number,
     taskId: string,
-    contentDetails: FinalContentDetails
-  ): FinalRecord => ({
+    contentDetails: FinalContentDetails,
+    effectiveTaskId?: string
+  ): NormalRecord => ({
     id,
-    sourceFileId: taskId,
-    approvalDate: approvalDate.toISOString(),
-    ...contentDetails,
-    redirectTo: null,
+    taskId,
+    file: file(effectiveTaskId ?? taskId),
+    contentDetails,
   });
 
   const redir = (
     id: number,
     taskId: string,
     redirectTo: number
-  ): FinalRecord => ({
-    id,
-    sourceFileId: taskId,
-    approvalDate: null,
-    redirectTo,
-    ...emptyContentDetails,
-  });
-
-  const res = (
-    isNew: boolean,
-    record: FinalRecord,
-    effectiveTaskId: string
-  ): FinalizationResult => ({
-    isNew,
-    record,
-    file: effectiveTaskId ? file(effectiveTaskId) : null,
-  });
-
-  const create = (record: FinalRecord, effectiveTaskId?: string) =>
-    res(true, record, effectiveTaskId);
-  const update = (record: FinalRecord, effectiveTaskId?: string) =>
-    res(false, record, effectiveTaskId);
+  ): RedirectRecord => ({ id, taskId, redirectTo });
 
   const runTestCases = (
     cases: {
       name: string;
       fcrs: [string, FidelityCheckRecord][];
       before: FinalRecord[];
-      after: FinalizationResult[];
+      after: FinalRecord[];
     }[]
   ) =>
     // Iterating because $variable seems to not be supported for a table from a variable in our version of Jest.
@@ -188,49 +163,49 @@ describe('Finalization', () => {
         name: 'Unpublishing an unapproved record',
         fcrs: [fcr('A')],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(assign(5, 'A'))],
+        after: [assign(5, 'A')],
       },
       {
         name: 'Unpublishing a missing record',
         fcrs: [],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(assign(5, 'A'))],
+        after: [assign(5, 'A')],
       },
       {
         name: 'Publishing a previously unpublished record',
         fcrs: [fcr('A', contentDetails1)],
         before: [assign(5, 'A')],
-        after: [update(final(5, 'A', contentDetails1Final))],
+        after: [final(5, 'A', contentDetails1Final)],
       },
       {
         name: 'Publishing an approved record',
         fcrs: [fcr('A', contentDetails1)],
         before: [],
-        after: [create(final(1, 'A', contentDetails1Final))],
+        after: [final(1, 'A', contentDetails1Final)],
       },
       {
         name: 'Keeping a published record',
         fcrs: [fcr('A', contentDetails1)],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(final(5, 'A', contentDetails1Final))],
+        after: [final(5, 'A', contentDetails1Final)],
       },
       {
         name: 'Updating a published record',
         fcrs: [fcr('A', contentDetails3)],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(final(5, 'A', contentDetails3Final))],
+        after: [final(5, 'A', contentDetails3Final)],
       },
       {
         name: 'Undoing a redirect for a missing record',
         fcrs: [],
         before: [redir(5, 'A', 46)],
-        after: [update(assign(5, 'A'))],
+        after: [assign(5, 'A')],
       },
       {
         name: 'Keeping assignments untouched',
         fcrs: [],
         before: [assign(5, 'A')],
-        after: [update(assign(5, 'A'))],
+        after: [assign(5, 'A')],
       },
     ]);
   });
@@ -242,31 +217,31 @@ describe('Finalization', () => {
         name: 'Unpublishing an approved record replaced with a missing one',
         fcrs: [fcr('A', contentDetails1, repl('B'))],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(assign(5, 'A'))],
+        after: [assign(5, 'A')],
       },
       {
         name: 'Unpublishing an approved record replaced with an unapproved one',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B')],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(assign(5, 'A'))],
+        after: [assign(5, 'A')],
       },
       {
         name: 'Unpublishing an unapproved record replaced with an unapproved one',
         fcrs: [fcr('A', undefined, repl('B')), fcr('B')],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(assign(5, 'A'))],
+        after: [assign(5, 'A')],
       },
       {
         name: 'Replacing an approved record with another approved one',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(final(5, 'A', contentDetails2Final), 'B')],
+        after: [final(5, 'A', contentDetails2Final, 'B')],
       },
       {
         name: 'Replacing an unapproved record with an approved one',
         fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(final(5, 'A', contentDetails2Final), 'B')],
+        after: [final(5, 'A', contentDetails2Final, 'B')],
       },
 
       /** Not published → not published */
@@ -299,13 +274,13 @@ describe('Finalization', () => {
         name: 'Publishing an approved record replacing an approved one',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
         before: [],
-        after: [create(final(1, 'B', contentDetails2Final))],
+        after: [final(1, 'B', contentDetails2Final)],
       },
       {
         name: 'Publishing an approved record replacing an unapproved one',
         fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
         before: [],
-        after: [create(final(1, 'B', contentDetails2Final))],
+        after: [final(1, 'B', contentDetails2Final)],
       },
     ]);
   });
@@ -320,7 +295,7 @@ describe('Finalization', () => {
           fcr('C', contentDetails3),
         ],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(final(5, 'A', contentDetails3Final), 'C')],
+        after: [final(5, 'A', contentDetails3Final, 'C')],
       },
       {
         name: 'Chain replacement of an unpublished record',
@@ -330,7 +305,7 @@ describe('Finalization', () => {
           fcr('C', contentDetails3),
         ],
         before: [],
-        after: [create(final(1, 'C', contentDetails3Final))],
+        after: [final(1, 'C', contentDetails3Final)],
       },
       {
         name: 'Chain replacement of an unpublished record through a published one',
@@ -340,7 +315,7 @@ describe('Finalization', () => {
           fcr('C', contentDetails3),
         ],
         before: [final(89, 'B', contentDetails2Final)],
-        after: [update(final(89, 'B', contentDetails3Final), 'C')],
+        after: [final(89, 'B', contentDetails3Final, 'C')],
       },
       {
         name: 'Chain replacement with a missing record',
@@ -349,7 +324,7 @@ describe('Finalization', () => {
           fcr('B', contentDetails2, repl('C')),
         ],
         before: [final(5, 'A', contentDetails1Final)],
-        after: [update(assign(5, 'A'))],
+        after: [assign(5, 'A')],
       },
       {
         name: 'Merger',
@@ -362,10 +337,7 @@ describe('Finalization', () => {
           final(5, 'A', contentDetails1Final),
           final(89, 'B', contentDetails2Final),
         ],
-        after: [
-          update(final(5, 'A', contentDetails3Final), 'C'),
-          update(redir(89, 'B', 5)),
-        ],
+        after: [final(5, 'A', contentDetails3Final, 'C'), redir(89, 'B', 5)],
       },
       {
         name: 'Merger into a missing record',
@@ -377,7 +349,7 @@ describe('Finalization', () => {
           final(5, 'A', contentDetails1Final),
           final(89, 'B', contentDetails2Final),
         ],
-        after: [update(assign(5, 'A')), update(assign(89, 'B'))],
+        after: [assign(5, 'A'), assign(89, 'B')],
       },
       {
         name: 'Redirect to the forward record',
@@ -386,10 +358,7 @@ describe('Finalization', () => {
           final(5, 'A', contentDetails1Final),
           final(89, 'B', contentDetails2Final),
         ],
-        after: [
-          update(redir(5, 'A', 89)),
-          update(final(89, 'B', contentDetails2Final)),
-        ],
+        after: [redir(5, 'A', 89), final(89, 'B', contentDetails2Final)],
       },
       {
         name: 'Redirect to the past record',
@@ -398,10 +367,7 @@ describe('Finalization', () => {
           final(5, 'A', contentDetails1Final),
           final(89, 'B', contentDetails2Final),
         ],
-        after: [
-          update(final(5, 'A', contentDetails1Final)),
-          update(redir(89, 'B', 5)),
-        ],
+        after: [final(5, 'A', contentDetails1Final), redir(89, 'B', 5)],
       },
       {
         name: 'Redirect to a missing published record',
@@ -410,7 +376,7 @@ describe('Finalization', () => {
           final(5, 'A', contentDetails1Final),
           final(89, 'B', contentDetails2Final),
         ],
-        after: [update(assign(5, 'A')), update(assign(89, 'B'))],
+        after: [assign(5, 'A'), assign(89, 'B')],
       },
     ]);
   });
@@ -423,16 +389,16 @@ describe('Finalization', () => {
       {
         name: 'Removing a replacement altogether',
         fcrs: [fcr('A', contentDetails1)],
-        before: [final(5, 'A', contentDetails2Final)],
-        after: [update(final(5, 'A', contentDetails1Final))],
+        before: [final(5, 'A', contentDetails2Final, 'B')],
+        after: [final(5, 'A', contentDetails1Final)],
       },
       {
         name: 'Publishing a replacement separately',
         fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2)],
-        before: [final(5, 'A', contentDetails2Final)],
+        before: [final(5, 'A', contentDetails2Final, 'B')],
         after: [
-          update(final(5, 'A', contentDetails1Final)),
-          create(final(1, 'B', contentDetails2Final)),
+          final(5, 'A', contentDetails1Final),
+          final(1, 'B', contentDetails2Final),
         ],
       },
       {
@@ -440,8 +406,8 @@ describe('Finalization', () => {
         fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2)],
         before: [redir(5, 'A', 89), final(89, 'B', contentDetails2Final)],
         after: [
-          update(final(5, 'A', contentDetails1Final)),
-          update(final(89, 'B', contentDetails2Final)),
+          final(5, 'A', contentDetails1Final),
+          final(89, 'B', contentDetails2Final),
         ],
       },
     ]);

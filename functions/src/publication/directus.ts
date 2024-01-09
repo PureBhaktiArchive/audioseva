@@ -1,9 +1,9 @@
 import { createDirectus, rest, staticToken } from '@directus/sdk';
 import * as functions from 'firebase-functions';
-import { FinalRecord } from './FinalRecord';
+import { AudioRecord } from './AudioRecord';
 
 type Schema = {
-  audios: FinalRecord[];
+  audios: AudioRecord[];
 };
 
 export const directus = createDirectus<Schema>(

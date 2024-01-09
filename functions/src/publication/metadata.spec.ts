@@ -2,7 +2,7 @@
  * sri sri guru gaurangau jayatah
  */
 
-import { NormalRecord } from './FinalRecord';
+import { AudioRecord } from './AudioRecord';
 import {
   abbreviateLanguages,
   composeFileName,
@@ -50,8 +50,9 @@ describe('File', () => {
   `(
     '$id should have file name "$filename"',
     ({ id, date, timeOfDay, languages, title, location, filename }) => {
-      const record: NormalRecord = {
+      const record: AudioRecord = {
         id,
+        sourceFileId: '',
         date,
         timeOfDay,
         dateUncertain: false,
@@ -77,9 +78,10 @@ describe('File', () => {
     ${4} | ${null}         | ${'Another lecture'}
   `(
     '$id should have proper media metadata',
-    ({ id, date, title }: Partial<NormalRecord>) => {
-      const record: NormalRecord = {
+    ({ id, date, title }: Partial<AudioRecord>) => {
+      const record: AudioRecord = {
         id,
+        sourceFileId: '',
         date,
         dateUncertain: false,
         timeOfDay: '',

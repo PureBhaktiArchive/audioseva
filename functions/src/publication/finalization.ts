@@ -1,16 +1,9 @@
 import { ContentDetails, FinalContentDetails } from '../ContentDetails';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { FidelityCheckRecord } from '../FidelityCheck/FidelityCheckRecord';
-import { StorageFileReference } from '../StorageFileReference';
 import { FinalRecord } from './FinalRecord';
 import { createIdGenerator } from './id-generator';
 import { sanitizeTopics } from './sanitizer';
-
-export interface FinalizationResult {
-  record: FinalRecord;
-  isNew: boolean;
-  file: StorageFileReference;
-}
 
 const unknownToNull = (input: string): string =>
   input?.toUpperCase() === 'UNKNOWN' ? null : input;
@@ -41,21 +34,6 @@ const sanitizeContentDetails = (
   soundQualityRating: contentDetails.soundQualityRating,
 });
 
-export const emptyContentDetails: FinalContentDetails = {
-  title: null,
-  category: null,
-  date: null,
-  dateUncertain: null,
-  languages: null,
-  location: null,
-  locationUncertain: null,
-  percentage: null,
-  soundQualityRating: null,
-  timeOfDay: null,
-  topics: null,
-  otherSpeakers: null,
-};
-
 /**
  * Creates new set of final records based on the previous version and new records from FC
  * Using arrays as input parameters since `Iterator.map` is not supported in Node yet: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator/map
@@ -63,7 +41,7 @@ export const emptyContentDetails: FinalContentDetails = {
 export const createFinalRecords = function* (
   fidelityRecords: Map<string, FidelityCheckRecord>,
   finalRecords: FinalRecord[]
-): Generator<FinalizationResult, void, undefined> {
+): Generator<FinalRecord, void, undefined> {
   /**
    * Finds a fidelity record for a given task ID. Resolves the replacement chain.
    * @param taskId
@@ -87,58 +65,53 @@ export const createFinalRecords = function* (
   // We need to know all the published task IDs in order to detect redirects properly
   const publishedTasks = new Map(
     finalRecords.flatMap((record) =>
-      record.redirectTo || !record.sourceFileId
+      'redirectTo' in record || !record.taskId
         ? []
-        : [[record.sourceFileId, record.id]]
+        : [[record.taskId, record.id]]
     )
   );
 
   // Updating existing (previously finalized) records
-  for (const record of finalRecords) {
-    // Skipping records without a task ID
-    if (!record.sourceFileId) return;
+  yield* finalRecords.map((record): FinalRecord => {
+    // Returning a record without a task ID as it is
+    if (!record.taskId) return record;
 
-    const [taskId, fidelityRecord] = resolveFidelityRecord(record.sourceFileId);
+    const [taskId, fidelityRecord] = resolveFidelityRecord(record.taskId);
 
-    yield {
-      file: fidelityRecord.file,
-      isNew: false,
-      record: {
-        id: record.id,
-        sourceFileId: record.sourceFileId,
-
-        ...(fidelityRecord &&
-        'approval' in fidelityRecord &&
-        fidelityRecord.approval
-          ? // Generating a redirect record if the target task has been already published under another file ID
-            publishedTasks.has(taskId) &&
-            publishedTasks.get(taskId) !== record.id
-            ? {
-                redirectTo: publishedTasks.get(taskId),
-                approvalDate: null,
-                ...emptyContentDetails,
-              }
-            : // Normal record
-              // Saving again because the task ID could have changed due to replacements
-              (publishedTasks.set(taskId, record.id),
-              {
-                ...sanitizeContentDetails(fidelityRecord.contentDetails),
-                approvalDate: new Date(
-                  fidelityRecord.approval.timestamp
-                ).toISOString(),
-                redirectTo: null,
-              })
-          : // Unpublishing, but keeping the original fileId association
-            null),
-      },
-    };
-  }
+    return fidelityRecord &&
+      'approval' in fidelityRecord &&
+      fidelityRecord.approval
+      ? // Generating a redirect record if the target task has been already published under another file ID
+        publishedTasks.has(taskId) && publishedTasks.get(taskId) !== record.id
+        ? {
+            id: record.id,
+            taskId: record.taskId,
+            redirectTo: publishedTasks.get(taskId),
+          }
+        : // Normal record
+          // Saving again because the task ID could have changed due to replacements
+          (publishedTasks.set(taskId, record.id),
+          {
+            id: record.id,
+            taskId: record.taskId,
+            file: fidelityRecord.file,
+            contentDetails: sanitizeContentDetails(
+              fidelityRecord.contentDetails
+            ),
+          })
+      : // Unpublishing, but keeping the original fileId association
+        {
+          id: record.id,
+          taskId: record.taskId,
+        };
+  });
 
   const existingFileIds = new Set(finalRecords.map(({ id }) => id));
   const fileIdGenerator = createIdGenerator((id) => existingFileIds.has(id));
 
   // Generating new final records
   for (const [taskId, fidelityRecord] of fidelityRecords) {
+    // Skipping unapproved, already published or replaced records
     if (
       'approval' in fidelityRecord &&
       fidelityRecord.approval &&
@@ -146,17 +119,10 @@ export const createFinalRecords = function* (
       !publishedTasks.has(taskId)
     )
       yield {
-        isNew: true,
+        id: fileIdGenerator.next().value,
+        taskId,
         file: fidelityRecord.file,
-        record: {
-          id: fileIdGenerator.next().value,
-          sourceFileId: taskId,
-          approvalDate: new Date(
-            fidelityRecord.approval.timestamp
-          ).toISOString(),
-          ...sanitizeContentDetails(fidelityRecord.contentDetails),
-          redirectTo: null,
-        },
+        contentDetails: sanitizeContentDetails(fidelityRecord.contentDetails),
       };
   }
 };

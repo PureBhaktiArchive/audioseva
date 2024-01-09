@@ -3,7 +3,7 @@
  */
 
 import contentDisposition from 'content-disposition';
-import { NormalRecord } from './FinalRecord';
+import { AudioRecord } from './AudioRecord';
 import languageCodes from './language-codes.json';
 
 // Languages should come in this order, all other languages afterwards.
@@ -38,7 +38,7 @@ export const abbreviateLanguages = (languages: string[]): string =>
     .join(',')
     .toUpperCase() || null; // Converting an empty string to `null`
 
-export function composeFileName(record: NormalRecord): string {
+export function composeFileName(record: AudioRecord): string {
   return [
     record.date ?? 'UNDATED',
     record.timeOfDay?.toUpperCase(),
@@ -53,7 +53,7 @@ export function composeFileName(record: NormalRecord): string {
 }
 
 export const composeMediaMetadata = (
-  record: NormalRecord
+  record: AudioRecord
 ): Record<string, string> => ({
   'BVNM Archive ID': String(record.id),
   title: record.title,
