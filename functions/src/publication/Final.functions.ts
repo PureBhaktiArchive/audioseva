@@ -68,30 +68,30 @@ const convertToAudioRecord = (
  * @returns
  */
 const finalizeFile = async ({ id, file }: NormalRecord) => {
+  const sourceFile = getStorage().bucket(file.bucket).file(file.name, {
+    generation: file.generation,
+  });
   const finalFile = StorageManager.getBucket('final').file(
     `${id}${path.extname(file.name)}`
   );
-  const [metadata] = await finalFile.getMetadata();
-  console.log(metadata);
-  return void 0;
 
-  // if (metadata)
-  return getStorage()
-    .bucket(file.bucket)
-    .file(file.name, {
-      generation: file.generation,
-    })
-    .copy(finalFile, {
-      contentType: 'audio/flac',
-      metadata: {
-        // Injecting the custom metadata here due to https://github.com/googleapis/nodejs-storage/issues/2389
-        source: `${file.bucket}/${file.name}#${file.generation}`,
-        metadata: {
-          // Duplicating here just in case they change behaviour in the future versions
-          source: `${file.bucket}/${file.name}#${file.generation}`,
-        },
-      },
-    });
+  // Calling `getMetadata` on the source file to throw an exception if it does not exist
+  await Promise.all([sourceFile.getMetadata(), finalFile.exists()]);
+  if (
+    finalFile.metadata.metadata?.source === sourceFile.metadata.id &&
+    finalFile.metadata.md5Hash === sourceFile.metadata.md5Hash
+  )
+    return;
+
+  await sourceFile.copy(finalFile, {
+    contentType: sourceFile.metadata.contentType,
+    metadata: {
+      // Keeping the source file metadata to preserve the `mtime`
+      ...sourceFile.metadata.metadata,
+      // Injecting the custom metadata here due to https://github.com/googleapis/nodejs-storage/issues/2389
+      source: sourceFile.metadata.id,
+    },
+  });
 };
 
 /**
