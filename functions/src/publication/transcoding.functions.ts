@@ -9,7 +9,7 @@ import { directus } from './directus';
 import { composeFileName, composeMediaMetadata } from './metadata';
 import { addMediaMetadata, convertToMp3, transcode } from './transcode';
 
-export const convert = functions.storage
+export const createMP3 = functions.storage
   .bucket(StorageManager.getFullBucketName('final'))
   .object()
   .onFinalize(async (object) => {
