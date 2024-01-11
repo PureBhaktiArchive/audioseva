@@ -3,7 +3,7 @@
  */
 
 import { createItem, readItems, updateItem } from '@directus/sdk';
-import { database } from 'firebase-admin';
+import { getDatabase } from 'firebase-admin/database';
 import { getStorage } from 'firebase-admin/storage';
 import * as functions from 'firebase-functions';
 import * as path from 'path';
@@ -112,7 +112,9 @@ const saveToDirectus = (record: AudioRecord, isExisting: boolean) => (
 export const publish = functions.database
   .ref('/FC/publish/trigger')
   .onWrite(async () => {
-    const fidelitySnapshot = await database().ref('/FC/records').once('value');
+    const fidelitySnapshot = await getDatabase()
+      .ref('/FC/records')
+      .once('value');
     if (!fidelitySnapshot.exists()) return;
     const fidelityRecords = new Map(
       makeIterable(
