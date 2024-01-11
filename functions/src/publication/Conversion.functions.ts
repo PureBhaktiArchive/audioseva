@@ -1,39 +1,47 @@
 import { readItem } from '@directus/sdk';
+import contentDisposition from 'content-disposition';
 import { getStorage } from 'firebase-admin/storage';
 import * as functions from 'firebase-functions';
 import { finished } from 'node:stream/promises';
 import * as path from 'path';
 import { StorageManager } from '../StorageManager';
-import { addMediaMetadata, convertToMp3, transcode } from './transcode';
 import { directus } from './directus';
-import {
-  composeFileName,
-  composeMediaMetadata,
-  composeStorageMetadata,
-} from './metadata';
+import { composeFileName, composeMediaMetadata } from './metadata';
+import { addMediaMetadata, convertToMp3, transcode } from './transcode';
 
 export const convert = functions.storage
   .bucket(StorageManager.getFullBucketName('final'))
   .object()
   .onFinalize(async (object) => {
-    const record = await directus.request(
-      readItem('audios', path.basename(object.name, path.extname(object.name)))
-    );
+    const id = +path.basename(object.name, path.extname(object.name));
+    if (Number.isNaN(id))
+      return functions.logger.warn('Object name is not a number:', object.name);
 
     const mp3File = getStorage()
       .bucket(functions.config().final?.public?.bucket)
-      .file(`${record.id}.mp3`);
+      .file(`${id}.mp3`);
 
-    // Doing nothing if MP3 exists and it was created from the same source file
+    const [[mp3Exists], record] = await Promise.all([
+      mp3File.exists(),
+      directus.request(readItem('audios', id)),
+    ]);
+
     if (
-      (await mp3File.exists()).shift() &&
+      mp3Exists &&
       mp3File.metadata.metadata?.sourceMd5Hash === object.md5Hash
     )
-      return;
+      // MP3 file was created from the same source file, no need transcoding
+      return functions.logger.info('MP3 file already exists');
 
     const uploadStream = mp3File.createWriteStream({
       resumable: false,
-      metadata: composeStorageMetadata(composeFileName(record), object.md5Hash),
+      metadata: {
+        contentType: 'audio/mpeg',
+        contentDisposition: contentDisposition(composeFileName(record)),
+        metadata: {
+          sourceMd5Hash: object.md5Hash,
+        },
+      },
     });
 
     functions.logger.debug('Transcoding file', object.id, 'to', mp3File.id);

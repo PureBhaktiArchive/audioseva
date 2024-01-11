@@ -2,7 +2,6 @@
  * sri sri guru gaurangau jayatah
  */
 
-import contentDisposition from 'content-disposition';
 import { AudioRecord } from './AudioRecord';
 import languageCodes from './language-codes.json';
 
@@ -58,14 +57,4 @@ export const composeMediaMetadata = (
   'BVNM Archive ID': String(record.id),
   title: record.title,
   date: record.date?.substring(0, 4),
-});
-
-export const composeStorageMetadata = (
-  fileName: string,
-  sourceMd5Hash: string
-) => ({
-  contentDisposition: contentDisposition(fileName),
-  metadata: {
-    sourceMd5Hash,
-  },
 });
