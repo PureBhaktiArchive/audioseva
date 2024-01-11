@@ -4,4 +4,5 @@ import { FinalContentDetails } from '../ContentDetails';
 export interface AudioRecord extends FinalContentDetails {
   id: number;
   sourceFileId: string;
+  duration: number;
 }

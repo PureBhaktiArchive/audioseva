@@ -9,7 +9,9 @@ import * as functions from 'firebase-functions';
 import * as path from 'path';
 import { FinalContentDetails } from '../ContentDetails';
 import { FidelityCheckRecord } from '../FidelityCheck/FidelityCheckRecord';
+import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
+import { getFileDurationPath, metadataCacheRef } from '../metadata-database';
 import { makeIterable } from '../utils';
 import { AudioRecord } from './AudioRecord';
 import { AssignmentRecord, FinalRecord, NormalRecord } from './FinalRecord';
@@ -52,7 +54,8 @@ const emptyContentDetails: FinalContentDetails = {
 };
 
 const convertToAudioRecord = (
-  record: AssignmentRecord | NormalRecord
+  record: AssignmentRecord | NormalRecord,
+  getDuration: (file: StorageFileReference) => number
 ): AudioRecord => ({
   id: record.id,
   sourceFileId: record.taskId,
@@ -60,6 +63,7 @@ const convertToAudioRecord = (
     ? record.contentDetails
     : // This is to clear all the corresponding fields in the CMS
       emptyContentDetails),
+  duration: 'file' in record ? getDuration(record.file) : null,
 });
 
 /**
@@ -112,24 +116,21 @@ const saveToDirectus = (record: AudioRecord, isExisting: boolean) => (
 export const publish = functions.database
   .ref('/FC/publish/trigger')
   .onWrite(async () => {
-    const fidelitySnapshot = await getDatabase()
-      .ref('/FC/records')
-      .once('value');
-    if (!fidelitySnapshot.exists()) return;
+    const [fidelitySnapshot, metadataCacheSnapshot, audioRecords] =
+      await Promise.all([
+        getDatabase().ref('/FC/records').once('value'),
+        metadataCacheRef.once('value'),
+        directus.request(readItems('audios', { limit: -1 })),
+      ]);
+
     const fidelityRecords = new Map(
       makeIterable(
         fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
       )
     );
-    console.debug('Got FC records:', fidelityRecords.size);
-
-    // TODO: fetch duration
-    const audioRecords = await directus.request(
-      readItems('audios', { limit: -1 })
-    );
-    console.debug('Got records from CMS:', audioRecords.length);
-
     const existingFileIds = new Set(audioRecords.map(({ id }) => id));
+    const getDuration = (file: StorageFileReference) =>
+      metadataCacheSnapshot.child(getFileDurationPath(file)).val() as number;
 
     await pMap(
       generateFinalRecords(
@@ -144,7 +145,7 @@ export const publish = functions.database
             ? void 0 // Not saving redirect records to the CMS yet
             : // Saving a record into the CMS
               saveToDirectus(
-                convertToAudioRecord(record),
+                convertToAudioRecord(record, getDuration),
                 existingFileIds.has(record.id)
               ),
         ]),
