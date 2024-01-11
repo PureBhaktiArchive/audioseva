@@ -12,10 +12,29 @@ import { FidelityCheckRecord } from '../FidelityCheck/FidelityCheckRecord';
 import { StorageManager } from '../StorageManager';
 import { makeIterable } from '../utils';
 import { AudioRecord } from './AudioRecord';
-import { FinalRecord, NormalRecord } from './FinalRecord';
+import { AssignmentRecord, FinalRecord, NormalRecord } from './FinalRecord';
 import { directus } from './directus';
 import { createFinalRecords as generateFinalRecords } from './finalization';
 import pMap = require('p-map');
+
+const convertToFinalRecord = (record: AudioRecord): FinalRecord => ({
+  id: record.id,
+  taskId: record.sourceFileId,
+  contentDetails: {
+    title: record.title,
+    topics: record.topics,
+    date: record.date,
+    dateUncertain: record.dateUncertain,
+    timeOfDay: record.timeOfDay,
+    location: record.location,
+    locationUncertain: record.locationUncertain,
+    category: record.category,
+    languages: record.languages,
+    percentage: record.percentage,
+    otherSpeakers: record.otherSpeakers,
+    soundQualityRating: record.soundQualityRating,
+  },
+});
 
 const emptyContentDetails: FinalContentDetails = {
   title: null,
@@ -32,101 +51,101 @@ const emptyContentDetails: FinalContentDetails = {
   otherSpeakers: null,
 };
 
+const convertToAudioRecord = (
+  record: AssignmentRecord | NormalRecord
+): AudioRecord => ({
+  id: record.id,
+  sourceFileId: record.taskId,
+  ...('contentDetails' in record
+    ? record.contentDetails
+    : // This is to clear all the corresponding fields in the CMS
+      emptyContentDetails),
+});
+
+/**
+ * Copies a finalized file into a dedicated bucket
+ * @param record
+ * @returns
+ */
+const finalizeFile = async ({ id, file }: NormalRecord) => {
+  const finalFile = StorageManager.getBucket('final').file(
+    `${id}${path.extname(file.name)}`
+  );
+  const [metadata] = await finalFile.getMetadata();
+  console.log(metadata);
+  return void 0;
+
+  // if (metadata)
+  return getStorage()
+    .bucket(file.bucket)
+    .file(file.name, {
+      generation: file.generation,
+    })
+    .copy(finalFile, {
+      contentType: 'audio/flac',
+      metadata: {
+        // Injecting the custom metadata here due to https://github.com/googleapis/nodejs-storage/issues/2389
+        source: `${file.bucket}/${file.name}#${file.generation}`,
+        metadata: {
+          // Duplicating here just in case they change behaviour in the future versions
+          source: `${file.bucket}/${file.name}#${file.generation}`,
+        },
+      },
+    });
+};
+
+/**
+ * Upsert functionality is not yet available in Directus,
+ * though being considered: https://github.com/directus/directus/discussions/5706
+ * Until then we have to separately update and create.
+ * @param record
+ */
+const saveToDirectus = (record: AudioRecord, isExisting: boolean) => (
+  console.log(isExisting ? 'updating' : 'creating', record.id),
+  directus.request(
+    isExisting
+      ? updateItem('audios', record.id, record)
+      : createItem('audios', record)
+  )
+);
+
 export const publish = functions.database
   .ref('/FC/publish/trigger')
   .onWrite(async () => {
     const fidelitySnapshot = await database().ref('/FC/records').once('value');
-
     if (!fidelitySnapshot.exists()) return;
-
     const fidelityRecords = new Map(
       makeIterable(
         fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
       )
     );
-
-    console.log('Got FC records:', fidelityRecords.size);
+    console.debug('Got FC records:', fidelityRecords.size);
 
     // TODO: fetch duration
-    const audioRecords = await directus.request(readItems('audios'));
-
-    const copyFile = ({ id, file }: NormalRecord) =>
-      getStorage()
-        .bucket(file.bucket)
-        .file(file.name, {
-          generation: file.generation,
-        })
-        .copy(
-          StorageManager.getBucket('final').file(
-            `${id}${path.extname(file.name)}`
-          ),
-          {
-            contentType: 'audio/flac',
-            metadata: {
-              metadata: {
-                source: `${file.bucket}/${file.name}#${file.generation}`,
-              },
-            },
-          }
-        );
+    const audioRecords = await directus.request(
+      readItems('audios', { limit: -1 })
+    );
+    console.debug('Got records from CMS:', audioRecords.length);
 
     const existingFileIds = new Set(audioRecords.map(({ id }) => id));
-    /**
-     * Upsert functionality is not yet available in Directus,
-     * though being considered: https://github.com/directus/directus/discussions/5706
-     * Until then we have to separately update and create.
-     * @param record
-     */
-    const saveToDirectus = (record: AudioRecord) => {
-      directus.request(
-        existingFileIds.has(record.id)
-          ? (console.log('updating', record.id),
-            updateItem('audios', record.id, record))
-          : (console.log('creating', record.id), createItem('audios', record))
-      );
-    };
 
     await pMap(
       generateFinalRecords(
         fidelityRecords,
-        audioRecords.map(
-          (record): FinalRecord => ({
-            id: record.id,
-            taskId: record.sourceFileId,
-            contentDetails: {
-              title: record.title,
-              topics: record.topics,
-              date: record.date,
-              dateUncertain: record.dateUncertain,
-              timeOfDay: record.timeOfDay,
-              location: record.location,
-              locationUncertain: record.locationUncertain,
-              category: record.category,
-              languages: record.languages,
-              percentage: record.percentage,
-              otherSpeakers: record.otherSpeakers,
-              soundQualityRating: record.soundQualityRating,
-            },
-          })
-        )
+        audioRecords.map(convertToFinalRecord)
       ),
       (record) =>
         Promise.all([
-          // Copying the finalized file into a separate `final` bucket
-          'file' in record ? copyFile(record) : void 0,
+          console.debug('Processing', record.id, record.taskId),
+          'file' in record ? finalizeFile(record) : void 0,
           'redirectTo' in record
-            ? // Not saving redirect records to the CMS yet
-              void 0
-            : // Saving the record into the CMS
-              saveToDirectus({
-                id: record.id,
-                sourceFileId: record.taskId,
-                ...('contentDetails' in record
-                  ? record.contentDetails
-                  : // This is to clear all the corresponding fields in the CMS
-                    emptyContentDetails),
-              }),
+            ? void 0 // Not saving redirect records to the CMS yet
+            : // Saving a record into the CMS
+              saveToDirectus(
+                convertToAudioRecord(record),
+                existingFileIds.has(record.id)
+              ),
         ]),
-      { concurrency: 1 }
+      { concurrency: 10 }
     ).catch(console.error);
   });
