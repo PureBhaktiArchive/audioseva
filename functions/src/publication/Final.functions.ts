@@ -91,14 +91,12 @@ const finalizeFile = async ({ id, file }: NormalRecord) => {
 const saveToDirectus = (
   record: RequireOnly<AudioRecord, 'id'>,
   isExisting: boolean
-) => (
-  console.log(isExisting ? 'updating' : 'creating', record.id),
+) =>
   directus.request(
     isExisting
       ? updateItem('audios', record.id, record)
       : createItem('audios', record)
-  )
-);
+  );
 
 const PUBLICATION_TOPIC = 'publish';
 
@@ -128,7 +126,6 @@ export const publish = functions.pubsub
       ),
       (record) =>
         Promise.all([
-          console.debug('Processing', record.id, record.taskId),
           'file' in record ? finalizeFile(record) : void 0,
           'redirectTo' in record
             ? void 0 // Not saving redirect records to the CMS yet
@@ -139,5 +136,5 @@ export const publish = functions.pubsub
               ),
         ]),
       { concurrency: 10 }
-    ).catch(console.error);
+    ).catch(functions.logger.error);
   });
