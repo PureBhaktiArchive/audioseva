@@ -53,6 +53,7 @@ describe('File', () => {
       const record: AudioRecord = {
         id,
         sourceFileId: '',
+        status: 'active',
         duration: null,
         date,
         timeOfDay,
@@ -83,6 +84,7 @@ describe('File', () => {
       const record: AudioRecord = {
         id,
         sourceFileId: '',
+        status: 'active',
         duration: null,
         date,
         dateUncertain: false,

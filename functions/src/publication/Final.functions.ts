@@ -7,8 +7,8 @@ import { getDatabase } from 'firebase-admin/database';
 import { getStorage } from 'firebase-admin/storage';
 import * as functions from 'firebase-functions';
 import * as path from 'path';
-import { FinalContentDetails } from '../ContentDetails';
 import { FidelityCheckRecord } from '../FidelityCheck/FidelityCheckRecord';
+import { RequireOnly } from '../RequireOnly';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
 import { getFileDurationPath, metadataCacheRef } from '../metadata-database';
@@ -38,31 +38,15 @@ const convertToFinalRecord = (record: AudioRecord): FinalRecord => ({
   },
 });
 
-const emptyContentDetails: FinalContentDetails = {
-  title: null,
-  category: null,
-  date: null,
-  dateUncertain: null,
-  languages: null,
-  location: null,
-  locationUncertain: null,
-  percentage: null,
-  soundQualityRating: null,
-  timeOfDay: null,
-  topics: null,
-  otherSpeakers: null,
-};
-
 const convertToAudioRecord = (
   record: AssignmentRecord | NormalRecord,
   getDuration: (file: StorageFileReference) => number
-): AudioRecord => ({
+): RequireOnly<AudioRecord, 'id'> => ({
   id: record.id,
   sourceFileId: record.taskId,
   ...('contentDetails' in record
-    ? record.contentDetails
-    : // This is to clear all the corresponding fields in the CMS
-      emptyContentDetails),
+    ? { status: 'active', ...record.contentDetails }
+    : { status: 'inactive' }),
   duration: 'file' in record ? getDuration(record.file) : null,
 });
 
@@ -104,7 +88,10 @@ const finalizeFile = async ({ id, file }: NormalRecord) => {
  * Until then we have to separately update and create.
  * @param record
  */
-const saveToDirectus = (record: AudioRecord, isExisting: boolean) => (
+const saveToDirectus = (
+  record: RequireOnly<AudioRecord, 'id'>,
+  isExisting: boolean
+) => (
   console.log(isExisting ? 'updating' : 'creating', record.id),
   directus.request(
     isExisting
