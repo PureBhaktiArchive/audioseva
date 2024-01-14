@@ -100,9 +100,11 @@ const saveToDirectus = (
   )
 );
 
-export const publish = functions.database
-  .ref('/FC/publish/trigger')
-  .onWrite(async () => {
+const PUBLICATION_TOPIC = 'publish';
+
+export const publish = functions.pubsub
+  .topic(PUBLICATION_TOPIC)
+  .onPublish(async () => {
     const [fidelitySnapshot, metadataCacheSnapshot, audioRecords] =
       await Promise.all([
         getDatabase().ref('/FC/records').once('value'),
