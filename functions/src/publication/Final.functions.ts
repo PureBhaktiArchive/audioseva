@@ -8,6 +8,7 @@ import { getDatabase } from 'firebase-admin/database';
 import { getStorage } from 'firebase-admin/storage';
 import * as functions from 'firebase-functions';
 import { finished } from 'node:stream/promises';
+import pMap from 'p-map';
 import * as path from 'path';
 import { FidelityCheckRecord } from '../FidelityCheck/FidelityCheckRecord';
 import { RequireOnly } from '../RequireOnly';
@@ -21,7 +22,6 @@ import { directus } from './directus';
 import { createFinalRecords as generateFinalRecords } from './finalization';
 import { composeFileName, composeMediaMetadata } from './metadata';
 import { addMediaMetadata, convertToMp3, transcode } from './transcode';
-import pMap = require('p-map');
 
 const convertToFinalRecord = (record: AudioRecord): FinalRecord => ({
   id: record.id,
