@@ -11,8 +11,8 @@ import { FidelityCheckRecord } from '../FidelityCheck/FidelityCheckRecord';
 import { RequireOnly } from '../RequireOnly';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
+import { objectToIterableEntries } from '../iterable-helpers';
 import { getFileDurationPath, metadataCacheRef } from '../metadata-database';
-import { makeIterable } from '../utils';
 import { AudioRecord } from './AudioRecord';
 import { FinalRecord, NormalRecord } from './FinalRecord';
 import { directus } from './directus';
@@ -121,7 +121,7 @@ export const publish = functions.pubsub
       ]);
 
     const fidelityRecords = new Map(
-      makeIterable(
+      objectToIterableEntries(
         fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
       )
     );
