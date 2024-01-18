@@ -14,7 +14,7 @@ import { StorageManager } from '../StorageManager';
 import { getFileDurationPath, metadataCacheRef } from '../metadata-database';
 import { makeIterable } from '../utils';
 import { AudioRecord } from './AudioRecord';
-import { AssignmentRecord, FinalRecord, NormalRecord } from './FinalRecord';
+import { FinalRecord, NormalRecord } from './FinalRecord';
 import { directus } from './directus';
 import { createFinalRecords as generateFinalRecords } from './finalization';
 import pMap = require('p-map');
@@ -39,14 +39,16 @@ const convertToFinalRecord = (record: AudioRecord): FinalRecord => ({
 });
 
 const convertToAudioRecord = (
-  record: AssignmentRecord | NormalRecord,
+  record: FinalRecord,
   getDuration: (file: StorageFileReference) => number
 ): RequireOnly<AudioRecord, 'id'> => ({
   id: record.id,
   sourceFileId: record.taskId,
   ...('contentDetails' in record
     ? { status: 'active', ...record.contentDetails }
-    : { status: 'inactive' }),
+    : 'redirectTo' in record
+      ? { status: 'redirect', redirectTo: record.redirectTo }
+      : { status: 'inactive' }),
   duration: 'file' in record ? getDuration(record.file) : null,
 });
 
@@ -55,7 +57,7 @@ const convertToAudioRecord = (
  * @param record
  * @returns
  */
-const finalizeFile = async ({ id, file }: NormalRecord) => {
+const copyFile = async ({ id, file }: NormalRecord) => {
   const sourceFile = getStorage().bucket(file.bucket).file(file.name, {
     generation: file.generation,
   });
@@ -81,6 +83,14 @@ const finalizeFile = async ({ id, file }: NormalRecord) => {
     },
   });
 };
+
+const getMP3File = (id: number) =>
+  getStorage()
+    .bucket(functions.config().final?.public?.bucket)
+    .file(`${id}.mp3`);
+
+const deleteFile = (id: number) =>
+  getMP3File(id).delete({ ignoreNotFound: true });
 
 /**
  * Upsert functionality is not yet available in Directus,
@@ -126,14 +136,11 @@ export const publish = functions.pubsub
       ),
       (record) =>
         Promise.all([
-          'file' in record ? finalizeFile(record) : void 0,
-          'redirectTo' in record
-            ? void 0 // Not saving redirect records to the CMS yet
-            : // Saving a record into the CMS
-              saveToDirectus(
-                convertToAudioRecord(record, getDuration),
-                existingFileIds.has(record.id)
-              ),
+          'file' in record ? copyFile(record) : deleteFile(record.id),
+          saveToDirectus(
+            convertToAudioRecord(record, getDuration),
+            existingFileIds.has(record.id)
+          ),
         ]),
       { concurrency: 10 }
     ).catch(functions.logger.error);
