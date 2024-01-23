@@ -8,7 +8,7 @@ import { sanitizeTopics } from './sanitizer';
 const unknownToNull = (input: string): string =>
   input?.toUpperCase() === 'UNKNOWN' ? null : input;
 
-const sanitizeContentDetails = (
+export const sanitizeContentDetails = (
   contentDetails: ContentDetails
 ): FinalContentDetails => ({
   // Listing all properties explicitly to avoid leakage of unexpected other properties.
@@ -35,33 +35,33 @@ const sanitizeContentDetails = (
 });
 
 /**
+ * Finds a fidelity record for a given task ID. Resolves the replacement chain.
+ * @param taskId
+ * @returns `taskId` along with the record itself. `null` instead of the record if it's not found.
+ */
+export const resolveFidelityRecord = (
+  fidelityRecords: Map<string, FidelityCheckRecord>,
+  taskId: string
+): { taskId: string; fidelityRecord: FidelityCheckRecord } => {
+  const pastIds = new Set<string>();
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const record = fidelityRecords.get(taskId);
+    if (!record?.replacement) return { taskId, fidelityRecord: record };
+    pastIds.add(taskId);
+    taskId = record.replacement.taskId;
+    if (pastIds.has(taskId)) throw `Circular replacement at ${taskId}`;
+  }
+};
+
+/**
  * Creates new set of final records based on the previous version and new records from FC
  * Using arrays as input parameters since `Iterator.map` is not supported in Node yet: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator/map
  */
 export const createFinalRecords = function* (
   fidelityRecords: Map<string, FidelityCheckRecord>,
   finalRecords: FinalRecord[]
-): Generator<FinalRecord, void, undefined> {
-  /**
-   * Finds a fidelity record for a given task ID. Resolves the replacement chain.
-   * @param taskId
-   * @returns `taskId` along with the record itself. `null` instead of the record if it's not found.
-   */
-  const resolveFidelityRecord = (
-    taskId: string
-  ): [string, FidelityCheckRecord] => {
-    const pastIds = new Set<string>();
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const record = fidelityRecords.get(taskId);
-      if (!record) return [taskId, null];
-      if (!record.replacement) return [taskId, record];
-      pastIds.add(taskId);
-      taskId = record.replacement.taskId;
-      if (pastIds.has(taskId)) throw `Circular replacement at ${taskId}`;
-    }
-  };
-
+): IterableIterator<FinalRecord> {
   // We need to know all the published task IDs in order to detect redirects properly
   const publishedTasks = new Map(
     finalRecords.flatMap((record) =>
@@ -76,7 +76,10 @@ export const createFinalRecords = function* (
     // Returning a record without a task ID as it is
     if (!record.taskId) return record;
 
-    const [taskId, fidelityRecord] = resolveFidelityRecord(record.taskId);
+    const { taskId, fidelityRecord } = resolveFidelityRecord(
+      fidelityRecords,
+      record.taskId
+    );
 
     return fidelityRecord &&
       'approval' in fidelityRecord &&
