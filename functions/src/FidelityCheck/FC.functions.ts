@@ -11,6 +11,7 @@ import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
+import { getFileDurationPath, metadataCacheRef } from '../metadata-database';
 import { modificationTime } from '../modification-time';
 import {
   Approval,
@@ -36,9 +37,10 @@ export const importRecords = functions
     );
 
     /// Getting spreadsheet rows and database snapshot and files listings in parallel
-    const [rows, snapshot] = await Promise.all([
+    const [rows, snapshot, metadataCacheSnapshot] = await Promise.all([
       sheet.getRows(),
       database().ref('/FC/records').once('value'),
+      metadataCacheRef.once('value'),
     ]);
 
     const validator = new FidelityCheckValidator();
@@ -134,6 +136,7 @@ export const importRecords = functions
           await recordSnapshot.ref.update({
             fidelityCheck: null,
             file: null,
+            duration: null,
           });
 
         return 'Awaiting FC';
@@ -191,6 +194,9 @@ export const importRecords = functions
         await recordSnapshot.ref.update({
           file: fileReference,
           fidelityCheck,
+          duration: metadataCacheSnapshot
+            .child(getFileDurationPath(file))
+            .val() as number,
         });
 
       /**
