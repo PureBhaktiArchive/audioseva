@@ -27,7 +27,7 @@ import { addMediaMetadata, convertToMp3, transcode } from './transcode';
  * @param record
  * @returns
  */
-const copyFile = async (id: number, file: StorageFileReference) => {
+const copySourceFile = async (id: number, file: StorageFileReference) => {
   const sourceFile = getStorage().bucket(file.bucket).file(file.name, {
     generation: file.generation,
   });
@@ -59,7 +59,7 @@ const getMP3File = (id: number) =>
     .bucket(functions.config().final?.public?.bucket)
     .file(`${id}.mp3`);
 
-const deleteFile = (id: number): Promise<void> =>
+const deleteMP3File = (id: number): Promise<void> =>
   getMP3File(id)
     .delete({ ignoreNotFound: true })
     // Chaining to an empty `then` to ignore the result of the promise and return `Promise<void>`
@@ -101,8 +101,11 @@ export const publish = functions.pubsub
 
         return Promise.all([
           record.status === 'active'
-            ? copyFile(record.id, fidelityRecords.get(record.sourceFileId).file)
-            : deleteFile(record.id),
+            ? copySourceFile(
+                record.id,
+                fidelityRecords.get(record.sourceFileId).file
+              )
+            : deleteMP3File(record.id),
           directus.request(
             original
               ? updateItem(
