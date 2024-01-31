@@ -2,7 +2,7 @@
  * sri sri guru gaurangau jayatah
  */
 
-import { AudioRecord } from './AudioRecord';
+import { ActiveRecord } from './AudioRecord';
 import languageCodes from './language-codes.json';
 
 // Languages should come in this order, all other languages afterwards.
@@ -37,7 +37,7 @@ export const abbreviateLanguages = (languages: string[]): string =>
     .join(',')
     .toUpperCase() || null; // Converting an empty string to `null`
 
-export function composeFileName(record: AudioRecord): string {
+export function composeFileName(record: ActiveRecord): string {
   return [
     record.date ?? 'UNDATED',
     record.timeOfDay?.toUpperCase(),
@@ -52,7 +52,7 @@ export function composeFileName(record: AudioRecord): string {
 }
 
 export const composeMediaMetadata = (
-  record: AudioRecord
+  record: ActiveRecord
 ): Record<string, string> => ({
   'BVNM Archive ID': String(record.id),
   title: record.title,

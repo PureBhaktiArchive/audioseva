@@ -5,19 +5,9 @@
 import { createItem, readItem, readItems, updateItem } from '@directus/sdk';
 import contentDisposition from 'content-disposition';
 import { getDatabase } from 'firebase-admin/database';
-import { getFunctions } from 'firebase-admin/functions';
 import { getStorage } from 'firebase-admin/storage';
 import * as functions from 'firebase-functions';
-import {
-  concat,
-  drain,
-  filter,
-  map,
-  pipeAsync,
-  pipeSync,
-  waitRace,
-  zip,
-} from 'iter-ops';
+import { drain, map, pipeAsync, pipeSync, waitRace } from 'iter-ops';
 import { finished } from 'node:stream/promises';
 import * as path from 'path';
 import * as util from 'util';
@@ -25,13 +15,10 @@ import { FidelityCheckRecord } from '../FidelityCheck/FidelityCheckRecord';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
 import { objectToIterableEntries } from '../iterable-helpers';
-import { getFileDurationPath, metadataCacheRef } from '../metadata-database';
 import { getDifference } from '../object-diff';
-import { AudioRecord } from './AudioRecord';
-import { NormalRecord } from './FinalRecord';
+import { ActiveRecord, AudioRecord } from './AudioRecord';
 import { directus } from './directus';
-import { resolveFidelityRecord, sanitizeContentDetails } from './finalization';
-import { createIdGenerator } from './id-generator';
+import { finalizeAudios } from './finalization';
 import { composeFileName, composeMediaMetadata } from './metadata';
 import { addMediaMetadata, convertToMp3, transcode } from './transcode';
 
@@ -40,7 +27,7 @@ import { addMediaMetadata, convertToMp3, transcode } from './transcode';
  * @param record
  * @returns
  */
-const copyFile = async ({ id, file }: NormalRecord) => {
+const copyFile = async (id: number, file: StorageFileReference) => {
   const sourceFile = getStorage().bucket(file.bucket).file(file.name, {
     generation: file.generation,
   });
@@ -83,115 +70,57 @@ const PUBLICATION_TOPIC = 'publish';
 export const publish = functions.pubsub
   .topic(PUBLICATION_TOPIC)
   .onPublish(async () => {
-    const [fidelitySnapshot, metadataCacheSnapshot, audioRecords] =
-      await Promise.all([
-        getDatabase().ref('/FC/records').once('value'),
-        metadataCacheRef.once('value'),
-        directus.request(readItems('audios', { limit: -1 })),
-      ]);
+    const [fidelitySnapshot, audioRecords] = await Promise.all([
+      getDatabase().ref('/FC/records').once('value'),
+      directus.request(readItems('audios', { limit: -1 })),
+    ]);
 
     const fidelityRecords = new Map(
       objectToIterableEntries(
         fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
       )
     );
-    const existingFileIds = new Set(audioRecords.map(({ id }) => id));
-    const getDuration = (file: StorageFileReference) =>
-      metadataCacheSnapshot.child(getFileDurationPath(file)).val() as number;
 
-    // We need to keep track of all the published task IDs in order to detect redirects properly
-    const publishedTasks = new Map<string, number>();
-
-    const fileQueue = getFunctions().taskQueue('finalizeFile');
-
-    const generateItem = (
-      fidelityRecord: FidelityCheckRecord,
-      taskId: string,
-      id: number
-    ): Partial<AudioRecord> =>
-      fidelityRecord && 'approval' in fidelityRecord && fidelityRecord.approval
-        ? // Generating a redirect record if the target task has been already published under another file ID
-          publishedTasks.has(taskId) && publishedTasks.get(taskId) !== id
-          ? {
-              status: 'redirect',
-              redirectTo: publishedTasks.get(taskId),
-            }
-          : // Normal record
-            (publishedTasks.set(taskId, id),
-            {
-              status: 'active',
-              sourceFileId: taskId,
-              ...sanitizeContentDetails(fidelityRecord.contentDetails),
-              duration: getDuration(fidelityRecord.file),
-            })
-        : // Deactivating
-          { status: 'inactive' };
-
-    // Updating existing (previously finalized) records
-    const updates = pipeSync(
-      audioRecords,
-      // Keeping records without a task ID intact because they may have been created not by this code
-      filter((record) => !!record.sourceFileId),
-      // Finding a corresponding fidelity record
-      map((record) => ({
-        original: record,
-        ...resolveFidelityRecord(fidelityRecords, record.sourceFileId),
-      })),
-      map(({ fidelityRecord, taskId, original }) => ({
-        original,
-        update: getDifference(
-          original,
-          generateItem(fidelityRecord, taskId, original.id)
-        ),
-      })),
-      // Filtering out items that have no changes
-      filter(({ update }) => !util.isDeepStrictEqual(update, {})),
-      map(({ original, update }) =>
-        Promise.all([
-          directus.request(updateItem('audios', original.id, update)),
-          // Updating the file is the status stays active or turns into active
-          update.status ?? original.status === 'active'
-            ? fileQueue.enqueue({
-                /*TODO */
-              })
-            : deleteFile(original.id),
-        ])
+    const existingRecords = new Map(
+      pipeSync(
+        audioRecords,
+        map((record) => [record.id, record])
       )
     );
 
-    const fileIdGenerator = createIdGenerator((id) => existingFileIds.has(id));
-
-    const inserts = pipeSync(
-      fidelityRecords,
-      filter(
-        ([taskId, fidelityRecord]) =>
-          'approval' in fidelityRecord &&
-          fidelityRecord.approval &&
-          !fidelityRecord.replacement &&
-          !publishedTasks.has(taskId)
+    const operations = pipeSync(
+      finalizeAudios(
+        fidelityRecords,
+        // Casting due to a typing issue in Directus
+        audioRecords as AudioRecord[]
       ),
-      zip(fileIdGenerator),
-      map(([[taskId, fidelityRecord], id]) =>
-        Promise.all([
+      map((record) => {
+        const original = existingRecords.get(record.id);
+        // Skipping records that have not changed
+        if (original && util.isDeepStrictEqual(original, record)) return void 0;
+
+        return Promise.all([
+          record.status === 'active'
+            ? copyFile(record.id, fidelityRecords.get(record.sourceFileId).file)
+            : deleteFile(record.id),
           directus.request(
-            createItem('audios', {
-              id,
-              ...generateItem(fidelityRecord, taskId, id),
-            })
+            original
+              ? updateItem(
+                  'audios',
+                  original.id,
+                  getDifference(original, record)
+                )
+              : createItem('audios', record)
           ),
-          fileQueue.enqueue({
-            /*TODO */
-          }),
-        ])
-      )
+        ]);
+      })
     );
 
     // Awaiting for the first item of the one-item iterator emitted by `drain` in order to trigger the whole pipeline
-    await pipeAsync(
-      pipeSync(updates, concat(inserts)),
-      waitRace(20),
-      drain()
-    ).catch(functions.logger.error).first;
+    // See https://github.com/vitaly-t/iter-ops/discussions/230
+    await pipeAsync(operations, waitRace(20), drain()).catch(
+      functions.logger.error
+    ).first;
   });
 
 export const createMP3 = functions.storage
@@ -218,11 +147,16 @@ export const createMP3 = functions.storage
       // MP3 file was created from the same source file, no need transcoding
       return functions.logger.info('MP3 file already exists');
 
+    if (record.status !== 'active')
+      return functions.logger.info(`Record ${id} is not active`);
+
     const uploadStream = mp3File.createWriteStream({
       resumable: false,
       metadata: {
         contentType: 'audio/mpeg',
-        contentDisposition: contentDisposition(composeFileName(record)),
+        contentDisposition: contentDisposition(
+          composeFileName(record as ActiveRecord)
+        ),
         metadata: {
           sourceMd5Hash: object.md5Hash,
         },
@@ -236,7 +170,7 @@ export const createMP3 = functions.storage
         getStorage().bucket(object.bucket).file(object.name).createReadStream(),
         uploadStream,
         convertToMp3,
-        addMediaMetadata(composeMediaMetadata(record))
+        addMediaMetadata(composeMediaMetadata(record as ActiveRecord))
       ),
       finished(uploadStream),
     ]);

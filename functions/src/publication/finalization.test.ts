@@ -11,12 +11,12 @@ import {
 } from '../FidelityCheck/FidelityCheckRecord';
 import { StorageFileReference } from '../StorageFileReference';
 import {
-  AssignmentRecord,
-  FinalRecord,
-  NormalRecord,
-  RedirectRecord,
-} from './FinalRecord';
-import { createFinalRecords } from './finalization';
+  ActiveRecord,
+  AudioRecord,
+  InactiveRecord,
+  RedirectionRecord,
+} from './AudioRecord';
+import { finalizeAudios } from './finalization';
 
 describe('Finalization', () => {
   const contentDetails1: ContentDetails = {
@@ -108,47 +108,52 @@ describe('Finalization', () => {
       file: file(taskId),
       fidelityCheck,
       replacement,
+      duration: 3705,
     },
   ];
 
-  const assign = (id: number, taskId: string): AssignmentRecord => ({
+  const inactive = (id: number, sourceFileId: string): InactiveRecord => ({
     id,
-    taskId,
+    sourceFileId,
+    status: 'inactive',
   });
 
-  const final = (
+  const active = (
     id: number,
-    taskId: string,
-    contentDetails: FinalContentDetails,
-    effectiveTaskId?: string
-  ): NormalRecord => ({
+    sourceFileId: string,
+    contentDetails: FinalContentDetails
+  ): ActiveRecord => ({
     id,
-    taskId,
-    file: file(effectiveTaskId ?? taskId),
-    contentDetails,
+    sourceFileId,
+    status: 'active',
+    ...contentDetails,
+    duration: 3705,
   });
 
   const redir = (
     id: number,
-    taskId: string,
+    sourceFileId: string,
     redirectTo: number
-  ): RedirectRecord => ({ id, taskId, redirectTo });
+  ): RedirectionRecord => ({
+    id,
+    sourceFileId,
+    status: 'redirect',
+    redirectTo,
+  });
 
   const runTestCases = (
     cases: {
       name: string;
       fcrs: [string, FidelityCheckRecord][];
-      before: FinalRecord[];
-      after: FinalRecord[];
+      before: AudioRecord[];
+      after: AudioRecord[];
     }[]
   ) =>
     // Iterating because $variable seems to not be supported for a table from a variable in our version of Jest.
     // See https://github.com/jestjs/jest/issues/12562
     cases.forEach(({ name, fcrs, before, after }) =>
       test(`${name}`, () =>
-        expect([...createFinalRecords(new Map(fcrs), before)]).toStrictEqual(
-          after
-        ))
+        expect([...finalizeAudios(new Map(fcrs), before)]).toStrictEqual(after))
     );
 
   describe('Simple updates', () => {
@@ -162,50 +167,50 @@ describe('Finalization', () => {
       {
         name: 'Unpublishing an unapproved record',
         fcrs: [fcr('A')],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [assign(5, 'A')],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [inactive(5, 'A')],
       },
       {
         name: 'Unpublishing a missing record',
         fcrs: [],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [assign(5, 'A')],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [inactive(5, 'A')],
       },
       {
         name: 'Publishing a previously unpublished record',
         fcrs: [fcr('A', contentDetails1)],
-        before: [assign(5, 'A')],
-        after: [final(5, 'A', contentDetails1Final)],
+        before: [inactive(5, 'A')],
+        after: [active(5, 'A', contentDetails1Final)],
       },
       {
         name: 'Publishing an approved record',
         fcrs: [fcr('A', contentDetails1)],
         before: [],
-        after: [final(1, 'A', contentDetails1Final)],
+        after: [active(1, 'A', contentDetails1Final)],
       },
       {
         name: 'Keeping a published record',
         fcrs: [fcr('A', contentDetails1)],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'A', contentDetails1Final)],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [active(5, 'A', contentDetails1Final)],
       },
       {
         name: 'Updating a published record',
         fcrs: [fcr('A', contentDetails3)],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'A', contentDetails3Final)],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [active(5, 'A', contentDetails3Final)],
       },
       {
         name: 'Undoing a redirect for a missing record',
         fcrs: [],
         before: [redir(5, 'A', 46)],
-        after: [assign(5, 'A')],
+        after: [inactive(5, 'A')],
       },
       {
         name: 'Keeping assignments untouched',
         fcrs: [],
-        before: [assign(5, 'A')],
-        after: [assign(5, 'A')],
+        before: [inactive(5, 'A')],
+        after: [inactive(5, 'A')],
       },
     ]);
   });
@@ -216,32 +221,32 @@ describe('Finalization', () => {
       {
         name: 'Unpublishing an approved record replaced with a missing one',
         fcrs: [fcr('A', contentDetails1, repl('B'))],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [assign(5, 'A')],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [inactive(5, 'A')],
       },
       {
         name: 'Unpublishing an approved record replaced with an unapproved one',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B')],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [assign(5, 'A')],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [inactive(5, 'A')],
       },
       {
         name: 'Unpublishing an unapproved record replaced with an unapproved one',
         fcrs: [fcr('A', undefined, repl('B')), fcr('B')],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [assign(5, 'A')],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [inactive(5, 'A')],
       },
       {
         name: 'Replacing an approved record with another approved one',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'A', contentDetails2Final, 'B')],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [active(5, 'B', contentDetails2Final)],
       },
       {
         name: 'Replacing an unapproved record with an approved one',
         fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'A', contentDetails2Final, 'B')],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [active(5, 'B', contentDetails2Final)],
       },
 
       /** Not published → not published */
@@ -274,140 +279,142 @@ describe('Finalization', () => {
         name: 'Publishing an approved record replacing an approved one',
         fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
         before: [],
-        after: [final(1, 'B', contentDetails2Final)],
+        after: [active(1, 'B', contentDetails2Final)],
       },
       {
         name: 'Publishing an approved record replacing an unapproved one',
         fcrs: [fcr('A', undefined, repl('B')), fcr('B', contentDetails2)],
         before: [],
-        after: [final(1, 'B', contentDetails2Final)],
+        after: [active(1, 'B', contentDetails2Final)],
       },
     ]);
   });
 
-  describe('Complex replacements', () => {
+  describe('Chained replacements', () => {
     runTestCases([
       {
-        name: 'Chain replacement',
+        name: 'All approved and published',
         fcrs: [
           fcr('A', contentDetails1, repl('B')),
           fcr('B', contentDetails2, repl('C')),
           fcr('C', contentDetails3),
         ],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [final(5, 'A', contentDetails3Final, 'C')],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [active(5, 'C', contentDetails3Final)],
       },
       {
-        name: 'Chain replacement of an unpublished record',
+        name: 'All approved but not published',
         fcrs: [
           fcr('A', contentDetails1, repl('B')),
           fcr('B', contentDetails2, repl('C')),
           fcr('C', contentDetails3),
         ],
         before: [],
-        after: [final(1, 'C', contentDetails3Final)],
+        after: [active(1, 'C', contentDetails3Final)],
       },
       {
-        name: 'Chain replacement of an unpublished record through a published one',
+        name: 'Unpublished record through a published one',
         fcrs: [
           fcr('A', contentDetails1, repl('B')),
           fcr('B', contentDetails2, repl('C')),
           fcr('C', contentDetails3),
         ],
-        before: [final(89, 'B', contentDetails2Final)],
-        after: [final(89, 'B', contentDetails3Final, 'C')],
+        before: [active(89, 'B', contentDetails2Final)],
+        after: [active(89, 'C', contentDetails3Final)],
       },
       {
-        name: 'Chain replacement with a missing record',
+        name: 'Missing record in the end',
         fcrs: [
           fcr('A', contentDetails1, repl('B')),
           fcr('B', contentDetails2, repl('C')),
         ],
-        before: [final(5, 'A', contentDetails1Final)],
-        after: [assign(5, 'A')],
-      },
-      {
-        name: 'Merger',
-        fcrs: [
-          fcr('A', contentDetails1, repl('C')),
-          fcr('B', contentDetails2, repl('C')),
-          fcr('C', contentDetails3),
-        ],
-        before: [
-          final(5, 'A', contentDetails1Final),
-          final(89, 'B', contentDetails2Final),
-        ],
-        after: [final(5, 'A', contentDetails3Final, 'C'), redir(89, 'B', 5)],
-      },
-      {
-        name: 'Merger into a missing record',
-        fcrs: [
-          fcr('A', contentDetails1, repl('C')),
-          fcr('B', contentDetails2, repl('C')),
-        ],
-        before: [
-          final(5, 'A', contentDetails1Final),
-          final(89, 'B', contentDetails2Final),
-        ],
-        after: [assign(5, 'A'), assign(89, 'B')],
-      },
-      {
-        name: 'Redirect to the forward record',
-        fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
-        before: [
-          final(5, 'A', contentDetails1Final),
-          final(89, 'B', contentDetails2Final),
-        ],
-        after: [redir(5, 'A', 89), final(89, 'B', contentDetails2Final)],
-      },
-      {
-        name: 'Redirect to the past record',
-        fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2, repl('A'))],
-        before: [
-          final(5, 'A', contentDetails1Final),
-          final(89, 'B', contentDetails2Final),
-        ],
-        after: [final(5, 'A', contentDetails1Final), redir(89, 'B', 5)],
-      },
-      {
-        name: 'Redirect to a missing published record',
-        fcrs: [fcr('B', contentDetails2, repl('A'))],
-        before: [
-          final(5, 'A', contentDetails1Final),
-          final(89, 'B', contentDetails2Final),
-        ],
-        after: [assign(5, 'A'), assign(89, 'B')],
+        before: [active(5, 'A', contentDetails1Final)],
+        after: [inactive(5, 'A')],
       },
     ]);
   });
 
-  /**
-   * This set assumes that there was a replacement that was published
-   */
-  describe('Restoration', () => {
+  describe('Merges', () => {
     runTestCases([
       {
-        name: 'Removing a replacement altogether',
-        fcrs: [fcr('A', contentDetails1)],
-        before: [final(5, 'A', contentDetails2Final, 'B')],
-        after: [final(5, 'A', contentDetails1Final)],
+        name: 'simple',
+        fcrs: [
+          fcr('A', contentDetails1, repl('C')),
+          fcr('B', contentDetails2, repl('C')),
+          fcr('C', contentDetails3),
+        ],
+        before: [
+          active(5, 'A', contentDetails1Final),
+          active(89, 'B', contentDetails2Final),
+        ],
+        after: [active(5, 'C', contentDetails3Final), redir(89, 'B', 5)],
       },
       {
-        name: 'Publishing a replacement separately',
-        fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2)],
-        before: [final(5, 'A', contentDetails2Final, 'B')],
-        after: [
-          final(5, 'A', contentDetails1Final),
-          final(1, 'B', contentDetails2Final),
+        name: 'into a missing record',
+        fcrs: [
+          fcr('A', contentDetails1, repl('C')),
+          fcr('B', contentDetails2, repl('C')),
         ],
+        before: [
+          active(5, 'A', contentDetails1Final),
+          active(89, 'B', contentDetails2Final),
+        ],
+        after: [inactive(5, 'A'), inactive(89, 'B')],
+      },
+    ]);
+  });
+
+  describe('Redirects', () => {
+    runTestCases([
+      {
+        name: 'to a forward record',
+        fcrs: [fcr('A', contentDetails1, repl('B')), fcr('B', contentDetails2)],
+        before: [
+          active(5, 'A', contentDetails1Final),
+          active(89, 'B', contentDetails2Final),
+        ],
+        after: [redir(5, 'A', 89), active(89, 'B', contentDetails2Final)],
+      },
+      {
+        name: 'to a past record',
+        fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2, repl('A'))],
+        before: [
+          active(5, 'A', contentDetails1Final),
+          active(89, 'B', contentDetails2Final),
+        ],
+        after: [active(5, 'A', contentDetails1Final), redir(89, 'B', 5)],
+      },
+      {
+        name: 'to a missing published record',
+        fcrs: [fcr('B', contentDetails2, repl('A'))],
+        before: [
+          active(5, 'A', contentDetails1Final),
+          active(89, 'B', contentDetails2Final),
+        ],
+        after: [inactive(5, 'A'), inactive(89, 'B')],
+      },
+      {
+        name: 'to an unapproved record',
+        fcrs: [fcr('B', contentDetails2, repl('A')), fcr('B')],
+        before: [
+          active(5, 'A', contentDetails1Final),
+          active(89, 'B', contentDetails2Final),
+        ],
+        after: [inactive(5, 'A'), inactive(89, 'B')],
+      },
+      {
+        name: 'to an inactive record',
+        fcrs: [fcr('B', contentDetails2, repl('A')), fcr('B')],
+        before: [active(5, 'A', contentDetails1Final), inactive(89, 'B')],
+        after: [inactive(5, 'A'), inactive(89, 'B')],
       },
       {
         name: 'Removing a redirection',
         fcrs: [fcr('A', contentDetails1), fcr('B', contentDetails2)],
-        before: [redir(5, 'A', 89), final(89, 'B', contentDetails2Final)],
+        before: [redir(5, 'A', 89), active(89, 'B', contentDetails2Final)],
         after: [
-          final(5, 'A', contentDetails1Final),
-          final(89, 'B', contentDetails2Final),
+          active(5, 'A', contentDetails1Final),
+          active(89, 'B', contentDetails2Final),
         ],
       },
     ]);
@@ -418,13 +425,13 @@ describe('Finalization', () => {
       cases: {
         name: string;
         fcrs: [string, FidelityCheckRecord][];
-        before: FinalRecord[];
+        before: AudioRecord[];
       }[],
       errorRegexp: RegExp
     ) =>
       cases.forEach(({ name, fcrs, before }) =>
         test(`${name}`, () =>
-          expect(() => [...createFinalRecords(new Map(fcrs), before)]).toThrow(
+          expect(() => [...finalizeAudios(new Map(fcrs), before)]).toThrow(
             errorRegexp
           ))
       );
@@ -439,7 +446,7 @@ describe('Finalization', () => {
               fcr('B', undefined, repl('C')),
               fcr('C', undefined, repl('A')),
             ],
-            before: [assign(5, 'A')],
+            before: [inactive(5, 'A')],
           },
           {
             name: 'Two records',
@@ -447,12 +454,12 @@ describe('Finalization', () => {
               fcr('A', undefined, repl('B')),
               fcr('B', undefined, repl('A')),
             ],
-            before: [assign(5, 'A')],
+            before: [inactive(5, 'A')],
           },
           {
             name: 'Self',
             fcrs: [fcr('A', undefined, repl('A'))],
-            before: [assign(5, 'A')],
+            before: [inactive(5, 'A')],
           },
         ],
         /circular/i

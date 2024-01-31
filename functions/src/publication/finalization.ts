@@ -1,17 +1,24 @@
-import { ContentDetails, FinalContentDetails } from '../ContentDetails';
+import { filter, map, pipeSync } from 'iter-ops';
 import { DateTimeConverter } from '../DateTimeConverter';
-import { FidelityCheckRecord } from '../FidelityCheck/FidelityCheckRecord';
-import { FinalRecord } from './FinalRecord';
+import {
+  ApprovedRecord,
+  FidelityCheckRecord,
+} from '../FidelityCheck/FidelityCheckRecord';
+import { ActiveRecord, AudioRecord } from './AudioRecord';
 import { createIdGenerator } from './id-generator';
 import { sanitizeTopics } from './sanitizer';
 
 const unknownToNull = (input: string): string =>
   input?.toUpperCase() === 'UNKNOWN' ? null : input;
 
-export const sanitizeContentDetails = (
-  contentDetails: ContentDetails
-): FinalContentDetails => ({
-  // Listing all properties explicitly to avoid leakage of unexpected other properties.
+const createActiveRecord = (
+  id: number,
+  taskId: string,
+  { contentDetails, duration }: ApprovedRecord
+): ActiveRecord => ({
+  id,
+  status: 'active',
+  sourceFileId: taskId,
   title: contentDetails.title,
   topics: sanitizeTopics(contentDetails.topics),
   date: DateTimeConverter.standardizePseudoIsoDate(
@@ -32,100 +39,97 @@ export const sanitizeContentDetails = (
     contentDetails.otherSpeakers?.split('&')?.map((value) => value.trim()) ||
     null,
   soundQualityRating: contentDetails.soundQualityRating,
+  duration: duration,
 });
 
 /**
- * Finds a fidelity record for a given task ID. Resolves the replacement chain.
- * @param taskId
- * @returns `taskId` along with the record itself. `null` instead of the record if it's not found.
+ * Creates a new set of audio records based on the previous version and records from FC
  */
-export const resolveFidelityRecord = (
+export const finalizeAudios = function* (
   fidelityRecords: Map<string, FidelityCheckRecord>,
-  taskId: string
-): { taskId: string; fidelityRecord: FidelityCheckRecord } => {
-  const pastIds = new Set<string>();
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const record = fidelityRecords.get(taskId);
-    if (!record?.replacement) return { taskId, fidelityRecord: record };
-    pastIds.add(taskId);
-    taskId = record.replacement.taskId;
-    if (pastIds.has(taskId)) throw `Circular replacement at ${taskId}`;
-  }
-};
+  audioRecords: AudioRecord[]
+): IterableIterator<AudioRecord> {
+  /**
+   * Finds a fidelity record for a given task ID. Resolves the replacement chain.
+   * @param taskId
+   * @returns `taskId` along with the record itself. `null` instead of the record if it's not found.
+   */
+  const resolveFidelityRecord = (
+    taskId: string
+  ): { taskId: string; fidelityRecord: FidelityCheckRecord } => {
+    const pastIds = new Set<string>();
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const record = fidelityRecords.get(taskId);
+      if (!record?.replacement) return { taskId, fidelityRecord: record };
+      pastIds.add(taskId);
+      taskId = record.replacement.taskId;
+      if (pastIds.has(taskId)) throw `Circular replacement at ${taskId}`;
+    }
+  };
 
-/**
- * Creates new set of final records based on the previous version and new records from FC
- * Using arrays as input parameters since `Iterator.map` is not supported in Node yet: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator/map
- */
-export const createFinalRecords = function* (
-  fidelityRecords: Map<string, FidelityCheckRecord>,
-  finalRecords: FinalRecord[]
-): IterableIterator<FinalRecord> {
-  // We need to know all the published task IDs in order to detect redirects properly
+  // We need to keep track of all the published task IDs in order to detect redirects properly
   const publishedTasks = new Map(
-    finalRecords.flatMap((record) =>
-      'redirectTo' in record || !record.taskId
-        ? []
-        : [[record.taskId, record.id]]
+    pipeSync(
+      audioRecords,
+      filter((record) => record.status === 'active' && !!record.sourceFileId),
+      map((record) => [record.sourceFileId, record.id])
     )
   );
 
   // Updating existing (previously finalized) records
-  yield* finalRecords.map((record): FinalRecord => {
-    // Returning a record without a task ID as it is
-    if (!record.taskId) return record;
+  yield* pipeSync(
+    audioRecords,
+    // Keeping records without a task ID intact because they may have been created not by this code
+    filter((record) => !!record.sourceFileId),
+    map(({ id, sourceFileId }): AudioRecord => {
+      const { taskId, fidelityRecord } = resolveFidelityRecord(sourceFileId);
 
-    const { taskId, fidelityRecord } = resolveFidelityRecord(
-      fidelityRecords,
-      record.taskId
-    );
+      return fidelityRecord &&
+        'approval' in fidelityRecord &&
+        fidelityRecord.approval
+        ? publishedTasks.has(taskId) && publishedTasks.get(taskId) !== id
+          ? // A redirect record if the target task has been already published under another file ID
+            {
+              id,
+              status: 'redirect',
+              // Keeping the source file ID in case a replacement is removed later
+              sourceFileId,
+              redirectTo: publishedTasks.get(taskId),
+            }
+          : // Active record
+            (publishedTasks.set(taskId, id),
+            createActiveRecord(id, taskId, fidelityRecord))
+        : // Deactivating, but keeping the original source file ID in order to publish the same record under the same ID
+          { id, sourceFileId, status: 'inactive' };
+    })
+  );
 
-    return fidelityRecord &&
-      'approval' in fidelityRecord &&
-      fidelityRecord.approval
-      ? // Generating a redirect record if the target task has been already published under another file ID
-        publishedTasks.has(taskId) && publishedTasks.get(taskId) !== record.id
-        ? {
-            id: record.id,
-            taskId: record.taskId,
-            redirectTo: publishedTasks.get(taskId),
-          }
-        : // Normal record
-          // Saving again because the task ID could have changed due to replacements
-          (publishedTasks.set(taskId, record.id),
-          {
-            id: record.id,
-            taskId: record.taskId,
-            file: fidelityRecord.file,
-            contentDetails: sanitizeContentDetails(
-              fidelityRecord.contentDetails
-            ),
-          })
-      : // Unpublishing, but keeping the original fileId association
-        {
-          id: record.id,
-          taskId: record.taskId,
-        };
-  });
-
-  const existingFileIds = new Set(finalRecords.map(({ id }) => id));
+  const existingFileIds = new Set(
+    pipeSync(
+      audioRecords,
+      map(({ id }) => id)
+    )
+  );
   const fileIdGenerator = createIdGenerator((id) => existingFileIds.has(id));
 
   // Generating new final records
-  for (const [taskId, fidelityRecord] of fidelityRecords) {
+  yield* pipeSync(
+    fidelityRecords,
     // Skipping unapproved, already published or replaced records
-    if (
-      'approval' in fidelityRecord &&
-      fidelityRecord.approval &&
-      !fidelityRecord.replacement &&
-      !publishedTasks.has(taskId)
-    )
-      yield {
-        id: fileIdGenerator.next().value,
+    filter(
+      ([taskId, fidelityRecord]) =>
+        'approval' in fidelityRecord &&
+        fidelityRecord.approval &&
+        !fidelityRecord.replacement &&
+        !publishedTasks.has(taskId)
+    ),
+    map(([taskId, fidelityRecord]) =>
+      createActiveRecord(
+        fileIdGenerator.next().value,
         taskId,
-        file: fidelityRecord.file,
-        contentDetails: sanitizeContentDetails(fidelityRecord.contentDetails),
-      };
-  }
+        fidelityRecord as ApprovedRecord //We asserted this above, TypeScript is not smart enough
+      )
+    )
+  );
 };
