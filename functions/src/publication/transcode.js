@@ -1,6 +1,5 @@
 import ffmpeg from 'fluent-ffmpeg';
 import { Duration } from 'luxon';
-import { Readable, Writable } from 'stream';
 
 /** @type {ffmpeg.PresetFunction} */
 export const convertToMp3 = (command) =>
@@ -70,8 +69,8 @@ const runCommandAsync = (command) =>
 /**
  * Transcodes the input audio using the specified preset and metadata.
  *
- * @param {Readable} inputStream
- * @param {Writable} outputStream
+ * @param {import('stream').Readable} inputStream
+ * @param {import('stream').Writable} outputStream
  * @param {ffmpeg.PresetFunction[]} presets
  * @returns {Promise<number>} A duration of the transcoded audio
  */
