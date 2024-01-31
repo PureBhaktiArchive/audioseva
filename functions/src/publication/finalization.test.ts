@@ -156,6 +156,17 @@ describe('Finalization', () => {
         expect([...finalizeAudios(new Map(fcrs), before)]).toStrictEqual(after))
     );
 
+  describe('Out of scope', () => {
+    runTestCases([
+      {
+        name: 'A record without a source file ID',
+        fcrs: [],
+        before: [inactive(333, null)],
+        after: [],
+      },
+    ]);
+  });
+
   describe('Simple updates', () => {
     runTestCases([
       {
