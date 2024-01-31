@@ -45,10 +45,11 @@ const copySourceFile = async (id: number, file: StorageFileReference) => {
 
   await sourceFile.copy(finalFile, {
     contentType: sourceFile.metadata.contentType,
+    // This property seems to be incorrectly typed, see https://github.com/googleapis/nodejs-storage/issues/2389
+    // In fact it is treated as the custom metadata only
     metadata: {
       // Keeping the source file metadata to preserve the `mtime`
       ...sourceFile.metadata.metadata,
-      // Injecting the custom metadata here due to https://github.com/googleapis/nodejs-storage/issues/2389
       source: sourceFile.metadata.id,
     },
   });
