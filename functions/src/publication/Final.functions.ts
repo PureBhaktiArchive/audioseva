@@ -142,6 +142,7 @@ export const createMP3 = functions.storage
 
     if (
       mp3Exists &&
+      +mp3File.metadata.size > 0 &&
       mp3File.metadata.metadata?.sourceMd5Hash === object.md5Hash
     )
       // MP3 file was created from the same source file, no need transcoding
