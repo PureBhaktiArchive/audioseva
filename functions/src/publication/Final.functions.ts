@@ -116,9 +116,12 @@ export const publish = functions.pubsub
       })
     );
 
+    // Limiting concurrent requests to the CMS.
+    const CONCURRENCY = 20;
+
     // Awaiting for the first item of the one-item iterator emitted by `drain` in order to trigger the whole pipeline
     // See https://github.com/vitaly-t/iter-ops/discussions/230
-    await pipeAsync(operations, waitRace(20), drain()).catch(
+    await pipeAsync(operations, waitRace(CONCURRENCY), drain()).catch(
       functions.logger.error
     ).first;
   });
