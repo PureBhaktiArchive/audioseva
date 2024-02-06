@@ -30,11 +30,6 @@ import {
 
 const transcodingQueue = getFunctions().taskQueue('Final-createMP3');
 
-const getMP3File = (id: number) =>
-  getStorage()
-    .bucket(functions.config().final?.public?.bucket)
-    .file(`${id}.mp3`);
-
 const composeStorageMetadata = (fileName: string, md5Hash: string) => ({
   contentType: 'audio/mpeg',
   contentDisposition: contentDisposition(fileName),
@@ -45,16 +40,25 @@ const composeStorageMetadata = (fileName: string, md5Hash: string) => ({
 
 const finalizeFile = async (
   file: StorageFileReference,
-  record: ActiveRecord,
+  record: AudioRecord,
   original: AudioRecord
 ) => {
+  const publicFile = getStorage()
+    .bucket(functions.config().final?.public?.bucket)
+    .file(`${record.id}.mp3`);
+
+  if (record.status !== 'active') {
+    console.debug('Deleting public file', publicFile.name);
+    publicFile.delete({ ignoreNotFound: true });
+    return;
+  }
+
   const sourceFile = getStorage().bucket(file.bucket).file(file.name, {
     generation: file.generation,
   });
   const finalFile = StorageManager.getBucket('final').file(
     `${record.id}${path.extname(file.name)}`
   );
-  const publicFile = getMP3File(record.id);
 
   // This will populate files’ `metadata` property.
   await Promise.all([
@@ -174,13 +178,11 @@ export const publish = functions.tasks.taskQueue().onDispatch(async () => {
     const difference = getDifference(original, record);
 
     return Promise.all([
-      record.status === 'active'
-        ? finalizeFile(
-            fidelityRecords.get(record.sourceFileId).file,
-            record,
-            original as AudioRecord
-          )
-        : getMP3File(record.id).delete({ ignoreNotFound: true }),
+      finalizeFile(
+        fidelityRecords.get(record.sourceFileId).file,
+        record,
+        original as AudioRecord
+      ),
 
       original
         ? util.isDeepStrictEqual(difference, {})
