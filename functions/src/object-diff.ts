@@ -1,12 +1,29 @@
+import { filter, pipeSync } from 'iter-ops';
+import * as util from 'util';
+import { objectToIterableEntries } from './iterable-helpers';
+
 /**
- * Constructs a diff-object.
+ * Constructs an object that contains only those properties of `b`
+ * which differ from those of `a`.
  *
- * Borrowed from https://stackoverflow.com/a/57669821/3082178
+ * Undefined values are skipped.
+ *
+ * This algorithm is used for constructing an update item for Directus.
+ *
+ * Inspired by https://stackoverflow.com/a/57669821/3082178
  * @param a
  * @param b
- * @returns properties of `b` that differ those of `a`
+ * @returns a difference object
  */
 export const getDifference = <T>(a: Partial<T>, b: Partial<T>): Partial<T> =>
   Object.fromEntries(
-    Object.entries(b).filter(([key, val]) => a[key] !== val)
+    pipeSync(
+      objectToIterableEntries(b),
+      filter(
+        ([key, val]) =>
+          val !== undefined &&
+          // Using this utility to properly compare arrays
+          !util.isDeepStrictEqual(a[key], val)
+      )
+    )
   ) as Partial<T>;

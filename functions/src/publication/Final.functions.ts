@@ -171,6 +171,7 @@ export const publish = functions.tasks.taskQueue().onDispatch(async () => {
 
   const processRecord = async (record: AudioRecord) => {
     const original = existingRecords.get(record.id);
+    const difference = getDifference(original, record);
 
     return Promise.all([
       record.status === 'active'
@@ -182,12 +183,10 @@ export const publish = functions.tasks.taskQueue().onDispatch(async () => {
         : getMP3File(record.id).delete({ ignoreNotFound: true }),
 
       original
-        ? util.isDeepStrictEqual(original, record)
+        ? util.isDeepStrictEqual(difference, {})
           ? // Skipping records that have not changed
             void 0
-          : directus.request(
-              updateItem('audios', original.id, getDifference(original, record))
-            )
+          : directus.request(updateItem('audios', original.id, difference))
         : directus.request(createItem('audios', record)),
     ]);
   };
