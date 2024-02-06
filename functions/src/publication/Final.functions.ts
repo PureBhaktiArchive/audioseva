@@ -24,7 +24,7 @@ import { composeFileName, composeMediaMetadata } from './metadata';
 import {
   addMediaMetadata,
   convertToMp3,
-  copyCodec,
+  copyMP3,
   transcode,
 } from './transcode';
 
@@ -259,7 +259,7 @@ export const createMP3 = functions
         transcode(
           sourceFile.createReadStream(),
           uploadStream,
-          destination === source ? copyCodec : convertToMp3,
+          path.extname(source.name) === '.mp3' ? copyMP3 : convertToMp3,
           addMediaMetadata(mediaMetadata)
         ),
         finished(uploadStream),

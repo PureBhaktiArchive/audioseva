@@ -12,7 +12,8 @@ export const convertToMp3 = (command) =>
     .withOutputFormat('mp3');
 
 /** @type {ffmpeg.PresetFunction} */
-export const copyCodec = (command) => void command.withAudioCodec('copy');
+export const copyMP3 = (command) =>
+  void command.withAudioCodec('copy').withOutputFormat('mp3');
 
 /**
  * @param {Record<string, string>} metadata
