@@ -67,10 +67,7 @@ const finalizeFile = async (
   if (!sourceFile.metadata.name)
     return functions.logger.warn('Source file', sourceFile, 'does not exist.');
 
-  if (
-    finalFile.metadata.metadata?.source !== sourceFile.metadata.id ||
-    finalFile.metadata.md5Hash !== sourceFile.metadata.md5Hash
-  )
+  if (finalFile.metadata.md5Hash !== sourceFile.metadata.md5Hash)
     await sourceFile.copy(finalFile, {
       contentType: sourceFile.metadata.contentType,
       // This property seems to be incorrectly typed, see https://github.com/googleapis/nodejs-storage/issues/2389
