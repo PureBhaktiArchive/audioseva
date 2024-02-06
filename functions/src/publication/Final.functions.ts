@@ -232,7 +232,7 @@ export const createMP3 = functions
         .file(source.name, { generation: source.generation });
 
       await sourceFile.exists();
-      if (!sourceFile.metadata.name)
+      if (!sourceFile.metadata.name || +sourceFile.metadata.size === 0)
         return functions.logger.warn(
           'Source file',
           sourceFile,
