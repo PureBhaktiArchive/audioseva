@@ -235,7 +235,8 @@ export const createMP3 = functions
       if (!sourceFile.metadata.name || +sourceFile.metadata.size === 0)
         return functions.logger.warn(
           'Source file',
-          sourceFile,
+          sourceFile.bucket.name,
+          sourceFile.name,
           'does not exist.'
         );
 
@@ -250,9 +251,9 @@ export const createMP3 = functions
 
       functions.logger.debug(
         'Transcoding',
-        sourceFile.id,
+        sourceFile.metadata.id,
         'to',
-        destinationFile.id
+        destinationFile.name
       );
 
       await Promise.all([
