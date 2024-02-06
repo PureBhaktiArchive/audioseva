@@ -2,15 +2,30 @@
  * sri sri guru gauranga jayatah
  */
 
-import * as admin from 'firebase-admin';
+import { initializeApp } from 'firebase-admin/app';
+import { TaskQueue } from 'firebase-admin/functions';
 import * as functions from 'firebase-functions';
 // https://github.com/firebase/firebase-functions/issues/1351
-import 'firebase-functions/logger/compat';
+// import 'firebase-functions/logger/compat';
 import { globSync } from 'glob';
 import { Settings as DateTimeSettings } from 'luxon';
 import * as path from 'path';
 
-admin.initializeApp();
+initializeApp();
+
+/**
+ * Emulator doesn't support Cloud Tasks functions today.
+ * There isn't a "Google Cloud Task Emulator" that's hooked up to the Firebase Emulator Suite.
+ * Patching the Task Queue class when in the functions emulator.
+ * Inspired by https://github.com/firebase/firebase-tools/issues/4884#issuecomment-1457643321
+ */
+if (process.env.FUNCTIONS_EMULATOR) {
+  Object.assign(TaskQueue.prototype, {
+    enqueue: function (data: unknown, params: unknown) {
+      return console.debug('Enqueued:', data, params);
+    },
+  });
+}
 
 DateTimeSettings.defaultZone = functions.config().coordinator.timezone;
 
