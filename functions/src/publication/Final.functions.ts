@@ -69,9 +69,15 @@ const finalizeFile = async (
 
   // This way we check for file existence to avoid second request with `exists()` method
   if (!sourceFile.metadata.name)
-    return functions.logger.warn('Source file', sourceFile, 'does not exist.');
+    return functions.logger.warn(
+      'Source file',
+      sourceFile.bucket.name,
+      sourceFile.id,
+      'does not exist.'
+    );
 
-  if (finalFile.metadata.md5Hash !== sourceFile.metadata.md5Hash)
+  if (finalFile.metadata.md5Hash !== sourceFile.metadata.md5Hash) {
+    console.debug('Copying file', sourceFile.metadata.id, 'to', finalFile.name);
     await sourceFile.copy(finalFile, {
       contentType: sourceFile.metadata.contentType,
       // This property seems to be incorrectly typed, see https://github.com/googleapis/nodejs-storage/issues/2389
@@ -82,6 +88,7 @@ const finalizeFile = async (
         source: sourceFile.metadata.id,
       },
     });
+  } else console.debug('Final file', finalFile.name, 'is up to date');
 
   const mediaMetadata = composeMediaMetadata(record);
   const fileName = composeFileName(record);
@@ -97,12 +104,7 @@ const finalizeFile = async (
     +publicFile.metadata.size === 0 ||
     publicFile.metadata.metadata?.sourceMd5Hash !== sourceFile.metadata.md5Hash
   ) {
-    functions.logger.debug(
-      'Scheduling a transcoding of a file',
-      sourceFile.id,
-      'to',
-      publicFile.id
-    );
+    console.debug('Creating public file', publicFile.name);
 
     transcodingQueue.enqueue({
       source: {
@@ -123,7 +125,7 @@ const finalizeFile = async (
     original?.status !== 'active' ||
     !util.isDeepStrictEqual(composeMediaMetadata(original), mediaMetadata)
   ) {
-    functions.logger.debug('Updating media metadata for file', publicFile.id);
+    console.debug('Updating media metadata for public file', publicFile.name);
     transcodingQueue.enqueue({
       source: {
         bucket: publicFile.bucket.name,
@@ -140,18 +142,14 @@ const finalizeFile = async (
 
   // Updating only storage metadata if it changed
   else if (composeFileName(original as ActiveRecord) !== fileName) {
-    functions.logger.debug('Updating storage metadata for file', publicFile.id);
+    console.debug('Updating storage metadata for public file', publicFile.name);
     await publicFile.setMetadata(
       composeStorageMetadata(fileName, sourceFile.metadata.md5Hash)
     );
   }
 
   // Otherwise doing nothing
-  else
-    functions.logger.debug(
-      'Nothing essential changed in content details for file',
-      record.id
-    );
+  else console.debug('Public file', publicFile.name, 'is up to date');
 };
 
 export const publish = functions.tasks.taskQueue().onDispatch(async () => {
@@ -187,9 +185,11 @@ export const publish = functions.tasks.taskQueue().onDispatch(async () => {
       original
         ? util.isDeepStrictEqual(difference, {})
           ? // Skipping records that have not changed
-            void 0
-          : directus.request(updateItem('audios', original.id, difference))
-        : directus.request(createItem('audios', record)),
+            console.debug('Record', record.id, 'is up to date')
+          : (console.debug('Updating record', record.id, difference),
+            directus.request(updateItem('audios', original.id, difference)))
+        : (console.debug('Creating record', record),
+          directus.request(createItem('audios', record))),
     ]);
   };
 
