@@ -150,72 +150,64 @@ const finalizeFile = async (
     );
 };
 
-const PUBLICATION_TOPIC = 'publish';
+export const publish = functions.tasks.taskQueue().onDispatch(async () => {
+  const [fidelitySnapshot, audioRecords] = await Promise.all([
+    getDatabase().ref('/FC/records').once('value'),
+    directus.request(readItems('audios', { limit: -1 })),
+  ]);
 
-export const publish = functions.pubsub
-  .topic(PUBLICATION_TOPIC)
-  .onPublish(async () => {
-    const [fidelitySnapshot, audioRecords] = await Promise.all([
-      getDatabase().ref('/FC/records').once('value'),
-      directus.request(readItems('audios', { limit: -1 })),
-    ]);
+  const fidelityRecords = new Map(
+    objectToIterableEntries(
+      fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
+    )
+  );
 
-    const fidelityRecords = new Map(
-      objectToIterableEntries(
-        fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
-      )
-    );
+  const existingRecords = new Map(
+    pipeSync(
+      audioRecords,
+      map((record) => [record.id, record])
+    )
+  );
 
-    const existingRecords = new Map(
-      pipeSync(
-        audioRecords,
-        map((record) => [record.id, record])
-      )
-    );
+  const processRecord = async (record: AudioRecord) => {
+    const original = existingRecords.get(record.id);
 
-    const processRecord = async (record: AudioRecord) => {
-      const original = existingRecords.get(record.id);
+    return Promise.all([
+      record.status === 'active'
+        ? finalizeFile(
+            fidelityRecords.get(record.sourceFileId).file,
+            record,
+            original as AudioRecord
+          )
+        : getMP3File(record.id).delete({ ignoreNotFound: true }),
 
-      return Promise.all([
-        record.status === 'active'
-          ? finalizeFile(
-              fidelityRecords.get(record.sourceFileId).file,
-              record,
-              original as AudioRecord
+      original
+        ? util.isDeepStrictEqual(original, record)
+          ? // Skipping records that have not changed
+            void 0
+          : directus.request(
+              updateItem('audios', original.id, getDifference(original, record))
             )
-          : getMP3File(record.id).delete({ ignoreNotFound: true }),
+        : directus.request(createItem('audios', record)),
+    ]);
+  };
 
-        original
-          ? util.isDeepStrictEqual(original, record)
-            ? // Skipping records that have not changed
-              void 0
-            : directus.request(
-                updateItem(
-                  'audios',
-                  original.id,
-                  getDifference(original, record)
-                )
-              )
-          : directus.request(createItem('audios', record)),
-      ]);
-    };
+  // Limiting concurrent requests to the CMS.
+  const CONCURRENCY = 20;
 
-    // Limiting concurrent requests to the CMS.
-    const CONCURRENCY = 20;
-
-    // Awaiting for the first item of the one-item iterator emitted by `drain` in order to trigger the whole pipeline
-    // See https://github.com/vitaly-t/iter-ops/discussions/230
-    await pipeAsync(
-      finalizeAudios(
-        fidelityRecords,
-        // Casting due to a typing issue in Directus
-        audioRecords as AudioRecord[]
-      ),
-      map(processRecord),
-      waitRace(CONCURRENCY),
-      drain()
-    ).catch(functions.logger.error).first;
-  });
+  // Awaiting for the first item of the one-item iterator emitted by `drain` in order to trigger the whole pipeline
+  // See https://github.com/vitaly-t/iter-ops/discussions/230
+  await pipeAsync(
+    finalizeAudios(
+      fidelityRecords,
+      // Casting due to a typing issue in Directus
+      audioRecords as AudioRecord[]
+    ),
+    map(processRecord),
+    waitRace(CONCURRENCY),
+    drain()
+  ).catch(functions.logger.error).first;
+});
 
 interface MP3CreationTask {
   source: StorageFileReference;
