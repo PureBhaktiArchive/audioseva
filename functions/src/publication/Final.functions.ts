@@ -39,6 +39,18 @@ const composeStorageMetadata = (fileName: string, md5Hash: string) => ({
   },
 });
 
+/**
+ * Copies an approved file into the `final` bucket
+ * and enqueues a public MP3 file creation task if necessary.
+ *
+ * Original audio record is used to detect changes in the content details.
+ * Therefore, it is assumed that the latest MP3 file corresponds
+ * to the latest (original) record.
+ *
+ * @param file
+ * @param record
+ * @param original
+ */
 const finalizeFile = async (
   file: StorageFileReference,
   record: AudioRecord,
@@ -153,6 +165,11 @@ const finalizeFile = async (
   else console.debug('Public file', publicFile.name, 'is up to date');
 };
 
+/**
+ * This cloud function publishes fidelity-checked records
+ * from the Realtime Database into the Directus CMS
+ * and finalizes the corresponding file ({@link finalizeFile}).
+ */
 export const publish = functions.tasks.taskQueue().onDispatch(async () => {
   const [fidelitySnapshot, audioRecords] = await Promise.all([
     getDatabase().ref('/FC/records').once('value'),
