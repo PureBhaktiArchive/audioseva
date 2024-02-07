@@ -6,7 +6,7 @@ import { initializeApp } from 'firebase-admin/app';
 import { TaskQueue } from 'firebase-admin/functions';
 import * as functions from 'firebase-functions';
 // https://github.com/firebase/firebase-functions/issues/1351
-// import 'firebase-functions/logger/compat';
+import 'firebase-functions/logger/compat';
 import { globSync } from 'glob';
 import { Settings as DateTimeSettings } from 'luxon';
 import * as path from 'path';
