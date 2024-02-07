@@ -250,10 +250,10 @@ export const createMP3 = functions
       });
 
       functions.logger.debug(
-        'Transcoding',
-        sourceFile.metadata.id,
-        'to',
-        destinationFile.name
+        'Creating',
+        destinationFile.name,
+        'from',
+        sourceFile.metadata.id
       );
 
       await Promise.all([
