@@ -28,7 +28,8 @@ import {
   transcode,
 } from './transcode';
 
-const transcodingQueue = getFunctions().taskQueue('Final-createMP3');
+const transcodingQueue =
+  getFunctions().taskQueue<MP3CreationTask>('Final-createMP3');
 
 const composeStorageMetadata = (fileName: string, md5Hash: string) => ({
   contentType: 'audio/mpeg',
@@ -117,7 +118,7 @@ const finalizeFile = async (
       },
       fileName,
       mediaMetadata,
-    } as MP3CreationTask);
+    });
   }
 
   // Updating media metadata if it changed
@@ -137,7 +138,7 @@ const finalizeFile = async (
       },
       fileName,
       mediaMetadata,
-    } as MP3CreationTask);
+    });
   }
 
   // Updating only storage metadata if it changed
@@ -210,26 +211,36 @@ export const publish = functions.tasks.taskQueue().onDispatch(async () => {
   ).catch(functions.logger.error).first;
 });
 
+interface ShortFileReference {
+  bucket: string;
+  name: string;
+}
+
 interface MP3CreationTask {
-  source: StorageFileReference;
-  destination?: StorageFileReference;
+  source: ShortFileReference;
+  destination: ShortFileReference;
   fileName: string;
   mediaMetadata: Record<string, string>;
 }
 
+/**
+ * This cloud function creates an MP3 file
+ * from another (or same) file using `ffmpeg`.
+ *
+ * If the source and destination files are same,
+ * it just copies the content, replacing the media metadata.
+ */
 export const createMP3 = functions
   .runWith({ timeoutSeconds: 540, memory: '1GB' })
   .tasks.taskQueue({ retryConfig: { minBackoffSeconds: 60 } })
   .onDispatch(
     async ({
       source,
-      destination = source,
+      destination,
       fileName,
       mediaMetadata,
     }: MP3CreationTask) => {
-      const sourceFile = getStorage()
-        .bucket(source.bucket)
-        .file(source.name, { generation: source.generation });
+      const sourceFile = getStorage().bucket(source.bucket).file(source.name);
 
       await sourceFile.exists();
       if (!sourceFile.metadata.name || +sourceFile.metadata.size === 0)
@@ -260,7 +271,7 @@ export const createMP3 = functions
         transcode(
           sourceFile.createReadStream(),
           uploadStream,
-          path.extname(source.name) === '.mp3' ? copyMP3 : convertToMp3,
+          util.isDeepStrictEqual(source, destination) ? copyMP3 : convertToMp3,
           addMediaMetadata(mediaMetadata)
         ),
         finished(uploadStream),
