@@ -14,11 +14,12 @@ const unknownToNull = (input: string): string =>
 const createActiveRecord = (
   id: number,
   taskId: string,
-  { contentDetails, duration }: ApprovedRecord
+  { contentDetails, duration, approval }: ApprovedRecord
 ): ActiveRecord => ({
   id,
   status: 'active',
   sourceFileId: taskId,
+  approvalDate: new Date(approval.timestamp).toISOString(),
   title: contentDetails.title,
   topics: sanitizeTopics(contentDetails.topics),
   date: DateTimeConverter.standardizePseudoIsoDate(

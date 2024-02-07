@@ -19,6 +19,7 @@ export interface InactiveRecord extends BaseRecord {
 export interface ActiveRecord extends BaseRecord, FinalContentDetails {
   status: 'active';
   duration: number;
+  approvalDate: string; // ISO format
 }
 
 export interface RedirectionRecord extends BaseRecord {

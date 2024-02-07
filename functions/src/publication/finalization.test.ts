@@ -85,7 +85,7 @@ describe('Finalization', () => {
     generation: 123,
   });
   const fidelityCheck: FidelityCheck = { author: 'someone', timestamp: 123 };
-  const approval = { timestamp: DateTime.now().valueOf() };
+  const approval = { timestamp: 1688668200000 };
 
   const repl = (taskId: string): Replacement => ({
     taskId,
@@ -128,6 +128,7 @@ describe('Finalization', () => {
     status: 'active',
     ...contentDetails,
     duration: 3705,
+    approvalDate: '2023-07-06T18:30:00.000Z', // Should match `approval.timestamp` above
   });
 
   const redir = (
