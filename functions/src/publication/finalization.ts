@@ -39,7 +39,7 @@ const createActiveRecord = (
     contentDetails.otherSpeakers?.split('&')?.map((value) => value.trim()) ||
     null,
   soundQualityRating: contentDetails.soundQualityRating,
-  duration: duration,
+  duration: duration ? Math.round(duration) : null,
 });
 
 /**
