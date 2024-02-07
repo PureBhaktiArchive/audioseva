@@ -28,8 +28,7 @@ import {
   transcode,
 } from './transcode';
 
-const transcodingQueue =
-  getFunctions().taskQueue<MP3CreationTask>('Final-createMP3');
+const mp3Queue = getFunctions().taskQueue<MP3CreationTask>('Final-createMP3');
 
 const composeStorageMetadata = (fileName: string, md5Hash: string) => ({
   contentType: 'audio/mpeg',
@@ -119,7 +118,7 @@ const finalizeFile = async (
   ) {
     console.debug('Creating public file', publicFile.name);
 
-    transcodingQueue.enqueue({
+    mp3Queue.enqueue({
       source: {
         bucket: finalFile.bucket.name,
         name: finalFile.name,
@@ -139,7 +138,7 @@ const finalizeFile = async (
     !util.isDeepStrictEqual(composeMediaMetadata(original), mediaMetadata)
   ) {
     console.debug('Updating media metadata for public file', publicFile.name);
-    transcodingQueue.enqueue({
+    mp3Queue.enqueue({
       source: {
         bucket: publicFile.bucket.name,
         name: publicFile.name,
