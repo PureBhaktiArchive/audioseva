@@ -32,7 +32,7 @@ const mp3Queue = getFunctions().taskQueue<MP3CreationTask>('Final-createMP3');
 
 const getPublicFile = (id: number) =>
   getStorage()
-    .bucket(functions.config().final?.public?.bucket)
+    .bucket(functions.config().final?.publication?.bucket)
     .file(`${id}.mp3`);
 
 const composeStorageMetadata = (fileName: string, md5Hash: string) => ({
