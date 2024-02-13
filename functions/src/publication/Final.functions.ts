@@ -276,6 +276,7 @@ export const publish = functions
       drain()
     ).catch(functions.logger.error).first;
 
+    functions.logger.info(statistics);
     res.json(statistics);
   });
 
