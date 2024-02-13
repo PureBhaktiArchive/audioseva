@@ -186,7 +186,7 @@ export const publish = functions
       .split(',')
       .map((x) => x.trim()),
   })
-  .https.onRequest(async () => {
+  .https.onRequest(async (req, res) => {
     const [fidelitySnapshot, audioRecords] = await Promise.all([
       getDatabase().ref('/FC/records').once('value'),
       directus.request(readItems('audios', { limit: -1 })),
@@ -205,9 +205,37 @@ export const publish = functions
       )
     );
 
+    const statistics = {
+      total: 0,
+      created: 0,
+      updated: 0,
+      upToDate: 0,
+      active: 0,
+      inactive: 0,
+      redirects: 0,
+    };
+
     const processRecord = async (record: AudioRecord) => {
       const original = existingRecords.get(record.id);
       const difference = getDifference(original, record);
+
+      statistics.total++;
+      switch (record.status) {
+        case 'active':
+          statistics.active++;
+          break;
+        case 'inactive':
+          statistics.inactive++;
+          break;
+        case 'redirect':
+          statistics.redirects++;
+          break;
+        default: {
+          // Exhaustiveness check according to https://www.typescriptlang.org/docs/handbook/2/narrowing.html#exhaustiveness-checking
+          const _: never = record;
+          return _;
+        }
+      }
 
       return Promise.all([
         record.status === 'active'
@@ -221,10 +249,13 @@ export const publish = functions
         original
           ? util.isDeepStrictEqual(difference, {})
             ? // Skipping records that have not changed
-              console.debug('Record', record.id, 'is up to date')
+              (console.debug('Record', record.id, 'is up to date'),
+              void statistics.upToDate++)
             : (console.debug('Updating record', record.id, difference),
+              statistics.updated++,
               directus.request(updateItem('audios', original.id, difference)))
           : (console.debug('Creating record', record),
+            statistics.created++,
             directus.request(createItem('audios', record))),
       ]);
     };
@@ -244,6 +275,8 @@ export const publish = functions
       waitRace(CONCURRENCY),
       drain()
     ).catch(functions.logger.error).first;
+
+    res.json(statistics);
   });
 
 interface ShortFileReference {
