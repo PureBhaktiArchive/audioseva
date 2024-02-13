@@ -168,64 +168,76 @@ const finalizeFile = async (
  * This cloud function publishes fidelity-checked records
  * from the Realtime Database into the Directus CMS
  * and finalizes the corresponding file ({@link finalizeFile}).
+ *
+ * This HTTP function is made private, which means that all requests
+ * should be authenticated. See {@link https://cloud.google.com/functions/docs/securing/authenticating}.
  */
-export const publish = functions.tasks.taskQueue().onDispatch(async () => {
-  const [fidelitySnapshot, audioRecords] = await Promise.all([
-    getDatabase().ref('/FC/records').once('value'),
-    directus.request(readItems('audios', { limit: -1 })),
-  ]);
-
-  const fidelityRecords = new Map(
-    objectToIterableEntries(
-      fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
-    )
-  );
-
-  const existingRecords = new Map(
-    pipeSync(
-      audioRecords,
-      map((record) => [record.id, record])
-    )
-  );
-
-  const processRecord = async (record: AudioRecord) => {
-    const original = existingRecords.get(record.id);
-    const difference = getDifference(original, record);
-
-    return Promise.all([
-      finalizeFile(
-        fidelityRecords.get(record.sourceFileId).file,
-        record,
-        original as AudioRecord
-      ),
-
-      original
-        ? util.isDeepStrictEqual(difference, {})
-          ? // Skipping records that have not changed
-            console.debug('Record', record.id, 'is up to date')
-          : (console.debug('Updating record', record.id, difference),
-            directus.request(updateItem('audios', original.id, difference)))
-        : (console.debug('Creating record', record),
-          directus.request(createItem('audios', record))),
+export const publish = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: '2GB',
+    maxInstances: 1,
+    invoker: (functions.config().final.publication.invokers as string)
+      .split(',')
+      .map((x) => x.trim()),
+  })
+  .https.onRequest(async () => {
+    const [fidelitySnapshot, audioRecords] = await Promise.all([
+      getDatabase().ref('/FC/records').once('value'),
+      directus.request(readItems('audios', { limit: -1 })),
     ]);
-  };
 
-  // Limiting concurrent requests to the CMS.
-  const CONCURRENCY = 20;
+    const fidelityRecords = new Map(
+      objectToIterableEntries(
+        fidelitySnapshot.val() as Record<string, FidelityCheckRecord>
+      )
+    );
 
-  // Awaiting for the first item of the one-item iterator emitted by `drain` in order to trigger the whole pipeline
-  // See https://github.com/vitaly-t/iter-ops/discussions/230
-  await pipeAsync(
-    finalizeAudios(
-      fidelityRecords,
-      // Casting due to a typing issue in Directus
-      audioRecords as AudioRecord[]
-    ),
-    map(processRecord),
-    waitRace(CONCURRENCY),
-    drain()
-  ).catch(functions.logger.error).first;
-});
+    const existingRecords = new Map(
+      pipeSync(
+        audioRecords,
+        map((record) => [record.id, record])
+      )
+    );
+
+    const processRecord = async (record: AudioRecord) => {
+      const original = existingRecords.get(record.id);
+      const difference = getDifference(original, record);
+
+      return Promise.all([
+        finalizeFile(
+          fidelityRecords.get(record.sourceFileId).file,
+          record,
+          original as AudioRecord
+        ),
+
+        original
+          ? util.isDeepStrictEqual(difference, {})
+            ? // Skipping records that have not changed
+              console.debug('Record', record.id, 'is up to date')
+            : (console.debug('Updating record', record.id, difference),
+              directus.request(updateItem('audios', original.id, difference)))
+          : (console.debug('Creating record', record),
+            directus.request(createItem('audios', record))),
+      ]);
+    };
+
+    // Limiting concurrent requests to the CMS.
+    const CONCURRENCY = 100;
+
+    // Awaiting for the first item of the one-item iterator emitted by `drain` in order to trigger the whole pipeline
+    // See https://github.com/vitaly-t/iter-ops/discussions/230
+    await pipeAsync(
+      finalizeAudios(
+        fidelityRecords,
+        // Casting due to a typing issue in Directus
+        audioRecords as AudioRecord[]
+      ),
+      map(processRecord),
+      waitRace(CONCURRENCY),
+      drain()
+    ).catch(functions.logger.error).first;
+  });
 
 interface ShortFileReference {
   bucket: string;
