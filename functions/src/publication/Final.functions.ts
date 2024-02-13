@@ -30,6 +30,11 @@ import {
 
 const mp3Queue = getFunctions().taskQueue<MP3CreationTask>('Final-createMP3');
 
+const getPublicFile = (id: number) =>
+  getStorage()
+    .bucket(functions.config().final?.public?.bucket)
+    .file(`${id}.mp3`);
+
 const composeStorageMetadata = (fileName: string, md5Hash: string) => ({
   contentType: 'audio/mpeg',
   contentDisposition: contentDisposition(fileName),
@@ -52,25 +57,16 @@ const composeStorageMetadata = (fileName: string, md5Hash: string) => ({
  */
 const finalizeFile = async (
   file: StorageFileReference,
-  record: AudioRecord,
+  record: ActiveRecord,
   original: AudioRecord
 ) => {
-  const publicFile = getStorage()
-    .bucket(functions.config().final?.public?.bucket)
-    .file(`${record.id}.mp3`);
-
-  if (record.status !== 'active') {
-    console.debug('Deleting public file', publicFile.name);
-    publicFile.delete({ ignoreNotFound: true });
-    return;
-  }
-
   const sourceFile = getStorage().bucket(file.bucket).file(file.name, {
     generation: file.generation,
   });
   const finalFile = StorageManager.getBucket('final').file(
     `${record.id}${path.extname(file.name)}`
   );
+  const publicFile = getPublicFile(record.id);
 
   // This will populate files’ `metadata` property.
   await Promise.all([
@@ -164,6 +160,15 @@ const finalizeFile = async (
   else console.debug('Public file', publicFile.name, 'is up to date');
 };
 
+const deletePublicFile = async (id: number) => {
+  const file = getPublicFile(id);
+  const [exists] = await file.exists();
+  if (exists) {
+    console.debug('Deleting public file', file.name);
+    await file.delete();
+  }
+};
+
 /**
  * This cloud function publishes fidelity-checked records
  * from the Realtime Database into the Directus CMS
@@ -205,11 +210,13 @@ export const publish = functions
       const difference = getDifference(original, record);
 
       return Promise.all([
-        finalizeFile(
-          fidelityRecords.get(record.sourceFileId).file,
-          record,
-          original as AudioRecord
-        ),
+        record.status === 'active'
+          ? finalizeFile(
+              fidelityRecords.get(record.sourceFileId).file,
+              record,
+              original as AudioRecord
+            )
+          : deletePublicFile(record.id),
 
         original
           ? util.isDeepStrictEqual(difference, {})
