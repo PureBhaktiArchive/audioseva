@@ -58,7 +58,8 @@ const composeStorageMetadata = (fileName: string, md5Hash: string) => ({
 const finalizeFile = async (
   file: StorageFileReference,
   record: ActiveRecord,
-  original: AudioRecord
+  original: AudioRecord,
+  preview: boolean
 ) => {
   const sourceFile = getStorage().bucket(file.bucket).file(file.name, {
     generation: file.generation,
@@ -86,16 +87,17 @@ const finalizeFile = async (
 
   if (finalFile.metadata.md5Hash !== sourceFile.metadata.md5Hash) {
     console.debug('Copying file', sourceFile.metadata.id, 'to', finalFile.name);
-    await sourceFile.copy(finalFile, {
-      contentType: sourceFile.metadata.contentType,
-      // This property seems to be incorrectly typed, see https://github.com/googleapis/nodejs-storage/issues/2389
-      // In fact it is treated as the custom metadata only
-      metadata: {
-        // Keeping the source file metadata to preserve the `mtime`
-        ...sourceFile.metadata.metadata,
-        source: sourceFile.metadata.id,
-      },
-    });
+    preview ||
+      (await sourceFile.copy(finalFile, {
+        contentType: sourceFile.metadata.contentType,
+        // This property seems to be incorrectly typed, see https://github.com/googleapis/nodejs-storage/issues/2389
+        // In fact it is treated as the custom metadata only
+        metadata: {
+          // Keeping the source file metadata to preserve the `mtime`
+          ...sourceFile.metadata.metadata,
+          source: sourceFile.metadata.id,
+        },
+      }));
   } else console.debug('Final file', finalFile.name, 'is up to date');
 
   const mediaMetadata = composeMediaMetadata(record);
@@ -114,18 +116,19 @@ const finalizeFile = async (
   ) {
     console.debug('Creating public file', publicFile.name);
 
-    mp3Queue.enqueue({
-      source: {
-        bucket: finalFile.bucket.name,
-        name: finalFile.name,
-      },
-      destination: {
-        bucket: publicFile.bucket.name,
-        name: publicFile.name,
-      },
-      fileName,
-      mediaMetadata,
-    });
+    preview ||
+      (await mp3Queue.enqueue({
+        source: {
+          bucket: finalFile.bucket.name,
+          name: finalFile.name,
+        },
+        destination: {
+          bucket: publicFile.bucket.name,
+          name: publicFile.name,
+        },
+        fileName,
+        mediaMetadata,
+      }));
   }
 
   // Updating media metadata if it changed
@@ -134,38 +137,40 @@ const finalizeFile = async (
     !util.isDeepStrictEqual(composeMediaMetadata(original), mediaMetadata)
   ) {
     console.debug('Updating media metadata for public file', publicFile.name);
-    mp3Queue.enqueue({
-      source: {
-        bucket: publicFile.bucket.name,
-        name: publicFile.name,
-      },
-      destination: {
-        bucket: publicFile.bucket.name,
-        name: publicFile.name,
-      },
-      fileName,
-      mediaMetadata,
-    });
+    preview ||
+      (await mp3Queue.enqueue({
+        source: {
+          bucket: publicFile.bucket.name,
+          name: publicFile.name,
+        },
+        destination: {
+          bucket: publicFile.bucket.name,
+          name: publicFile.name,
+        },
+        fileName,
+        mediaMetadata,
+      }));
   }
 
   // Updating only storage metadata if it changed
   else if (composeFileName(original as ActiveRecord) !== fileName) {
     console.debug('Updating storage metadata for public file', publicFile.name);
-    await publicFile.setMetadata(
-      composeStorageMetadata(fileName, sourceFile.metadata.md5Hash)
-    );
+    preview ||
+      (await publicFile.setMetadata(
+        composeStorageMetadata(fileName, sourceFile.metadata.md5Hash)
+      ));
   }
 
   // Otherwise doing nothing
   else console.debug('Public file', publicFile.name, 'is up to date');
 };
 
-const deletePublicFile = async (id: number) => {
+const deletePublicFile = async (id: number, preview: boolean) => {
   const file = getPublicFile(id);
   const [exists] = await file.exists();
   if (exists) {
     console.debug('Deleting public file', file.name);
-    await file.delete();
+    preview || (await file.delete());
   }
 };
 
@@ -176,6 +181,9 @@ const deletePublicFile = async (id: number) => {
  *
  * This HTTP function is made private, which means that all requests
  * should be authenticated. See {@link https://cloud.google.com/functions/docs/securing/authenticating}.
+ *
+ * It accepts a `preview` option in the request body, which triggers a dry run.
+ * No changes in the CMS and Cloud Storage are made in this mode.
  */
 export const publish = functions
   .runWith({
@@ -187,6 +195,10 @@ export const publish = functions
       .map((x) => x.trim()),
   })
   .https.onRequest(async (req, res) => {
+    // If nothing is specified in the request, by default we work in a preview mode
+    const { preview = true } = req.body;
+    if (preview) functions.logger.warn('The dry run mode is on!');
+
     const [fidelitySnapshot, audioRecords] = await Promise.all([
       getDatabase().ref('/FC/records').once('value'),
       directus.request(readItems('audios', { limit: -1 })),
@@ -242,9 +254,10 @@ export const publish = functions
           ? finalizeFile(
               fidelityRecords.get(record.sourceFileId).file,
               record,
-              original as AudioRecord
+              original as AudioRecord,
+              preview
             )
-          : deletePublicFile(record.id),
+          : deletePublicFile(record.id, preview),
 
         original
           ? util.isDeepStrictEqual(difference, {})
@@ -253,10 +266,11 @@ export const publish = functions
               void statistics.upToDate++)
             : (console.debug('Updating record', record.id, difference),
               statistics.updated++,
-              directus.request(updateItem('audios', original.id, difference)))
+              preview ||
+                directus.request(updateItem('audios', original.id, difference)))
           : (console.debug('Creating record', record),
             statistics.created++,
-            directus.request(createItem('audios', record))),
+            preview || directus.request(createItem('audios', record))),
       ]);
     };
 
