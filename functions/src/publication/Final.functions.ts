@@ -220,7 +220,8 @@ export const publish = functions
   })
   .https.onRequest(async (req, res) => {
     // If nothing is specified in the request, by default we work in a preview mode
-    const { preview = true } = req.body;
+    const preview = req.body.preview === false ? false : true;
+
     if (preview) functions.logger.warn('The dry run mode is on!');
 
     const [fidelitySnapshot, audioRecords] = await Promise.all([
