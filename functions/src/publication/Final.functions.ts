@@ -174,6 +174,30 @@ const deletePublicFile = async (id: number, preview: boolean) => {
   }
 };
 
+const saveRecordToCMS = (
+  record: AudioRecord,
+  difference: Partial<AudioRecord>,
+  statistics: RecordsStatistics,
+  preview: boolean
+) =>
+  // The difference is `null` if the record is new
+  difference
+    ? util.isDeepStrictEqual(difference, {})
+      ? // Skipping records that have not changed
+        (console.debug('Record', record.id, 'is up to date'),
+        void statistics.unchanged++)
+      : (console.debug('Updating record', record.id, difference),
+        statistics.updated++,
+        preview ||
+          directus.request(updateItem('audios', record.id, difference)))
+    : (console.debug('Creating record', record),
+      statistics.created++,
+      preview || directus.request(createItem('audios', record)));
+
+type Statistics<K extends string> = Record<K, number>;
+
+type RecordsStatistics = Statistics<'created' | 'updated' | 'unchanged'>;
+
 /**
  * This cloud function publishes fidelity-checked records
  * from the Realtime Database into the Directus CMS
@@ -219,28 +243,29 @@ export const publish = functions
 
     const statistics = {
       total: 0,
-      created: 0,
-      updated: 0,
-      upToDate: 0,
-      active: 0,
-      inactive: 0,
-      redirects: 0,
+      records: {
+        created: 0,
+        updated: 0,
+        unchanged: 0,
+      },
+      status: {
+        active: 0,
+        inactive: 0,
+        redirects: 0,
+      },
     };
 
-    const processRecord = async (record: AudioRecord) => {
-      const original = existingRecords.get(record.id);
-      const difference = getDifference(original, record);
-
+    const processRecord = (record: AudioRecord) => {
       statistics.total++;
       switch (record.status) {
         case 'active':
-          statistics.active++;
+          statistics.status.active++;
           break;
         case 'inactive':
-          statistics.inactive++;
+          statistics.status.inactive++;
           break;
         case 'redirect':
-          statistics.redirects++;
+          statistics.status.redirects++;
           break;
         default: {
           // Exhaustiveness check according to https://www.typescriptlang.org/docs/handbook/2/narrowing.html#exhaustiveness-checking
@@ -249,6 +274,7 @@ export const publish = functions
         }
       }
 
+      const original = existingRecords.get(record.id);
       return Promise.all([
         record.status === 'active'
           ? finalizeFile(
@@ -259,18 +285,12 @@ export const publish = functions
             )
           : deletePublicFile(record.id, preview),
 
-        original
-          ? util.isDeepStrictEqual(difference, {})
-            ? // Skipping records that have not changed
-              (console.debug('Record', record.id, 'is up to date'),
-              void statistics.upToDate++)
-            : (console.debug('Updating record', record.id, difference),
-              statistics.updated++,
-              preview ||
-                directus.request(updateItem('audios', original.id, difference)))
-          : (console.debug('Creating record', record),
-            statistics.created++,
-            preview || directus.request(createItem('audios', record))),
+        saveRecordToCMS(
+          record,
+          original ? getDifference(original, record) : null,
+          statistics.records,
+          preview
+        ),
       ]);
     };
 
