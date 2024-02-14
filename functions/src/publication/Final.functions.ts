@@ -180,7 +180,7 @@ const deletePublicFile = async (id: number) => {
 export const publish = functions
   .runWith({
     timeoutSeconds: 540,
-    memory: '2GB',
+    memory: '2GB', // We don't need that much memory, though specifying it to have higher CPU and network bandwith. https://cloud.google.com/functions/docs/configuring/memory
     maxInstances: 1,
     invoker: (functions.config().final.publication.invokers as string)
       .split(',')
