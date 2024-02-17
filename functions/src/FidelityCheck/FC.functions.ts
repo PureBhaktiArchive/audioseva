@@ -4,6 +4,7 @@
 
 import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { map, pipe } from 'iter-ops';
 import { DateTime } from 'luxon';
 import { getDiff } from 'recursive-diff';
 import { ContentDetails } from '../ContentDetails';
@@ -285,4 +286,21 @@ export const importRecords = functions
     });
 
     await sheet.updateColumn('Validation Status', spreadsheetStatuses);
+
+    const idsInRows = new Set(
+      pipe(
+        rows,
+        map((r) => r['Task ID'])
+      )
+    );
+
+    snapshot.forEach((record) =>
+      idsInRows.has(record.key)
+        ? void 0
+        : functions.logger.warn(
+            'Task',
+            record.key,
+            'is not found in the spreadsheet.'
+          )
+    );
   });
