@@ -335,7 +335,11 @@ interface MP3CreationTask {
  * it just copies the content, replacing the media metadata.
  */
 export const createMP3 = functions
-  .runWith({ timeoutSeconds: 540, memory: '1GB' })
+  .runWith({
+    timeoutSeconds: 540,
+    // Choosing 2GB to have a full 2.4 GHz CPU. See https://firebase.google.com/docs/functions/manage-functions?gen=1st#set_timeout_and_memory_allocation_2
+    memory: '2GB',
+  })
   .tasks.taskQueue({ retryConfig: { minBackoffSeconds: 60 } })
   .onDispatch(
     async ({
