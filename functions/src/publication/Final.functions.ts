@@ -174,30 +174,6 @@ const deletePublicFile = async (id: number, preview: boolean) => {
   }
 };
 
-const saveRecordToCMS = (
-  record: AudioRecord,
-  difference: Partial<AudioRecord>,
-  statistics: RecordsStatistics,
-  preview: boolean
-) =>
-  // The difference is `null` if the record is new
-  difference
-    ? util.isDeepStrictEqual(difference, {})
-      ? // Skipping records that have not changed
-        (console.debug('Record', record.id, 'is up to date'),
-        void statistics.unchanged++)
-      : (console.debug('Updating record', record.id, difference),
-        statistics.updated++,
-        preview ||
-          directus.request(updateItem('audios', record.id, difference)))
-    : (console.debug('Creating record', record),
-      statistics.created++,
-      preview || directus.request(createItem('audios', record)));
-
-type Statistics<K extends string> = Record<K, number>;
-
-type RecordsStatistics = Statistics<'created' | 'updated' | 'unchanged'>;
-
 /**
  * This cloud function publishes fidelity-checked records
  * from the Realtime Database into the Directus CMS
@@ -244,7 +220,7 @@ export const publish = functions
 
     const statistics = {
       total: 0,
-      records: {
+      action: {
         created: 0,
         updated: 0,
         unchanged: 0,
@@ -276,6 +252,8 @@ export const publish = functions
       }
 
       const original = existingRecords.get(record.id);
+      const difference = original ? getDifference(original, record) : null;
+
       return Promise.all([
         record.status === 'active'
           ? finalizeFile(
@@ -286,12 +264,18 @@ export const publish = functions
             )
           : deletePublicFile(record.id, preview),
 
-        saveRecordToCMS(
-          record,
-          original ? getDifference(original, record) : null,
-          statistics.records,
-          preview
-        ),
+        original
+          ? util.isDeepStrictEqual(difference, {})
+            ? // Skipping records that have not changed
+              (console.debug('Record', record.id, 'is up to date'),
+              void statistics.action.unchanged++)
+            : (console.debug('Updating record', record.id, difference),
+              statistics.action.updated++,
+              preview ||
+                directus.request(updateItem('audios', record.id, difference)))
+          : (console.debug('Creating record', record),
+            statistics.action.created++,
+            preview || directus.request(createItem('audios', record))),
       ]);
     };
 
