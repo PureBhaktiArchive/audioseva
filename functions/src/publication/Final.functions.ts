@@ -153,7 +153,7 @@ const finalizeFile = async (
   }
 
   // Updating only storage metadata if it changed
-  else if (composeFileName(original as ActiveRecord) !== fileName) {
+  else if (composeFileName(original) !== fileName) {
     console.debug('Updating storage metadata for public file', publicFile.name);
     preview ||
       (await publicFile.setMetadata(
