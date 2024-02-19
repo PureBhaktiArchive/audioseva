@@ -17,7 +17,8 @@ const allotmentsRef = baseRef.child(`allotments`);
 export class TasksRepository extends AbstractRepository<
   ReportingAllotmentRow,
   ReportingTask,
-  'fileName'
+  'fileName',
+  'File Name'
 > {
   constructor() {
     super(
