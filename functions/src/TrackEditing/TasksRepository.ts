@@ -23,7 +23,8 @@ const tasksRef = baseRef.child(`tasks`);
 export class TasksRepository extends AbstractRepository<
   TrackEditingAllotmentRow,
   TrackEditingTask,
-  'id'
+  'id',
+  'Task ID'
 > {
   constructor() {
     super(

@@ -18,11 +18,12 @@ export abstract class AbstractRepository<
   TRow extends AllotmentRow,
   TTask extends BaseTask<TId>,
   TId extends keyof TTask & string,
+  TIdColumn extends keyof TRow & string,
 > {
   constructor(
     private readonly spreadsheetId: string,
     private readonly idPropertyName: TId,
-    private readonly idColumnName: string,
+    private readonly idColumnName: TIdColumn,
     private readonly allotmentsRef: database.Reference
   ) {}
 
