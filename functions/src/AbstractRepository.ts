@@ -42,6 +42,7 @@ export abstract class AbstractRepository<
   protected mapFromRows = (rows: TRow[]): BaseTask<TId>[] =>
     rows.map(
       ({
+        [this.idColumnName]: id,
         Status: status,
         'Date Given': dateGiven,
         'Date Done': dateDone,
@@ -49,7 +50,7 @@ export abstract class AbstractRepository<
         Email: emailAddress,
       }) =>
         ({
-          [this.idPropertyName]: this.idColumnName,
+          [this.idPropertyName]: id,
           status: (status?.trim() as AllotmentStatus) || AllotmentStatus.Spare,
           timestampGiven: dateGiven
             ? DateTimeConverter.fromSerialDate(dateGiven).toMillis()
