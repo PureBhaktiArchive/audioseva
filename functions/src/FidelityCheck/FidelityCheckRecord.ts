@@ -26,6 +26,7 @@ export type FidelityCheckRecord = (CheckedRecord | ApprovedRecord) & {
 export interface CheckedRecord {
   file: StorageFileReference;
   fidelityCheck: FidelityCheck;
+  duration: number;
 }
 
 export interface ApprovedRecord extends CheckedRecord {

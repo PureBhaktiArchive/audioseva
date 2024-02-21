@@ -4,6 +4,7 @@
 
 import { database } from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { map, pipe } from 'iter-ops';
 import { DateTime } from 'luxon';
 import { getDiff } from 'recursive-diff';
 import { ContentDetails } from '../ContentDetails';
@@ -11,6 +12,7 @@ import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
+import { getFileDurationPath, metadataCacheRef } from '../metadata-database';
 import { modificationTime } from '../modification-time';
 import {
   Approval,
@@ -36,9 +38,10 @@ export const importRecords = functions
     );
 
     /// Getting spreadsheet rows and database snapshot and files listings in parallel
-    const [rows, snapshot] = await Promise.all([
+    const [rows, snapshot, metadataCacheSnapshot] = await Promise.all([
       sheet.getRows(),
       database().ref('/FC/records').once('value'),
+      metadataCacheRef.once('value'),
     ]);
 
     const validator = new FidelityCheckValidator();
@@ -134,6 +137,7 @@ export const importRecords = functions
           await recordSnapshot.ref.update({
             fidelityCheck: null,
             file: null,
+            duration: null,
           });
 
         return 'Awaiting FC';
@@ -191,6 +195,9 @@ export const importRecords = functions
         await recordSnapshot.ref.update({
           file: fileReference,
           fidelityCheck,
+          duration: metadataCacheSnapshot
+            .child(getFileDurationPath(file))
+            .val() as number,
         });
 
       /**
@@ -279,4 +286,21 @@ export const importRecords = functions
     });
 
     await sheet.updateColumn('Validation Status', spreadsheetStatuses);
+
+    const idsInRows = new Set(
+      pipe(
+        rows,
+        map((r) => r['Task ID'])
+      )
+    );
+
+    snapshot.forEach((record) =>
+      idsInRows.has(record.key)
+        ? void 0
+        : functions.logger.warn(
+            'Task',
+            record.key,
+            'is not found in the spreadsheet.'
+          )
+    );
   });

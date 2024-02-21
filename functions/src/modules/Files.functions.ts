@@ -3,7 +3,6 @@
  */
 
 import { PubSub } from '@google-cloud/pubsub';
-import { database } from 'firebase-admin';
 import * as fs from 'fs';
 import getAudioDurationInSeconds from 'get-audio-duration';
 import { DateTime } from 'luxon';
@@ -12,9 +11,16 @@ import * as path from 'path';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
-import { BucketName, File, StorageManager } from '../StorageManager';
+import { BucketName, StorageManager } from '../StorageManager';
 import { asyncHandler } from '../asyncHandler';
 import { flatten } from '../flatten';
+import {
+  Dump,
+  FileMetadataCache,
+  getFileDurationPath,
+  getFileMetadataPath,
+  metadataCacheRef,
+} from '../metadata-database';
 import { modificationTime } from '../modification-time';
 import pMap = require('p-map');
 import functions = require('firebase-functions');
@@ -74,33 +80,6 @@ export const download = functions
   .runWith({ memory: '256MB' })
   .https.onRequest(app);
 
-const rootFilesMetadataRef = database().ref('files').child('metadata');
-
-const getFileMetadataPath = (file: File) =>
-  `${file.bucket.name.split('.')[0]}/${path.basename(
-    file.name,
-    path.extname(file.name)
-  )}/${file.generation}`;
-
-const getFileDurationPath = (file: File) =>
-  `${getFileMetadataPath(file)}/duration`;
-
-interface FileMetadata {
-  name: string;
-  duration?: number;
-  size: number;
-  timeCreated: number;
-  timeDeleted?: number;
-  crc32c: string;
-  md5Hash: string;
-}
-type FileName = string;
-type GenerationNumber = number;
-type Dump = Record<
-  BucketName,
-  Record<FileName, Record<GenerationNumber, FileMetadata>>
->;
-
 const pubsub = new PubSub();
 const DURATION_EXTRACTION_TOPIC_NAME = 'extract-file-duration';
 
@@ -109,7 +88,7 @@ export const saveMetadataToDatabase = functions
   .pubsub.schedule('every day 23:00')
   .timeZone(functions.config().coordinator.timezone as string)
   .onRun(async () => {
-    const snapshot = await rootFilesMetadataRef.once('value');
+    const snapshot = await metadataCacheRef.once('value');
     const updateAllMetadata = snapshot
       .child('updateAllMetadata')
       .val() as boolean;
@@ -134,7 +113,7 @@ export const saveMetadataToDatabase = functions
       const updates = files.reduce((accumulator, file) => {
         const path = getFileMetadataPath(file);
         if (!snapshot.child(path).exists() || updateAllMetadata) {
-          const metadataForDatabase: FileMetadata = {
+          const metadataForDatabase: FileMetadataCache = {
             name: file.name,
             size: +file.metadata.size,
             timeCreated: modificationTime(file).toMillis(),
@@ -182,7 +161,7 @@ export const saveMetadataToDatabase = functions
             })
         ),
         // Saving new metadata to the database
-        rootFilesMetadataRef.update(updates),
+        metadataCacheRef.update(updates),
       ]);
     });
   });
@@ -207,7 +186,7 @@ export const extractDuration = functions
 
       console.log(`Got duration for ${file.metadata.id}: ${duration}`);
 
-      await rootFilesMetadataRef.child(getFileDurationPath(file)).set(duration);
+      await metadataCacheRef.child(getFileDurationPath(file)).set(duration);
     } catch (error) {
       console.warn(
         `Failed to extract duration for ${file.metadata.id}`,
@@ -238,7 +217,7 @@ export const exportMetadataToSpreadsheet = functions.pubsub
       ['edited', 'TE'],
     ]);
 
-    const data = (await rootFilesMetadataRef.once('value')).val() as Dump;
+    const data = (await metadataCacheRef.once('value')).val() as Dump;
     const rows = _(Object.entries(data))
       .flatMapDeep(([bucketName, bucketData]) =>
         Object.entries(bucketData).map(([fileName, fileData]) =>

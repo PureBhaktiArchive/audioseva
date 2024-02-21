@@ -28,7 +28,8 @@ export type BucketName =
   | 'edited'
   | 'restored'
   | 'te.uploads'
-  | 'se.uploads';
+  | 'se.uploads'
+  | 'final';
 
 export class StorageManager {
   static getFullBucketName(bucketName: BucketName) {
