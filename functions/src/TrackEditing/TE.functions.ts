@@ -255,7 +255,7 @@ export const importTasks = functions
   });
 
 export const syncAllotments = functions
-  .runWith({ timeoutSeconds: 120 })
+  .runWith({ timeoutSeconds: 120, memory: '512MB' })
   .pubsub.schedule('every 1 hours from 05:00 to 00:00')
   .timeZone(functions.config().coordinator.timezone as string)
   .onRun(async () => {
