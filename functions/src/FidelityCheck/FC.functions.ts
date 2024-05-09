@@ -183,12 +183,22 @@ export const importRecords = functions
         generation: file.metadata.generation,
       };
 
+      const duration = metadataCacheSnapshot
+        .child(getFileDurationPath(file))
+        .val() as number;
+
+      if (!duration) return 'Duration is not available';
+
       if (
         existingRecord &&
         existingRecord.file &&
         existingRecord.fidelityCheck &&
         fidelityCheck.timestamp <= existingRecord.fidelityCheck.timestamp
       ) {
+        // Saving durations for old records
+        if (!existingRecord.duration)
+          await recordSnapshot.ref.update({ duration });
+
         // Comparing file info if the FC Date was not bumped
         if (getDiff(existingRecord.file, fileReference).length)
           // It is unlikely we get here due to the dates comparison earlier. But as a safety net we keep this check.
@@ -199,9 +209,7 @@ export const importRecords = functions
         await recordSnapshot.ref.update({
           file: fileReference,
           fidelityCheck,
-          duration: metadataCacheSnapshot
-            .child(getFileDurationPath(file))
-            .val() as number,
+          duration,
         });
 
       /**
