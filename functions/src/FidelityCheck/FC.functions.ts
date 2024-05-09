@@ -136,14 +136,8 @@ export const importRecords = functions
       }
 
       if (row['Fidelity Checked'] !== true) {
-        // Removing the fidelity check from the database
-        if (existingRecord?.fidelityCheck)
-          await recordSnapshot.ref.update({
-            fidelityCheck: null,
-            file: null,
-            duration: null,
-          });
-
+        // Removing the record from the database
+        if (existingRecord) await recordSnapshot.ref.remove();
         return 'Awaiting FC';
       }
 
@@ -184,7 +178,7 @@ export const importRecords = functions
       };
 
       const duration = metadataCacheSnapshot
-        .child(getFileDurationPath(file))
+        .child(getFileDurationPath(fileReference))
         .val() as number;
 
       if (!duration) return 'Duration is not available';

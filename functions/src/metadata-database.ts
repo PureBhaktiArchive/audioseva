@@ -9,7 +9,7 @@ export const getFileMetadataPath = (file: File | StorageFileReference) =>
   `${(typeof file.bucket === 'string' ? file.bucket : file.bucket.name)
     .split('.')
     .at(0)}/${path.basename(file.name, path.extname(file.name))}/${
-    file.generation
+    file.generation || ('metadata' in file && file.metadata.generation)
   }`;
 
 export const getFileDurationPath = (file: File | StorageFileReference) =>
