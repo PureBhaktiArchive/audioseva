@@ -133,7 +133,7 @@ export const processUpload = functions
     let task = await repository.getTask(taskId);
 
     if (!task || !task.assignee) {
-      console.error(`Task ${taskId} is not assigned, aborting.`);
+      console.warn(`Task ${taskId} is not assigned, aborting.`);
       return;
     }
 
