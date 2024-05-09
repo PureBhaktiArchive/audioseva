@@ -24,8 +24,12 @@ import { FidelityCheckRow } from './FidelityCheckRow';
 import { FidelityCheckValidator } from './FidelityCheckValidator';
 import pMap = require('p-map');
 
+/**
+ * Returns the end of day if the input date is a start of day.
+ */
 const dateToEndOfDay = (date: DateTime) =>
-  date === date.startOf('day') ? date.endOf('day') : date;
+  // Comparing values of the objects, not objects themselves. See https://moment.github.io/luxon/api-docs/index.html#datetimeequals
+  +date === +date.startOf('day') ? date.endOf('day') : date;
 
 export const importRecords = functions
   .runWith({ timeoutSeconds: 540, memory: '1GB' })
