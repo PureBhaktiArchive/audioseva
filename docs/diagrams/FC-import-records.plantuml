@@ -1,0 +1,22 @@
+@startuml FC import records
+title Importing audio records from the FDP sheet
+
+start
+fork
+  :Read the FDP sheet\\
+fork again
+  :Read all records from the database\\
+fork again
+  :Read the metadata cache from the database\\
+end fork
+repeat :for each row;
+  :Process a row|
+  note left
+  See the row processing diagram.
+  end note
+
+repeat while (more rows?) is (yes)
+
+:Update the “Validation Status” column in the sheet;
+stop
+@enduml
