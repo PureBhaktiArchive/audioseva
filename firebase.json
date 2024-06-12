@@ -9,23 +9,41 @@
       "rules": "storage.uploads.rules"
     }
   ],
-  "hosting": {
-    "public": "frontend/dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
-      {
-        "source": "/download/**",
-        "function": "Files-download"
-      },
-      {
-        "source": "/te/tasks/*/versions/*/file",
-        "function": "TE-download"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  },
+  "hosting": [
+    {
+      "target": "main",
+      "public": "frontend/dist",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "/download/**",
+          "function": "Files-download"
+        },
+        {
+          "source": "/te/tasks/*/versions/*/file",
+          "function": "TE-download"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    {
+      "target": "CR",
+      "public": "allotment",
+      "headers": [
+        {
+          "source": "**/*.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "max-age=0,no-cache"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "functions": {}
 }
