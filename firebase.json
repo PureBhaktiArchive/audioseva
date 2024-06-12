@@ -43,6 +43,10 @@
           ]
         }
       ]
+    },
+    {
+      "target": "TR",
+      "public": "TR"
     }
   ],
   "functions": {}
