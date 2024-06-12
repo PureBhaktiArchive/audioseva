@@ -31,7 +31,7 @@
     },
     {
       "target": "CR",
-      "public": "allotment",
+      "public": "CR",
       "headers": [
         {
           "source": "**/*.js",
