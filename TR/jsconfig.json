@@ -1,4 +1,8 @@
 {
-  "compilerOptions": {},
+  "compilerOptions": {
+    "module": "NodeNext",
+    "checkJs": true,
+    "noEmit": true
+  },
   "exclude": ["node_modules", "dist"]
 }

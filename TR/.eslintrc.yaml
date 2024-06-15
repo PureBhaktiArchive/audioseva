@@ -1,0 +1,13 @@
+root: true
+env:
+  node: true
+  es2022: true
+parserOptions:
+  ecmaVersion: latest
+extends:
+  - plugin:vue/vue3-essential
+  - eslint:recommended
+  - "@vue/eslint-config-prettier/skip-formatting"
+  - plugin:import/errors
+  - plugin:import/warnings
+  - prettier

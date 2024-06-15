@@ -1,22 +1,32 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transcription Allotment</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="main.js"></script>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Transcription Allotment</title>
-  <link rel="stylesheet" href="styles.css">
-  <script type="module" src="main.js"></script>
-</head>
-
-<body>
-  <main class="max-w-md mx-auto">
-    <h1 class="text-3xl font-medium my-4">
-      Transcription Allotment
-    </h1>
-    <div id="app" class="flex flex-col">
-    </div>
-  </main>
-</body>
-
+  <body>
+    <main class="mx-auto max-w-md">
+      <h1 class="my-4 text-center text-3xl font-medium">
+        Transcription Allotment
+      </h1>
+      <div id="app" class="flex flex-col" v-cloak>
+        <div class="">
+          <span v-if="user === undefined">Waiting for auth…</span>
+          <span v-else-if="user">
+            Signed in as {{ user.displayName }} |
+            <button class="underline decoration-dotted" @click="signOut">
+              Sign Out
+            </button>
+          </span>
+          <button class="underline decoration-dotted" v-else @click="signIn">
+            Sign In
+          </button>
+        </div>
+      </div>
+    </main>
+  </body>
 </html>
