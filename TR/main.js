@@ -7,7 +7,8 @@ import {
   onAuthStateChanged,
   signInWithRedirect,
 } from 'firebase/auth';
-import { createApp, onMounted, ref } from 'vue';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { createApp, ref } from 'vue';
 
 initializeApp(JSON.parse(import.meta.env.VITE_FIREBASE_CONFIG));
 
@@ -17,7 +18,7 @@ getRedirectResult(auth);
 
 const app = createApp({
   setup() {
-    const devotees = ref(/** @type {Assignee[]} */ ([]));
+    const assignees = ref(/** @type {Assignee[]} */ (null));
     const selectedDevotee = ref(null);
 
     // Undefined until we know for sure whether the user is authenticated or not
@@ -26,13 +27,11 @@ const app = createApp({
       user.value = userUpdated;
     });
 
-    onMounted(async () => {
-      const response = await fetch(import.meta.env.VITE_DEVOTEES_URL);
-      devotees.value = /**@type {Assignee[]} */ (await response.json()).filter(
-        (item) => !!item.emailaddress
-      );
-    });
-
+    async function loadAssignees() {
+      /** @type {import('firebase/functions').HttpsCallable<{phase:string}, Assignee[]> } */
+      const getAssignees = httpsCallable(getFunctions(), 'User-getAssignees');
+      assignees.value = (await getAssignees({ phase: 'TRSC' })).data;
+    }
     async function signIn() {
       const provider = new GoogleAuthProvider();
       await signInWithRedirect(auth, provider);
@@ -42,8 +41,9 @@ const app = createApp({
     }
 
     return {
-      devotees,
+      assignees,
       selectedDevotee,
+      loadAssignees,
 
       user,
       signIn,

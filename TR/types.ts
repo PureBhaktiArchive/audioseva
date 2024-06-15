@@ -8,7 +8,10 @@ export {};
 
 declare global {
   type Assignee = {
-    emailaddress: string;
+    id: string;
+    emailAddress: string;
     name: string;
+    location: string;
+    languages: string[];
   };
 }

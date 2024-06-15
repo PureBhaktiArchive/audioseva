@@ -5,7 +5,6 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_DEVOTEES_URL: string;
   readonly VITE_FIREBASE_CONFIG: string;
 }
 
