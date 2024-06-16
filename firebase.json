@@ -46,7 +46,7 @@
     },
     {
       "target": "TR",
-      "public": "TR"
+      "public": "TR/dist"
     }
   ],
   "functions": {}
