@@ -57,5 +57,9 @@
     "**/lib": true,
     "**/dist": true
   },
+
+  "files.associations": {
+    ".env.*": "dotenv"
+  },
   "formatFiles.excludePattern": "**/*.min.js"
 }
