@@ -1,20 +1,13 @@
-import { initializeApp } from 'firebase/app';
 import {
   GoogleAuthProvider,
-  signOut as authSignOut,
   getAuth,
-  getRedirectResult,
   onAuthStateChanged,
   signInWithRedirect,
+  signOut,
 } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { createApp, ref } from 'vue';
-
-initializeApp(JSON.parse(import.meta.env.VITE_FIREBASE_CONFIG));
-
-const auth = getAuth();
-// Running this each time because who knows if there was a redirect.
-getRedirectResult(auth);
+import './firebase.js';
 
 const app = createApp({
   setup() {
@@ -23,7 +16,7 @@ const app = createApp({
 
     // Undefined until we know for sure whether the user is authenticated or not
     const user = ref(/** @type {import('firebase/auth').User} */ (undefined));
-    onAuthStateChanged(auth, async (userUpdated) => {
+    onAuthStateChanged(getAuth(), async (userUpdated) => {
       user.value = userUpdated;
     });
 
@@ -32,12 +25,13 @@ const app = createApp({
       const getAssignees = httpsCallable(getFunctions(), 'User-getAssignees');
       assignees.value = (await getAssignees({ phase: 'TRSC' })).data;
     }
+
     async function signIn() {
       const provider = new GoogleAuthProvider();
-      await signInWithRedirect(auth, provider);
+      await signInWithRedirect(getAuth(), provider);
     }
-    async function signOut() {
-      await authSignOut(auth);
+    async function signOutHandler() {
+      await signOut(getAuth());
     }
 
     return {
@@ -47,7 +41,7 @@ const app = createApp({
 
       user,
       signIn,
-      signOut,
+      signOut: signOutHandler,
     };
   },
 });
