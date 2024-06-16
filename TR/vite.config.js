@@ -21,8 +21,8 @@ export default ({ mode }) => {
       },
       // This is needed due to https://github.com/firebase/firebase-js-sdk/issues/7342
       https: {
-        pfx: fs.readFileSync(process.env.TLS_CERT_FILE),
-        passphrase: process.env.TLS_CERT_PASSPHRASE,
+        pfx: fs.readFileSync('./localhost.pfx'),
+        passphrase: '1',
       },
     },
   });
