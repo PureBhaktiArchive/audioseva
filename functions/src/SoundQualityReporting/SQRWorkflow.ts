@@ -17,7 +17,6 @@ import {
 } from '../Frontend';
 import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
-import { abortCall } from '../auth';
 import { SQRSubmission } from './SQRSubmission';
 import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
@@ -81,7 +80,7 @@ export class SQRWorkflow {
       .join();
 
     if (dirtyTasks.length)
-      abortCall(
+      throw new functions.https.HttpsError(
         'aborted',
         `Files ${dirtyTasks} seem to be already allotted in the database. Please 🔨 the administrator.`
       );
@@ -244,13 +243,13 @@ export class SQRWorkflow {
     const task = await repository.getTask(fileName);
 
     if (task.token !== token)
-      abortCall(
+      throw new functions.https.HttpsError(
         'permission-denied',
         `Invalid token ${token} for file ${fileName}.`
       );
 
     if (task.status === AllotmentStatus.Done)
-      abortCall(
+      throw new functions.https.HttpsError(
         'failed-precondition',
         `File ${fileName} is already marked as Done, cannot cancel.`
       );

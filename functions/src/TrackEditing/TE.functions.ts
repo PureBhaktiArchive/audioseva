@@ -11,7 +11,7 @@ import { FileVersion } from '../FileVersion';
 import { Person } from '../Person';
 import { StorageManager } from '../StorageManager';
 import { asyncHandler } from '../asyncHandler';
-import { abortCall, authorize } from '../auth';
+import { authorize } from '../auth';
 import { TasksRepository } from './TasksRepository';
 import express = require('express');
 import _ = require('lodash');
@@ -31,7 +31,10 @@ export const processAllotment = functions
       authorize(context, ['TE.coordinator']);
 
       if (!assignee || !taskIds || taskIds.length === 0)
-        abortCall('invalid-argument', 'Assignee and Tasks are required.');
+        throw new functions.https.HttpsError(
+          'invalid-argument',
+          'Assignee and Tasks are required.'
+        );
 
       console.info(
         `Allotting ${taskIds.join(', ')} to ${assignee.emailAddress}`
@@ -47,7 +50,7 @@ export const processAllotment = functions
         .join();
 
       if (dirtyTasks.length)
-        abortCall(
+        throw new functions.https.HttpsError(
           'aborted',
           `Files ${dirtyTasks} seem to be already allotted in the database. Please 🔨 the administrator.`
         );
@@ -85,13 +88,20 @@ export const cancelAllotment = functions.https.onCall(
   async ({ taskId }: { taskId: string }, context) => {
     authorize(context, ['TE.coordinator']);
 
-    if (!taskId) abortCall('invalid-argument', 'Task ID is required.');
+    if (!taskId)
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Task ID is required.'
+      );
 
     const repository = new TasksRepository();
     const task = await repository.getTask(taskId);
 
     if (task.status === AllotmentStatus.Done)
-      abortCall('aborted', `Task ${taskId} is already Done, cannot cancel.`);
+      throw new functions.https.HttpsError(
+        'aborted',
+        `Task ${taskId} is already Done, cannot cancel.`
+      );
 
     console.info(`Cancelling task ${taskId}`, task);
 

@@ -4,7 +4,7 @@
 
 import * as functions from 'firebase-functions';
 import { Person } from '../Person';
-import { abortCall, authorize } from '../auth';
+import { authorize } from '../auth';
 import { SQRSubmission } from './SQRSubmission';
 import { SQRWorkflow } from './SQRWorkflow';
 import { SpareFile } from './SpareFile';
@@ -28,7 +28,10 @@ export const processAllotment = functions
       authorize(context, ['SQR.coordinator']);
 
       if (!assignee || !files || files.length === 0)
-        abortCall('invalid-argument', 'Assignee and Files are required.');
+        throw new functions.https.HttpsError(
+          'invalid-argument',
+          'Assignee and Files are required.'
+        );
 
       await SQRWorkflow.processAllotment(
         files.map(({ name }) => name),
