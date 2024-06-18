@@ -2,11 +2,11 @@
 import LoadingIndicator from './LoadingIndicator.vue';
 import { useAuth } from './auth';
 
-const { user, signIn, signOut } = useAuth();
+const { user, isCurrentUserLoaded, signIn, signOut } = useAuth();
 </script>
 
 <template>
-  <span v-if="user === undefined" class="flex items-center gap-2">
+  <span v-if="!isCurrentUserLoaded" class="flex items-center gap-2">
     <LoadingIndicator />
     <span>Waiting for auth…</span>
   </span>
