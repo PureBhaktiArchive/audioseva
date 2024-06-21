@@ -115,10 +115,13 @@ const units = computed(() =>
 </script>
 
 <template>
-  <div class="flex flex-col items-center">
+  <div class="flex flex-col gap-2">
     <AuthStatus></AuthStatus>
     <template v-if="isAuthenticated">
-      <button class="underline decoration-dotted" @click="loadAssignees">
+      <button
+        class="self-start underline decoration-dotted"
+        @click="loadAssignees"
+      >
         Load Devotees
       </button>
       <span v-if="assignees">Devotees: {{ assignees.length }}</span>
