@@ -2,11 +2,12 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
+import AuthStatus from './AuthStatus.vue';
 import { useAuth } from './auth';
 
 const assignees = ref(/** @type {Assignee[]} */ (null));
 
-const { user } = useAuth();
+const { isAuthenticated } = useAuth();
 
 async function loadAssignees() {
   /** @type {import('firebase/functions').HttpsCallable<{phase:string}, Assignee[]> } */
@@ -116,7 +117,7 @@ const units = computed(() =>
 <template>
   <div class="flex flex-col items-center">
     <AuthStatus></AuthStatus>
-    <template v-if="user">
+    <template v-if="isAuthenticated">
       <button class="underline decoration-dotted" @click="loadAssignees">
         Load Devotees
       </button>
