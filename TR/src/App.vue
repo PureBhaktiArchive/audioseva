@@ -1,6 +1,8 @@
 <script setup>
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import Badge from 'primevue/badge';
+import Message from 'primevue/message';
+import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
 import AuthStatus from './AuthStatus.vue';
@@ -15,6 +17,10 @@ async function loadAssignees() {
   const getAssignees = httpsCallable(getFunctions(), 'User-getAssignees');
   assignees.value = (await getAssignees({ phase: 'TRSC' })).data;
 }
+
+const language = ref(/** @type {string} */ (null));
+const languages = ref(/** @type {string[]} */ ([]));
+languages.value = ['Hindi', 'English'];
 
 const files = ref([
   {
@@ -103,7 +109,9 @@ const files = ref([
 ]);
 
 const units = computed(() =>
-  files.value.map((file) => ({
+  files.value
+    .filter((file) => file.languages.includes(language.value))
+    .map((file) => ({
     ...file,
     // https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss#comment65343664_25279399
     duration: new Date(1000 * file.duration).toISOString().substring(11, 19),
@@ -126,7 +134,13 @@ const units = computed(() =>
         Load Devotees
       </button>
       <span v-if="assignees">Devotees: {{ assignees.length }}</span>
-      <ul class="flex w-full flex-col gap-2">
+      <!-- Languages -->
+      <SelectButton v-model="language" :options="languages"></SelectButton>
+      <!-- Files -->
+      <Message v-if="!language" severity="secondary">
+        Select a language to see available files.
+      </Message>
+      <ul v-else class="flex w-full flex-col gap-2">
         <li class="rounded-md border p-2" v-for="file in units" :key="file.id">
           <div class="flex items-center gap-2">
             <span class="font-bold">{{ file.id }}</span>
