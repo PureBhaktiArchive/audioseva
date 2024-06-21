@@ -1,5 +1,6 @@
 <script setup>
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import Badge from 'primevue/badge';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
 import AuthStatus from './AuthStatus.vue';
@@ -129,20 +130,13 @@ const units = computed(() =>
         <li class="rounded-md border p-2" v-for="file in units" :key="file.id">
           <div class="flex items-center gap-2">
             <span class="font-bold">{{ file.id }}</span>
-            <span class="rounded-full border-neutral-600 bg-neutral-300 px-2">
-              {{ file.languages[0] }}
-            </span>
-            <span
-              class="ml-auto rounded-full px-2"
-              :class="[
-                file.partsCompleted === file.parts.length
-                  ? 'bg-green-300'
-                  : 'bg-yellow-300',
-              ]"
+            <Badge
+              :severity="
+                file.partsCompleted === file.parts.length ? 'success' : 'info'
+              "
+              >{{ file.partsCompleted }} / {{ file.parts.length }}</Badge
             >
-              {{ file.partsCompleted }} / {{ file.parts.length }}
-            </span>
-            <span class="font-mono">
+            <span class="ml-auto font-mono">
               {{ file.duration }}
             </span>
           </div>
