@@ -14,4 +14,24 @@ declare global {
     location: string;
     languages: string[];
   };
+
+  type Stage = {
+    name: string;
+    status: 'Given' | 'Done' | 'Drop';
+  };
+
+  type Part = {
+    number: number;
+    completed: boolean;
+    stages: Stage[];
+  };
+
+  type FullFile = {
+    id: number;
+    languages: string[];
+    duration: number;
+    note?: string;
+    stages: Stage[];
+    parts?: Part[];
+  };
 }

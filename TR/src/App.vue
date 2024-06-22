@@ -22,7 +22,8 @@ const language = ref(/** @type {string} */ (null));
 const languages = ref(/** @type {string[]} */ ([]));
 languages.value = ['Hindi', 'English'];
 
-const files = ref([
+const files = ref(
+  /** @type {FullFile[]} */ ([
   {
     id: 326,
     languages: ['English'],
@@ -34,11 +35,11 @@ const files = ref([
         completed: true,
         stages: [
           {
-            stage: 'TRSC',
+              name: 'TRSC',
             status: 'Done',
           },
           {
-            stage: 'FC1',
+              name: 'FC1',
             status: 'Done',
           },
         ],
@@ -48,7 +49,7 @@ const files = ref([
         completed: false,
         stages: [
           {
-            stage: 'TRSC',
+              name: 'TRSC',
             status: 'Given',
           },
         ],
@@ -58,13 +59,24 @@ const files = ref([
         completed: false,
         stages: [
           {
-            stage: 'TRSC',
+              name: 'TRSC',
             status: 'Given',
           },
         ],
       },
     ],
   },
+    {
+      id: 50,
+      languages: ['English'],
+      duration: 45 * 60 + 11,
+      stages: [
+        {
+          name: 'RFC',
+          status: 'Given',
+        },
+      ],
+    },
   {
     id: 175,
     languages: ['Hindi'],
@@ -75,11 +87,11 @@ const files = ref([
         completed: true,
         stages: [
           {
-            stage: 'TRSC',
+              name: 'TRSC',
             status: 'Done',
           },
           {
-            stage: 'FC1',
+              name: 'FC1',
             status: 'Done',
           },
         ],
@@ -89,11 +101,11 @@ const files = ref([
         completed: true,
         stages: [
           {
-            stage: 'TRSC',
+              name: 'TRSC',
             status: 'Done',
           },
           {
-            stage: 'FC1',
+              name: 'FC1',
             status: 'Done',
           },
         ],
@@ -101,12 +113,13 @@ const files = ref([
     ],
     stages: [
       {
-        stage: 'LANG',
+          name: 'LANG',
         status: 'Done',
       },
     ],
   },
-]);
+  ])
+);
 
 const units = computed(() =>
   files.value
@@ -115,7 +128,7 @@ const units = computed(() =>
     ...file,
     // https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss#comment65343664_25279399
     duration: new Date(1000 * file.duration).toISOString().substring(11, 19),
-    partsCompleted: file.parts.reduce(
+      partsCompleted: file.parts?.reduce(
       (count, { completed }) => (completed ? ++count : count),
       0
     ),
@@ -145,11 +158,24 @@ const units = computed(() =>
           <div class="flex items-center gap-2">
             <span class="font-bold">{{ file.id }}</span>
             <Badge
+              v-if="file.parts?.length > 0"
               :severity="
                 file.partsCompleted === file.parts.length ? 'success' : 'info'
               "
               >{{ file.partsCompleted }} / {{ file.parts.length }}</Badge
             >
+            <!-- Stages -->
+            <div v-if="file.stages" class="flex gap-2">
+              <Tag
+                v-for="stage in file.stages"
+                :key="stage.name"
+                severity="secondary"
+                :value="stage.name"
+                rounded
+              >
+              </Tag>
+            </div>
+
             <span class="ml-auto font-mono">
               {{ file.duration }}
             </span>
@@ -164,14 +190,16 @@ const units = computed(() =>
             >
               <span class="font-semibold">part-{{ part.number }}</span>
               <!-- Stages -->
-              <ul class="flex gap-2">
-                <li
-                  class="rounded-full border bg-neutral-200 px-2"
+              <div class="flex gap-2">
+                <Tag
                   v-for="stage in part.stages"
-                  :key="stage.stage"
-                  v-html="stage.stage"
-                ></li>
-              </ul>
+                  :key="stage.name"
+                  severity="secondary"
+                  rounded
+                >
+                  {{ stage.name }}
+                </Tag>
+              </div>
               <Tag
                 v-if="part.completed"
                 severity="success"
