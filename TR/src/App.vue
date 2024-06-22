@@ -8,10 +8,9 @@ import { computed, ref } from 'vue';
 import AuthStatus from './AuthStatus.vue';
 import { useAuth } from './auth';
 
-const assignees = ref(/** @type {Assignee[]} */ (null));
-
 const { isAuthenticated } = useAuth();
 
+const assignees = ref(/** @type {Assignee[]} */ (null));
 async function loadAssignees() {
   /** @type {import('firebase/functions').HttpsCallable<{phase:string}, Assignee[]> } */
   const getAssignees = httpsCallable(getFunctions(), 'User-getAssignees');
@@ -24,48 +23,48 @@ languages.value = ['Hindi', 'English'];
 
 const files = ref(
   /** @type {FullFile[]} */ ([
-  {
-    id: 326,
-    languages: ['English'],
-    note: 'Some note goes here',
-    duration: 17 * 60 + 40,
-    parts: [
-      {
-        number: 1,
-        completed: true,
-        stages: [
-          {
+    {
+      id: 326,
+      languages: ['English'],
+      note: 'Some note goes here',
+      duration: 17 * 60 + 40,
+      parts: [
+        {
+          number: 1,
+          completed: true,
+          stages: [
+            {
               name: 'TRSC',
-            status: 'Done',
-          },
-          {
+              status: 'Done',
+            },
+            {
               name: 'FC1',
-            status: 'Done',
-          },
-        ],
-      },
-      {
-        number: 2,
-        completed: false,
-        stages: [
-          {
+              status: 'Done',
+            },
+          ],
+        },
+        {
+          number: 2,
+          completed: false,
+          stages: [
+            {
               name: 'TRSC',
-            status: 'Given',
-          },
-        ],
-      },
-      {
-        number: 3,
-        completed: false,
-        stages: [
-          {
+              status: 'Given',
+            },
+          ],
+        },
+        {
+          number: 3,
+          completed: false,
+          stages: [
+            {
               name: 'TRSC',
-            status: 'Given',
-          },
-        ],
-      },
-    ],
-  },
+              status: 'Given',
+            },
+          ],
+        },
+      ],
+    },
     {
       id: 50,
       languages: ['English'],
@@ -77,47 +76,47 @@ const files = ref(
         },
       ],
     },
-  {
-    id: 175,
-    languages: ['Hindi'],
-    duration: 13 * 60 + 27,
-    parts: [
-      {
-        number: 1,
-        completed: true,
-        stages: [
-          {
+    {
+      id: 175,
+      languages: ['Hindi'],
+      duration: 13 * 60 + 27,
+      parts: [
+        {
+          number: 1,
+          completed: true,
+          stages: [
+            {
               name: 'TRSC',
-            status: 'Done',
-          },
-          {
+              status: 'Done',
+            },
+            {
               name: 'FC1',
-            status: 'Done',
-          },
-        ],
-      },
-      {
-        number: 2,
-        completed: true,
-        stages: [
-          {
+              status: 'Done',
+            },
+          ],
+        },
+        {
+          number: 2,
+          completed: true,
+          stages: [
+            {
               name: 'TRSC',
-            status: 'Done',
-          },
-          {
+              status: 'Done',
+            },
+            {
               name: 'FC1',
-            status: 'Done',
-          },
-        ],
-      },
-    ],
-    stages: [
-      {
+              status: 'Done',
+            },
+          ],
+        },
+      ],
+      stages: [
+        {
           name: 'LANG',
-        status: 'Done',
-      },
-    ],
-  },
+          status: 'Done',
+        },
+      ],
+    },
   ])
 );
 
@@ -125,14 +124,14 @@ const units = computed(() =>
   files.value
     .filter((file) => file.languages.includes(language.value))
     .map((file) => ({
-    ...file,
-    // https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss#comment65343664_25279399
-    duration: new Date(1000 * file.duration).toISOString().substring(11, 19),
+      ...file,
+      // https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss#comment65343664_25279399
+      duration: new Date(1000 * file.duration).toISOString().substring(11, 19),
       partsCompleted: file.parts?.reduce(
-      (count, { completed }) => (completed ? ++count : count),
-      0
-    ),
-  }))
+        (count, { completed }) => (completed ? ++count : count),
+        0
+      ),
+    }))
 );
 </script>
 
