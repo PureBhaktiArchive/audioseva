@@ -6,6 +6,7 @@ import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
 import AuthStatus from './AuthStatus.vue';
+import StagesList from './StagesList.vue';
 import { useAuth } from './auth';
 
 const { isAuthenticated } = useAuth();
@@ -164,15 +165,8 @@ const units = computed(() =>
               >{{ file.partsCompleted }} / {{ file.parts.length }}</Badge
             >
             <!-- Stages -->
-            <div v-if="file.stages" class="flex gap-2">
-              <Tag
-                v-for="stage in file.stages"
-                :key="stage.name"
-                severity="secondary"
-                :value="stage.name"
-                rounded
-              >
-              </Tag>
+            <div v-if="file.stages" class="flex flex-wrap gap-2">
+              <StagesList :stages="file.stages"></StagesList>
             </div>
 
             <span class="ml-auto font-mono">
@@ -189,15 +183,8 @@ const units = computed(() =>
             >
               <span class="font-semibold">part-{{ part.number }}</span>
               <!-- Stages -->
-              <div class="flex gap-2">
-                <Tag
-                  v-for="stage in part.stages"
-                  :key="stage.name"
-                  severity="secondary"
-                  rounded
-                >
-                  {{ stage.name }}
-                </Tag>
+              <div class="flex flex-wrap gap-2">
+                <StagesList :stages="part.stages"></StagesList>
               </div>
               <Tag
                 v-if="part.completed"
