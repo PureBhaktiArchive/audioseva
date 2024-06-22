@@ -22,7 +22,7 @@ const languages = ref(/** @type {string[]} */ ([]));
 languages.value = ['Hindi', 'English'];
 
 const files = ref(
-  /** @type {FullFile[]} */ ([
+  /** @type {AllotmentUnit[]} */ ([
     {
       id: 326,
       languages: ['English'],
