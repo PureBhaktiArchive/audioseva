@@ -11,11 +11,13 @@ import { useAuth } from './auth';
 
 const { isAuthenticated } = useAuth();
 
+const allStages = ['TRSC', 'FC1', 'RFC', 'TTV', 'DCRT', 'LANG', 'FC2', 'FINAL'];
+
 const assignees = ref(/** @type {Assignee[]} */ (null));
 async function loadAssignees() {
-  /** @type {import('firebase/functions').HttpsCallable<{phase:string}, Assignee[]> } */
+  /** @type {import('firebase/functions').HttpsCallable<{skills: string[]}, Assignee[]> } */
   const getAssignees = httpsCallable(getFunctions(), 'User-getAssignees');
-  assignees.value = (await getAssignees({ phase: 'TRSC' })).data;
+  assignees.value = (await getAssignees({ skills: allStages })).data;
 }
 
 const language = ref(/** @type {string} */ (null));
