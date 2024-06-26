@@ -1,10 +1,11 @@
 <script setup>
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import AutoComplete from 'primevue/autocomplete';
 import Badge from 'primevue/badge';
 import Message from 'primevue/message';
 import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import AuthStatus from './AuthStatus.vue';
 import StagesList from './StagesList.vue';
 import { useAuth } from './auth';
@@ -14,10 +15,34 @@ const { isAuthenticated } = useAuth();
 const allStages = ['TRSC', 'FC1', 'RFC', 'TTV', 'DCRT', 'LANG', 'FC2', 'FINAL'];
 
 const assignees = ref(/** @type {Assignee[]} */ (null));
+const filteredAssignees = ref(assignees.value);
+/**
+ * @param {import('primevue/autocomplete').AutoCompleteCompleteEvent} event
+ */
+const searchAssignees = (event) => {
+  const query = event.query.trim().toLowerCase();
+  // Forcefully mutating the suggestions due to AutoComplete's issues: https://github.com/primefaces/primevue/issues/5601
+  filteredAssignees.value = [
+    ...(query.length && assignees.value
+      ? assignees.value.filter((assignee) =>
+          assignee.name.toLowerCase().startsWith(query)
+        )
+      : assignees.value),
+  ];
+};
+
+const selectedAssignee = ref(/** @type {Assignee} */ (null));
+const assigneesLoading = ref(false);
+
 async function loadAssignees() {
+  assigneesLoading.value = true;
+  try {
   /** @type {import('firebase/functions').HttpsCallable<{skills: string[]}, Assignee[]> } */
   const getAssignees = httpsCallable(getFunctions(), 'User-getAssignees');
   assignees.value = (await getAssignees({ skills: allStages })).data;
+  } finally {
+    assigneesLoading.value = false;
+  }
 }
 
 const language = ref(/** @type {string} */ (null));
@@ -136,19 +161,28 @@ const units = computed(() =>
       ),
     }))
 );
+
+onMounted(() => {
+  loadAssignees();
+});
 </script>
 
 <template>
   <div class="flex flex-col gap-2">
     <AuthStatus></AuthStatus>
     <template v-if="isAuthenticated">
-      <button
-        class="self-start underline decoration-dotted"
-        @click="loadAssignees"
-      >
-        Load Devotees
-      </button>
-      <span v-if="assignees">Devotees: {{ assignees.length }}</span>
+      <!-- Assignees -->
+      <AutoComplete
+        v-model="selectedAssignee"
+        dropdown
+        completeOnFocus
+        autoOptionFocus
+        placeholder="Select a devotee"
+        optionLabel="name"
+        :loading="assigneesLoading"
+        :suggestions="filteredAssignees"
+        @complete="searchAssignees"
+      />
       <!-- Languages -->
       <SelectButton v-model="language" :options="languages"></SelectButton>
       <!-- Files -->
