@@ -5,14 +5,12 @@ import Badge from 'primevue/badge';
 import Message from 'primevue/message';
 import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import AuthStatus from './AuthStatus.vue';
 import StagesList from './StagesList.vue';
 import { useAuth } from './auth';
 
 const { isAuthenticated } = useAuth();
-
-const allStages = ['TRSC', 'FC1', 'RFC', 'TTV', 'DCRT', 'LANG', 'FC2', 'FINAL'];
 
 const assignees = ref(/** @type {Assignee[]} */ (null));
 const filteredAssignees = ref(assignees.value);
@@ -37,17 +35,34 @@ const assigneesLoading = ref(false);
 async function loadAssignees() {
   assigneesLoading.value = true;
   try {
-  /** @type {import('firebase/functions').HttpsCallable<{skills: string[]}, Assignee[]> } */
-  const getAssignees = httpsCallable(getFunctions(), 'User-getAssignees');
-  assignees.value = (await getAssignees({ skills: allStages })).data;
+    /** @type {import('firebase/functions').HttpsCallable<{skills: string[]}, Assignee[]> } */
+    const getAssignees = httpsCallable(getFunctions(), 'User-getAssignees');
+    assignees.value = (await getAssignees({ skills: allStages })).data;
   } finally {
     assigneesLoading.value = false;
   }
 }
 
-const language = ref(/** @type {string} */ (null));
-const languages = ref(/** @type {string[]} */ ([]));
-languages.value = ['Hindi', 'English'];
+const selectedLanguage = ref(/** @type {string} */ (null));
+const languages = computed(() =>
+  selectedAssignee.value ? selectedAssignee.value.languages : null
+);
+
+const allStages = ['TRSC', 'FC1', 'RFC', 'TTV', 'DCRT', 'LANG', 'FC2', 'FINAL'];
+const stages = computed(() =>
+  selectedAssignee.value ? selectedAssignee.value.skills : null
+);
+const selectedStage = ref('');
+
+watch(
+  selectedAssignee,
+  (assignee) =>
+    (
+      // Selecting a primary language of an assignee by default
+      (selectedLanguage.value = assignee ? assignee.languages?.[0] : null),
+      (selectedStage.value = stages.value?.[0])
+    )
+);
 
 const files = ref(
   /** @type {AllotmentUnit[]} */ ([
@@ -150,7 +165,7 @@ const files = ref(
 
 const units = computed(() =>
   files.value
-    .filter((file) => file.languages.includes(language.value))
+    .filter((file) => file.languages.includes(selectedLanguage.value))
     .map((file) => ({
       ...file,
       // https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss#comment65343664_25279399
@@ -184,9 +199,20 @@ onMounted(() => {
         @complete="searchAssignees"
       />
       <!-- Languages -->
-      <SelectButton v-model="language" :options="languages"></SelectButton>
+      <SelectButton
+        v-model="selectedLanguage"
+        :options="languages"
+        :allowEmpty="false"
+      ></SelectButton>
+      <!-- Stages -->
+      <SelectButton
+        v-model="selectedStage"
+        :options="stages"
+        :allowEmpty="false"
+        class="flex-wrap"
+      ></SelectButton>
       <!-- Files -->
-      <Message v-if="!language" severity="secondary">
+      <Message v-if="!selectedLanguage" severity="secondary">
         Select a language to see available files.
       </Message>
       <ul v-else class="flex w-full flex-col gap-2">

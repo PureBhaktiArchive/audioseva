@@ -9,6 +9,7 @@ type Assignee = {
   name: string;
   location: string;
   languages: string[];
+  skills: string[];
 };
 
 type Stage = {
