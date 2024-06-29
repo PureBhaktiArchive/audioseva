@@ -8,6 +8,7 @@ import AuthStatus from './AuthStatus.vue';
 import StageChip from './StageChip.vue';
 import { useAuth } from './auth';
 import { formatDurationForHumans } from './duration';
+import { canFileBeAllottedForStage } from './workflow';
 
 const { isAuthenticated } = useAuth();
 
@@ -60,7 +61,7 @@ const languages = computed(() =>
 const stages = computed(() =>
   selectedAssignee.value ? selectedAssignee.value.skills : null
 );
-const selectedStage = ref('');
+const selectedStage = ref(/** @type {Stage} */ (null));
 
 watch(
   selectedAssignee,
@@ -76,7 +77,8 @@ const files = ref(/** @type {FileToAllot[]} */ (null));
 
 const filteredFiles = computed(() =>
   files.value?.flatMap((file) =>
-    file.languages.includes(selectedLanguage.value)
+    file.languages.includes(selectedLanguage.value) &&
+    canFileBeAllottedForStage(file, selectedStage.value)
       ? [
           {
             ...file,

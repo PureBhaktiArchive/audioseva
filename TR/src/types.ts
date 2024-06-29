@@ -10,7 +10,7 @@ declare global {
     name: string;
     location: string;
     languages: string[];
-    skills: string[];
+    skills: Stage[];
   };
 
   type Status = 'Given' | 'Done' | 'Drop';
