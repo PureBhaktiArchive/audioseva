@@ -6,6 +6,7 @@ import Tag from 'primevue/tag';
 import { computed, ref, watch } from 'vue';
 import AuthStatus from './AuthStatus.vue';
 import StageChip from './StageChip.vue';
+import StatusChip from './StatusChip.vue';
 import { useAuth } from './auth';
 import { formatDurationForHumans } from './duration';
 import { canFileBeAllottedForStage } from './workflow';
@@ -148,8 +149,11 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
             <StageChip
               v-if="file.latestStage"
               :stage="file.latestStage"
-              :status="file.latestStatus"
             ></StageChip>
+            <StatusChip
+              v-if="file.latestStatus"
+              :status="file.latestStatus"
+            ></StatusChip>
             <span class="ml-auto font-mono font-bold">
               {{ file.duration }}
             </span>
@@ -170,9 +174,11 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
               <StageChip
                 v-if="part.latestStage"
                 :stage="part.latestStage"
-                :status="part.latestStatus"
-                class="text-sm"
               ></StageChip>
+              <StatusChip
+                v-if="part.latestStatus"
+                :status="part.latestStatus"
+              ></StatusChip>
               <Tag
                 v-if="part.completed"
                 severity="success"

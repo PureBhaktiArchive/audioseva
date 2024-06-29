@@ -8,25 +8,21 @@ defineProps({
     /** @returns {Stage} */
     default: () => null,
   },
-  status: {
-    /** @returns {Status} */
-    default: () => null,
-  },
 });
 </script>
 
 <template>
   <Chip
     :label="stage"
-    class="border-2 py-0"
+    class="py-0"
     :class="{
-      ['bg-green-200']: stage === 'TRSC',
-      ['bg-red-200']: stage === 'FC1',
+      ['bg-green-200 text-green-900']: stage === 'TRSC',
+      ['bg-red-200 text-red-900']: stage === 'FC1',
+      ['bg-blue-900 text-sky-200']: stage === 'TTV',
       ['bg-yellow-200']: stage === 'DCRT',
-      // Statuses
-      ['border-green-300']: status === 'Done',
-      ['border-blue-300']: status === 'Given',
-      ['border-amber-900']: status === 'Drop',
+      ['bg-lime-500 text-blue-900']: stage === 'LANG',
+      ['bg-red-900 text-red-200']: stage === 'FC2',
+      ['bg-green-900 text-lime-200']: stage === 'FINAL',
     }"
   ></Chip>
 </template>
