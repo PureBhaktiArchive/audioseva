@@ -41,6 +41,8 @@ const loadAssignees = async () => {
     /** @type {import('firebase/functions').HttpsCallable<{skills: string[]}, Assignee[]> } */
     const getAssignees = httpsCallable(getFunctions(), 'User-getAssignees');
     assignees.value = (await getAssignees({ skills: allStages })).data;
+    // @ts-expect-error -- For some reason it thinks that import.meta is not available here.
+    if (import.meta.env.DEV) selectedAssignee.value = assignees.value?.[0];
   } finally {
     assigneesLoading.value = false;
   }
