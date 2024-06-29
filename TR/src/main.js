@@ -8,6 +8,13 @@ const app = createApp(App);
 app.use(PrimeVue, {
   theme: {
     preset: Aura,
+    // Enbling PrimeVue CSS layer to easily override styling with Tailwind: https://primevue.org/tailwind/#override
+    options: {
+      cssLayer: {
+        name: 'primevue',
+        order: 'tailwind-base, primevue, tailwind-utilities',
+      },
+    },
   },
 });
 app.mount('#app');
