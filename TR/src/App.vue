@@ -5,12 +5,14 @@ import Badge from 'primevue/badge';
 import Message from 'primevue/message';
 import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import AuthStatus from './AuthStatus.vue';
 import StagesList from './StagesList.vue';
 import { useAuth } from './auth';
 
 const { isAuthenticated } = useAuth();
+
+const allStages = ['TRSC', 'FC1', 'RFC', 'TTV', 'DCRT', 'LANG', 'FC2', 'FINAL'];
 
 const assignees = ref(/** @type {Assignee[]} */ (null));
 const filteredAssignees = ref(assignees.value);
@@ -19,6 +21,7 @@ const filteredAssignees = ref(assignees.value);
  */
 const searchAssignees = (event) => {
   const query = event.query.trim().toLowerCase();
+  if (!assignees.value) return;
   // Forcefully mutating the suggestions due to AutoComplete's issues: https://github.com/primefaces/primevue/issues/5601
   filteredAssignees.value = [
     ...(query.length && assignees.value
@@ -32,7 +35,7 @@ const searchAssignees = (event) => {
 const selectedAssignee = ref(/** @type {Assignee} */ (null));
 const assigneesLoading = ref(false);
 
-async function loadAssignees() {
+const loadAssignees = async () => {
   assigneesLoading.value = true;
   try {
     /** @type {import('firebase/functions').HttpsCallable<{skills: string[]}, Assignee[]> } */
@@ -41,14 +44,17 @@ async function loadAssignees() {
   } finally {
     assigneesLoading.value = false;
   }
-}
+};
+
+loadAssignees().catch((reason) =>
+  console.log('Error getting assignees:', reason)
+);
 
 const selectedLanguage = ref(/** @type {string} */ (null));
 const languages = computed(() =>
   selectedAssignee.value ? selectedAssignee.value.languages : null
 );
 
-const allStages = ['TRSC', 'FC1', 'RFC', 'TTV', 'DCRT', 'LANG', 'FC2', 'FINAL'];
 const stages = computed(() =>
   selectedAssignee.value ? selectedAssignee.value.skills : null
 );
@@ -176,10 +182,6 @@ const units = computed(() =>
       ),
     }))
 );
-
-onMounted(() => {
-  loadAssignees();
-});
 </script>
 
 <template>
