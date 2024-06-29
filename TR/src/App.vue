@@ -1,18 +1,18 @@
 <script setup>
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import AutoComplete from 'primevue/autocomplete';
-import Badge from 'primevue/badge';
-import Message from 'primevue/message';
 import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
 import { computed, ref, watch } from 'vue';
 import AuthStatus from './AuthStatus.vue';
-import StagesList from './StagesList.vue';
+import StageChip from './StageChip.vue';
 import { useAuth } from './auth';
+import { formatDurationForHumans } from './duration';
 
 const { isAuthenticated } = useAuth();
 
-const allStages = ['TRSC', 'FC1', 'RFC', 'TTV', 'DCRT', 'LANG', 'FC2', 'FINAL'];
+/** @type {Stage[]} */
+const allStages = ['TRSC', 'FC1', 'TTV', 'DCRT', 'LANG', 'FC2', 'FINAL'];
 
 const assignees = ref(/** @type {Assignee[]} */ (null));
 const filteredAssignees = ref(assignees.value);
@@ -38,7 +38,7 @@ const assigneesLoading = ref(false);
 const loadAssignees = async () => {
   assigneesLoading.value = true;
   try {
-    /** @type {import('firebase/functions').HttpsCallable<{skills: string[]}, Assignee[]> } */
+    /** @type {import('firebase/functions').HttpsCallable<{skills: Stage[]}, Assignee[]> } */
     const getAssignees = httpsCallable(getFunctions(), 'User-getAssignees');
     assignees.value = (await getAssignees({ skills: allStages })).data;
     // @ts-expect-error -- For some reason it thinks that import.meta is not available here.
@@ -72,118 +72,36 @@ watch(
     )
 );
 
-const files = ref(
-  /** @type {AllotmentUnit[]} */ ([
-    {
-      id: 326,
-      languages: ['English'],
-      note: 'Some note goes here',
-      duration: 17 * 60 + 40,
-      parts: [
-        {
-          number: 1,
-          completed: true,
-          stages: [
-            {
-              name: 'TRSC',
-              status: 'Done',
-            },
-            {
-              name: 'FC1',
-              status: 'Done',
-            },
-          ],
-        },
-        {
-          number: 2,
-          completed: false,
-          stages: [
-            {
-              name: 'TRSC',
-              status: 'Given',
-            },
-          ],
-        },
-        {
-          number: 3,
-          completed: false,
-          stages: [
-            {
-              name: 'TRSC',
-              status: 'Given',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: 50,
-      languages: ['English'],
-      duration: 45 * 60 + 11,
-      stages: [
-        {
-          name: 'RFC',
-          status: 'Given',
-        },
-      ],
-    },
-    {
-      id: 175,
-      languages: ['Hindi'],
-      duration: 13 * 60 + 27,
-      parts: [
-        {
-          number: 1,
-          completed: true,
-          stages: [
-            {
-              name: 'TRSC',
-              status: 'Done',
-            },
-            {
-              name: 'FC1',
-              status: 'Done',
-            },
-          ],
-        },
-        {
-          number: 2,
-          completed: true,
-          stages: [
-            {
-              name: 'TRSC',
-              status: 'Done',
-            },
-            {
-              name: 'FC1',
-              status: 'Done',
-            },
-          ],
-        },
-      ],
-      stages: [
-        {
-          name: 'LANG',
-          status: 'Done',
-        },
-      ],
-    },
-  ])
-);
+const files = ref(/** @type {FileToAllot[]} */ (null));
 
-const units = computed(() =>
-  files.value
-    .filter((file) => file.languages.includes(selectedLanguage.value))
-    .map((file) => ({
-      ...file,
-      // https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss#comment65343664_25279399
-      duration: new Date(1000 * file.duration).toISOString().substring(11, 19),
-      partsCompleted: file.parts?.reduce(
-        (count, { completed }) => (completed ? ++count : count),
-        0
-      ),
-    }))
+const filteredFiles = computed(() =>
+  files.value?.flatMap((file) =>
+    file.languages.includes(selectedLanguage.value)
+      ? [
+          {
+            ...file,
+            parts: file.parts?.map((part) => ({
+              ...part,
+              duration: formatDurationForHumans(part.duration),
+            })),
+            duration: formatDurationForHumans(file.duration),
+          },
+        ]
+      : []
+  )
 );
+const filesLoading = ref(false);
+const loadFiles = async () => {
+  filesLoading.value = true;
+  try {
+    /** @type {import('firebase/functions').HttpsCallable<never, FileToAllot[]> } */
+    const getFiles = httpsCallable(getFunctions(), 'TR-getFiles');
+    files.value = (await getFiles()).data;
+  } finally {
+    filesLoading.value = false;
+  }
+};
+loadFiles().catch((reason) => console.log('Error getting files:', reason));
 </script>
 
 <template>
@@ -216,48 +134,52 @@ const units = computed(() =>
         class="flex-wrap"
       ></SelectButton>
       <!-- Files -->
-      <Message v-if="!selectedLanguage" severity="secondary">
-        Select a language to see available files.
-      </Message>
-      <ul v-else class="flex w-full flex-col gap-2">
-        <li class="rounded-md border p-2" v-for="file in units" :key="file.id">
+      <ul class="flex w-full flex-col gap-2">
+        <li
+          class="rounded-md border p-2"
+          v-for="file in filteredFiles"
+          :key="file.id"
+        >
           <div class="flex items-center gap-2">
             <span class="font-bold">{{ file.id }}</span>
-            <Badge
-              v-if="file.parts?.length > 0"
-              :severity="
-                file.partsCompleted === file.parts.length ? 'success' : 'info'
-              "
-              >{{ file.partsCompleted }} / {{ file.parts.length }}</Badge
-            >
-            <!-- Stages -->
-            <div v-if="file.stages" class="flex flex-wrap gap-2">
-              <StagesList :stages="file.stages"></StagesList>
-            </div>
-
+            <!-- Latest Stage -->
+            <StageChip
+              v-if="file.latestStage"
+              :stage="file.latestStage"
+              :status="file.latestStatus"
+            ></StageChip>
             <span class="ml-auto font-mono">
               {{ file.duration }}
             </span>
           </div>
           <span v-if="file.note" v-html="file.note"></span>
           <!-- Parts -->
-          <ul class="mt-2 flex flex-col gap-2 border-t pl-2 pt-2">
+          <ul
+            v-if="file.parts?.length > 0"
+            class="mt-2 flex flex-col gap-2 border-t pl-2 pt-2"
+          >
             <li
               class="flex items-center gap-2"
               v-for="part in file.parts"
               :key="part.number"
             >
-              <span class="font-semibold">part-{{ part.number }}</span>
-              <!-- Stages -->
-              <div class="flex flex-wrap gap-2">
-                <StagesList :stages="part.stages"></StagesList>
-              </div>
+              <span>part-{{ part.number }}</span>
+              <!-- Latest Stage -->
+              <StageChip
+                v-if="part.latestStage"
+                :stage="part.latestStage"
+                :status="part.latestStatus"
+                class="text-sm"
+              ></StageChip>
               <Tag
                 v-if="part.completed"
                 severity="success"
                 value="Completed"
-                class="ml-auto uppercase"
+                class="text-sm uppercase"
               ></Tag>
+              <span class="ml-auto font-mono">
+                {{ part.duration }}
+              </span>
             </li>
           </ul>
         </li>

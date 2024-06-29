@@ -3,31 +3,36 @@
  * https://docs.joshuatz.com/cheatsheets/js/jsdoc/#passing-types-around-via-typescript-files
  */
 
-type Assignee = {
-  id: string;
-  emailAddress: string;
-  name: string;
-  location: string;
-  languages: string[];
-  skills: string[];
-};
+declare global {
+  type Assignee = {
+    id: string;
+    emailAddress: string;
+    name: string;
+    location: string;
+    languages: string[];
+    skills: string[];
+  };
 
-type Stage = {
-  name: string;
-  status: 'Given' | 'Done' | 'Drop';
-};
+  type Status = 'Given' | 'Done' | 'Drop';
+  type Stage = 'TRSC' | 'FC1' | 'TTV' | 'DCRT' | 'LANG' | 'FC2' | 'FINAL';
 
-type Part = {
-  number: number;
-  completed: boolean;
-  stages: Stage[];
-};
+  type Part = {
+    number: number;
+    duration: number;
+    completed: boolean;
+    latestStage: Stage;
+    latestStatus: Status;
+    latestAssignee: string;
+  };
 
-type AllotmentUnit = {
-  id: number;
-  languages: string[];
-  duration: number;
-  note?: string;
-  stages: Stage[];
-  parts?: Part[];
-};
+  type FileToAllot = {
+    id: number;
+    languages: string[];
+    duration: number;
+    note?: string;
+    latestStage: Stage;
+    latestStatus: Status;
+    latestAssignee: string;
+    parts?: Part[];
+  };
+}
