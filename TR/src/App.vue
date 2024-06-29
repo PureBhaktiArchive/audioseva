@@ -148,7 +148,7 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
               :stage="file.latestStage"
               :status="file.latestStatus"
             ></StageChip>
-            <span class="ml-auto font-mono">
+            <span class="ml-auto font-mono font-bold">
               {{ file.duration }}
             </span>
           </div>
@@ -159,7 +159,7 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
             class="mt-2 flex flex-col gap-2 border-t pl-2 pt-2"
           >
             <li
-              class="flex items-center gap-2"
+              class="flex items-center gap-2 text-sm"
               v-for="part in file.parts"
               :key="part.number"
             >
