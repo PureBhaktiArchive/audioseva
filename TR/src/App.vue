@@ -1,6 +1,7 @@
 <script setup>
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import AutoComplete from 'primevue/autocomplete';
+import Message from 'primevue/message';
 import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
 import { computed, ref, watch } from 'vue';
@@ -137,7 +138,13 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
         class="flex-wrap"
       ></SelectButton>
       <!-- Files -->
-      <ul class="flex w-full flex-col gap-2">
+      <Message severity="secondary" v-if="!filteredFiles">
+        Select a devotee, language and stage to list the files.
+      </Message>
+      <ul
+        class="flex w-full flex-col gap-2"
+        v-else-if="filteredFiles.length > 0"
+      >
         <li
           class="rounded-md border p-2"
           v-for="file in filteredFiles"
@@ -192,6 +199,10 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
           </ul>
         </li>
       </ul>
+      <Message severity="info" v-else>
+        There are no files in the selected language that can be allotted for the
+        selected stage.
+      </Message>
     </template>
   </div>
 </template>
