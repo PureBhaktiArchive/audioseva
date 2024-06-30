@@ -29,7 +29,8 @@ declare global {
     id: number;
     languages: string[];
     duration: number;
-    note?: string;
+    notes?: string;
+    title: string;
     latestStage: Stage;
     latestStatus: Status;
     latestAssignee: string;

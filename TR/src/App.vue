@@ -1,6 +1,7 @@
 <script setup>
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import AutoComplete from 'primevue/autocomplete';
+import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
 import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
@@ -75,12 +76,22 @@ watch(
     )
 );
 
+// Search query for free filtering
+const query = ref('');
+const queryId = computed(() => (/\d+/.test(query.value) ? +query.value : null));
+const searchTerm = computed(() => query.value?.toLowerCase());
+
 const files = ref(/** @type {FileToAllot[]} */ (null));
 
 const filteredFiles = computed(() =>
   files.value?.flatMap((file) =>
     file.languages.includes(selectedLanguage.value) &&
-    canFileBeAllottedForStage(file, selectedStage.value)
+    (query.value
+      ? // Query string overrides any workflow considerations
+        file.id === queryId.value ||
+        file.notes?.toLowerCase().includes(searchTerm.value) ||
+        file.title?.toLowerCase().includes(searchTerm.value)
+      : canFileBeAllottedForStage(file, selectedStage.value))
       ? [
           {
             ...file,
@@ -137,6 +148,12 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
         :allowEmpty="false"
         class="flex-wrap"
       ></SelectButton>
+      <!-- Search bar -->
+      <InputText
+        v-if="selectedLanguage"
+        v-model.trim="query"
+        placeholder="Search wild"
+      ></InputText>
       <!-- Files -->
       <Message severity="secondary" v-if="!filteredFiles">
         Select a devotee, language and stage to list the files.
@@ -165,7 +182,8 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
               {{ file.duration }}
             </span>
           </div>
-          <span v-if="file.note" v-html="file.note"></span>
+          <span v-if="file.title" class="text-xs">{{ file.title }}</span>
+          <span v-if="file.notes" class="text-xs">{{ file.notes }}</span>
           <!-- Parts -->
           <ul
             v-if="file.parts?.length > 0"
