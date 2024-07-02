@@ -4,7 +4,7 @@
 import { DateTime, Duration } from 'luxon';
 
 const daysBetweenEpochs = 25569; // Number of days between December 30th 1899 and January 1st 1970
-const secondsInDay = 86400; // 24 * 60 * 60
+export const secondsInDay = 86400; // 24 * 60 * 60 Number of seconds in a day
 
 export class DateTimeConverter {
   /**

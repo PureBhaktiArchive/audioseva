@@ -1,0 +1,44 @@
+@startuml FilesSelection
+
+title Selecting files for allotment
+skinparam backgroundColor Azure
+
+start
+:Select a language<
+:Select a stage<
+:Fetch all Archive IDs that are not completed,
+along with all their parts;
+:Keep the files matching the selected language;
+if (Search field is filled?) then (NO)
+  partition "Standard Flow" {
+    if (selected stage) then (TRSC or FC1)
+      :Keep the files having at least
+      one part not completed;
+    else (other)
+      :Keep the files having
+      all parts completed;
+    endif
+    :Keep the files having the previous stage
+    done according to the fixed sequence of stages:
+    TRSC→FC1→[TTV]→DCRT→LANG→FC2→FINAL
+    
+    Parts are considered for TRSC and FC1
+    Wholes are considered for further stages;
+  }
+  
+else (YES)
+  partition "Exceptional Cases" {
+    :Keep the files that match the search
+    query in the Note and ID fields
+    **regardless of the selected stage**;
+  }
+endif
+:Show files for selection>
+:Select files for allotment<
+if (Selected files fit into the standard flow?) then (NO)
+  :Show a warning>
+else (YES)
+endif
+
+end
+@enduml
