@@ -28,8 +28,6 @@ import {
   transcode,
 } from './transcode';
 
-const mp3Queue = getFunctions().taskQueue<MP3CreationTask>('Final-createMP3');
-
 const getPublicFile = (id: number) =>
   getStorage()
     .bucket(functions.config().final?.publication?.bucket)
@@ -107,6 +105,8 @@ const finalizeFile = async (
    * Performing least operation possible
    * depending on what has changed in the record
    */
+
+  const mp3Queue = getFunctions().taskQueue<MP3CreationTask>('Final-createMP3');
 
   // Transcoding from source if MP3 does not exist or the source file changed
   if (

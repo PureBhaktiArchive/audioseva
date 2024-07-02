@@ -24,7 +24,7 @@ export abstract class AbstractRepository<
     private readonly spreadsheetId: string,
     private readonly idPropertyName: TId,
     private readonly idColumnName: TIdColumn,
-    private readonly allotmentsRef: database.Reference
+    protected readonly allotmentsRef: database.Reference
   ) {}
 
   private _allotmentsSheet: Spreadsheet<TRow>;

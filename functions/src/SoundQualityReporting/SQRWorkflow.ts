@@ -23,14 +23,6 @@ import { TasksRepository } from './TasksRepository';
 import _ = require('lodash');
 
 export class SQRWorkflow {
-  static baseRef = admin.database().ref(`/SQR`);
-  static allotmentsRef = SQRWorkflow.baseRef.child(`allotments`);
-  static submissionsRef = SQRWorkflow.baseRef.child(`submissions`);
-  static draftSubmissionsRef = SQRWorkflow.submissionsRef.child(`drafts`);
-  static completedSubmissionsRef =
-    SQRWorkflow.submissionsRef.child(`completed`);
-  static finalSubmissionsRef = SQRWorkflow.submissionsRef.child(`final`);
-
   static async submissionsSheet() {
     return await Spreadsheet.open(
       functions.config().sqr.spreadsheet_id as string,
@@ -145,14 +137,19 @@ export class SQRWorkflow {
     // Saving the author into submission
     submission.author = task.assignee;
 
+    const finalSubmissionsRef = admin
+      .database()
+      .ref(`/SQR`)
+      .child(`submissions`)
+      .child(`final`);
     // Important: get this before saving current submission to final
-    const previousSubmissions = await this.finalSubmissionsRef
+    const previousSubmissions = await finalSubmissionsRef
       .orderByChild('author/emailAddress')
       .equalTo(submission.author.emailAddress)
       .once('value');
 
     // Saving submission to the cold storage
-    await this.finalSubmissionsRef.child(fileName).set(submission);
+    await finalSubmissionsRef.child(fileName).set(submission);
 
     // Updating the task status.
     // Sometimes submission is updated after it is marked as Done.

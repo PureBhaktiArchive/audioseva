@@ -3,7 +3,8 @@ import * as path from 'path';
 import { StorageFileReference } from './StorageFileReference';
 import { BucketName, File } from './StorageManager';
 
-export const metadataCacheRef = getDatabase().ref('files').child('metadata');
+export const getMetadataCacheRef = () =>
+  getDatabase().ref('files').child('metadata');
 
 export const getFileMetadataPath = (file: File | StorageFileReference) =>
   `${(typeof file.bucket === 'string' ? file.bucket : file.bucket.name)

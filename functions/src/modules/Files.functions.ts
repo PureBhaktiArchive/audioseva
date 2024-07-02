@@ -19,7 +19,7 @@ import {
   FileMetadataCache,
   getFileDurationPath,
   getFileMetadataPath,
-  metadataCacheRef,
+  getMetadataCacheRef,
 } from '../metadata-database';
 import { modificationTime } from '../modification-time';
 import pMap = require('p-map');
@@ -88,7 +88,7 @@ export const saveMetadataToDatabase = functions
   .pubsub.schedule('every day 23:00')
   .timeZone(functions.config().coordinator.timezone as string)
   .onRun(async () => {
-    const snapshot = await metadataCacheRef.once('value');
+    const snapshot = await getMetadataCacheRef().once('value');
     const updateAllMetadata = snapshot
       .child('updateAllMetadata')
       .val() as boolean;
@@ -161,7 +161,7 @@ export const saveMetadataToDatabase = functions
             })
         ),
         // Saving new metadata to the database
-        metadataCacheRef.update(updates),
+        getMetadataCacheRef().update(updates),
       ]);
     });
   });
@@ -186,7 +186,9 @@ export const extractDuration = functions
 
       console.log(`Got duration for ${file.metadata.id}: ${duration}`);
 
-      await metadataCacheRef.child(getFileDurationPath(file)).set(duration);
+      await getMetadataCacheRef()
+        .child(getFileDurationPath(file))
+        .set(duration);
     } catch (error) {
       console.warn(
         `Failed to extract duration for ${file.metadata.id}`,
@@ -217,7 +219,7 @@ export const exportMetadataToSpreadsheet = functions.pubsub
       ['edited', 'TE'],
     ]);
 
-    const data = (await metadataCacheRef.once('value')).val() as Dump;
+    const data = (await getMetadataCacheRef().once('value')).val() as Dump;
     const rows = _(Object.entries(data))
       .flatMapDeep(([bucketName, bucketData]) =>
         Object.entries(bucketData).map(([fileName, fileData]) =>

@@ -12,7 +12,7 @@ import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
-import { getFileDurationPath, metadataCacheRef } from '../metadata-database';
+import { getFileDurationPath, getMetadataCacheRef } from '../metadata-database';
 import { modificationTime } from '../modification-time';
 import {
   Approval,
@@ -45,7 +45,7 @@ export const importRecords = functions
     const [rows, snapshot, metadataCacheSnapshot] = await Promise.all([
       sheet.getRows(),
       database().ref('/FC/records').once('value'),
-      metadataCacheRef.once('value'),
+      getMetadataCacheRef().once('value'),
     ]);
 
     const validator = new FidelityCheckValidator();

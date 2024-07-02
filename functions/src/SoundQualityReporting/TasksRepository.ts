@@ -11,9 +11,6 @@ import { SpareFile } from './SpareFile';
 import admin = require('firebase-admin');
 import _ = require('lodash');
 
-const baseRef = admin.database().ref(`/SQR`);
-const allotmentsRef = baseRef.child(`allotments`);
-
 export class TasksRepository extends AbstractRepository<
   ReportingAllotmentRow,
   ReportingTask,
@@ -25,7 +22,7 @@ export class TasksRepository extends AbstractRepository<
       functions.config().sqr.spreadsheet_id as string,
       'fileName',
       'File Name',
-      allotmentsRef
+      admin.database().ref(`/SQR`).child(`allotments`)
     );
   }
 
@@ -67,7 +64,7 @@ export class TasksRepository extends AbstractRepository<
   }
 
   public async getUserAllotments(emailAddress: string) {
-    const snapshot = await allotmentsRef
+    const snapshot = await this.allotmentsRef
       .orderByChild('assignee/emailAddress')
       .equalTo(emailAddress)
       .once('value');
