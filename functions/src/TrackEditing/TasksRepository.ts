@@ -17,9 +17,6 @@ import { TrackEditingTask } from './TrackEditingTask';
 import admin = require('firebase-admin');
 import _ = require('lodash');
 
-const baseRef = admin.database().ref(`/TE`);
-const tasksRef = baseRef.child(`tasks`);
-
 export class TasksRepository extends AbstractRepository<
   TrackEditingAllotmentRow,
   TrackEditingTask,
@@ -31,7 +28,7 @@ export class TasksRepository extends AbstractRepository<
       functions.config().te.spreadsheet.id as string,
       'id',
       'Task ID',
-      tasksRef
+      admin.database().ref(`/TE`).child(`tasks`)
     );
   }
 
