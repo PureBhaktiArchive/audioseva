@@ -28,8 +28,11 @@ const canStageComeAfterAnother = (stage1, stage2) =>
  */
 export const canFileBeAllottedForStage = (file, stage) =>
   stagesForParts.includes(stage)
-    ? file.parts?.some((part) =>
-        canStageComeAfterAnother(part.latestStage, stage)
+    ? file.parts?.some(
+        (part) =>
+          part.latestStatus !== 'Given' &&
+          canStageComeAfterAnother(part.latestStage, stage)
       ) || false
     : file.parts?.every((part) => part.completed) &&
+      file.latestStatus === 'Given' &&
       canStageComeAfterAnother(file.latestStage, stage);
