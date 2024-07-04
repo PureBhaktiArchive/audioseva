@@ -129,6 +129,38 @@ const loadFiles = async () => {
   }
 };
 loadFiles().catch((reason) => console.log('Error getting files:', reason));
+
+/** @type {import('vue').Ref<number>} */
+const selectedFile = ref(null);
+watch(selectedFile, () => selectedParts.value.clear(), {
+  flush: 'sync',
+});
+
+/**
+ * @param {number} id
+ */
+const toggleFile = (id) =>
+  void (selectedFile.value = selectedFile.value === id ? null : id);
+
+/** @type {import('vue').Ref<Set<number>>} */
+const selectedParts = ref(new Set());
+watch(
+  selectedParts,
+  () => selectedParts.value.size === 0 && (selectedFile.value = null),
+  {
+    flush: 'sync',
+  }
+);
+
+/**
+ * @param {number} id File ID
+ * @param {number} number Part number
+ */
+const togglePart = (id, number) =>
+  void ((selectedFile.value = id),
+  selectedParts.value.has(number)
+    ? selectedParts.value.delete(number)
+    : selectedParts.value.add(number));
 </script>
 
 <template>
@@ -176,7 +208,7 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
       ></ProgressBar>
       <!-- Files -->
       <ul
-        class="flex w-full flex-col gap-2"
+        class="flex w-full select-none flex-col gap-2"
         v-else-if="filteredFiles.length > 0"
       >
         <li
@@ -186,7 +218,18 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
         >
           <div
             class="flex items-center gap-2 rounded-md p-2"
-            :class="[file.canBeAllotted ? 'cursor-pointer bg-fuchsia-50' : '']"
+            :class="
+              file.canBeAllotted
+                ? [
+                    'cursor-pointer',
+                    'bg-fuchsia-50',
+                    {
+                      'bg-fuchsia-400': file.id === selectedFile,
+                    },
+                  ]
+                : null
+            "
+            @click="file.canBeAllotted && toggleFile(file.id)"
           >
             <span class="font-bold">{{ file.id }}</span>
             <!-- Latest Stage -->
@@ -205,14 +248,25 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
           <span v-if="file.title" class="px-2 text-xs">{{ file.title }}</span>
           <span v-if="file.notes" class="px-2 text-xs">{{ file.notes }}</span>
           <!-- Parts -->
-          <ul v-if="file.parts?.length > 0" class="flex flex-col gap-0.5">
+          <ul v-if="file.parts?.length > 0" class="mt-1 flex flex-col gap-0.5">
             <li
-              class="flex items-center gap-2 rounded-md p-2 text-sm"
-              :class="[
-                part.canBeAllotted ? 'cursor-pointer bg-fuchsia-50' : '',
-              ]"
               v-for="part in file.parts"
               :key="part.number"
+              class="flex items-center gap-2 rounded-md p-2 text-sm"
+              :class="
+                part.canBeAllotted
+                  ? [
+                      'cursor-pointer',
+                      'bg-fuchsia-50',
+                      {
+                        'bg-fuchsia-400':
+                          file.id === selectedFile &&
+                          selectedParts.has(part.number),
+                      },
+                    ]
+                  : null
+              "
+              @click="part.canBeAllotted && togglePart(file.id, part.number)"
             >
               <span>part-{{ part.number }}</span>
               <!-- Latest Stage -->
