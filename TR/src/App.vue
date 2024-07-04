@@ -100,9 +100,9 @@ const filteredFiles = computed(() =>
     return (
       query.value
         ? // If query is present then we show all matching files regardless of the workflow considerations
-        file.id === queryId.value ||
-        file.notes?.toLowerCase().includes(searchTerm.value) ||
-        file.title?.toLowerCase().includes(searchTerm.value)
+          file.id === queryId.value ||
+          file.notes?.toLowerCase().includes(searchTerm.value) ||
+          file.title?.toLowerCase().includes(searchTerm.value)
         : fileCanBeAllotted || parts?.some((part) => part.canBeAllotted)
     )
       ? [
@@ -165,20 +165,23 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
         v-model.trim="query"
         placeholder="Search wild"
       ></InputText>
-      <!-- Files -->
       <Message severity="secondary" v-if="!filteredFiles">
         Select a devotee, language and stage to list the files.
       </Message>
+      <!-- Files -->
       <ul
         class="flex w-full flex-col gap-2"
         v-else-if="filteredFiles.length > 0"
       >
         <li
-          class="rounded-md border p-2"
+          class="flex flex-col gap-y-1 rounded-md border p-2"
           v-for="file in filteredFiles"
           :key="file.id"
         >
-          <div class="flex items-center gap-2">
+          <div
+            class="flex items-center gap-2 rounded-md border border-neutral-200 p-2"
+            :class="[file.canBeAllotted ? 'cursor-pointer' : 'bg-neutral-200']"
+          >
             <span class="font-bold">{{ file.id }}</span>
             <!-- Latest Stage -->
             <StageChip
@@ -193,15 +196,15 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
               {{ file.duration }}
             </span>
           </div>
-          <span v-if="file.title" class="text-xs">{{ file.title }}</span>
-          <span v-if="file.notes" class="text-xs">{{ file.notes }}</span>
+          <span v-if="file.title" class="px-2 text-xs">{{ file.title }}</span>
+          <span v-if="file.notes" class="px-2 text-xs">{{ file.notes }}</span>
           <!-- Parts -->
-          <ul
-            v-if="file.parts?.length > 0"
-            class="mt-2 flex flex-col gap-2 border-t pl-2 pt-2"
-          >
+          <ul v-if="file.parts?.length > 0" class="flex flex-col gap-0.5">
             <li
-              class="flex items-center gap-2 text-sm"
+              class="flex items-center gap-2 rounded-md border border-neutral-200 p-2 text-sm"
+              :class="[
+                part.canBeAllotted ? 'cursor-pointer' : 'bg-neutral-200',
+              ]"
               v-for="part in file.parts"
               :key="part.number"
             >
@@ -219,7 +222,7 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
                 v-if="part.completed"
                 severity="success"
                 value="Completed"
-                class="text-sm uppercase"
+                class="text-xs uppercase"
               ></Tag>
               <span class="ml-auto font-mono">
                 {{ part.duration }}
