@@ -179,8 +179,8 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
           :key="file.id"
         >
           <div
-            class="flex items-center gap-2 rounded-md border border-neutral-200 p-2"
-            :class="[file.canBeAllotted ? 'cursor-pointer' : 'bg-neutral-200']"
+            class="flex items-center gap-2 rounded-md p-2"
+            :class="[file.canBeAllotted ? 'cursor-pointer bg-fuchsia-50' : '']"
           >
             <span class="font-bold">{{ file.id }}</span>
             <!-- Latest Stage -->
@@ -201,9 +201,9 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
           <!-- Parts -->
           <ul v-if="file.parts?.length > 0" class="flex flex-col gap-0.5">
             <li
-              class="flex items-center gap-2 rounded-md border border-neutral-200 p-2 text-sm"
+              class="flex items-center gap-2 rounded-md p-2 text-sm"
               :class="[
-                part.canBeAllotted ? 'cursor-pointer' : 'bg-neutral-200',
+                part.canBeAllotted ? 'cursor-pointer bg-fuchsia-50' : '',
               ]"
               v-for="part in file.parts"
               :key="part.number"
