@@ -222,10 +222,9 @@ const togglePart = (id, number) =>
               file.canBeAllotted
                 ? [
                     'cursor-pointer',
-                    'bg-fuchsia-50',
-                    {
-                      'bg-fuchsia-400': file.id === selectedFile,
-                    },
+                    file.id === selectedFile
+                      ? 'bg-fuchsia-400'
+                      : 'bg-fuchsia-50',
                   ]
                 : null
             "
@@ -257,12 +256,9 @@ const togglePart = (id, number) =>
                 part.canBeAllotted
                   ? [
                       'cursor-pointer',
-                      'bg-fuchsia-50',
-                      {
-                        'bg-fuchsia-400':
-                          file.id === selectedFile &&
-                          selectedParts.has(part.number),
-                      },
+                      file.id === selectedFile && selectedParts.has(part.number)
+                        ? 'bg-fuchsia-400'
+                        : 'bg-fuchsia-50',
                     ]
                   : null
               "
