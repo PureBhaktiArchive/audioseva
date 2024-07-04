@@ -21,18 +21,20 @@ const canStageComeAfterAnother = (stage1, stage2) =>
   preceedingStages.get(stage2)?.includes(stage1);
 
 /**
- *
- * @param {FileToAllot} file
- * @param {Stage} stage
+ * Whether a unit can be allotted for a given stage
+ * @param {FileToAllot | Part} unit Unit to allot, either a file or a part
+ * @param {Stage} stage Stage to be allotted for
  * @returns {Boolean}
  */
-export const canFileBeAllottedForStage = (file, stage) =>
-  stagesForParts.includes(stage)
-    ? file.parts?.some(
-        (part) =>
-          part.latestStatus !== 'Given' &&
-          canStageComeAfterAnother(part.latestStage, stage)
-      ) || false
-    : file.parts?.every((part) => part.completed) &&
-      file.latestStatus === 'Given' &&
-      canStageComeAfterAnother(file.latestStage, stage);
+export const canUnitBeAllottedForStage = (unit, stage) =>
+  ('id' in unit
+    ? // For whole files, all parts should be completed if present
+      unit.parts?.every((part) => part.completed) &&
+      // and only specific stages are allowed
+      !stagesForParts.includes(stage)
+    : // For parts, only specific stages are allowed
+      stagesForParts.includes(stage)) &&
+  !unit.completed &&
+  // A unit should not be in progress currently
+  unit.latestStatus !== 'Given' &&
+  canStageComeAfterAnother(unit.latestStage, stage);

@@ -11,7 +11,7 @@ import StageChip from './StageChip.vue';
 import StatusChip from './StatusChip.vue';
 import { useAuth } from './auth';
 import { formatDurationForHumans } from './duration';
-import { canFileBeAllottedForStage } from './workflow';
+import { canUnitBeAllottedForStage } from './workflow';
 
 const { isAuthenticated } = useAuth();
 
@@ -84,26 +84,37 @@ const searchTerm = computed(() => query.value?.toLowerCase());
 const files = ref(/** @type {FileToAllot[]} */ (null));
 
 const filteredFiles = computed(() =>
-  files.value?.flatMap((file) =>
-    file.languages.includes(selectedLanguage.value) &&
-    (query.value
-      ? // Query string overrides any workflow considerations
+  files.value?.flatMap((file) => {
+    if (!file.languages.includes(selectedLanguage.value)) return [];
+
+    const parts = file.parts?.map((part) => ({
+      ...part,
+      duration: formatDurationForHumans(part.duration),
+      canBeAllotted: canUnitBeAllottedForStage(part, selectedStage.value),
+    }));
+    const fileCanBeAllotted = canUnitBeAllottedForStage(
+      file,
+      selectedStage.value
+    );
+
+    return (
+      query.value
+        ? // If query is present then we show all matching files regardless of the workflow considerations
         file.id === queryId.value ||
         file.notes?.toLowerCase().includes(searchTerm.value) ||
         file.title?.toLowerCase().includes(searchTerm.value)
-      : canFileBeAllottedForStage(file, selectedStage.value))
+        : fileCanBeAllotted || parts?.some((part) => part.canBeAllotted)
+    )
       ? [
           {
             ...file,
-            parts: file.parts?.map((part) => ({
-              ...part,
-              duration: formatDurationForHumans(part.duration),
-            })),
             duration: formatDurationForHumans(file.duration),
+            canBeAllotted: fileCanBeAllotted,
+            parts,
           },
         ]
-      : []
-  )
+      : [];
+  })
 );
 const filesLoading = ref(false);
 const loadFiles = async () => {

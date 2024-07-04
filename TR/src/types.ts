@@ -16,8 +16,7 @@ declare global {
   type Status = 'Given' | 'Done' | 'Drop';
   type Stage = 'TRSC' | 'FC1' | 'TTV' | 'DCRT' | 'LANG' | 'FC2' | 'FINAL';
 
-  type Part = {
-    number: number;
+  type Unit = {
     duration: number;
     completed: boolean;
     latestStage: Stage;
@@ -25,15 +24,15 @@ declare global {
     latestAssignee: string;
   };
 
-  type FileToAllot = {
+  type Part = Unit & {
+    number: number;
+  };
+
+  type FileToAllot = Unit & {
     id: number;
     languages: string[];
-    duration: number;
     notes?: string;
     title: string;
-    latestStage: Stage;
-    latestStatus: Status;
-    latestAssignee: string;
     parts?: Part[];
   };
 }
