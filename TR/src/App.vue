@@ -3,6 +3,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import AutoComplete from 'primevue/autocomplete';
 import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
+import ProgressBar from 'primevue/progressbar';
 import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
 import { computed, ref, watch } from 'vue';
@@ -165,9 +166,14 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
         v-model.trim="query"
         placeholder="Search wild"
       ></InputText>
-      <Message severity="secondary" v-if="!filteredFiles">
+      <Message severity="secondary" v-if="!selectedLanguage || !selectedStage">
         Select a devotee, language and stage to list the files.
       </Message>
+      <ProgressBar
+        v-else-if="filesLoading"
+        mode="indeterminate"
+        class="h-2"
+      ></ProgressBar>
       <!-- Files -->
       <ul
         class="flex w-full flex-col gap-2"
