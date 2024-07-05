@@ -1,5 +1,6 @@
 import Aura from '@primevue/themes/aura';
 import PrimeVue from 'primevue/config';
+import ToastService from 'primevue/toastservice';
 import { createApp } from 'vue';
 import App from './App.vue';
 
@@ -17,4 +18,6 @@ app.use(PrimeVue, {
     },
   },
 });
+// @ts-expect-error
+app.use(ToastService);
 app.mount('#app');

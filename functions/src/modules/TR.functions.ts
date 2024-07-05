@@ -119,3 +119,11 @@ export const getFiles = functions.https.onCall(async (data, context) => {
         }
   );
 });
+
+export const allot = functions.https.onCall(async (data, context) => {
+  authorize(context, ['TR.coordinator']);
+  await Spreadsheet.open<FileRow>(
+    functions.config().transcription.spreadsheet.id as string,
+    'Allotments'
+  );
+});

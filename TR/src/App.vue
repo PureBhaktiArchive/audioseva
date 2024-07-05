@@ -6,7 +6,9 @@ import Message from 'primevue/message';
 import ProgressBar from 'primevue/progressbar';
 import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
-import { computed, ref, watch } from 'vue';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
+import { computed, ref, watch, watchSyncEffect } from 'vue';
 import AuthStatus from './AuthStatus.vue';
 import StageChip from './StageChip.vue';
 import StatusChip from './StatusChip.vue';
@@ -15,6 +17,8 @@ import { formatDurationForHumans } from './duration';
 import { canUnitBeAllottedForStage } from './workflow';
 
 const { isAuthenticated } = useAuth();
+
+const toast = useToast();
 
 /** @type {Stage[]} */
 const allStages = ['TRSC', 'FC1', 'TTV', 'DCRT', 'LANG', 'FC2', 'FINAL'];
@@ -144,12 +148,8 @@ const toggleFile = (id) =>
 
 /** @type {import('vue').Ref<Set<number>>} */
 const selectedParts = ref(new Set());
-watch(
-  selectedParts,
-  () => selectedParts.value.size === 0 && (selectedFile.value = null),
-  {
-    flush: 'sync',
-  }
+watchSyncEffect(
+  () => selectedParts.value.size === 0 && (selectedFile.value = null)
 );
 
 /**
@@ -161,6 +161,47 @@ const togglePart = (id, number) =>
   selectedParts.value.has(number)
     ? selectedParts.value.delete(number)
     : selectedParts.value.add(number));
+
+const hasSelection = computed(() => !!selectedFile.value);
+const allotmentSummary = computed(
+  () =>
+    `#${selectedFile.value}${selectedParts.value.size > 0 ? ` (parts ${[...selectedParts.value]})` : ''} for ${selectedStage.value} to ${selectedAssignee.value.name}`
+);
+
+const message = ref('');
+
+const allotmentInProgress = ref(false);
+const allot = async () => {
+  allotmentInProgress.value = true;
+  try {
+    await httpsCallable(
+      getFunctions(),
+      'TR-allot'
+    )({
+      assignee: selectedAssignee.value,
+      stage: selectedStage.value,
+      id: selectedFile.value,
+      parts: [...selectedParts.value],
+      message: message.value,
+    });
+    toast.add({
+      severity: 'success',
+      summary: 'Allotment successful',
+      detail: `${allotmentSummary.value}\n${message.value}`,
+    });
+    selectedFile.value = null;
+    selectedAssignee.value = null;
+    message.value = null;
+  } catch (e) {
+    toast.add({
+      severity: 'error',
+      summary: 'Allotment error',
+      detail: e,
+    });
+  } finally {
+    allotmentInProgress.value = false;
+  }
+};
 </script>
 
 <template>
@@ -291,6 +332,28 @@ const togglePart = (id, number) =>
         There are no files in the selected language that can be allotted for the
         selected stage.
       </Message>
+      <!-- Allotment -->
+      <div class="sticky bottom-0 border-t-2 bg-white py-2" v-if="hasSelection">
+        <div class="">Allot {{ allotmentSummary }}</div>
+        <div class="flex items-center">
+          <InputText
+            placeholder="Enter an allotment message"
+            v-model="message"
+            class="flex-grow"
+            :disabled="allotmentInProgress"
+          ></InputText>
+          <span
+            v-if="!allotmentInProgress"
+            class="icon-[fluent--send-48-filled] flex-none cursor-pointer text-4xl text-fuchsia-400"
+            @click="allot"
+          ></span>
+          <span
+            v-if="allotmentInProgress"
+            class="icon-[line-md--loading-loop] flex-none text-4xl text-fuchsia-400"
+          ></span>
+        </div>
+      </div>
     </template>
   </div>
+  <Toast />
 </template>
