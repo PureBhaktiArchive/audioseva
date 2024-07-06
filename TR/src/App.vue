@@ -263,11 +263,9 @@ const allot = async () => {
               file.canBeAllotted
                 ? [
                     'cursor-pointer',
-                    file.id === selectedFile
-                      ? 'bg-fuchsia-400'
-                      : 'bg-fuchsia-50',
+                    file.id === selectedFile ? 'bg-fuchsia-400' : null,
                   ]
-                : null
+                : 'bg-neutral-200'
             "
             @click="file.canBeAllotted && toggleFile(file.id)"
           >
@@ -299,9 +297,9 @@ const allot = async () => {
                       'cursor-pointer',
                       file.id === selectedFile && selectedParts.has(part.number)
                         ? 'bg-fuchsia-400'
-                        : 'bg-fuchsia-50',
+                        : null,
                     ]
-                  : null
+                  : 'bg-neutral-200'
               "
               @click="part.canBeAllotted && togglePart(file.id, part.number)"
             >
