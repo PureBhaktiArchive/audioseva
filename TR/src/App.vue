@@ -8,7 +8,7 @@ import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
-import { computed, ref, watch, watchSyncEffect } from 'vue';
+import { computed, ref, watch } from 'vue';
 import AuthStatus from './AuthStatus.vue';
 import StageChip from './StageChip.vue';
 import StatusChip from './StatusChip.vue';
@@ -136,31 +136,38 @@ loadFiles().catch((reason) => console.log('Error getting files:', reason));
 
 /** @type {import('vue').Ref<number>} */
 const selectedFile = ref(null);
-watch(selectedFile, () => selectedParts.value.clear(), {
-  flush: 'sync',
-});
 
 /**
  * @param {number} id
  */
-const toggleFile = (id) =>
-  void (selectedFile.value = selectedFile.value === id ? null : id);
+const toggleFile = (id) => {
+  selectedFile.value = selectedFile.value === id ? null : id;
+  // No parts should be selected because a whole file was selected or de-selected
+  selectedParts.value.clear();
+};
 
 /** @type {import('vue').Ref<Set<number>>} */
 const selectedParts = ref(new Set());
-watchSyncEffect(
-  () => selectedParts.value.size === 0 && (selectedFile.value = null)
-);
 
 /**
  * @param {number} id File ID
  * @param {number} number Part number
  */
-const togglePart = (id, number) =>
-  void ((selectedFile.value = id),
-  selectedParts.value.has(number)
-    ? selectedParts.value.delete(number)
-    : selectedParts.value.add(number));
+const togglePart = (id, number) => {
+  if (selectedFile.value !== id) {
+    selectedParts.value.clear();
+    selectedFile.value = id;
+  }
+  if (selectedParts.value.has(number)) {
+    selectedParts.value.delete(number);
+    if (selectedParts.value.size === 0) selectedFile.value = null;
+  } else selectedParts.value.add(number);
+};
+
+watch(selectedStage, () => {
+  selectedFile.value = null;
+  selectedParts.value.clear();
+});
 
 const hasSelection = computed(() => !!selectedFile.value);
 const allotmentSummary = computed(
