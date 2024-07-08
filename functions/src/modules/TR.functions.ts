@@ -2,7 +2,9 @@
  * sri sri guru gauranga jayatah
  */
 import * as functions from 'firebase-functions';
-import { secondsInDay } from '../DateTimeConverter';
+import { DateTime } from 'luxon';
+import { DateTimeConverter, secondsInDay } from '../DateTimeConverter';
+import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
 import { authorize } from '../auth';
 
@@ -120,10 +122,51 @@ export const getFiles = functions.https.onCall(async (data, context) => {
   );
 });
 
-export const allot = functions.https.onCall(async (data, context) => {
-  authorize(context, ['TR.coordinator']);
-  await Spreadsheet.open<FileRow>(
-    functions.config().transcription.spreadsheet.id as string,
-    'Allotments'
-  );
-});
+type Stage = 'TRSC' | 'FC1' | 'TTV' | 'DCRT' | 'LANG' | 'FC2' | 'FINAL';
+
+type AllotmentRow = {
+  ID: number;
+  'Part Num': number;
+  'Date Given': number;
+  Status: Status;
+  Stage: Stage;
+  // 'Target Language': string;
+  'Google Doc'?: string;
+  'Last Modified'?: string;
+  Devotee: string;
+  Email: string;
+  Comments?: string;
+  Feedback?: string;
+  'Reference file'?: string;
+  'Date Done'?: number;
+  Completed?: boolean;
+};
+
+type Allotment = {
+  assignee: Person;
+  stage: Stage;
+  id: number;
+  parts: number[];
+  message: string;
+};
+
+export const allot = functions.https.onCall(
+  async (data: Allotment, context) => {
+    authorize(context, ['TR.coordinator']);
+    const sheet = await Spreadsheet.open<AllotmentRow>(
+      functions.config().transcription.spreadsheet.id as string,
+      'Allotments'
+    );
+    await sheet.appendRows(
+      (data.parts.length ? data.parts : [null]).map((part) => ({
+        ID: data.id,
+        'Part Num': part,
+        Stage: data.stage,
+        Status: Status.Given,
+        'Date Given': DateTimeConverter.toSerialDate(DateTime.now()),
+        Devotee: data.assignee.name,
+        Email: data.assignee.emailAddress,
+      }))
+    );
+  }
+);
