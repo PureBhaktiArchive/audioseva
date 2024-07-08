@@ -360,5 +360,5 @@ const allot = async () => {
       </div>
     </template>
   </div>
-  <Toast />
+  <Toast position="bottom-center" />
 </template>
