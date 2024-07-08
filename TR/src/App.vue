@@ -342,7 +342,7 @@ const allot = async () => {
         <div class="">Allot {{ allotmentSummary }}</div>
         <div class="flex items-center">
           <InputText
-            placeholder="Enter an allotment message"
+            placeholder="Enter an allotment message (optional)"
             v-model="message"
             class="flex-grow"
             :disabled="allotmentInProgress"
