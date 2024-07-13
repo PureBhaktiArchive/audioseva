@@ -187,6 +187,7 @@ const allot = async () => {
     )({
       assignee: selectedAssignee.value,
       stage: selectedStage.value,
+      language: selectedLanguage.value,
       id: selectedFile.value,
       parts: [...selectedParts.value],
       message: message.value,

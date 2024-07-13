@@ -1,12 +1,14 @@
 /*
  * sri sri guru gauranga jayatah
  */
+import { ServerValue, getDatabase } from 'firebase-admin/database';
 import * as functions from 'firebase-functions';
 import { DateTime } from 'luxon';
 import { DateTimeConverter, secondsInDay } from '../DateTimeConverter';
 import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
 import { authorize } from '../auth';
+import { toRange } from '../range';
 
 type FileRow = {
   ID: number;
@@ -145,9 +147,15 @@ type AllotmentRow = {
 type Allotment = {
   assignee: Person;
   stage: Stage;
+  language: string;
   id: number;
   parts: number[];
   message: string;
+};
+
+type StageDescription = {
+  name: string;
+  guidelines: string;
 };
 
 export const allot = functions.https.onCall(
@@ -168,5 +176,35 @@ export const allot = functions.https.onCall(
         Email: data.assignee.emailAddress,
       }))
     );
+
+    const stageDescription = (
+      await getDatabase()
+        .ref(`/transcription/stages/${data.stage}`)
+        .once('value')
+    ).val() as StageDescription;
+
+    /// Send an allotment email
+    await getDatabase()
+      .ref(`/email/notifications`)
+      .push({
+        timestamp: ServerValue.TIMESTAMP,
+        template: 'transcription/allotment',
+        to: data.assignee.emailAddress,
+        bcc: functions.config().transcription.coordinator.email_address,
+        replyTo: functions.config().transcription.coordinator.email_address,
+        params: {
+          ...data,
+          parts: data.parts.map((part) => ({
+            number: part,
+            audioLink: '',
+            docLink: '',
+          })),
+          partsRanges: toRange(data.parts),
+          audioLink: '',
+          docLink: '',
+          stageName: stageDescription?.name,
+          guidelinesLink: stageDescription?.guidelines,
+        },
+      });
   }
 );
