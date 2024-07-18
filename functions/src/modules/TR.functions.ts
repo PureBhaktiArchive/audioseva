@@ -129,10 +129,11 @@ type Stage = 'TRSC' | 'FC1' | 'TTV' | 'DCRT' | 'LANG' | 'FC2' | 'FINAL';
 type AllotmentRow = {
   ID: number;
   'Part Num': number;
+  'Translation Language'?: string;
   'Date Given': number;
   Status: Status;
   Stage: Stage;
-  // 'Target Language': string;
+  Last?: string;
   'Google Doc'?: string;
   'Last Modified'?: string;
   Devotee: string;
@@ -141,7 +142,6 @@ type AllotmentRow = {
   Feedback?: string;
   'Reference file'?: string;
   'Date Done'?: number;
-  Completed?: boolean;
 };
 
 type Allotment = {
