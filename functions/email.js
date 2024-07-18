@@ -1,6 +1,7 @@
 /*!
  * sri sri guru gauranga jayatah
  */
+/* eslint-disable */
 
 const Email = require('email-templates');
 const { DateTime } = require('luxon');
