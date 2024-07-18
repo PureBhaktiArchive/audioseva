@@ -166,7 +166,11 @@ export const allot = functions.https.onCall(
       'Allotments'
     );
     await sheet.appendRows(
-      (data.parts.length ? data.parts : [null]).map((part) => ({
+      (data.parts.length
+        ? data.parts
+        : // Using null as a part number to add a row for the whole file
+          [null]
+      ).map((part, index) => ({
         ID: data.id,
         'Part Num': part,
         Stage: data.stage,
