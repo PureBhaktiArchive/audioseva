@@ -8,6 +8,7 @@ import { DateTimeConverter, secondsInDay } from '../DateTimeConverter';
 import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
 import { authorize } from '../auth';
+import { MimeTypes, Queries, createDriveFile, listDriveFiles } from '../drive';
 import { toRange } from '../range';
 
 type FileRow = {
@@ -158,9 +159,49 @@ type StageDescription = {
   guidelines: string;
 };
 
+const fileNameForPart = (id: number, part: number) => `${id}.part-${part}`;
+
 export const allot = functions.https.onCall(
   async (data: Allotment, context) => {
     authorize(context, ['TR.coordinator']);
+
+    // Using destructuring to get the first matching file (folder)
+    let [transcriptsFolder] = await listDriveFiles(
+      functions.config().transcription.drive.id,
+      [
+        Queries.mimeTypeIs(MimeTypes.Folder),
+        Queries.parentIs(functions.config().transcription.folder.id),
+        Queries.nameIs(data.id.toString()),
+      ]
+    );
+
+    // Creating a folder if it does not exist yet
+    transcriptsFolder ||= await createDriveFile(
+      data.id.toString(),
+      MimeTypes.Folder,
+      functions.config().transcription.folder.id
+    );
+
+    const existingDocs = await listDriveFiles(
+      functions.config().transcription.drive.id,
+      [
+        Queries.mimeTypeIs(MimeTypes.Document),
+        Queries.parentIs(transcriptsFolder.id),
+      ]
+    );
+
+    const getGoogleDoc = (name: string) =>
+      // First, trying to find an existing document
+      existingDocs.find((file) => file.name === name) ||
+      // Creating a new one if not found
+      createDriveFile(name, MimeTypes.Document, transcriptsFolder.id);
+
+    const googleDocLinks = await Promise.all(
+      data.parts.length
+        ? data.parts.map((part) => getGoogleDoc(fileNameForPart(data.id, part)))
+        : [getGoogleDoc(data.id.toString())]
+    ).then((docs) => docs.map((doc) => doc.webViewLink));
+
     const sheet = await Spreadsheet.open<AllotmentRow>(
       functions.config().transcription.spreadsheet.id as string,
       'Allotments'
@@ -178,6 +219,7 @@ export const allot = functions.https.onCall(
         'Date Given': DateTimeConverter.toSerialDate(DateTime.now()),
         Devotee: data.assignee.name,
         Email: data.assignee.emailAddress,
+        'Google Doc': googleDocLinks[index],
       }))
     );
 
