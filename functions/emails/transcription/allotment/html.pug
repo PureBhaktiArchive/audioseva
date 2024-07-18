@@ -11,7 +11,7 @@ mixin unit(id, part, audioLink, docLink)
   a(href=docLink) Google Doc
 
 +dandavat
-p Below is your next set for #[strong= stageName]. Please refer #[a(href=guidelinesLink) the guidelines].
+p Below is your allotment for #[strong= stageName].
 ul
   for part in parts || []
     li: +unit(id, part.number, part.audioLink, part.docLink)
@@ -20,5 +20,7 @@ ul
 
 if message
   p= message
+
+p Please refer #[a(href=guidelinesLink) the guidelines].
 
 +signature
