@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 import { google, sheets_v4 as sheets } from 'googleapis';
-import { GaxiosResponse } from 'googleapis-common';
+import { unwrapGaxiosResponse } from './gaxios-commons';
 import _ = require('lodash');
 
 enum IValueInputOption {
@@ -27,7 +27,7 @@ export class Spreadsheet<T = unknown> {
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     const api = google.sheets({ version: 'v4', auth });
-    const schema = this.getResponse(
+    const schema = unwrapGaxiosResponse(
       await api.spreadsheets.get({
         spreadsheetId: spreadsheetId,
         includeGridData: true,
@@ -54,16 +54,6 @@ export class Spreadsheet<T = unknown> {
       )
       .takeWhile()
       .value();
-  }
-
-  protected static getResponse<T>(response: GaxiosResponse<T>) {
-    const { statusText, status, data } = response;
-    if (statusText !== 'OK' || status !== 200)
-      throw new Error(
-        `Got ${status} (${statusText}) from ${response.config.url}.`
-      );
-
-    return data;
   }
 
   /**
@@ -215,7 +205,7 @@ export class Spreadsheet<T = unknown> {
     majorDimension: 'COLUMNS' | 'ROWS' = 'ROWS'
   ) {
     return (
-      Spreadsheet.getResponse(
+      unwrapGaxiosResponse(
         await this.api.spreadsheets.values.get({
           spreadsheetId: this.spreadsheetId,
           majorDimension,
@@ -256,7 +246,7 @@ export class Spreadsheet<T = unknown> {
     columnName: Extract<keyof T, string>,
     values: (string | number | boolean)[]
   ) {
-    Spreadsheet.getResponse(
+    unwrapGaxiosResponse(
       await this.api.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
         range: this.columnToA1Notation(columnName),
@@ -344,7 +334,7 @@ export class Spreadsheet<T = unknown> {
    * Nulls are skipped. To clear data, use an empty string ("") in the property value.
    */
   public async updateRow(dataRowNumber: number, object: T) {
-    Spreadsheet.getResponse(
+    unwrapGaxiosResponse(
       await this.api.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
         range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
@@ -363,7 +353,7 @@ export class Spreadsheet<T = unknown> {
   public async updateRows(objects: Map<number, T>) {
     if (objects.size === 0) return;
 
-    Spreadsheet.getResponse(
+    unwrapGaxiosResponse(
       await this.api.spreadsheets.values.batchUpdate({
         spreadsheetId: this.spreadsheetId,
         requestBody: {
@@ -382,7 +372,7 @@ export class Spreadsheet<T = unknown> {
    * @param objects Data values to add to Google Sheets
    */
   public async appendRows(objects: T[]) {
-    Spreadsheet.getResponse(
+    unwrapGaxiosResponse(
       await this.api.spreadsheets.values.append({
         spreadsheetId: this.spreadsheetId,
         range: this.rowToA1Notation(1),
@@ -425,7 +415,7 @@ export class Spreadsheet<T = unknown> {
   public async overwriteRows(objects: T[]) {
     if (objects.length === 0) return null;
 
-    return Spreadsheet.getResponse(
+    return unwrapGaxiosResponse(
       await this.api.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
         range: this.rowsToA1Notation(this.fromDataRowNumber(1)),
