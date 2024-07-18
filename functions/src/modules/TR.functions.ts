@@ -177,6 +177,9 @@ export const allot = functions.https.onCall(
       }))
     );
 
+    // Don't send emails from the emulator
+    if (process.env.FUNCTIONS_EMULATOR) return;
+
     const stageDescription = (
       await getDatabase()
         .ref(`/transcription/stages/${data.stage}`)
