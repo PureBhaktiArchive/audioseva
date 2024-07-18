@@ -385,7 +385,7 @@ export class Spreadsheet<T = unknown> {
     Spreadsheet.getResponse(
       await this.api.spreadsheets.values.append({
         spreadsheetId: this.spreadsheetId,
-        range: this.title,
+        range: this.rowToA1Notation(1),
         valueInputOption: IValueInputOption.RAW,
         requestBody: {
           values: objects.map((object) => this.objectToArray(object)),
