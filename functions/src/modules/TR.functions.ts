@@ -93,8 +93,8 @@ export const getFiles = functions.https.onCall(async (data, context) => {
   // Implementation is inspired by https://stackoverflow.com/a/64489535/3082178
   const partsMap = partRows.reduce((result, row) => {
     const part: PartItem = {
-      number: row.Part,
-      duration: row.Duration * secondsInDay,
+      number: +row.Part,
+      duration: +row.Duration * secondsInDay,
       latestStage: row['Latest Stage'],
       latestStatus: row['Latest Status'],
       latestAssignee: row['Latest Devotee'],
