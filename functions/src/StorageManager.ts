@@ -29,7 +29,8 @@ export type BucketName =
   | 'restored'
   | 'te.uploads'
   | 'se.uploads'
-  | 'final';
+  | 'final'
+  | 'parts'; // For transcription
 
 export class StorageManager {
   static getFullBucketName(bucketName: BucketName) {

@@ -7,6 +7,7 @@ import { DateTime } from 'luxon';
 import { DateTimeConverter, secondsInDay } from '../DateTimeConverter';
 import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
+import { StorageManager } from '../StorageManager';
 import { authorize } from '../auth';
 import { MimeTypes, Queries, createDriveFile, listDriveFiles } from '../drive';
 import { toRange } from '../range';
@@ -243,14 +244,17 @@ export const allot = functions.https.onCall(
         replyTo: functions.config().transcription.coordinator.email_address,
         params: {
           ...data,
-          parts: data.parts.map((part) => ({
+          parts: data.parts.map((part, index) => ({
             number: part,
-            audioLink: '',
-            docLink: '',
+            audioLink: `https://storage.googleapis.com/${StorageManager.getFullBucketName('parts')}/${data.id}/${data.id}.part-${part}.mp3`,
+            docLink: googleDocLinks[index],
           })),
           partsRanges: toRange(data.parts),
-          audioLink: '',
-          docLink: '',
+          // These links are added only for the full file allotments
+          ...(data.parts.length === 0 && {
+            audioLink: `https://storage.googleapis.com/${functions.config().final?.publication?.bucket}/${data.id}.mp3`,
+            docLink: googleDocLinks?.[0],
+          }),
           stageName: stageDescription?.name,
           guidelinesLink: stageDescription?.guidelines,
         },
