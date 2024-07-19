@@ -23,18 +23,20 @@ const canStageComeAfterAnother = (stage1, stage2) =>
 /**
  * Whether a unit can be allotted for a given stage
  * @param {FileToAllot | Part} unit Unit to allot, either a file or a part
- * @param {Stage} stage Stage to be allotted for
+ * @param {Stage} [stage] Stage to be allotted for. If `null` then no workflow checks are done.
  * @returns {Boolean}
  */
-export const canUnitBeAllottedForStage = (unit, stage) =>
-  ('id' in unit
-    ? // For whole files, all parts should be completed if present
-      unit.parts?.every((part) => part.completed) &&
-      // and only specific stages are allowed
-      !stagesForParts.includes(stage)
-    : // For parts, only specific stages are allowed
-      stagesForParts.includes(stage)) &&
+export const canUnitBeAllotted = (unit, stage = null) =>
   !unit.completed &&
   // A unit should not be in progress currently
   unit.latestStatus !== 'Given' &&
-  canStageComeAfterAnother(unit.latestStage, stage);
+  // Workflow checks only if stage is specified
+  (!stage ||
+    (canStageComeAfterAnother(unit.latestStage, stage) &&
+      ('id' in unit
+        ? // and only specific stages are allowed
+          !stagesForParts.includes(stage) &&
+          // For whole files, all parts should be completed if present
+          unit.parts?.every((part) => part.completed)
+        : // For parts, only specific stages are allowed
+          stagesForParts.includes(stage))));

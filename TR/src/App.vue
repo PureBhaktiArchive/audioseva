@@ -14,7 +14,7 @@ import StageChip from './StageChip.vue';
 import StatusChip from './StatusChip.vue';
 import { useAuth } from './auth';
 import { formatDurationForHumans } from './duration';
-import { canUnitBeAllottedForStage } from './workflow';
+import { canUnitBeAllotted } from './workflow';
 
 const { isAuthenticated } = useAuth();
 
@@ -85,6 +85,10 @@ watch(
 const query = ref('');
 const queryId = computed(() => (/\d+/.test(query.value) ? +query.value : null));
 const searchTerm = computed(() => query.value?.toLowerCase());
+// Don't perform workflow checks if we searched for a file explicitly
+const stageForWorkflowChecks = computed(() =>
+  query.value ? null : selectedStage.value
+);
 
 const files = ref(/** @type {FileToAllot[]} */ (null));
 
@@ -95,11 +99,11 @@ const filteredFiles = computed(() =>
     const parts = file.parts?.map((part) => ({
       ...part,
       duration: formatDurationForHumans(part.duration),
-      canBeAllotted: canUnitBeAllottedForStage(part, selectedStage.value),
+      canBeAllotted: canUnitBeAllotted(part, stageForWorkflowChecks.value),
     }));
-    const fileCanBeAllotted = canUnitBeAllottedForStage(
+    const fileCanBeAllotted = canUnitBeAllotted(
       file,
-      selectedStage.value
+      stageForWorkflowChecks.value
     );
 
     return (

@@ -4,11 +4,12 @@ title Selecting files for allotment
 skinparam backgroundColor Azure
 
 start
-:Select a language<
-:Select a stage<
-:Fetch all Archive IDs that are not completed,
+:Fetch all whole files that
+are not completed and not Given,
 along with all their parts;
-:Keep the files matching the selected language;
+:Select a language<
+:Keep only files matching the selected language;
+:Select a stage<
 if (Search field is filled?) then (NO)
   partition "Standard Flow" {
     if (selected stage) then (TRSC or FC1)
