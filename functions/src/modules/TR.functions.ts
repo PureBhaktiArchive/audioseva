@@ -108,9 +108,7 @@ export const getFiles = functions.https.onCall(async (data, context) => {
     // Filtering empty rows
     !row.ID ||
     // Filtering completed files out
-    row.Completed?.toUpperCase() === Completed.Yes ||
-    // Filtering Given files (as wholes)
-    row['Latest Status'] === Status.Given
+    row.Completed?.toUpperCase() === Completed.Yes
       ? []
       : {
           id: row.ID,
