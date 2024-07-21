@@ -125,6 +125,7 @@ export const getFiles = functions.https.onCall(async (data, context) => {
 });
 
 type Stage = 'TRSC' | 'FC1' | 'TTV' | 'DCRT' | 'LANG' | 'FC2' | 'FINAL';
+type Language = 'English' | 'Hindi';
 
 type AllotmentRow = {
   ID: number;
@@ -147,7 +148,7 @@ type AllotmentRow = {
 type Allotment = {
   assignee: Person;
   stage: Stage;
-  language: string;
+  language: Language;
   id: number;
   parts: number[];
   message: string;
@@ -156,7 +157,13 @@ type Allotment = {
 type StageDescription = {
   name: string;
   guidelines: string;
-};
+} & Record<
+  // Specific guidelines for various languages
+  Language,
+  {
+    guidelines: string;
+  }
+>;
 
 const fileNameForPart = (id: number, part: number) => `${id}.part-${part}`;
 
@@ -254,7 +261,9 @@ export const allot = functions.https.onCall(
             docLink: googleDocLinks?.[0],
           }),
           stageName: stageDescription?.name,
-          guidelinesLink: stageDescription?.guidelines,
+          guidelinesLink:
+            stageDescription?.[data.language].guidelines ||
+            stageDescription?.guidelines,
         },
       });
   }
