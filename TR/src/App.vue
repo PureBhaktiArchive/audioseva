@@ -34,8 +34,10 @@ const searchAssignees = (event) => {
   // Forcefully mutating the suggestions due to AutoComplete's issues: https://github.com/primefaces/primevue/issues/5601
   filteredAssignees.value = [
     ...(query.length && assignees.value
-      ? assignees.value.filter((assignee) =>
-          assignee.name.toLowerCase().startsWith(query)
+      ? assignees.value.filter(
+          (assignee) =>
+            assignee.name.toLowerCase().startsWith(query) ||
+            assignee.emailAddress.toLowerCase().includes(query)
         )
       : assignees.value),
   ];
@@ -231,7 +233,16 @@ const allot = async () => {
         :loading="assigneesLoading"
         :suggestions="filteredAssignees"
         @complete="searchAssignees"
-      />
+      >
+        <template #option="slotProps">
+          <div class="flex grow items-center gap-x-1 max-sm:flex-wrap">
+            <span>{{ slotProps.option.name }}</span>
+            <span class="ml-auto text-xs">
+              {{ slotProps.option.emailAddress }}
+            </span>
+          </div>
+        </template>
+      </AutoComplete>
       <!-- Languages -->
       <SelectButton
         v-model="selectedLanguage"
