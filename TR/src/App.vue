@@ -92,11 +92,41 @@ const stageForWorkflowChecks = computed(() =>
   query.value ? null : selectedStage.value
 );
 
+/**
+ * @typedef {(duration: number) => boolean} DurationFilter
+ * @typedef {object} DurationCategory
+ * @property {string} name
+ * @property {DurationFilter} filter
+ */
+
+/** @type {import('vue').Ref<DurationCategory[]>} */
+const durationCategories = ref([
+  {
+    name: 'Short',
+    filter: (duration) => duration <= 25 * 60,
+  },
+  {
+    name: 'Long',
+    filter: (duration) => duration > 25 * 60,
+  },
+]);
+/** @type {import("vue").Ref<DurationCategory>} */
+const selectedDurationCategory = ref(null);
+
+/** @type {import('vue').ComputedRef<DurationFilter>} */
+const durationFilter = computed(() =>
+  query.value || !selectedDurationCategory.value
+    ? null
+    : (duration) => selectedDurationCategory.value.filter(duration)
+);
+
 const files = ref(/** @type {FileToAllot[]} */ (null));
 
 const filteredFiles = computed(() =>
   files.value?.flatMap((file) => {
     if (!file.languages.includes(selectedLanguage.value)) return [];
+
+    if (durationFilter.value && !durationFilter.value(file.duration)) return [];
 
     const parts = file.parts?.map((part) => ({
       ...part,
@@ -256,12 +286,20 @@ const allot = async () => {
         :allowEmpty="false"
         class="flex-wrap"
       ></SelectButton>
-      <!-- Search bar -->
-      <InputText
-        v-if="selectedLanguage"
-        v-model.trim="query"
-        placeholder="Search wild"
-      ></InputText>
+      <div class="flex flex-wrap gap-2" v-if="selectedLanguage">
+        <!-- Search bar -->
+        <InputText
+          v-model.trim="query"
+          placeholder="Search wild"
+          class="grow"
+        ></InputText>
+        <SelectButton
+          v-model="selectedDurationCategory"
+          :options="durationCategories"
+          v-show="!query"
+          optionLabel="name"
+        />
+      </div>
       <Message severity="secondary" v-if="!selectedLanguage || !selectedStage">
         Select a devotee, language and stage to list the files.
       </Message>
