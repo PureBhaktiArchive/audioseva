@@ -262,7 +262,7 @@ export const allot = functions.https.onCall(
           }),
           stageName: stageDescription?.name,
           guidelinesLink:
-            stageDescription?.[data.language].guidelines ||
+            stageDescription?.[data.language]?.guidelines ||
             stageDescription?.guidelines,
         },
       });
