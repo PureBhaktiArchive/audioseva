@@ -340,6 +340,12 @@ const allot = async () => {
               v-if="file.latestStatus"
               :status="file.latestStatus"
             ></StatusChip>
+            <span
+              v-if="file.latestAssignee"
+              class="overflow-x-hidden overflow-ellipsis text-nowrap text-sm"
+            >
+              {{ file.latestAssignee }}
+            </span>
             <span class="ml-auto font-mono font-bold">
               {{ file.duration }}
             </span>
@@ -380,6 +386,12 @@ const allot = async () => {
                 value="Completed"
                 class="text-xs uppercase"
               ></Tag>
+              <span
+                v-else-if="part.latestAssignee"
+                class="overflow-x-hidden overflow-ellipsis text-nowrap text-sm"
+              >
+                {{ part.latestAssignee }}
+              </span>
               <span class="ml-auto font-mono">
                 {{ part.duration }}
               </span>

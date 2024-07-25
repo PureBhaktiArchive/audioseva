@@ -25,6 +25,7 @@ type FileRow = {
   'Parts Completed': number;
   'Latest Stage': string;
   'Latest Status': Status;
+  'Latest Devotee': string;
   Completed: Completed;
 };
 
