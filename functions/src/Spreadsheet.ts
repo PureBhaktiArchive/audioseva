@@ -295,7 +295,7 @@ export class Spreadsheet<T = unknown> {
    * - `null` in the object transforms into empty string in the array.
    * @param object Source object to be transformed into an array
    */
-  protected objectToArray(object: T) {
+  protected objectToArray(object: Partial<T>) {
     return _(this.columnNames)
       .map((columnName) => <unknown>object[columnName])
       .map(encodeSheetsValue)
@@ -350,7 +350,7 @@ export class Spreadsheet<T = unknown> {
    * Update rows at specified row numbers.
    * @param objects Map of objects by data row number
    */
-  public async updateRows(objects: Map<number, T>) {
+  public async updateRows(objects: Map<number, Partial<T>>) {
     if (objects.size === 0) return;
 
     unwrapGaxiosResponse(
