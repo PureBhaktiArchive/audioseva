@@ -3,13 +3,16 @@ const stagesForParts = ['TRSC', 'FC1'];
 
 /** @type {Map<Stage, Stage[]>} */
 const preceedingStages = new Map([
+  // Parts
   ['TRSC', [null]],
   ['FC1', ['TRSC']],
-  ['TTV', [null]],
-  ['DCRT', [null, 'TTV']],
+  // Whole files
+  ['DCRT', [null]],
   ['LANG', ['DCRT']],
-  ['FC2', ['LANG']],
-  ['FINAL', ['FC2']],
+  ['TTV', ['LANG']],
+  ['FC2', ['LANG', 'TTV']],
+  ['PR', ['FC2']],
+  ['FINAL', ['PR', 'FC2']],
 ]);
 
 /**

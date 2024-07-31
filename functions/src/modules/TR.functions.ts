@@ -129,16 +129,13 @@ export const getFiles = functions.https.onCall(async (data, context) => {
   );
 });
 
-type Stage = 'TRSC' | 'FC1' | 'TTV' | 'DCRT' | 'LANG' | 'FC2' | 'FINAL';
-type Language = 'English' | 'Hindi';
-
 type AllotmentRow = {
   ID: number;
   'Part Num': number;
   'Translation Language'?: string;
   'Date Given': number;
   Status: Status;
-  Stage: Stage;
+  Stage: string;
   Last?: string;
   'Google Doc'?: string;
   'Last Modified'?: string;
@@ -152,8 +149,8 @@ type AllotmentRow = {
 
 type Allotment = {
   assignee: Person;
-  stage: Stage;
-  language: Language;
+  stage: string;
+  language: string;
   id: number;
   parts: number[];
   message: string;
@@ -162,13 +159,7 @@ type Allotment = {
 type StageDescription = {
   name: string;
   guidelines: string;
-} & Record<
-  // Specific guidelines for various languages
-  Language,
-  {
-    guidelines: string;
-  }
->;
+} & Record<string, { guidelines: string }>; // Specific guidelines for various languages
 
 const fileNameForPart = (id: number, part: number) => `${id}.part-${part}`;
 

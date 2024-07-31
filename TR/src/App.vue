@@ -21,7 +21,7 @@ const { isAuthenticated } = useAuth();
 const toast = useToast();
 
 /** @type {Stage[]} */
-const allStages = ['TRSC', 'FC1', 'TTV', 'DCRT', 'LANG', 'FC2', 'FINAL'];
+const allStages = ['TRSC', 'FC1', 'TTV', 'DCRT', 'LANG', 'FC2', 'PR', 'FINAL'];
 
 const assignees = ref(/** @type {Assignee[]} */ (null));
 const filteredAssignees = ref(assignees.value);

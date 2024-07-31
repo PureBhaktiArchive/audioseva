@@ -14,7 +14,15 @@ declare global {
   };
 
   type Status = 'Given' | 'Done' | 'Drop';
-  type Stage = 'TRSC' | 'FC1' | 'TTV' | 'DCRT' | 'LANG' | 'FC2' | 'FINAL';
+  type Stage =
+    | 'TRSC'
+    | 'FC1'
+    | 'TTV'
+    | 'DCRT'
+    | 'LANG'
+    | 'FC2'
+    | 'PR'
+    | 'FINAL';
 
   type Unit = {
     duration: number;
