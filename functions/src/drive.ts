@@ -1,3 +1,4 @@
+import { GoogleAuth } from 'google-auth-library';
 import { google } from 'googleapis';
 import { unwrapGaxiosResponse } from './gaxios-commons';
 
@@ -12,22 +13,16 @@ export const Queries = {
   nameIs: (name: string) => `name = '${name}'`,
 };
 
-const getDriveApi = async () =>
-  google.drive({
-    version: 'v3',
-    auth: await google.auth.getClient({
-      scopes: ['https://www.googleapis.com/auth/drive'],
-    }),
-  });
+const drive = google.drive({
+  version: 'v3',
+  auth: new GoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/drive'],
+  }),
+});
 
-export const listDriveFiles = async (driveId: string, queries: string[]) =>
+export const listDriveFiles = async (queries: string[]) =>
   unwrapGaxiosResponse(
-    await (
-      await getDriveApi()
-    ).files.list({
-      driveId,
-      corpora: 'drive',
-      includeItemsFromAllDrives: true,
+    await drive.files.list({
       supportsAllDrives: true,
       q: queries.join(' and '),
       fields: 'nextPageToken, files(id, name, webViewLink)',
@@ -40,11 +35,45 @@ export const createDriveFile = async (
   parentId: string
 ) =>
   unwrapGaxiosResponse(
-    await (
-      await getDriveApi()
-    ).files.create({
+    await drive.files.create({
       supportsAllDrives: true,
       requestBody: { name, parents: [parentId], mimeType },
       fields: 'id, webViewLink',
+    })
+  );
+
+export const listPermissions = async (fileId: string) =>
+  unwrapGaxiosResponse(
+    await drive.permissions.list({
+      supportsAllDrives: true,
+      fileId,
+      fields: 'permissions(id,type,permissionDetails,emailAddress,role)',
+    })
+  ).permissions;
+
+export const createPermission = async (
+  fileId: string,
+  emailAddress: string,
+  role: string
+) =>
+  unwrapGaxiosResponse(
+    await drive.permissions.create({
+      supportsAllDrives: true,
+      fileId,
+      requestBody: {
+        type: 'user',
+        emailAddress,
+        role,
+      },
+      fields: 'id',
+    })
+  );
+
+export const deletePermission = async (fileId: string, permissionId: string) =>
+  unwrapGaxiosResponse(
+    await drive.permissions.delete({
+      supportsAllDrives: true,
+      fileId,
+      permissionId,
     })
   );

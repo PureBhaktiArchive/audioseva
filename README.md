@@ -85,7 +85,6 @@ Also add other variables from the [Frontend environment variables](#frontend-env
 | `final.publication.bucket`                | A bucket for publicly-accessible MP3 files                                                        |
 | `final.publication.invokers`              | A list of comma-delimited identities that are allowed to invoke the `Final.publish` HTTP function |
 | `transcription.spreadsheet.id`            | Transcription Spreadsheet                                                                         |
-| `transcription.drive.id`                  | Id of the Shared Drive where transcripts are stored                                               |
 | `transcription.folder.id`                 | Id of the Drive folder where transcripts are stored                                               |
 | `transcription.coordinator.email_address` | Transcription coordinator mailbox                                                                 |
 

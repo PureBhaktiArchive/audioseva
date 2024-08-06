@@ -13,7 +13,15 @@ import { Spreadsheet } from '../Spreadsheet';
 import { StorageManager } from '../StorageManager';
 import { authorize } from '../auth';
 import { getDomainWideDelegationClient } from '../domain-wide-delegation';
-import { MimeTypes, Queries, createDriveFile, listDriveFiles } from '../drive';
+import {
+  MimeTypes,
+  Queries,
+  createDriveFile,
+  createPermission,
+  deletePermission,
+  listDriveFiles,
+  listPermissions,
+} from '../drive';
 import { unwrapGaxiosResponse } from '../gaxios-commons';
 
 type FileRow = {
@@ -162,6 +170,20 @@ type StageDescription = {
 } & Record<string, { guidelines: string }>; // Specific guidelines for various languages
 
 const fileNameForPart = (id: number, part: number) => `${id}.part-${part}`;
+const getTranscriptsFolderForID = async (id: number) =>
+  (
+    await listDriveFiles([
+      Queries.mimeTypeIs(MimeTypes.Folder),
+      Queries.parentIs(functions.config().transcription.folder.id),
+      Queries.nameIs(id.toString()),
+    ])
+  )?.[0] ||
+  // Creating a folder if it does not exist yet
+  (await createDriveFile(
+    id.toString(),
+    MimeTypes.Folder,
+    functions.config().transcription.folder.id
+  ));
 
 const getTranscriptionRef = () => getDatabase().ref('/transcription');
 
@@ -169,30 +191,12 @@ export const allot = functions.https.onCall(
   async (data: Allotment, context) => {
     authorize(context, ['TR.coordinator']);
 
-    // Using destructuring to get the first matching file (folder)
-    let [transcriptsFolder] = await listDriveFiles(
-      functions.config().transcription.drive.id,
-      [
-        Queries.mimeTypeIs(MimeTypes.Folder),
-        Queries.parentIs(functions.config().transcription.folder.id),
-        Queries.nameIs(data.id.toString()),
-      ]
-    );
+    const transcriptsFolder = await getTranscriptsFolderForID(data.id);
 
-    // Creating a folder if it does not exist yet
-    transcriptsFolder ||= await createDriveFile(
-      data.id.toString(),
-      MimeTypes.Folder,
-      functions.config().transcription.folder.id
-    );
-
-    const existingDocs = await listDriveFiles(
-      functions.config().transcription.drive.id,
-      [
-        Queries.mimeTypeIs(MimeTypes.Document),
-        Queries.parentIs(transcriptsFolder.id),
-      ]
-    );
+    const existingDocs = await listDriveFiles([
+      Queries.mimeTypeIs(MimeTypes.Document),
+      Queries.parentIs(transcriptsFolder.id),
+    ]);
 
     const getGoogleDoc = (name: string) =>
       // First, trying to find an existing document
@@ -200,11 +204,22 @@ export const allot = functions.https.onCall(
       // Creating a new one if not found
       createDriveFile(name, MimeTypes.Document, transcriptsFolder.id);
 
-    const googleDocLinks = await Promise.all(
+    const allottedGoogleDocs = await Promise.all(
       data.parts.length
         ? data.parts.map((part) => getGoogleDoc(fileNameForPart(data.id, part)))
         : [getGoogleDoc(data.id.toString())]
-    ).then((docs) => docs.map((doc) => doc.webViewLink));
+    );
+
+    // Granting permissions for the assignee to all the allotted docs
+    await Promise.all(
+      allottedGoogleDocs.map((file) =>
+        createPermission(
+          file.id,
+          data.assignee.emailAddress,
+          data.stage === 'TRSC' ? 'writer' : 'commenter'
+        )
+      )
+    );
 
     const sheet = await Spreadsheet.open<AllotmentRow>(
       functions.config().transcription.spreadsheet.id as string,
@@ -223,7 +238,7 @@ export const allot = functions.https.onCall(
         'Date Given': DateTimeConverter.toSerialDate(DateTime.now()),
         Devotee: data.assignee.name,
         Email: data.assignee.emailAddress,
-        'Google Doc': googleDocLinks[index],
+        'Google Doc': allottedGoogleDocs[index].webViewLink,
       }))
     );
 
@@ -248,13 +263,13 @@ export const allot = functions.https.onCall(
           parts: data.parts.map((part, index) => ({
             number: part,
             audioLink: `https://storage.googleapis.com/${StorageManager.getFullBucketName('parts')}/${data.id}/${data.id}.part-${part}.mp3`,
-            docLink: googleDocLinks[index],
+            docLink: allottedGoogleDocs[index].webViewLink,
           })),
           partsRanges: mir.stringify(mir.normalize(data.parts)),
           // These links are added only for the full file allotments
           ...(data.parts.length === 0 && {
             audioLink: `https://storage.googleapis.com/${functions.config().final?.publication?.bucket}/${data.id}.mp3`,
-            docLink: googleDocLinks?.[0],
+            docLink: allottedGoogleDocs?.[0]?.webViewLink,
           }),
           stageName: stageDescription?.name,
           guidelinesLink:
@@ -373,6 +388,10 @@ export const processTranscriptionEmails = functions
           ) || []
       )
     );
+    if (messageIds.size <= 0) {
+      console.info('No messages to process.');
+      return;
+    }
 
     const subjects = await Promise.all(
       [...messageIds].map(
@@ -388,7 +407,6 @@ export const processTranscriptionEmails = functions
           ).payload.headers[0]?.value
       )
     );
-    console.info('Processing', subjects);
 
     const sheet = await Spreadsheet.open<AllotmentRow>(
       functions.config().transcription.spreadsheet.id as string,
@@ -396,43 +414,96 @@ export const processTranscriptionEmails = functions
     );
 
     const rows = await sheet.getRows();
+
+    const getRowIndex = (
+      id: number,
+      part: number,
+      stage: string,
+      assignee: string
+    ) =>
+      rows.findIndex(
+        (row) =>
+          row.ID === id &&
+          row['Part Num'] === part &&
+          // No translations yet
+          row['Translation Language'] === null &&
+          row.Stage === stage &&
+          row.Devotee === assignee &&
+          row.Status === Status.Given
+      );
+
+    const units = subjects?.flatMap((subject) => {
+      const match = subject?.match(allotmentSubjectRegex);
+      if (!match) {
+        console.warn(`Cannot parse`, subject);
+        return [];
+      }
+
+      const { id, stage, assignee } = match.groups;
+      const parts = match.groups.parts
+        ? mir.flatten(mir.parse(match.groups.parts))
+        : null;
+      return [
+        {
+          id: +id,
+          parts,
+          indices: (parts || [null]).map((part) =>
+            getRowIndex(+id, part, stage, assignee)
+          ),
+        },
+      ];
+    });
+
+    // Removing permissions on Google Docs
+    await Promise.all(
+      units.map(async ({ id, indices }) => {
+        const transcriptsFolder = await getTranscriptsFolderForID(id);
+        const docs = await listDriveFiles([
+          Queries.mimeTypeIs(MimeTypes.Document),
+          Queries.parentIs(transcriptsFolder.id),
+        ]);
+
+        indices.map(async (index) => {
+          const row = rows[index];
+          const fileName = row['Part Num']
+            ? fileNameForPart(id, row['Part Num'])
+            : id.toString();
+          const doc = docs.find((file) => file.name === fileName);
+          if (!doc) {
+            console.warn('Cannot find doc', fileName);
+            return void 0;
+          }
+
+          const permissions = await listPermissions(doc.id);
+          const permission = permissions.find(
+            (p) =>
+              p.emailAddress === row.Email &&
+              p.type === 'user' &&
+              // inherited permissions could not be and should not be deleted
+              p.permissionDetails?.some((detail) => !detail.inherited)
+          );
+          if (permission) await deletePermission(doc.id, permission.id);
+        });
+      })
+    );
+
     const doneUpdate: Partial<AllotmentRow> = {
       Status: Status.Done,
       'Date Done': DateTimeConverter.toSerialDate(DateTime.now()),
     };
 
-    const updates = subjects?.flatMap((subject) => {
-      const match = subject?.match(allotmentSubjectRegex);
-      if (!match) return [];
-
-      const { id, stage, assignee } = match.groups;
-      const parts = match.groups.parts
-        ? mir.flatten(mir.parse(match.groups.parts))
-        : [null]; // to match the whole file row
-
-      const dataRowNumbers = parts.map(
-        (part) =>
-          rows.findIndex(
-            (row) =>
-              row.ID === +id &&
-              row['Part Num'] === part &&
-              // No translations yet
-              row['Translation Language'] === null &&
-              row.Stage === stage &&
-              row.Devotee === assignee &&
-              row.Status === Status.Given
-          ) + 1
-      );
-      console.info(
-        'Marking as Done the following data rows:',
-        mir.stringify(mir.normalize(dataRowNumbers))
-      );
-      return dataRowNumbers
-        .filter(Boolean)
-        .map((dataRowNumber) => [dataRowNumber, doneUpdate] as const);
-    });
-
-    await sheet.updateRows(new Map(updates));
+    await sheet.updateRows(
+      new Map(
+        units.flatMap(({ indices }) =>
+          indices.map(
+            (index) => (
+              console.info('Marking row', index + 2, 'as Done'),
+              [index + 1, doneUpdate] as const
+            )
+          )
+        )
+      )
+    );
 
     await getHistoryIdRef().set(history.historyId);
   });
