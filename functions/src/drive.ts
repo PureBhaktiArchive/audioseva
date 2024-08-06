@@ -23,6 +23,7 @@ const drive = google.drive({
 export const listDriveFiles = async (queries: string[]) =>
   unwrapGaxiosResponse(
     await drive.files.list({
+      includeItemsFromAllDrives: true,
       supportsAllDrives: true,
       q: queries.join(' and '),
       fields: 'nextPageToken, files(id, name, webViewLink)',
