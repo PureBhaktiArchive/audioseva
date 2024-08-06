@@ -170,20 +170,6 @@ type StageDescription = {
 } & Record<string, { guidelines: string }>; // Specific guidelines for various languages
 
 const fileNameForPart = (id: number, part: number) => `${id}.part-${part}`;
-const getTranscriptsFolderForID = async (id: number) =>
-  (
-    await listDriveFiles([
-      Queries.mimeTypeIs(MimeTypes.Folder),
-      Queries.parentIs(functions.config().transcription.folder.id),
-      Queries.nameIs(id.toString()),
-    ])
-  )?.[0] ||
-  // Creating a folder if it does not exist yet
-  (await createDriveFile(
-    id.toString(),
-    MimeTypes.Folder,
-    functions.config().transcription.folder.id
-  ));
 
 const getTranscriptionRef = () => getDatabase().ref('/transcription');
 
@@ -191,7 +177,18 @@ export const allot = functions.https.onCall(
   async (data: Allotment, context) => {
     authorize(context, ['TR.coordinator']);
 
-    const transcriptsFolder = await getTranscriptsFolderForID(data.id);
+    let [transcriptsFolder] = await listDriveFiles([
+      Queries.mimeTypeIs(MimeTypes.Folder),
+      Queries.parentIs(functions.config().transcription.folder.id),
+      Queries.nameIs(data.id.toString()),
+    ]);
+
+    // Creating a folder if it does not exist yet
+    transcriptsFolder ||= await createDriveFile(
+      data.id.toString(),
+      MimeTypes.Folder,
+      functions.config().transcription.folder.id
+    );
 
     const existingDocs = await listDriveFiles([
       Queries.mimeTypeIs(MimeTypes.Document),
@@ -457,33 +454,44 @@ export const processTranscriptionEmails = functions
     // Removing permissions on Google Docs
     await Promise.all(
       units.map(async ({ id, indices }) => {
-        const transcriptsFolder = await getTranscriptsFolderForID(id);
+        const [transcriptsFolder] = await listDriveFiles([
+          Queries.mimeTypeIs(MimeTypes.Folder),
+          Queries.parentIs(functions.config().transcription.folder.id),
+          Queries.nameIs(id.toString()),
+        ]);
+
+        if (!transcriptsFolder) {
+          console.warn('Cannot find folder for', id);
+          return;
+        }
         const docs = await listDriveFiles([
           Queries.mimeTypeIs(MimeTypes.Document),
           Queries.parentIs(transcriptsFolder.id),
         ]);
 
-        indices.map(async (index) => {
-          const row = rows[index];
-          const fileName = row['Part Num']
-            ? fileNameForPart(id, row['Part Num'])
-            : id.toString();
-          const doc = docs.find((file) => file.name === fileName);
-          if (!doc) {
-            console.warn('Cannot find doc', fileName);
-            return void 0;
-          }
+        await Promise.all(
+          indices.map(async (index) => {
+            const row = rows[index];
+            const fileName = row['Part Num']
+              ? fileNameForPart(id, row['Part Num'])
+              : id.toString();
+            const doc = docs.find((file) => file.name === fileName);
+            if (!doc) {
+              console.warn('Cannot find doc', fileName);
+              return;
+            }
 
-          const permissions = await listPermissions(doc.id);
-          const permission = permissions.find(
-            (p) =>
-              p.emailAddress === row.Email &&
-              p.type === 'user' &&
-              // inherited permissions could not be and should not be deleted
-              p.permissionDetails?.some((detail) => !detail.inherited)
-          );
-          if (permission) await deletePermission(doc.id, permission.id);
-        });
+            const permissions = await listPermissions(doc.id);
+            const permission = permissions.find(
+              (p) =>
+                p.emailAddress === row.Email &&
+                p.type === 'user' &&
+                // inherited permissions could not be and should not be deleted
+                p.permissionDetails?.some((detail) => !detail.inherited)
+            );
+            if (permission) await deletePermission(doc.id, permission.id);
+          })
+        );
       })
     );
 
