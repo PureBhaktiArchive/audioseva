@@ -22,7 +22,6 @@ import {
   listDriveFiles,
   listPermissions,
 } from '../drive';
-import { unwrapGaxiosResponse } from '../gaxios-commons';
 
 type FileRow = {
   ID: number;
@@ -302,13 +301,13 @@ export const watchMailbox = functions.pubsub
 
     const doneLabel =
       // Finding an existing Done label
-      unwrapGaxiosResponse(
+      (
         await gmail.users.labels.list({
           userId: 'me',
         })
-      ).labels.find((l) => l.name === 'Done') ||
+      ).data.labels.find((l) => l.name === 'Done') ||
       // or creating one
-      unwrapGaxiosResponse(
+      (
         await gmail.users.labels.create({
           userId: 'me',
           requestBody: {
@@ -317,7 +316,7 @@ export const watchMailbox = functions.pubsub
             labelListVisibility: 'labelShow',
           },
         })
-      );
+      ).data;
 
     // Setting permissions for Gmail according to https://developers.google.com/gmail/api/guides/push#grant_publish_rights_on_your_topic
     await new PubSub().topic(TOPIC_NAME).iam.setPolicy({
@@ -329,7 +328,7 @@ export const watchMailbox = functions.pubsub
       ],
     });
 
-    const watchResponse = unwrapGaxiosResponse(
+    const watchResponse = (
       await gmail.users.watch({
         userId: 'me',
         requestBody: {
@@ -338,7 +337,7 @@ export const watchMailbox = functions.pubsub
           topicName: `projects/${JSON.parse(process.env.FIREBASE_CONFIG).projectId}/topics/${TOPIC_NAME}`,
         },
       })
-    );
+    ).data;
     console.debug(watchResponse);
     await getHistoryIdRef().set(watchResponse.historyId);
   });
@@ -358,13 +357,13 @@ export const processTranscriptionEmails = functions
       'https://www.googleapis.com/auth/gmail.readonly'
     );
 
-    const history = unwrapGaxiosResponse(
+    const history = (
       await gmail.users.history.list({
         userId: 'me',
         historyTypes: ['labelAdded'],
         startHistoryId: (await getHistoryIdRef().once('value')).val(),
       })
-    );
+    ).data;
 
     if (!history.history) return;
 
@@ -393,7 +392,7 @@ export const processTranscriptionEmails = functions
     const subjects = await Promise.all(
       [...messageIds].map(
         async (id) =>
-          unwrapGaxiosResponse(
+          (
             await gmail.users.messages.get({
               userId: 'me',
               id,
@@ -401,7 +400,7 @@ export const processTranscriptionEmails = functions
               metadataHeaders: ['Subject'],
               fields: 'payload/headers',
             })
-          ).payload.headers[0]?.value
+          ).data.payload.headers[0]?.value
       )
     );
 

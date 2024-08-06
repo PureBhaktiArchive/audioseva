@@ -11,7 +11,6 @@
 
 import { GoogleAuth, OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import { unwrapGaxiosResponse } from './gaxios-commons';
 
 const GOOGLE_OAUTH2_TOKEN_API_URL = 'https://oauth2.googleapis.com/token';
 
@@ -39,26 +38,27 @@ export async function getDomainWideDelegationClient(
   const now = Math.floor(new Date().getTime() / 1000);
   const serviceAccountEmail = (await auth.getCredentials()).client_email;
 
-  const signedJwt = unwrapGaxiosResponse(
+  const signedJwt =
     // Sign JWT token using a system-managed private key of the given service account
-    await google.iamcredentials('v1').projects.serviceAccounts.signJwt({
-      name: `projects/-/serviceAccounts/${serviceAccountEmail}`,
-      requestBody: {
-        // Build JWT token for domain-wide delegation
-        payload: JSON.stringify({
-          iss: serviceAccountEmail,
-          aud: GOOGLE_OAUTH2_TOKEN_API_URL,
-          iat: now,
-          exp: now + 10 * 60,
-          sub: subject ?? undefined,
-          // Yes, this is a space delimited list.
-          // Not a typo, the API expects the field to be "scope" (singular).
-          scope: scopes?.join(' '),
-        }),
-      },
-      auth,
-    })
-  ).signedJwt;
+    (
+      await google.iamcredentials('v1').projects.serviceAccounts.signJwt({
+        name: `projects/-/serviceAccounts/${serviceAccountEmail}`,
+        requestBody: {
+          // Build JWT token for domain-wide delegation
+          payload: JSON.stringify({
+            iss: serviceAccountEmail,
+            aud: GOOGLE_OAUTH2_TOKEN_API_URL,
+            iat: now,
+            exp: now + 10 * 60,
+            sub: subject ?? undefined,
+            // Yes, this is a space delimited list.
+            // Not a typo, the API expects the field to be "scope" (singular).
+            scope: scopes?.join(' '),
+          }),
+        },
+        auth,
+      })
+    ).data.signedJwt;
 
   return new OAuth2Client({
     credentials: {

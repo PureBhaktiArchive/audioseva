@@ -1,6 +1,5 @@
 import { GoogleAuth } from 'google-auth-library';
 import { google } from 'googleapis';
-import { unwrapGaxiosResponse } from './gaxios-commons';
 
 export enum MimeTypes {
   Folder = 'application/vnd.google-apps.folder',
@@ -21,44 +20,44 @@ const drive = google.drive({
 });
 
 export const listDriveFiles = async (queries: string[]) =>
-  unwrapGaxiosResponse(
+  (
     await drive.files.list({
       includeItemsFromAllDrives: true,
       supportsAllDrives: true,
       q: queries.join(' and '),
       fields: 'nextPageToken, files(id, name, webViewLink)',
     })
-  ).files;
+  ).data.files;
 
-export const createDriveFile = async (
+export const createDriveFile = (
   name: string,
   mimeType: MimeTypes,
   parentId: string
 ) =>
-  unwrapGaxiosResponse(
-    await drive.files.create({
+  drive.files
+    .create({
       supportsAllDrives: true,
       requestBody: { name, parents: [parentId], mimeType },
       fields: 'id, webViewLink',
     })
-  );
+    .then((response) => response.data);
 
 export const listPermissions = async (fileId: string) =>
-  unwrapGaxiosResponse(
+  (
     await drive.permissions.list({
       supportsAllDrives: true,
       fileId,
       fields: 'permissions(id,type,permissionDetails,emailAddress,role)',
     })
-  ).permissions;
+  ).data.permissions;
 
 export const createPermission = async (
   fileId: string,
   emailAddress: string,
   role: string
 ) =>
-  unwrapGaxiosResponse(
-    await drive.permissions.create({
+  drive.permissions
+    .create({
       supportsAllDrives: true,
       fileId,
       requestBody: {
@@ -68,13 +67,13 @@ export const createPermission = async (
       },
       fields: 'id',
     })
-  );
+    .then((response) => response.data);
 
-export const deletePermission = async (fileId: string, permissionId: string) =>
-  unwrapGaxiosResponse(
-    await drive.permissions.delete({
+export const deletePermission = (fileId: string, permissionId: string) =>
+  drive.permissions
+    .delete({
       supportsAllDrives: true,
       fileId,
       permissionId,
     })
-  );
+    .then((response) => response.data);
