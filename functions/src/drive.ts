@@ -10,6 +10,7 @@ export const Queries = {
   mimeTypeIs: (mime: MimeTypes) => `mimeType = '${mime}'`,
   parentIs: (id: string) => `'${id}' in parents`,
   nameIs: (name: string) => `name = '${name}'`,
+  notTrashed: 'trashed = false',
 };
 
 const drive = google.drive({

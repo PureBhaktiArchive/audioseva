@@ -180,6 +180,7 @@ export const allot = functions.https.onCall(
       Queries.mimeTypeIs(MimeTypes.Folder),
       Queries.parentIs(functions.config().transcription.folder.id),
       Queries.nameIs(data.id.toString()),
+      Queries.notTrashed,
     ]);
 
     // Creating a folder if it does not exist yet
@@ -192,6 +193,7 @@ export const allot = functions.https.onCall(
     const existingDocs = await listDriveFiles([
       Queries.mimeTypeIs(MimeTypes.Document),
       Queries.parentIs(transcriptsFolder.id),
+      Queries.notTrashed,
     ]);
 
     const getGoogleDoc = (name: string) =>
@@ -457,6 +459,7 @@ export const processTranscriptionEmails = functions
           Queries.mimeTypeIs(MimeTypes.Folder),
           Queries.parentIs(functions.config().transcription.folder.id),
           Queries.nameIs(id.toString()),
+          Queries.notTrashed,
         ]);
 
         if (!transcriptsFolder) {
@@ -466,6 +469,7 @@ export const processTranscriptionEmails = functions
         const docs = await listDriveFiles([
           Queries.mimeTypeIs(MimeTypes.Document),
           Queries.parentIs(transcriptsFolder.id),
+          Queries.notTrashed,
         ]);
 
         await Promise.all(
