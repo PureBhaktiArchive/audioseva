@@ -348,7 +348,7 @@ export const watchMailbox = functions.pubsub
 
 // This should match the `transcription/subject` email template
 const allotmentSubjectRegex =
-  /^#?(?<id>\d+)(?: \(part (?<parts>\d[-,\d]*\d)\))?: (?<language>English|Hindi|Bengali), (?<stage>\w+) - (?<assignee>.+)$/;
+  /^(?:\w+: )?#?(?<id>\d+)(?: \(part (?<parts>\d(?:[-,\d]*\d)?)\))?: (?<language>\w+), (?<stage>\w+) - (?<assignee>.+)$/;
 
 export const processTranscriptionEmails = functions
   .runWith({
