@@ -462,10 +462,8 @@ export const processTranscriptionEmails = functions
           Queries.notTrashed,
         ]);
 
-        if (!transcriptsFolder) {
-          console.warn('Cannot find folder for', id);
-          return;
-        }
+        if (!transcriptsFolder)
+          return console.warn('Cannot find folder for', id);
         const docs = await listDriveFiles([
           Queries.mimeTypeIs(MimeTypes.Document),
           Queries.parentIs(transcriptsFolder.id),
@@ -479,10 +477,7 @@ export const processTranscriptionEmails = functions
               ? fileNameForPart(id, row['Part Num'])
               : id.toString();
             const doc = docs.find((file) => file.name === fileName);
-            if (!doc) {
-              console.warn('Cannot find doc', fileName);
-              return;
-            }
+            if (!doc) return console.warn('Cannot find doc', fileName);
 
             const permissions = await listPermissions(doc.id);
             const permission = permissions.find(
