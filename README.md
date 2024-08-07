@@ -2,15 +2,14 @@
 
 ## Functions
 
-Use [Cloud Functions shell](https://firebase.google.com/docs/functions/local-emulator) for debugging functions locally.
+### Local debug
 
 1. Generate a private key for Firebase service account [here](https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk) using “Generate new private key” button.
-1. Save the private key JSON file somewhere on your computer.
-1. Either set `GOOGLE_APPLICATION_CREDENTIALS` environment variable globally in your system, or export it in the command shell before running other commands.
+1. Save the private key JSON file as `credentials.json.local` in the root of the repository directory. This file is ignored by GIT.
 1. Run `firebase functions:config:get > .runtimeconfig.json` in the `functions` folder once to get a copy of the config for the local functions shell. You can edit the JSON file if needed.
 1. Run `npm run build:watch` to continuosly build the source code while the shell is running.
-1. Run `firebase functions:shell` to enter the shell.
-1. Invoke your function with data according to the above linked article.
+1. Run the `Firebase Emulators` task to emulate the functions locally.
+1. Alternatively, run the `Functions Shell` task to enter the [Cloud Functions shell](https://firebase.google.com/docs/functions/local-emulator) and invoke your function interactively.
 
 ## Frontend
 
