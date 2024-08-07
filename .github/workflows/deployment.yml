@@ -53,9 +53,11 @@ jobs:
           # The default site has the same SITE_ID as the Firebase project ID
           firebase target:apply hosting main $FIREBASE_PROJECT --project $FIREBASE_PROJECT
           firebase target:apply hosting CR $CR_ALLOTMENT_SITE_ID --project $FIREBASE_PROJECT
+          firebase target:apply hosting TR $TR_ALLOTMENT_SITE_ID --project $FIREBASE_PROJECT
           firebase deploy --non-interactive --force --project $FIREBASE_PROJECT
         env:
           CR_ALLOTMENT_SITE_ID: ${{ vars.CR_ALLOTMENT_SITE_ID }}
+          TR_ALLOTMENT_SITE_ID: ${{ vars.TR_ALLOTMENT_SITE_ID }}
 
       - name: Setup tmate session
         if: failure()

@@ -197,8 +197,11 @@ export const addNewUserToDatabase = functions.auth
   });
 
 export const getAssignees = functions.https.onCall(
-  async ({ phase }, context) => {
-    authorize(context, ['SQR.coordinator', 'TE.coordinator']);
+  async ({ phase, skills }: { phase: string; skills: string[] }, context) => {
+    authorize(context, ['SQR.coordinator', 'TE.coordinator', 'TR.coordinator']);
+
+    // Backward compatibility, some clients pass the `phase` parameter.
+    skills ||= [phase || Roles.CR];
 
     const registrationsSheet = await Spreadsheet.open(
       functions.config().registrations.spreadsheet_id as string,
@@ -208,7 +211,7 @@ export const getAssignees = functions.https.onCall(
     const rows = await registrationsSheet.getRows();
 
     return rows
-      .filter((item) => item[phase || Roles.CR] === Decision.Yes)
+      .filter((item) => skills.some((skill) => item[skill] === Decision.Yes))
       .map((item) => ({
         emailAddress: (item['Email Address'] as string)?.trim(),
         name: item['Name'],
@@ -218,6 +221,7 @@ export const getAssignees = functions.https.onCall(
           : [],
         phone: item['Phone Number'],
         id: (item['Email Address'] as string)?.trim(),
+        skills: skills.filter((skill) => item[skill] === Decision.Yes),
       }));
   }
 );

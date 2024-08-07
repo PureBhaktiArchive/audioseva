@@ -29,6 +29,7 @@
     "iter-ops": "3.1.1",
     "lodash": "4.17.21",
     "luxon": "3.4.4",
+    "multi-integer-range": "5.2.0",
     "p-map": "4.0.0",
     "pug": "3.0.3",
     "recursive-diff": "1.0.9",

@@ -1,0 +1,7 @@
+include ../../mixins
+//- Ensure the regex in the Gmail mailbox integration matches this template
+| ##{id}
+if partsRanges
+  |
+  | (part #{partsRanges})
+| : #{language}, #{stage} - #{assignee.name}

@@ -1,0 +1,27 @@
+include ../../mixins
+mixin unit(id, part, audioLink, docLink)
+  strong(style='font-family: Courier,serif')
+    | ##{id}
+    if part
+      |
+      | part #{part}
+  | &ensp;|&ensp;
+  a(href=audioLink) Audio
+  | &ensp;|&ensp;
+  a(href=docLink) Google Doc
+
++dandavat
+p Below is your allotment for #[strong= stageName].
+ul
+  for part in parts || []
+    li: +unit(id, part.number, part.audioLink, part.docLink)
+  else 
+    li: +unit(id, null, audioLink, docLink)
+
+if message
+  p= message
+
+if guidelinesLink
+  p Please refer #[a(href=guidelinesLink) the guidelines], if needed.
+
++signature

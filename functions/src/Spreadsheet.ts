@@ -2,7 +2,6 @@
  * sri sri guru gauranga jayatah
  */
 import { google, sheets_v4 as sheets } from 'googleapis';
-import { GaxiosResponse } from 'googleapis-common';
 import _ = require('lodash');
 
 enum IValueInputOption {
@@ -27,13 +26,13 @@ export class Spreadsheet<T = unknown> {
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     const api = google.sheets({ version: 'v4', auth });
-    const schema = this.getResponse(
+    const schema = (
       await api.spreadsheets.get({
         spreadsheetId: spreadsheetId,
         includeGridData: true,
         ranges: [this.toA1Notation(sheetName, undefined, 1, undefined, 1)],
       })
-    );
+    ).data;
     const sheetIndex = schema.sheets.findIndex(
       (s) => s.properties?.title === sheetName
     );
@@ -54,16 +53,6 @@ export class Spreadsheet<T = unknown> {
       )
       .takeWhile()
       .value();
-  }
-
-  protected static getResponse<T>(response: GaxiosResponse<T>) {
-    const { statusText, status, data } = response;
-    if (statusText !== 'OK' || status !== 200)
-      throw new Error(
-        `Got ${status} (${statusText}) from ${response.config.url}.`
-      );
-
-    return data;
   }
 
   /**
@@ -215,7 +204,7 @@ export class Spreadsheet<T = unknown> {
     majorDimension: 'COLUMNS' | 'ROWS' = 'ROWS'
   ) {
     return (
-      Spreadsheet.getResponse(
+      (
         await this.api.spreadsheets.values.get({
           spreadsheetId: this.spreadsheetId,
           majorDimension,
@@ -223,7 +212,7 @@ export class Spreadsheet<T = unknown> {
           valueRenderOption: 'UNFORMATTED_VALUE',
           range,
         })
-      ).values || [[]]
+      ).data.values || [[]]
     );
   }
 
@@ -256,17 +245,15 @@ export class Spreadsheet<T = unknown> {
     columnName: Extract<keyof T, string>,
     values: (string | number | boolean)[]
   ) {
-    Spreadsheet.getResponse(
-      await this.api.spreadsheets.values.update({
-        spreadsheetId: this.spreadsheetId,
-        range: this.columnToA1Notation(columnName),
-        valueInputOption: IValueInputOption.RAW,
-        requestBody: {
-          majorDimension: 'COLUMNS',
-          values: [values.map(encodeSheetsValue)],
-        },
-      })
-    );
+    await this.api.spreadsheets.values.update({
+      spreadsheetId: this.spreadsheetId,
+      range: this.columnToA1Notation(columnName),
+      valueInputOption: IValueInputOption.RAW,
+      requestBody: {
+        majorDimension: 'COLUMNS',
+        values: [values.map(encodeSheetsValue)],
+      },
+    });
   }
 
   /**
@@ -305,7 +292,7 @@ export class Spreadsheet<T = unknown> {
    * - `null` in the object transforms into empty string in the array.
    * @param object Source object to be transformed into an array
    */
-  protected objectToArray(object: T) {
+  protected objectToArray(object: Partial<T>) {
     return _(this.columnNames)
       .map((columnName) => <unknown>object[columnName])
       .map(encodeSheetsValue)
@@ -344,37 +331,33 @@ export class Spreadsheet<T = unknown> {
    * Nulls are skipped. To clear data, use an empty string ("") in the property value.
    */
   public async updateRow(dataRowNumber: number, object: T) {
-    Spreadsheet.getResponse(
-      await this.api.spreadsheets.values.update({
-        spreadsheetId: this.spreadsheetId,
-        range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
-        valueInputOption: IValueInputOption.RAW,
-        requestBody: {
-          values: [this.objectToArray(object)],
-        },
-      })
-    );
+    await this.api.spreadsheets.values.update({
+      spreadsheetId: this.spreadsheetId,
+      range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
+      valueInputOption: IValueInputOption.RAW,
+      requestBody: {
+        values: [this.objectToArray(object)],
+      },
+    });
   }
 
   /**
    * Update rows at specified row numbers.
    * @param objects Map of objects by data row number
    */
-  public async updateRows(objects: Map<number, T>) {
+  public async updateRows(objects: Map<number, Partial<T>>) {
     if (objects.size === 0) return;
 
-    Spreadsheet.getResponse(
-      await this.api.spreadsheets.values.batchUpdate({
-        spreadsheetId: this.spreadsheetId,
-        requestBody: {
-          valueInputOption: IValueInputOption.RAW,
-          data: Array.from(objects, ([dataRowNumber, object]) => ({
-            range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
-            values: [this.objectToArray(object)],
-          })),
-        },
-      })
-    );
+    await this.api.spreadsheets.values.batchUpdate({
+      spreadsheetId: this.spreadsheetId,
+      requestBody: {
+        valueInputOption: IValueInputOption.RAW,
+        data: Array.from(objects, ([dataRowNumber, object]) => ({
+          range: this.rowToA1Notation(this.fromDataRowNumber(dataRowNumber)),
+          values: [this.objectToArray(object)],
+        })),
+      },
+    });
   }
 
   /**
@@ -382,16 +365,14 @@ export class Spreadsheet<T = unknown> {
    * @param objects Data values to add to Google Sheets
    */
   public async appendRows(objects: T[]) {
-    Spreadsheet.getResponse(
-      await this.api.spreadsheets.values.append({
-        spreadsheetId: this.spreadsheetId,
-        range: this.title,
-        valueInputOption: IValueInputOption.RAW,
-        requestBody: {
-          values: objects.map((object) => this.objectToArray(object)),
-        },
-      })
-    );
+    await this.api.spreadsheets.values.append({
+      spreadsheetId: this.spreadsheetId,
+      range: this.rowToA1Notation(1),
+      valueInputOption: IValueInputOption.RAW,
+      requestBody: {
+        values: objects.map((object) => this.objectToArray(object)),
+      },
+    });
   }
 
   /**
@@ -425,7 +406,7 @@ export class Spreadsheet<T = unknown> {
   public async overwriteRows(objects: T[]) {
     if (objects.length === 0) return null;
 
-    return Spreadsheet.getResponse(
+    return (
       await this.api.spreadsheets.values.update({
         spreadsheetId: this.spreadsheetId,
         range: this.rowsToA1Notation(this.fromDataRowNumber(1)),
@@ -434,6 +415,6 @@ export class Spreadsheet<T = unknown> {
           values: objects.map((object) => this.objectToArray(object)),
         },
       })
-    );
+    ).data;
   }
 }

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["ES2021"],
+    "lib": ["ES2022", "ES2023.Array"], // Adding 2023.Array to support `findLastIndex`. Though not all 2023 features are supported in Node v18, see https://node.green/#ES2023 and https://github.com/microsoft/TypeScript/issues/56796.
     "module": "CommonJS",
     "checkJs": true,
     "allowJs": true,
@@ -11,7 +11,7 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "target": "ES2021"
+    "target": "ES2022"
   },
   "compileOnSave": true,
   "include": ["src"]
