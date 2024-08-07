@@ -419,7 +419,9 @@ export const processTranscriptionEmails = functions
       stage: string,
       assignee: string
     ) =>
-      rows.findIndex(
+      // Using the ES2023 feature here: https://node.green/#ES2023-features-Array-find-from-last-Array-prototype-findLastIndex
+      // In order to use it, we had to include the ES2023.Array value into the tsconfig’s lib.
+      rows.findLastIndex(
         (row) =>
           row.ID === id &&
           row['Part Num'] === part &&
