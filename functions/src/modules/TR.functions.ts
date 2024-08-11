@@ -176,12 +176,16 @@ export const allot = functions.https.onCall(
   async (data: Allotment, context) => {
     authorize(context, ['TR.coordinator']);
 
+    console.info('Allotting', data);
+
     let [transcriptsFolder] = await listDriveFiles([
       Queries.mimeTypeIs(MimeTypes.Folder),
       Queries.parentIs(functions.config().transcription.folder.id),
       Queries.nameIs(data.id.toString()),
       Queries.notTrashed,
     ]);
+
+    if (!transcriptsFolder) console.info('Cannot find folder for', data.id);
 
     // Creating a folder if it does not exist yet
     transcriptsFolder ||= await createDriveFile(
@@ -386,10 +390,7 @@ export const processTranscriptionEmails = functions
           ) || []
       )
     );
-    if (messageIds.size <= 0) {
-      console.info('No messages to process.');
-      return;
-    }
+    if (messageIds.size <= 0) return console.info('No messages to process.');
 
     const subjects = await Promise.all(
       [...messageIds].map(
@@ -405,6 +406,7 @@ export const processTranscriptionEmails = functions
           ).data.payload.headers[0]?.value
       )
     );
+    console.info('Processing', subjects);
 
     const sheet = await Spreadsheet.open<AllotmentRow>(
       functions.config().transcription.spreadsheet.id as string,
@@ -446,7 +448,6 @@ export const processTranscriptionEmails = functions
       return [
         {
           id: +id,
-          parts,
           indices: (parts || [null]).map((part) =>
             getRowIndex(+id, part, stage, assignee)
           ),
