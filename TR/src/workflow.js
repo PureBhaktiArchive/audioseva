@@ -1,27 +1,71 @@
-/** @type {Stage[]} */
-const stagesForParts = ['TRSC', 'FC1'];
+/**
+ * @typedef {object} StageAttributes
+ * @property {boolean} [forParts]
+ * @property {boolean} [optional]
+ * @property {string[]} [forLanguages]
+ */
 
-/** @type {Map<Stage, Stage[]>} */
-const preceedingStages = new Map([
-  // Parts
-  ['TRSC', [null]],
-  ['FC1', ['TRSC']],
-  // Whole files
-  ['DCRT', [null]],
-  ['LANG', ['DCRT']],
-  ['TTV', ['LANG']],
-  ['FC2', ['LANG', 'TTV']],
-  ['PR', ['FC2']],
-  ['FINAL', ['PR', 'FC2']],
-]);
+/** @type {[Stage, StageAttributes][]} */
+const stages = [
+  ['TRSC', { forParts: true }],
+  ['FC1', { forParts: true }],
+  ['DCRT', { forLanguages: ['English'] }],
+  ['LANG', {}],
+  ['TTV', { optional: true }],
+  ['FC2', {}],
+  ['PR', { optional: true }],
+  ['FINAL', {}],
+];
 
 /**
- * @param {Stage} stage1
- * @param {Stage} stage2
+ * Returns stages in their natural order, filtered by the proided skills set
+ * @param {Stage[]} skills
+ * @param {string} language
+ * @returns
+ */
+export const getStagesForSkillsAndLanguage = (skills, language) =>
+  stages.flatMap(([stage, options]) =>
+    skills.includes(stage) && (options.forLanguages?.includes(language) ?? true)
+      ? [stage]
+      : []
+  );
+
+/**
+ * @param {FileToAllot | Part} unit
+ * @param {Stage} stage Stage to be allotted for
  * @returns {Boolean}
  */
-const canStageComeAfterAnother = (stage1, stage2) =>
-  preceedingStages.get(stage2)?.includes(stage1);
+const canUnitBeAllottedForStage = function (unit, stage) {
+  let reachedLatestStage = !unit.latestStage;
+  for (const [code, attributes] of stages) {
+    // Skipping stages up to the latest one, included
+    if (!reachedLatestStage) {
+      // Cannot allot for a past stage
+      if (code === stage) return false;
+      if (code === unit.latestStage) reachedLatestStage = true;
+      continue;
+    }
+
+    const isStageSuitable =
+      // Emulating XOR: either full file xor stage is for parts
+      'id' in unit !== !!attributes.forParts &&
+      // Some stages are suitable for particular languages only
+      (!('languages' in unit) ||
+        !attributes.forLanguages ||
+        attributes.forLanguages.some((language) =>
+          unit.languages.includes(language)
+        ));
+
+    if (code !== stage)
+      if (attributes.optional || !isStageSuitable)
+        // Optional or not suitable stages can be skipped
+        continue;
+      // Current stage is not the requested one and it cannot be skipped
+      else return false;
+
+    return isStageSuitable;
+  }
+};
 
 /**
  * Whether a unit can be allotted for a given stage
@@ -32,14 +76,8 @@ const canStageComeAfterAnother = (stage1, stage2) =>
 export const canUnitBeAllotted = (unit, stage = null) =>
   !unit.completed &&
   // A unit should not be in progress currently
-  unit.latestStatus !== 'Given' &&
+  (!unit.latestStatus || unit.latestStatus === 'Done') &&
+  // For whole files there should be no incompleted parts
+  (!('parts' in unit) || !unit.parts?.some((part) => !part.completed)) &&
   // Workflow checks only if stage is specified
-  (!stage ||
-    (canStageComeAfterAnother(unit.latestStage, stage) &&
-      ('id' in unit
-        ? // and only specific stages are allowed
-          !stagesForParts.includes(stage) &&
-          // For whole files, all parts should be completed if present
-          unit.parts?.every((part) => part.completed)
-        : // For parts, only specific stages are allowed
-          stagesForParts.includes(stage))));
+  (!stage || canUnitBeAllottedForStage(unit, stage));

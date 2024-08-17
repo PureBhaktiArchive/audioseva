@@ -14,7 +14,7 @@ import StageChip from './StageChip.vue';
 import StatusChip from './StatusChip.vue';
 import { useAuth } from './auth';
 import { formatDurationForHumans } from './duration';
-import { canUnitBeAllotted } from './workflow';
+import { canUnitBeAllotted, getStagesForSkillsAndLanguage } from './workflow';
 
 const { isAuthenticated } = useAuth();
 
@@ -69,7 +69,12 @@ const languages = computed(() =>
 );
 
 const stages = computed(() =>
-  selectedAssignee.value ? selectedAssignee.value.skills : null
+  selectedAssignee.value && selectedLanguage.value
+    ? getStagesForSkillsAndLanguage(
+        selectedAssignee.value.skills,
+        selectedLanguage.value
+      )
+    : null
 );
 const selectedStage = ref(/** @type {Stage} */ (null));
 
