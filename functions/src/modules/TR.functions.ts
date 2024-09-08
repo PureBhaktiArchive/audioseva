@@ -430,7 +430,7 @@ export const processTranscriptionEmails = functions
           // No translations yet
           row['Translation Language'] === null &&
           row.Stage === stage &&
-          row.Devotee === assignee &&
+          row.Devotee?.trim() === assignee.trim() &&
           row.Status === Status.Given
       );
 
