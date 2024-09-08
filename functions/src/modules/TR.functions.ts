@@ -363,19 +363,21 @@ export const processTranscriptionEmails = functions
       'https://www.googleapis.com/auth/gmail.readonly'
     );
 
+    const doneLabelId = (
+      await getMailboxRef().child('labels/done').once('value')
+    ).val() as string;
+
     const history = (
       await gmail.users.history.list({
         userId: 'me',
         historyTypes: ['labelAdded'],
+        labelId: doneLabelId,
         startHistoryId: (await getHistoryIdRef().once('value')).val(),
       })
     ).data;
 
-    if (!history.history) return;
-
-    const doneLabelId = (
-      await getMailboxRef().child('labels/done').once('value')
-    ).val();
+    if (!history.history)
+      return console.debug('No Done labels were added.', history);
 
     // Using Set to get unique ids
     const messageIds = new Set(
@@ -390,7 +392,8 @@ export const processTranscriptionEmails = functions
           ) || []
       )
     );
-    if (messageIds.size <= 0) return console.info('No messages to process.');
+    if (messageIds.size <= 0)
+      return console.debug('No messages to process.', history);
 
     const subjects = await Promise.all(
       [...messageIds].map(
