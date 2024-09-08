@@ -345,12 +345,181 @@ export const watchMailbox = functions.pubsub
       })
     ).data;
     console.debug(watchResponse);
-    await getHistoryIdRef().set(watchResponse.historyId);
+    await getHistoryIdRef().transaction(
+      // Do not overwrite the history ID if it's present to avoid skipping updates
+      (previous) => previous ?? watchResponse.historyId
+    );
   });
 
 // This should match the `transcription/subject` email template
 const allotmentSubjectRegex =
   /^(?:\w+: )?#?(?<id>\d+)(?: \(part (?<parts>\d(?:[-,\d]*\d)?)\))?: (?<language>\w+), (?<stage>\w+) - (?<assignee>.+)$/;
+
+const processHistory = async (startHistoryId: string) => {
+  const gmail = await getGmailClient(
+    'https://www.googleapis.com/auth/gmail.readonly'
+  );
+
+  const doneLabelId = (
+    await getMailboxRef().child('labels/done').once('value')
+  ).val() as string;
+
+  const history = (
+    await gmail.users.history.list({
+      userId: 'me',
+      historyTypes: ['labelAdded'],
+      labelId: doneLabelId,
+      startHistoryId,
+    })
+  ).data;
+
+  if (!history.history) {
+    console.debug('No Done labels were added.', history);
+    return history.historyId;
+  }
+
+  // Using Set to get unique ids
+  const messageIds = new Set(
+    history.history.flatMap(
+      (item) =>
+        item.labelsAdded?.flatMap((added) =>
+          added.labelIds.includes(doneLabelId) &&
+          // Assuming that id==threadId for the first message in the thread
+          added.message.threadId === added.message.id
+            ? [added.message.id]
+            : []
+        ) || []
+    )
+  );
+  if (messageIds.size <= 0) {
+    console.debug('No messages to process.', history);
+    return history.historyId;
+  }
+
+  const subjects = await Promise.all(
+    [...messageIds].map(
+      async (id) =>
+        (
+          await gmail.users.messages.get({
+            userId: 'me',
+            id,
+            format: 'metadata',
+            metadataHeaders: ['Subject'],
+            fields: 'payload/headers',
+          })
+        ).data.payload.headers[0]?.value
+    )
+  );
+  console.info('Processing', subjects);
+
+  const sheet = await Spreadsheet.open<AllotmentRow>(
+    functions.config().transcription.spreadsheet.id as string,
+    'Allotments'
+  );
+
+  const rows = await sheet.getRows();
+
+  const getRowIndex = (
+    id: number,
+    part: number,
+    stage: string,
+    assignee: string
+  ) =>
+    // Using the ES2023 feature here: https://node.green/#ES2023-features-Array-find-from-last-Array-prototype-findLastIndex
+    // In order to use it, we had to include the ES2023.Array value into the tsconfig’s lib.
+    rows.findLastIndex(
+      (row) =>
+        row.ID === id &&
+        row['Part Num'] === part &&
+        // No translations yet
+        row['Translation Language'] === null &&
+        row.Stage === stage &&
+        row.Devotee?.trim() === assignee.trim() &&
+        row.Status === Status.Given
+    );
+
+  const units = subjects?.flatMap((subject) => {
+    const match = subject?.match(allotmentSubjectRegex);
+    if (!match) {
+      console.warn(`Cannot parse`, subject);
+      return [];
+    }
+
+    const { id, stage, assignee } = match.groups;
+    const parts = match.groups.parts
+      ? mir.flatten(mir.parse(match.groups.parts))
+      : null;
+    return [
+      {
+        id: +id,
+        indices: (parts || [null]).flatMap((part) => {
+          const index = getRowIndex(+id, part, stage, assignee);
+          const rowSpec = [id, part, stage, 'Given', assignee];
+          if (index < 0) {
+            console.warn('Could not find row for', ...rowSpec);
+            return [];
+          }
+          console.debug('Found row', index + 2, 'for', ...rowSpec);
+          return [index];
+        }),
+      },
+    ];
+  });
+
+  // Removing permissions on Google Docs
+  await Promise.all(
+    units.map(async ({ id, indices }) => {
+      const [transcriptsFolder] = await listDriveFiles([
+        Queries.mimeTypeIs(MimeTypes.Folder),
+        Queries.parentIs(functions.config().transcription.folder.id),
+        Queries.nameIs(id.toString()),
+        Queries.notTrashed,
+      ]);
+
+      if (!transcriptsFolder) return console.warn('Cannot find folder for', id);
+      const docs = await listDriveFiles([
+        Queries.mimeTypeIs(MimeTypes.Document),
+        Queries.parentIs(transcriptsFolder.id),
+        Queries.notTrashed,
+      ]);
+
+      await Promise.all(
+        indices.map(async (index) => {
+          const row = rows[index];
+          const fileName = row['Part Num']
+            ? fileNameForPart(id, row['Part Num'])
+            : id.toString();
+          const doc = docs.find((file) => file.name === fileName);
+          if (!doc) return console.warn('Cannot find doc', fileName);
+
+          const permissions = await listPermissions(doc.id);
+          const permission = permissions.find(
+            (p) =>
+              p.emailAddress === row.Email &&
+              p.type === 'user' &&
+              // inherited permissions could not be and should not be deleted
+              p.permissionDetails?.some((detail) => !detail.inherited)
+          );
+          if (permission) await deletePermission(doc.id, permission.id);
+        })
+      );
+    })
+  );
+
+  const doneUpdate: Partial<AllotmentRow> = {
+    Status: Status.Done,
+    'Date Done': DateTimeConverter.toSerialDate(DateTime.now()),
+  };
+
+  await sheet.updateRows(
+    new Map(
+      units.flatMap(({ indices }) =>
+        indices.map((index) => [index + 1, doneUpdate] as const)
+      )
+    )
+  );
+  return history.historyId;
+};
 
 export const processTranscriptionEmails = functions
   .runWith({
@@ -358,166 +527,11 @@ export const processTranscriptionEmails = functions
     memory: '256MB',
   })
   .pubsub.topic(TOPIC_NAME)
-  .onPublish(async () => {
-    const gmail = await getGmailClient(
-      'https://www.googleapis.com/auth/gmail.readonly'
-    );
-
-    const doneLabelId = (
-      await getMailboxRef().child('labels/done').once('value')
-    ).val() as string;
-
-    const history = (
-      await gmail.users.history.list({
-        userId: 'me',
-        historyTypes: ['labelAdded'],
-        labelId: doneLabelId,
-        startHistoryId: (await getHistoryIdRef().once('value')).val(),
-      })
-    ).data;
-
-    if (!history.history)
-      return console.debug('No Done labels were added.', history);
-
-    // Using Set to get unique ids
-    const messageIds = new Set(
-      history.history.flatMap(
-        (item) =>
-          item.labelsAdded?.flatMap((added) =>
-            added.labelIds.includes(doneLabelId) &&
-            // Assuming that id==threadId for the first message in the thread
-            added.message.threadId === added.message.id
-              ? [added.message.id]
-              : []
-          ) || []
-      )
-    );
-    if (messageIds.size <= 0)
-      return console.debug('No messages to process.', history);
-
-    const subjects = await Promise.all(
-      [...messageIds].map(
-        async (id) =>
-          (
-            await gmail.users.messages.get({
-              userId: 'me',
-              id,
-              format: 'metadata',
-              metadataHeaders: ['Subject'],
-              fields: 'payload/headers',
-            })
-          ).data.payload.headers[0]?.value
-      )
-    );
-    console.info('Processing', subjects);
-
-    const sheet = await Spreadsheet.open<AllotmentRow>(
-      functions.config().transcription.spreadsheet.id as string,
-      'Allotments'
-    );
-
-    const rows = await sheet.getRows();
-
-    const getRowIndex = (
-      id: number,
-      part: number,
-      stage: string,
-      assignee: string
-    ) =>
-      // Using the ES2023 feature here: https://node.green/#ES2023-features-Array-find-from-last-Array-prototype-findLastIndex
-      // In order to use it, we had to include the ES2023.Array value into the tsconfig’s lib.
-      rows.findLastIndex(
-        (row) =>
-          row.ID === id &&
-          row['Part Num'] === part &&
-          // No translations yet
-          row['Translation Language'] === null &&
-          row.Stage === stage &&
-          row.Devotee?.trim() === assignee.trim() &&
-          row.Status === Status.Given
-      );
-
-    const units = subjects?.flatMap((subject) => {
-      const match = subject?.match(allotmentSubjectRegex);
-      if (!match) {
-        console.warn(`Cannot parse`, subject);
-        return [];
-      }
-
-      const { id, stage, assignee } = match.groups;
-      const parts = match.groups.parts
-        ? mir.flatten(mir.parse(match.groups.parts))
-        : null;
-      return [
-        {
-          id: +id,
-          indices: (parts || [null]).flatMap((part) => {
-            const index = getRowIndex(+id, part, stage, assignee);
-            const rowSpec = [id, part, stage, 'Given', assignee];
-            if (index < 0) {
-              console.warn('Could not find row for', ...rowSpec);
-              return [];
-            }
-            console.debug('Found row', index + 2, 'for', ...rowSpec);
-            return [index];
-          }),
-        },
-      ];
-    });
-
-    // Removing permissions on Google Docs
-    await Promise.all(
-      units.map(async ({ id, indices }) => {
-        const [transcriptsFolder] = await listDriveFiles([
-          Queries.mimeTypeIs(MimeTypes.Folder),
-          Queries.parentIs(functions.config().transcription.folder.id),
-          Queries.nameIs(id.toString()),
-          Queries.notTrashed,
-        ]);
-
-        if (!transcriptsFolder)
-          return console.warn('Cannot find folder for', id);
-        const docs = await listDriveFiles([
-          Queries.mimeTypeIs(MimeTypes.Document),
-          Queries.parentIs(transcriptsFolder.id),
-          Queries.notTrashed,
-        ]);
-
-        await Promise.all(
-          indices.map(async (index) => {
-            const row = rows[index];
-            const fileName = row['Part Num']
-              ? fileNameForPart(id, row['Part Num'])
-              : id.toString();
-            const doc = docs.find((file) => file.name === fileName);
-            if (!doc) return console.warn('Cannot find doc', fileName);
-
-            const permissions = await listPermissions(doc.id);
-            const permission = permissions.find(
-              (p) =>
-                p.emailAddress === row.Email &&
-                p.type === 'user' &&
-                // inherited permissions could not be and should not be deleted
-                p.permissionDetails?.some((detail) => !detail.inherited)
-            );
-            if (permission) await deletePermission(doc.id, permission.id);
-          })
-        );
-      })
-    );
-
-    const doneUpdate: Partial<AllotmentRow> = {
-      Status: Status.Done,
-      'Date Done': DateTimeConverter.toSerialDate(DateTime.now()),
-    };
-
-    await sheet.updateRows(
-      new Map(
-        units.flatMap(({ indices }) =>
-          indices.map((index) => [index + 1, doneUpdate] as const)
+  .onPublish(
+    async () =>
+      await getHistoryIdRef().set(
+        await processHistory(
+          (await getHistoryIdRef().once('value')).val() as string
         )
       )
-    );
-
-    await getHistoryIdRef().set(history.historyId);
-  });
+  );
