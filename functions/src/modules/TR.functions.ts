@@ -448,9 +448,16 @@ export const processTranscriptionEmails = functions
       return [
         {
           id: +id,
-          indices: (parts || [null]).map((part) =>
-            getRowIndex(+id, part, stage, assignee)
-          ),
+          indices: (parts || [null]).flatMap((part) => {
+            const index = getRowIndex(+id, part, stage, assignee);
+            const rowSpec = [id, part, stage, 'Given', assignee];
+            if (index < 0) {
+              console.warn('Could not find row for', ...rowSpec);
+              return [];
+            }
+            console.debug('Found row', index + 2, 'for', ...rowSpec);
+            return [index];
+          }),
         },
       ];
     });
@@ -504,12 +511,7 @@ export const processTranscriptionEmails = functions
     await sheet.updateRows(
       new Map(
         units.flatMap(({ indices }) =>
-          indices.map(
-            (index) => (
-              console.info('Marking row', index + 2, 'as Done'),
-              [index + 1, doneUpdate] as const
-            )
-          )
+          indices.map((index) => [index + 1, doneUpdate] as const)
         )
       )
     );
