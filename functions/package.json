@@ -19,7 +19,7 @@
     "@directus/sdk": "13.0.2",
     "@google-cloud/pubsub": "4.0.7",
     "email-templates": "11.1.1",
-    "express": "4.19.2",
+    "express": "4.20.0",
     "firebase-admin": "12.2.0",
     "firebase-functions": "5.0.1",
     "fluent-ffmpeg": "2.1.2",
