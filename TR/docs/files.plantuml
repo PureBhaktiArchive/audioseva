@@ -2,35 +2,39 @@
 
 title Selecting files for allotment
 skinparam backgroundColor Azure
+skinparam ConditionEndStyle hline
 
 start
-:Fetch all whole files that
-are not completed and not Given,
+:Fetch all files that are **not completed**,
 along with all their parts;
-:Select a language<
-:Keep only files matching the selected language;
-:Select a stage<
+:Filter files by the selected language;
 if (Search field is filled?) then (NO)
   partition "Standard Flow" {
-    if (selected stage) then (TRSC or FC1)
-      :Keep the files having at least
-      one part not completed;
-    else (other)
-      :Keep the files having
-      all parts completed;
+    if (selected stage) then (suitable for parts)
+      :Filter
+      ----
+      at least one part:
+      * is not completed
+      * have latest stage Done (if any)
+      * selected stage is the next stage
+      according to the workflow;
+    else (suitable for whole files)
+      :Filter
+      ----
+      file as a whole
+      * is not completed
+      * have latest stage Done (if any)
+      * selected stage is the next stage
+      according to the workflow
+      * all parts are completed;
     endif
-    :Keep the files having the previous stage
-    done according to the fixed sequence of stages:
-    TRSC→FC1→[TTV]→DCRT→LANG→FC2→FINAL
-    
-    Parts are considered for TRSC and FC1
-    Wholes are considered for further stages;
   }
   
 else (YES)
   partition "Exceptional Cases" {
-    :Keep the files that match the search
-    query in the Note and ID fields
+    :Filter
+    ----
+    Notes, Title or ID field matches the search query
     **regardless of the selected stage**;
   }
 endif
