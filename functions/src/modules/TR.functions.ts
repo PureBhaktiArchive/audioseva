@@ -374,7 +374,7 @@ const processHistory = async (startHistoryId: string) => {
   ).data;
 
   if (!history.history) {
-    console.debug('No Done labels were added.', history);
+    functions.logger.debug('No Done labels were added.', history);
     return history.historyId;
   }
 
@@ -392,7 +392,7 @@ const processHistory = async (startHistoryId: string) => {
     )
   );
   if (messageIds.size <= 0) {
-    console.debug('No messages to process.', history);
+    functions.logger.debug('No messages to process.', history);
     return history.historyId;
   }
 
@@ -410,7 +410,7 @@ const processHistory = async (startHistoryId: string) => {
         ).data.payload.headers[0]?.value
     )
   );
-  console.info('Processing', subjects);
+  functions.logger.info('Processing', subjects);
 
   const sheet = await Spreadsheet.open<AllotmentRow>(
     functions.config().transcription.spreadsheet.id as string,
