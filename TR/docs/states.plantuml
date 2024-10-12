@@ -1,0 +1,28 @@
+@startuml State
+
+skinparam backgroundColor Azure
+
+hide empty description
+
+state "Selecting a Devotee" as devotee_all: Devotees with **any TR skill** are listed
+state "Selecting a Devotee" as devotee_stage: All devotees **for a selected stage** are listed
+state "Selecting a Stage" as stage_d: The stages that a **devotee can do** are listed
+state "Selecting a Stage" as stage_f: The stages available **for a file** are listed
+state "Selecting Files" as files: All neither completed  nor given files are listed
+state "Allotment" as allotment: Ready to allot
+
+files: **No filtering by the selected stage!**
+
+[*] --> stage_d : [a devotee is\npre-selected]
+[*] --> stage_f : [files are pre-selected]
+[*] --> devotee_all
+devotee_all -> stage_d
+stage_d --> files
+files --> allotment
+allotment --> [*]: [succeeded]
+allotment --> allotment: [on error] \n/ error message is shown
+
+stage_f --> devotee_stage
+devotee_stage --> allotment
+
+@enduml

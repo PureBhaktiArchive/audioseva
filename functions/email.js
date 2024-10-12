@@ -1,6 +1,7 @@
 /*!
  * sri sri guru gauranga jayatah
  */
+/* eslint-disable */
 
 const Email = require('email-templates');
 const { DateTime } = require('luxon');
@@ -194,5 +195,58 @@ const teUpload = {
   },
 };
 
-email.send(teFeedback).then(console.log).catch(console.error);
-email.send(teUpload).then(console.log).catch(console.error);
+const transcriptionAllotmentFC1 = {
+  template: 'transcription/allotment',
+  locals: {
+    ...globals,
+    id: 2154,
+    language: 'English',
+    parts: [
+      {
+        number: 1,
+        audioLink: 'https://storage.googleapis.com/bucket/2154.part-1.mp3',
+        docLink: 'https://docs.google.com/document/d/2154-1/edit',
+      },
+      {
+        number: 2,
+        audioLink: 'https://storage.googleapis.com/bucket/2154.part-2.mp3',
+        docLink: 'https://docs.google.com/document/d/2154-2/edit',
+      },
+      {
+        number: 5,
+        audioLink: 'https://storage.googleapis.com/bucket/2154.part-5.mp3',
+        docLink: 'https://docs.google.com/document/d/2154-5/edit',
+      },
+      {
+        number: 6,
+        audioLink: 'https://storage.googleapis.com/bucket/2154.part-6.mp3',
+        docLink: 'https://docs.google.com/document/d/2154-6/edit',
+      },
+    ],
+    partsRanges: '1-2,5-6',
+    stage: 'FC1',
+    stageName: 'Fidelity Check',
+    guidelinesLink: 'http://guidelines',
+    assignee: person,
+    message: 'Some additional message from the allotment form.',
+  },
+};
+
+const transcriptionAllotmentTTV = {
+  template: 'transcription/allotment',
+  locals: {
+    ...globals,
+    id: 2154,
+    audioLink: 'https://storage.googleapis.com/bucket/2154.mp3',
+    docLink: 'https://docs.google.com/document/d/2154/edit',
+    language: 'English',
+    stage: 'TTV',
+    stageName: 'Tattva Validation',
+    guidelinesLink: 'http://guidelines',
+    assignee: person,
+    message: 'Some additional message from the allotment form.',
+  },
+};
+
+email.send(transcriptionAllotmentFC1).then(console.log).catch(console.error);
+email.send(transcriptionAllotmentTTV).then(console.log).catch(console.error);

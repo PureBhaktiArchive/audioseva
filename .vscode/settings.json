@@ -12,7 +12,11 @@
   },
   "eslint.workingDirectories": [{ "mode": "auto" }],
   "eslint.lintTask.enable": true,
+  "eslint.validate": ["javascript", "javascriptreact", "vue"],
 
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "html.format.enable": true,
   "html.format.indentHandlebars": true,
   "html.format.maxPreserveNewLines": 0,
@@ -52,6 +56,10 @@
     "**/node_modules": true,
     "**/lib": true,
     "**/dist": true
+  },
+
+  "files.associations": {
+    ".env.*": "dotenv"
   },
   "formatFiles.excludePattern": "**/*.min.js"
 }

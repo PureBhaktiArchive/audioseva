@@ -1,0 +1,49 @@
+@startuml FilesSelection
+
+title Selecting files for allotment
+skinparam backgroundColor Azure
+skinparam ConditionEndStyle hline
+
+start
+:Fetch all files that are **not completed**,
+along with all their parts;
+:Filter files by the selected language;
+if (Search field is filled?) then (NO)
+  partition "Standard Flow" {
+    if (selected stage) then (suitable for parts)
+      :Filter
+      ----
+      at least one part:
+      * is not completed
+      * have latest stage Done (if any)
+      * selected stage is the next stage
+      according to the workflow;
+    else (suitable for whole files)
+      :Filter
+      ----
+      file as a whole
+      * is not completed
+      * have latest stage Done (if any)
+      * selected stage is the next stage
+      according to the workflow
+      * all parts are completed;
+    endif
+  }
+  
+else (YES)
+  partition "Exceptional Cases" {
+    :Filter
+    ----
+    Notes, Title or ID field matches the search query
+    **regardless of the selected stage**;
+  }
+endif
+:Show files for selection>
+:Select files for allotment<
+if (Selected files fit into the standard flow?) then (NO)
+  :Show a warning>
+else (YES)
+endif
+
+end
+@enduml

@@ -4,6 +4,9 @@
 
 # Used in GitHub Actions workflows for detecting which paths were changed
 # https://github.com/dorny/paths-filter#advanced-options
+TR:
+  - 'TR/**'
+  - .github/workflows/ci.*
 frontend:
   - 'frontend/**'
   - .github/workflows/ci.*

@@ -31,7 +31,7 @@
     },
     {
       "target": "CR",
-      "public": "allotment",
+      "public": "CR",
       "headers": [
         {
           "source": "**/*.js",
@@ -43,6 +43,10 @@
           ]
         }
       ]
+    },
+    {
+      "target": "TR",
+      "public": "TR/dist"
     }
   ],
   "functions": {}

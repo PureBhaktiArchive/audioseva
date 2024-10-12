@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Firebase Emulators",
+      "type": "shell",
+      "command": "firebase emulators:start --only functions",
+      "options": {
+        "env": {
+          "GOOGLE_APPLICATION_CREDENTIALS": "${workspaceRoot}/credentials.json.local"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Functions Shell",
+      "type": "shell",
+      "command": "firebase functions:shell",
+      "options": {
+        "env": {
+          "GOOGLE_APPLICATION_CREDENTIALS": "${workspaceRoot}/credentials.json.local"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Debug TR",
+      "dependsOn": [
+        "npm: build:watch - functions",
+        "Firebase Emulators",
+        "npm: dev - TR"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}
