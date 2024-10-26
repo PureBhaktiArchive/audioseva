@@ -218,7 +218,7 @@ export const allot = functions.https.onCall(
         createPermission(
           file.id,
           data.assignee.emailAddress,
-          data.stage === 'TRSC' ? 'writer' : 'commenter'
+          ['TRSC', 'FINAL'].includes(data.stage) ? 'writer' : 'commenter'
         )
       )
     );
