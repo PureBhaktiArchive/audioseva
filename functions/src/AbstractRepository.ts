@@ -159,7 +159,7 @@ export abstract class AbstractRepository<
 
     const tasksFromSpreadsheet = this.mapFromRows(rows);
 
-    const tasksFromDatabase = _.chain(snapshot.val())
+    const tasksFromDatabase = _.chain(snapshot.val() as Record<string, unknown>)
       .mapValues((value, key) => this.constructTask(key, value))
       .value();
 

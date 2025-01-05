@@ -15,7 +15,7 @@ export const moveSubmissions = async () => {
       .database()
       .ref('/SQR/submissions/drafts')
       .set(
-        _(existingSubmissions)
+        _(existingSubmissions as object)
           .mapValues(_.partial(_.omitBy, _, 'completed'))
           .omitBy(_.isEmpty)
           .value()
