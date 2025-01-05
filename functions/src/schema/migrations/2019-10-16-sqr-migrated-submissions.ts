@@ -14,7 +14,7 @@ export const copyCompletedSubmissionsToMigratedBranch = async () => {
     .database()
     .ref('/SQR/submissions/migrated')
     .set(
-      _(existingSubmissions)
+      _(existingSubmissions as object)
         .mapValues(_.partial(_.pickBy, _, 'completed'))
         .omitBy(_.isEmpty)
         .value()
