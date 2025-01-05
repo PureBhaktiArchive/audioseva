@@ -157,7 +157,7 @@ export default class MainLayout extends Vue {
         path[0].toUpperCase() + path.substring(1)
       );
       if (typeof customText === 'function') {
-        customText = customText(params);
+        customText = (customText as Function)(params);
       }
       return customText;
     }
