@@ -486,6 +486,10 @@ const processHistory = async (startHistoryId: string) => {
       await Promise.all(
         indices.map(async (index) => {
           const row = rows[index];
+
+          // Keeping the transcriber's access so they can see further edits and learn.
+          if (row.Stage == 'TRSC') return;
+
           const fileName = row['Part Num']
             ? fileNameForPart(id, row['Part Num'])
             : id.toString();
