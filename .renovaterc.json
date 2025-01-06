@@ -1,15 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    ":pinDependencies",
-    ":pinDevDependencies",
+    ":pinVersions",
     ":automergeMinor",
     ":dependencyDashboard",
     ":enableVulnerabilityAlertsWithLabel(security)",
+    ":maintainLockFilesMonthly",
     ":prHourlyLimit2",
     ":prConcurrentLimit10",
-    ":dependencyDashboardApproval",
     "workarounds:typesNodeVersioning",
+    "schedule:quarterly",
     "group:monorepos",
     "group:test",
     "group:linters"
@@ -19,16 +19,30 @@
     "schedule": ["at any time"],
     "dependencyDashboardApproval": false
   },
+  "major": {
+    "dependencyDashboardApproval": true
+  },
   "packageRules": [
     {
+      "matchDepTypes": ["engines"],
+      "rangeStrategy": "auto"
+    },
+    {
       "matchFileNames": ["frontend/**"],
-      "matchUpdateTypes": ["major"],
       "enabled": false
     },
     {
       "matchSourceUrls": ["https://github.com/primefaces/primevue"],
       "groupName": "primevue monorepo",
       "matchUpdateTypes": ["digest", "patch", "minor", "major"]
+    },
+    {
+      "matchPackageNames": ["googleapis"],
+      "dependencyDashboardApproval": false
+    },
+    {
+      "matchPackagePatterns": ["prettier-plugin-"],
+      "groupName": "linters"
     }
   ]
 }
