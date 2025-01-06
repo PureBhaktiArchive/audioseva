@@ -40,6 +40,7 @@ jobs:
         run: |
           npm ci --prefix frontend
           npm ci --prefix functions
+          npm ci --prefix TR
           npm i -g firebase-tools@11.29.1 firebase-bolt
 
       - name: Build
