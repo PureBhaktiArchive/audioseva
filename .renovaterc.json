@@ -1,7 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    ":pinAllExceptPeerDependencies",
+    ":pinDependencies",
+    ":pinDevDependencies",
     ":automergeMinor",
     ":dependencyDashboard",
     ":enableVulnerabilityAlertsWithLabel(security)",
