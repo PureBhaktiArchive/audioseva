@@ -10,10 +10,10 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs"
   },
   "dependencies": {
-    "@primevue/themes": "4.0.0-rc.2",
+    "@primevue/themes": "4.2.5",
     "firebase": "10.12.2",
     "luxon": "3.4.4",
-    "primevue": "4.0.0-rc.2",
+    "primevue": "4.2.5",
     "vue": "3.4.27"
   },
   "devDependencies": {
