@@ -19,6 +19,7 @@ declare global {
     | 'FC1'
     | 'TTV'
     | 'DCRT'
+    | 'VRBT'
     | 'LANG'
     | 'FC2'
     | 'PR'

@@ -3,6 +3,7 @@
  * @property {boolean} [forParts]
  * @property {boolean} [optional]
  * @property {string[]} [forLanguages]
+ * @property {string} [skill] Denotes which skill is suitable for the stage. Used instead of the stage name.
  */
 
 /** @type {[Stage, StageAttributes][]} */
@@ -10,6 +11,7 @@ const stages = [
   ['TRSC', { forParts: true }],
   ['FC1', { forParts: true }],
   ['DCRT', { forLanguages: ['English'] }],
+  ['VRBT', { optional: true, skill: 'FC1' }],
   ['LANG', {}],
   ['TTV', { optional: true }],
   ['FC2', {}],
@@ -19,13 +21,14 @@ const stages = [
 
 /**
  * Returns stages in their natural order, filtered by the proided skills set
- * @param {Stage[]} skills
+ * @param {string[]} skills
  * @param {string} language
  * @returns
  */
 export const getStagesForSkillsAndLanguage = (skills, language) =>
   stages.flatMap(([stage, options]) =>
-    skills.includes(stage) && (options.forLanguages?.includes(language) ?? true)
+    skills.includes(options.skill ?? stage) &&
+    (options.forLanguages?.includes(language) ?? true)
       ? [stage]
       : []
   );
