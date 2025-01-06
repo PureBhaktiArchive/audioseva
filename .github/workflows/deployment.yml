@@ -46,6 +46,9 @@ jobs:
         run: |
           npm run build --prefix frontend
           npm run build --prefix functions
+          npm run build --prefix TR
+        env:
+          VITE_FIREBASE_CONFIG: ${{ vars.VITE_FIREBASE_CONFIG }}
 
       - name: Deploy to ${{ inputs.environment }}
         run: |
@@ -58,10 +61,3 @@ jobs:
         env:
           CR_ALLOTMENT_SITE_ID: ${{ vars.CR_ALLOTMENT_SITE_ID }}
           TR_ALLOTMENT_SITE_ID: ${{ vars.TR_ALLOTMENT_SITE_ID }}
-
-      - name: Setup tmate session
-        if: failure()
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
-        timeout-minutes: 5
