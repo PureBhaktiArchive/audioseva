@@ -23,6 +23,11 @@
       "matchFileNames": ["frontend/**"],
       "matchUpdateTypes": ["major"],
       "enabled": false
+    },
+    {
+      "matchSourceUrls": ["https://github.com/primefaces/primevue"],
+      "groupName": "primevue monorepo",
+      "matchUpdateTypes": ["digest", "patch", "minor", "major"]
     }
   ]
 }
