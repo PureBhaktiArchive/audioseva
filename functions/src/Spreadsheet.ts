@@ -13,7 +13,7 @@ const encodeSheetsValue = (value: unknown): unknown =>
   value === undefined ? null : value === null ? '' : value;
 
 const decodeSheetsValue = (value: unknown): unknown =>
-  value === '' ? null : value ?? null;
+  value === '' ? null : (value ?? null);
 
 export class Spreadsheet<T = unknown> {
   public columnNames: string[];
