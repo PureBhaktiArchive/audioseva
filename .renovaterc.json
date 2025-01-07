@@ -41,8 +41,8 @@
       "dependencyDashboardApproval": false
     },
     {
-      "matchPackagePatterns": ["prettier-plugin-"],
-      "groupName": "linters"
+      "groupName": "linters",
+      "matchPackageNames": ["/prettier-plugin-/"]
     }
   ]
 }
