@@ -3,7 +3,7 @@
  */
 import { GaxiosResponse } from 'gaxios';
 import { google, sheets_v4 as sheets } from 'googleapis';
-import _ = require('lodash');
+import _ from 'lodash';
 
 enum IValueInputOption {
   USER_ENTERED = 'USER_ENTERED',
