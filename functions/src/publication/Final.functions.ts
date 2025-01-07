@@ -85,8 +85,8 @@ const finalizeFile = async (
 
   if (finalFile.metadata.md5Hash !== sourceFile.metadata.md5Hash) {
     console.debug('Copying file', sourceFile.metadata.id, 'to', finalFile.name);
-    preview ||
-      (await sourceFile.copy(finalFile, {
+    if (!preview)
+      await sourceFile.copy(finalFile, {
         contentType: sourceFile.metadata.contentType,
         // This property seems to be incorrectly typed, see https://github.com/googleapis/nodejs-storage/issues/2389
         // In fact it is treated as the custom metadata only
@@ -95,7 +95,7 @@ const finalizeFile = async (
           ...sourceFile.metadata.metadata,
           source: sourceFile.metadata.id,
         },
-      }));
+      });
   } else console.debug('Final file', finalFile.name, 'is up to date');
 
   const mediaMetadata = composeMediaMetadata(record);
@@ -116,8 +116,8 @@ const finalizeFile = async (
   ) {
     console.debug('Creating public file', publicFile.name);
 
-    preview ||
-      (await mp3Queue.enqueue({
+    if (!preview)
+      await mp3Queue.enqueue({
         source: {
           bucket: finalFile.bucket.name,
           name: finalFile.name,
@@ -128,7 +128,7 @@ const finalizeFile = async (
         },
         fileName,
         mediaMetadata,
-      }));
+      });
   }
 
   // Updating media metadata if it changed
@@ -137,8 +137,8 @@ const finalizeFile = async (
     !util.isDeepStrictEqual(composeMediaMetadata(original), mediaMetadata)
   ) {
     console.debug('Updating media metadata for public file', publicFile.name);
-    preview ||
-      (await mp3Queue.enqueue({
+    if (!preview)
+      await mp3Queue.enqueue({
         source: {
           bucket: publicFile.bucket.name,
           name: publicFile.name,
@@ -149,16 +149,16 @@ const finalizeFile = async (
         },
         fileName,
         mediaMetadata,
-      }));
+      });
   }
 
   // Updating only storage metadata if it changed
   else if (composeFileName(original) !== fileName) {
     console.debug('Updating storage metadata for public file', publicFile.name);
-    preview ||
-      (await publicFile.setMetadata(
+    if (!preview)
+      await publicFile.setMetadata(
         composeStorageMetadata(fileName, sourceFile.metadata.md5Hash)
-      ));
+      );
   }
 
   // Otherwise doing nothing
@@ -170,7 +170,7 @@ const deletePublicFile = async (id: number, preview: boolean) => {
   const [exists] = await file.exists();
   if (exists) {
     console.debug('Deleting public file', file.name);
-    preview || (await file.delete());
+    if (!preview) await file.delete();
   }
 };
 

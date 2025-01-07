@@ -12,6 +12,6 @@
 export const groupBy = (array, keySelector) =>
   array.reduce((map, item) => {
     const key = keySelector(item);
-    map.get(key)?.push(item) ?? map.set(key, [item]);
+    void (map.get(key)?.push(item) ?? map.set(key, [item]));
     return map;
   }, /** @type {Map<K, V[]>} */ (new Map()));

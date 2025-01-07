@@ -112,7 +112,7 @@ export const getFiles = functions.https.onCall(async (data, context) => {
       latestAssignee: row['Latest Devotee'],
       completed: row.Completed?.toUpperCase() === Completed.Yes,
     };
-    result.get(row.ID)?.push(part) ?? result.set(row.ID, [part]);
+    void (result.get(row.ID)?.push(part) ?? result.set(row.ID, [part]));
     return result;
   }, new Map<number, PartItem[]>());
 

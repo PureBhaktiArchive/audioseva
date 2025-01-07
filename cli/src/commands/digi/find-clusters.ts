@@ -3,11 +3,11 @@
  */
 
 import { DisjointSet } from 'dsforest';
+import _ from 'lodash';
+import ora from 'ora';
 import { Argv } from 'yargs';
 import { DigitalRecordingRow } from '../../DigitalRecordingRow';
 import { Spreadsheet } from '../../Spreadsheet';
-import _ = require('lodash');
-import ora = require('ora');
 
 export const desc = `Find clusters in the DIGI rows based on the:
   - File Name
