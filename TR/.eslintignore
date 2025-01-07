@@ -1,3 +1,0 @@
-# We add this to avoid error in TS files: interface is a reserved identifier
-**/*.ts
-dist/
