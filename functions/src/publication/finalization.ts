@@ -59,7 +59,6 @@ export const finalizeAudios = function* (
     taskId: string
   ): { taskId: string; fidelityRecord: FidelityCheckRecord } => {
     const pastIds = new Set<string>();
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const record = fidelityRecords.get(taskId);
       if (!record?.replacement) return { taskId, fidelityRecord: record };

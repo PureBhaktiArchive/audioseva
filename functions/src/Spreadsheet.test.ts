@@ -4,8 +4,6 @@
 
 import { Spreadsheet } from './Spreadsheet';
 
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 describe('Spreadsheet.toA1Notation', () => {
   test.each`
     c1           | r1           | c2           | r2           | result
