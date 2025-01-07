@@ -281,7 +281,7 @@ export class Spreadsheet<T> {
      * That is why we coalesce the undefined values to null after zipping.
      */
     return _.mapValues(_.zipObject(this.columnNames, values), (value) =>
-      value === '' ? null : value ?? null
+      value === '' ? null : (value ?? null)
     ) as T;
   }
 
