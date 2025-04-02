@@ -15,7 +15,7 @@
     "node": ">=16"
   },
   "dependencies": {
-    "async": "3.2.2",
+    "async": "3.2.6",
     "dsforest": "1.0.0",
     "fluent-ffmpeg": "2.1.2",
     "get-audio-duration": "4.0.1",
@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.17.0",
-    "@types/async": "3.2.8",
+    "@types/async": "3.2.24",
     "@types/fluent-ffmpeg": "2.1.24",
     "@types/lodash": "4.17.16",
     "@types/yargs": "17.0.3",
