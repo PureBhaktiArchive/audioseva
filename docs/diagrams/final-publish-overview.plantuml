@@ -1,0 +1,35 @@
+@startuml Audio records finalization
+title Audio records finalization
+!pragma teoz true
+scale 0.8
+actor User
+participant "Headless CMS" as cms
+box Firebase (Google Cloud)
+participant "Cloud Function" as cf
+participant "Cloud Storage" as cs
+participant "Realtime Database" as rtdb
+end box
+
+User -> cms++: Initiate the publication\nusing a button (Flow)
+cms-> cf++: HTTP Request
+cf -> rtdb++: Query FC records
+& cf -> cms++: Query final records
+
+rtdb --> cf-- : FC records
+& cms --> cf-- : Final records
+|||
+ref over cf: Finalizing records
+|||
+loop for each final record
+  alt active record
+    cf ->> cs: Copy a source file\ninto the `final` bucket
+    cf ->> cs: Create a public MP3 file\nfrom source
+  else inactive record
+    cf ->> cs: Delete a public file
+  end
+  cf ->> cms: Create or update a final record
+end
+
+cf --> cms--: Return the statistics
+cms -> User -- : Show a notification\nwith the statistics
+@enduml
