@@ -13,7 +13,7 @@
   },
   "main": "lib/index.js",
   "engines": {
-    "node": "18"
+    "node": "20"
   },
   "dependencies": {
     "@directus/sdk": "13.0.2",

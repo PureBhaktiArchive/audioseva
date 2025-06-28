@@ -32,16 +32,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          # Using node version from frontend because it's more sensitive in this regard
-          # See https://github.com/nodejs/node/issues/49911#issuecomment-1756119733
-          node-version-file: frontend/package.json
+          # Using node version from functions because it's more likely to be the freshest
+          node-version-file: functions/package.json
 
       - name: Install dependencies
         run: |
           npm ci --prefix frontend
           npm ci --prefix functions
           npm ci --prefix TR
-          npm i -g firebase-tools@11.29.1 firebase-bolt
+          npm i -g firebase-tools firebase-bolt
 
       - name: Build
         run: |
