@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@directus/sdk": "13.0.2",
-    "@google-cloud/pubsub": "4.0.7",
+    "@google-cloud/pubsub": "4.11.0",
     "email-templates": "11.1.1",
     "express": "4.20.0",
     "firebase-admin": "12.2.0",
