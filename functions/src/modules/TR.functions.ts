@@ -21,6 +21,7 @@ import {
   deletePermission,
   listDriveFiles,
   listPermissions,
+  updatePermission,
 } from '../drive';
 
 type FileRow = {
@@ -487,9 +488,6 @@ const processHistory = async (startHistoryId: string) => {
         indices.map(async (index) => {
           const row = rows[index];
 
-          // Keeping the transcriber's access so they can see further edits and learn.
-          if (row.Stage == 'TRSC') return;
-
           const fileName = row['Part Num']
             ? fileNameForPart(id, row['Part Num'])
             : id.toString();
@@ -504,7 +502,16 @@ const processHistory = async (startHistoryId: string) => {
               // inherited permissions could not be and should not be deleted
               p.permissionDetails?.some((detail) => !detail.inherited)
           );
-          if (permission) await deletePermission(doc.id, permission.id);
+          if (permission)
+            if (row.Stage == 'TRSC')
+              // Keeping the transcriber's access so they can see further edits and learn.
+              await updatePermission(
+                doc.id,
+                permission.id,
+                'commenter',
+                DateTime.now().plus({ months: 1 })
+              );
+            else await deletePermission(doc.id, permission.id);
         })
       );
     })
