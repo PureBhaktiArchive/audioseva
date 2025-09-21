@@ -1,5 +1,6 @@
 import { GoogleAuth } from 'google-auth-library';
 import { google } from 'googleapis';
+import { DateTime } from 'luxon';
 
 export enum MimeTypes {
   Folder = 'application/vnd.google-apps.folder',
@@ -61,6 +62,7 @@ export const createPermission = async (
     .create({
       supportsAllDrives: true,
       fileId,
+      sendNotificationEmail: false,
       requestBody: {
         type: 'user',
         emailAddress,
@@ -76,5 +78,23 @@ export const deletePermission = (fileId: string, permissionId: string) =>
       supportsAllDrives: true,
       fileId,
       permissionId,
+    })
+    .then((response) => response.data);
+
+export const updatePermission = (
+  fileId: string,
+  permissionId: string,
+  role: string,
+  expirationTime: DateTime
+) =>
+  drive.permissions
+    .update({
+      supportsAllDrives: true,
+      fileId,
+      permissionId,
+      requestBody: {
+        role,
+        expirationTime: expirationTime.toISO(),
+      },
     })
     .then((response) => response.data);
