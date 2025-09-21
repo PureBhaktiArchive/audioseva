@@ -80,8 +80,10 @@ export const handler = async ({
   const filesByBaseName = groupBy(files, (fileName) =>
     path
       .basename(fileName, path.extname(fileName))
+      // Some files have spaces in the end, which are removed in the spreadsheet
+      // Removing trailing dots
       // Sometimes there are additional extensions, they are removed in the spreadsheet, so removing here also
-      .replace(/\.(mp3|wav)$/, '')
+      .replace(/(\s*|\.+(mp3|wav)?)$/, '')
   );
   spinner.succeed(
     `Found ${files.length} files, ${filesByBaseName.size} unique base names`
@@ -106,24 +108,24 @@ export const handler = async ({
   conversionQueue.pause();
 
   /**
-   *
-   * @param code DIGI code
-   * @param fileName Base file name
+   * @param baseFileName Base file name
    * @returns Tuple, where the first element is the status of the file and the second one is the found file path
    */
-  async function findBestFile(fileName: string): Promise<[Resolution, string]> {
+  async function findBestFile(
+    baseFileName: string
+  ): Promise<[Resolution, string]> {
     // Skipping derivatives
-    if (/(_FINAL|\s+restored)$/.test(fileName)) return ['DERIVATIVE', null];
+    if (/(_FINAL|\s+restored)$/.test(baseFileName)) return ['DERIVATIVE', null];
 
-    if (!filesByBaseName.has(fileName)) return ['MISSING', null];
-    const found = filesByBaseName.get(fileName);
+    if (!filesByBaseName.has(baseFileName)) return ['MISSING', null];
+    const found = filesByBaseName.get(baseFileName);
 
     const durations = await Promise.all(
       found.map((filePath) => getAudioDurationInSeconds(filePath))
     );
 
     // Checking that all the durations are within interval of 1 second
-    if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 1) {
+    if (Math.abs(Math.min(...durations) - Math.max(...durations)) > 120) {
       found.forEach((filePath, index) =>
         console.log(durations[index], path.relative(sourcePath, filePath))
       );
@@ -137,18 +139,23 @@ export const handler = async ({
          * Some folders are more likely to contain the original files,
          * whereas some are likely to contain derivatives like cleaned ones.
          * */
-        (fileName) =>
-          fileName.includes('from Brajanath Prabhu')
+        (filePath) =>
+          filePath.includes('from Brajanath Prabhu')
             ? -1
-            : fileName.includes('Srila BV Narayan Maharaja  mp3')
+            : filePath.includes('Srila BV Narayan Maharaja  mp3')
               ? 99
-              : /clean|restored/.test(fileName)
+              : /clean|restored/.test(filePath)
                 ? 100
                 : 0,
         /**
          * WMA are more likely to be the originals
          */
-        (fileName) => (path.extname(fileName).toLowerCase() === '.wma' ? -1 : 0)
+        (filePath) =>
+          path.extname(filePath).toLowerCase() === '.wma' ? -1 : 0,
+        /**
+         * Longer audios first
+         */
+        (filePath) => -durations[found.indexOf(filePath)]
       )
       .first();
 

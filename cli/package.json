@@ -9,7 +9,8 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "start": "ts-node src/index.ts",
-    "lint": "eslint"
+    "lint": "eslint",
+    "install:locally": "npm link"
   },
   "engines": {
     "node": ">=16"
