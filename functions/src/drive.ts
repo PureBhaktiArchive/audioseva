@@ -1,3 +1,4 @@
+import * as functions from 'firebase-functions/v1';
 import { GoogleAuth } from 'google-auth-library';
 import { google } from 'googleapis';
 import { DateTime } from 'luxon';
@@ -19,6 +20,14 @@ const drive = google.drive({
   auth: new GoogleAuth({
     scopes: ['https://www.googleapis.com/auth/drive'],
   }),
+  adapter(options, defaultAdapter) {
+    if (
+      options.url.toString().toLowerCase().includes('permissions') &&
+      options.method.toUpperCase() === 'PATCH'
+    )
+      functions.logger.debug('Making a permissions update request', options);
+    return defaultAdapter(options);
+  },
 });
 
 export const listDriveFiles = async (queries: string[]) =>

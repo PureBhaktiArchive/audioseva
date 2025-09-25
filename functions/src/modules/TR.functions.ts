@@ -503,7 +503,12 @@ const processHistory = async (startHistoryId: string) => {
               p.permissionDetails?.some((detail) => !detail.inherited)
           );
           if (permission)
-            if (row.Stage == 'TRSC')
+            if (row.Stage == 'TRSC') {
+              functions.logger.debug(
+                'Converting to commenter',
+                doc,
+                permission
+              );
               // Keeping the transcriber's access so they can see further edits and learn.
               await updatePermission(
                 doc.id,
@@ -511,7 +516,7 @@ const processHistory = async (startHistoryId: string) => {
                 'commenter',
                 DateTime.now().plus({ months: 1 })
               );
-            else await deletePermission(doc.id, permission.id);
+            } else await deletePermission(doc.id, permission.id);
         })
       );
     })
