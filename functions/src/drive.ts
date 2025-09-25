@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions/v1';
-import { GoogleAuth } from 'google-auth-library';
 import { google } from 'googleapis';
 import { DateTime } from 'luxon';
+import { getDomainWideDelegationClient } from './domain-wide-delegation';
 
 export enum MimeTypes {
   Folder = 'application/vnd.google-apps.folder',
@@ -15,26 +15,30 @@ export const Queries = {
   notTrashed: 'trashed = false',
 };
 
-const drive = google.drive({
-  version: 'v3',
-  auth: new GoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/drive'],
-  }),
-  adapter(options, defaultAdapter) {
-    if (
-      options.url.toString().toLowerCase().includes('permissions') &&
-      options.method.toUpperCase() === 'PATCH'
-    )
-      functions.logger.debug('Making a permissions update request', {
-        options,
-      });
-    return defaultAdapter(options);
-  },
-});
+const getDriveClient = async () =>
+  google.drive({
+    version: 'v3',
+    auth: await getDomainWideDelegationClient(
+      functions.config().transcription.coordinator.email_address,
+      ['https://www.googleapis.com/auth/drive']
+    ),
+    adapter(options, defaultAdapter) {
+      if (
+        options.url.toString().toLowerCase().includes('permissions') &&
+        options.method.toUpperCase() === 'PATCH'
+      )
+        functions.logger.debug('Making a permissions update request', {
+          options,
+        });
+      return defaultAdapter(options);
+    },
+  });
 
 export const listDriveFiles = async (queries: string[]) =>
   (
-    await drive.files.list({
+    await (
+      await getDriveClient()
+    ).files.list({
       includeItemsFromAllDrives: true,
       supportsAllDrives: true,
       q: queries.join(' and '),
@@ -42,12 +46,12 @@ export const listDriveFiles = async (queries: string[]) =>
     })
   ).data.files;
 
-export const createDriveFile = (
+export const createDriveFile = async (
   name: string,
   mimeType: MimeTypes,
   parentId: string
 ) =>
-  drive.files
+  (await getDriveClient()).files
     .create({
       supportsAllDrives: true,
       requestBody: { name, parents: [parentId], mimeType },
@@ -57,7 +61,9 @@ export const createDriveFile = (
 
 export const listPermissions = async (fileId: string) =>
   (
-    await drive.permissions.list({
+    await (
+      await getDriveClient()
+    ).permissions.list({
       supportsAllDrives: true,
       fileId,
       fields: 'permissions(id,type,permissionDetails,emailAddress,role)',
@@ -69,7 +75,7 @@ export const createPermission = async (
   emailAddress: string,
   role: string
 ) =>
-  drive.permissions
+  (await getDriveClient()).permissions
     .create({
       supportsAllDrives: true,
       fileId,
@@ -83,8 +89,8 @@ export const createPermission = async (
     })
     .then((response) => response.data);
 
-export const deletePermission = (fileId: string, permissionId: string) =>
-  drive.permissions
+export const deletePermission = async (fileId: string, permissionId: string) =>
+  (await getDriveClient()).permissions
     .delete({
       supportsAllDrives: true,
       fileId,
@@ -92,13 +98,13 @@ export const deletePermission = (fileId: string, permissionId: string) =>
     })
     .then((response) => response.data);
 
-export const updatePermission = (
+export const updatePermission = async (
   fileId: string,
   permissionId: string,
   role: string,
   expirationTime: DateTime
 ) =>
-  drive.permissions
+  (await getDriveClient()).permissions
     .update({
       supportsAllDrives: true,
       fileId,
