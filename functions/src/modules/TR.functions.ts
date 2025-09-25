@@ -502,21 +502,38 @@ const processHistory = async (startHistoryId: string) => {
               // inherited permissions could not be and should not be deleted
               p.permissionDetails?.some((detail) => !detail.inherited)
           );
-          if (permission)
-            if (row.Stage == 'TRSC') {
-              functions.logger.debug(
-                'Converting to commenter',
+          if (!permission) return;
+
+          switch (row.Stage) {
+            // Keeping the transcriber's access so they can see further edits and learn.
+            case 'TRSC':
+              functions.logger.debug('Converting to commenter for', fileName, {
                 doc,
-                permission
-              );
-              // Keeping the transcriber's access so they can see further edits and learn.
+                permission,
+              });
               await updatePermission(
                 doc.id,
                 permission.id,
                 'commenter',
                 DateTime.now().plus({ months: 1 })
-              );
-            } else await deletePermission(doc.id, permission.id);
+              ).catch((reason) => {
+                functions.logger.warn(
+                  'Failed to update permission for',
+                  fileName,
+                  reason,
+                  {
+                    doc,
+                    permission,
+                  }
+                );
+              });
+              break;
+
+            // Deleting the permission in other cases
+            default:
+              await deletePermission(doc.id, permission.id);
+              break;
+          }
         })
       );
     })

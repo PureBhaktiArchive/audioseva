@@ -25,7 +25,9 @@ const drive = google.drive({
       options.url.toString().toLowerCase().includes('permissions') &&
       options.method.toUpperCase() === 'PATCH'
     )
-      functions.logger.debug('Making a permissions update request', options);
+      functions.logger.debug('Making a permissions update request', {
+        options,
+      });
     return defaultAdapter(options);
   },
 });
