@@ -18,20 +18,14 @@ export const Queries = {
 const getDriveClient = async () =>
   google.drive({
     version: 'v3',
+    // We need to use domain-wide delegation because
+    // setting expiration time of permissions does not work otherwise
+    // It produces "Expiration dates cannot be set on this item." error
+    // https://stackoverflow.com/questions/75423531/google-service-account-drive-api-unable-to-set-expirationtime-python
     auth: await getDomainWideDelegationClient(
       functions.config().transcription.coordinator.email_address,
       ['https://www.googleapis.com/auth/drive']
     ),
-    adapter(options, defaultAdapter) {
-      if (
-        options.url.toString().toLowerCase().includes('permissions') &&
-        options.method.toUpperCase() === 'PATCH'
-      )
-        functions.logger.debug('Making a permissions update request', {
-          options,
-        });
-      return defaultAdapter(options);
-    },
   });
 
 export const listDriveFiles = async (queries: string[]) =>

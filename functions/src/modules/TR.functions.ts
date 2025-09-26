@@ -507,26 +507,12 @@ const processHistory = async (startHistoryId: string) => {
           switch (row.Stage) {
             // Keeping the transcriber's access so they can see further edits and learn.
             case 'TRSC':
-              functions.logger.debug('Converting to commenter for', fileName, {
-                doc,
-                permission,
-              });
               await updatePermission(
                 doc.id,
                 permission.id,
                 'commenter',
                 DateTime.now().plus({ months: 1 })
-              ).catch((reason) => {
-                functions.logger.warn(
-                  'Failed to update permission for',
-                  fileName,
-                  reason,
-                  {
-                    doc,
-                    permission,
-                  }
-                );
-              });
+              );
               break;
 
             // Deleting the permission in other cases
