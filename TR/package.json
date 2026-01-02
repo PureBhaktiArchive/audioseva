@@ -14,7 +14,7 @@
     "firebase": "10.14.1",
     "luxon": "3.4.4",
     "primevue": "4.2.5",
-    "vue": "3.5.17"
+    "vue": "3.5.26"
   },
   "devDependencies": {
     "@eslint/js": "9.17.0",
