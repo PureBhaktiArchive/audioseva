@@ -1,0 +1,35 @@
+@startuml finalization
+title Finalization of audio records
+skinparam ActivityFontColor automatic
+
+start
+split
+  partition #AntiqueWhite "Existing Audio Records" {
+    :Existing Audio Records<
+    :Filter out empty ""sourceFileId""]
+    repeat :for each audio record;
+      :resolveFidelityRecord|
+      if (Found an approved FC record?) then (no)
+        #LightGray:yield ""inactive"">
+      elseif (Found a published FC record?) then (yes)
+        #DarkGray:yield ""redirect"">
+      else (no)
+        #LawnGreen:yield ""active"">
+      endif
+    repeat while (more records?)
+  }
+
+split again
+  partition #NavajoWhite "New Audio Records" {
+    :Fidelity Check Records<
+    :Filter out unapproved, already published or replaced records]
+    repeat :for each FC record;
+      #Crimson:Generate a new Archive ID]
+      #LawnGreen:yield ""active"">
+    repeat while (more records?)
+  }
+end split
+
+end
+
+@enduml
