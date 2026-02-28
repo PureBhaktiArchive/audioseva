@@ -27,7 +27,7 @@
     "glob": "10.5.0",
     "googleapis": "140.0.1",
     "iter-ops": "3.1.1",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "luxon": "3.4.4",
     "multi-integer-range": "5.2.0",
     "p-map": "4.0.0",
