@@ -1,0 +1,546 @@
+{
+  "rules": {
+    "email": {
+      "notifications": {
+        ".indexOn": [
+          "timestamp",
+          "sentTimestamp",
+          "template"
+        ]
+      }
+    },
+    "donations": {
+      "cash": {
+        "$push_id": {
+          ".write": "(data.val() == null && newData.parent().parent().child('tokens').child(newData.child('token').val()).child('valid').val() == true)"
+        }
+      }
+    },
+    "SQR": {
+      "allotments": {
+        "$key1": {
+          ".validate": "((((newData.hasChildren(['status']) && $key1.matches(/^\\w+-\\d+/)) && (newData.child('status').val() != 'Done' || newData.child('timestampDone').val() != null)) && (newData.child('status').val() == 'Spare' || (newData.child('timestampGiven').val() != null && newData.child('assignee').val() != null))) && (newData.child('status').val() == 'Spare' || newData.child('token').val() != null))",
+          "status": {
+            ".validate": "(newData.isString() && newData.val().matches(/^Spare|Given|WIP|Done|\\w+(\\s\\w+)*]+$/))"
+          },
+          "assignee": {
+            ".validate": "((newData.hasChildren() && newData.hasChildren(['name'])) && (newData.child('uid').val() != null || newData.child('emailAddress').val() != null))",
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "emailAddress": {
+              ".validate": "newData.isString()"
+            },
+            "name": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": "false"
+            }
+          },
+          "notes": {
+            ".validate": "newData.isString()"
+          },
+          "timestampGiven": {
+            ".validate": "(newData.isNumber() && newData.val() == (data.val() == null ? now : data.val()))"
+          },
+          "timestampDone": {
+            ".validate": "(newData.isNumber() && newData.val() == (data.val() == null ? now : data.val()))"
+          },
+          "$other": {
+            ".validate": "false"
+          },
+          "token": {
+            ".validate": "newData.isString()"
+          }
+        },
+        ".validate": "newData.hasChildren()",
+        ".read": "query.orderByChild == 'token'",
+        ".indexOn": [
+          "status",
+          "assignee/emailAddress",
+          "token"
+        ]
+      },
+      "submissions": {
+        "drafts": {
+          "$fileName": {
+            "$token": {
+              ".read": "true",
+              ".write": "true"
+            }
+          }
+        },
+        "completed": {
+          "$fileName": {
+            "$token": {
+              ".validate": "newData.hasChildren(['changed', 'completed', 'soundQualityRating'])",
+              "author": {
+                ".validate": "((newData.hasChildren() && newData.hasChildren(['name'])) && (newData.child('uid').val() != null || newData.child('emailAddress').val() != null))",
+                "uid": {
+                  ".validate": "newData.isString()"
+                },
+                "emailAddress": {
+                  ".validate": "newData.isString()"
+                },
+                "name": {
+                  ".validate": "newData.isString()"
+                },
+                "$other": {
+                  ".validate": "false"
+                }
+              },
+              "created": {
+                ".validate": "newData.isNumber()"
+              },
+              "changed": {
+                ".validate": "(newData.isNumber() && newData.val() == now)"
+              },
+              "completed": {
+                ".validate": "newData.isNumber()"
+              },
+              "comments": {
+                ".validate": "newData.isString()"
+              },
+              "$other": {
+                ".validate": "false"
+              },
+              "duration": {
+                ".validate": "(newData.hasChildren() && newData.hasChildren(['beginning', 'ending']))",
+                "beginning": {
+                  ".validate": "newData.isString()"
+                },
+                "ending": {
+                  ".validate": "newData.isString()"
+                },
+                "$other": {
+                  ".validate": "false"
+                }
+              },
+              "soundQualityRating": {
+                ".validate": "newData.isString()"
+              },
+              "soundIssues": {
+                "$key2": {
+                  ".validate": "(newData.hasChildren(['type']) && (newData.child('entireFile').val() != null || (newData.child('beginning').val() != null && newData.child('ending').val() != null)))",
+                  "entireFile": {
+                    ".validate": "newData.isBoolean()"
+                  },
+                  "beginning": {
+                    ".validate": "newData.isString()"
+                  },
+                  "ending": {
+                    ".validate": "newData.isString()"
+                  },
+                  "type": {
+                    ".validate": "newData.isString()"
+                  },
+                  "description": {
+                    ".validate": "newData.isString()"
+                  },
+                  "$other": {
+                    ".validate": "false"
+                  }
+                },
+                ".validate": "newData.hasChildren()"
+              },
+              "unwantedParts": {
+                "$key2": {
+                  ".validate": "(newData.hasChildren(['type']) && (newData.child('entireFile').val() != null || (newData.child('beginning').val() != null && newData.child('ending').val() != null)))",
+                  "entireFile": {
+                    ".validate": "newData.isBoolean()"
+                  },
+                  "beginning": {
+                    ".validate": "newData.isString()"
+                  },
+                  "ending": {
+                    ".validate": "newData.isString()"
+                  },
+                  "type": {
+                    ".validate": "newData.isString()"
+                  },
+                  "description": {
+                    ".validate": "newData.isString()"
+                  },
+                  "$other": {
+                    ".validate": "false"
+                  }
+                },
+                ".validate": "newData.hasChildren()"
+              },
+              ".write": "((data.val() == null && newData.parent().parent().parent().parent().parent().child('SQR').child('allotments').child($fileName).child('token').val() == $token) || (((data.val() != null && newData.val() != null) && newData.parent().parent().parent().parent().parent().child('SQR').child('allotments').child($fileName).child('token').val() == $token) && (((auth != null && auth.token.roles.SQR.checker == true) || (auth != null && auth.token.roles.SQR.coordinator == true)) || newData.parent().parent().parent().parent().parent().child('SQR').child('allotments').child($fileName).child('status').val() != 'Done')))",
+              ".read": "true"
+            }
+          }
+        },
+        "migrated": {
+          "$fileName": {
+            "$token": {
+              ".validate": "newData.hasChildren(['changed', 'completed', 'soundQualityRating'])",
+              "author": {
+                ".validate": "((newData.hasChildren() && newData.hasChildren(['name'])) && (newData.child('uid').val() != null || newData.child('emailAddress').val() != null))",
+                "uid": {
+                  ".validate": "newData.isString()"
+                },
+                "emailAddress": {
+                  ".validate": "newData.isString()"
+                },
+                "name": {
+                  ".validate": "newData.isString()"
+                },
+                "$other": {
+                  ".validate": "false"
+                }
+              },
+              "created": {
+                ".validate": "newData.isNumber()"
+              },
+              "changed": {
+                ".validate": "(newData.isNumber() && newData.val() == now)"
+              },
+              "completed": {
+                ".validate": "newData.isNumber()"
+              },
+              "comments": {
+                ".validate": "newData.isString()"
+              },
+              "$other": {
+                ".validate": "false"
+              },
+              "duration": {
+                ".validate": "(newData.hasChildren() && newData.hasChildren(['beginning', 'ending']))",
+                "beginning": {
+                  ".validate": "newData.isString()"
+                },
+                "ending": {
+                  ".validate": "newData.isString()"
+                },
+                "$other": {
+                  ".validate": "false"
+                }
+              },
+              "soundQualityRating": {
+                ".validate": "newData.isString()"
+              },
+              "soundIssues": {
+                "$key2": {
+                  ".validate": "(newData.hasChildren(['type']) && (newData.child('entireFile').val() != null || (newData.child('beginning').val() != null && newData.child('ending').val() != null)))",
+                  "entireFile": {
+                    ".validate": "newData.isBoolean()"
+                  },
+                  "beginning": {
+                    ".validate": "newData.isString()"
+                  },
+                  "ending": {
+                    ".validate": "newData.isString()"
+                  },
+                  "type": {
+                    ".validate": "newData.isString()"
+                  },
+                  "description": {
+                    ".validate": "newData.isString()"
+                  },
+                  "$other": {
+                    ".validate": "false"
+                  }
+                },
+                ".validate": "newData.hasChildren()"
+              },
+              "unwantedParts": {
+                "$key2": {
+                  ".validate": "(newData.hasChildren(['type']) && (newData.child('entireFile').val() != null || (newData.child('beginning').val() != null && newData.child('ending').val() != null)))",
+                  "entireFile": {
+                    ".validate": "newData.isBoolean()"
+                  },
+                  "beginning": {
+                    ".validate": "newData.isString()"
+                  },
+                  "ending": {
+                    ".validate": "newData.isString()"
+                  },
+                  "type": {
+                    ".validate": "newData.isString()"
+                  },
+                  "description": {
+                    ".validate": "newData.isString()"
+                  },
+                  "$other": {
+                    ".validate": "false"
+                  }
+                },
+                ".validate": "newData.hasChildren()"
+              },
+              ".read": "true"
+            }
+          }
+        },
+        "final": {
+          "$fileName": {
+            ".validate": "newData.hasChildren(['changed', 'completed', 'soundQualityRating'])",
+            "author": {
+              ".validate": "((newData.hasChildren() && newData.hasChildren(['name'])) && (newData.child('uid').val() != null || newData.child('emailAddress').val() != null))",
+              "uid": {
+                ".validate": "newData.isString()"
+              },
+              "emailAddress": {
+                ".validate": "newData.isString()"
+              },
+              "name": {
+                ".validate": "newData.isString()"
+              },
+              "$other": {
+                ".validate": "false"
+              }
+            },
+            "created": {
+              ".validate": "newData.isNumber()"
+            },
+            "changed": {
+              ".validate": "(newData.isNumber() && newData.val() == now)"
+            },
+            "completed": {
+              ".validate": "newData.isNumber()"
+            },
+            "comments": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": "false"
+            },
+            "duration": {
+              ".validate": "(newData.hasChildren() && newData.hasChildren(['beginning', 'ending']))",
+              "beginning": {
+                ".validate": "newData.isString()"
+              },
+              "ending": {
+                ".validate": "newData.isString()"
+              },
+              "$other": {
+                ".validate": "false"
+              }
+            },
+            "soundQualityRating": {
+              ".validate": "newData.isString()"
+            },
+            "soundIssues": {
+              "$key2": {
+                ".validate": "(newData.hasChildren(['type']) && (newData.child('entireFile').val() != null || (newData.child('beginning').val() != null && newData.child('ending').val() != null)))",
+                "entireFile": {
+                  ".validate": "newData.isBoolean()"
+                },
+                "beginning": {
+                  ".validate": "newData.isString()"
+                },
+                "ending": {
+                  ".validate": "newData.isString()"
+                },
+                "type": {
+                  ".validate": "newData.isString()"
+                },
+                "description": {
+                  ".validate": "newData.isString()"
+                },
+                "$other": {
+                  ".validate": "false"
+                }
+              },
+              ".validate": "newData.hasChildren()"
+            },
+            "unwantedParts": {
+              "$key2": {
+                ".validate": "(newData.hasChildren(['type']) && (newData.child('entireFile').val() != null || (newData.child('beginning').val() != null && newData.child('ending').val() != null)))",
+                "entireFile": {
+                  ".validate": "newData.isBoolean()"
+                },
+                "beginning": {
+                  ".validate": "newData.isString()"
+                },
+                "ending": {
+                  ".validate": "newData.isString()"
+                },
+                "type": {
+                  ".validate": "newData.isString()"
+                },
+                "description": {
+                  ".validate": "newData.isString()"
+                },
+                "$other": {
+                  ".validate": "false"
+                }
+              },
+              ".validate": "newData.hasChildren()"
+            }
+          },
+          ".indexOn": [
+            "author/emailAddress"
+          ]
+        }
+      }
+    },
+    "TE": {
+      "tasks": {
+        "$key3": {
+          ".validate": "(((newData.hasChildren(['status', 'isRestored']) && $key3.matches(/^\\w+-\\d+-\\d{1,2}$/)) && (newData.child('status').val() != 'Done' || newData.child('timestampDone').val() != null)) && (newData.child('status').val() == 'Spare' || (newData.child('timestampGiven').val() != null && newData.child('assignee').val() != null)))",
+          "status": {
+            ".validate": "(newData.isString() && newData.val().matches(/^Spare|Given|WIP|Done|\\w+(\\s\\w+)*]+$/))"
+          },
+          "assignee": {
+            ".validate": "((newData.hasChildren() && newData.hasChildren(['name'])) && (newData.child('uid').val() != null || newData.child('emailAddress').val() != null))",
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "emailAddress": {
+              ".validate": "newData.isString()"
+            },
+            "name": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": "false"
+            }
+          },
+          "notes": {
+            ".validate": "newData.isString()"
+          },
+          "timestampGiven": {
+            ".validate": "(newData.isNumber() && newData.val() == (data.val() == null ? now : data.val()))"
+          },
+          "timestampDone": {
+            ".validate": "(newData.isNumber() && newData.val() == (data.val() == null ? now : data.val()))"
+          },
+          "$other": {
+            ".validate": "false"
+          },
+          "isRestored": {
+            ".validate": "newData.isBoolean()"
+          },
+          "chunks": {
+            "$key4": {
+              ".validate": "newData.hasChildren(['beginning', 'ending', 'fileName', 'unwantedParts'])",
+              "beginning": {
+                ".validate": "newData.isNumber()"
+              },
+              "ending": {
+                ".validate": "newData.isNumber()"
+              },
+              "$other": {
+                ".validate": "false"
+              },
+              "fileName": {
+                ".validate": "newData.isString()"
+              },
+              "unwantedParts": {
+                ".validate": "newData.isString()"
+              }
+            },
+            ".validate": "newData.hasChildren()"
+          },
+          "versions": {
+            "$key5": {
+              ".validate": "newData.hasChildren(['timestamp', 'uploadPath'])",
+              "timestamp": {
+                ".validate": "(newData.isNumber() && newData.val() == (data.val() == null ? now : data.val()))"
+              },
+              "uploadPath": {
+                ".validate": "newData.isString()"
+              },
+              "author": {
+                ".validate": "((newData.hasChildren() && newData.hasChildren(['name'])) && (newData.child('uid').val() != null || newData.child('emailAddress').val() != null))",
+                "uid": {
+                  ".validate": "newData.isString()"
+                },
+                "emailAddress": {
+                  ".validate": "newData.isString()"
+                },
+                "name": {
+                  ".validate": "newData.isString()"
+                },
+                "$other": {
+                  ".validate": "false"
+                }
+              },
+              "file": {
+                ".validate": "(newData.hasChildren() && newData.hasChildren(['bucket', 'name']))",
+                "bucket": {
+                  ".validate": "newData.isString()"
+                },
+                "name": {
+                  ".validate": "newData.isString()"
+                },
+                "generation": {
+                  ".validate": "newData.isNumber()"
+                },
+                "$other": {
+                  ".validate": "false"
+                }
+              },
+              "resolution": {
+                ".validate": "(newData.hasChildren() && newData.hasChildren(['author', 'timestamp', 'isApproved', 'feedback']))",
+                "author": {
+                  ".validate": "((newData.hasChildren() && newData.hasChildren(['name'])) && (newData.child('uid').val() != null || newData.child('emailAddress').val() != null))",
+                  "uid": {
+                    ".validate": "newData.isString()"
+                  },
+                  "emailAddress": {
+                    ".validate": "newData.isString()"
+                  },
+                  "name": {
+                    ".validate": "newData.isString()"
+                  },
+                  "$other": {
+                    ".validate": "false"
+                  }
+                },
+                "timestamp": {
+                  ".validate": "(newData.isNumber() && newData.val() == (data.val() == null ? now : data.val()))"
+                },
+                "isApproved": {
+                  ".validate": "newData.isBoolean()"
+                },
+                "feedback": {
+                  ".validate": "newData.isString()"
+                },
+                "$other": {
+                  ".validate": "false"
+                },
+                ".write": "((data.val() == null && (auth != null && auth.token.roles.TE.checker == true)) && newData.parent().parent().parent().child('status').val() == 'WIP')"
+              },
+              "$other": {
+                ".validate": "false"
+              }
+            },
+            ".validate": "newData.hasChildren()"
+          },
+          "timestampImported": {
+            ".validate": "(newData.isNumber() && newData.val() == (data.val() == null ? now : data.val()))"
+          },
+          ".read": "data.child('assignee').child('emailAddress').val() == auth.token.email"
+        },
+        ".validate": "newData.hasChildren()",
+        ".read": "(auth != null && (((query.orderByChild == 'assignee/emailAddress' && query.equalTo.toLowerCase() == auth.token.email.toLowerCase()) || (auth != null && auth.token.roles.TE.checker == true)) || (auth != null && auth.token.roles.TE.coordinator == true)))",
+        ".indexOn": [
+          "status",
+          "assignee/emailAddress"
+        ]
+      }
+    },
+    "quotes": {
+      "$push_id": {
+        "text": {
+          ".validate": "newData.isString()"
+        }
+      },
+      ".read": "true"
+    },
+    "users": {
+      "$user_id": {
+        "refreshTime": {
+          ".read": "$user_id == auth.uid"
+        }
+      },
+      ".indexOn": [
+        "alias"
+      ]
+    }
+  }
+}
