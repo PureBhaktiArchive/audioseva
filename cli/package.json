@@ -22,7 +22,7 @@
     "get-audio-duration": "4.0.1",
     "glob": "10.5.0",
     "googleapis": "140.0.1",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "ora": "5.4.1",
     "yargs": "17.2.1"
   },
