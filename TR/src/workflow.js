@@ -50,8 +50,11 @@ const canUnitBeAllottedForStage = function (unit, stage) {
     }
 
     const isStageSuitable =
-      // Emulating XOR: either full file xor stage is for parts
-      'id' in unit !== !!attributes.forParts &&
+      ('parts' in unit
+        ? // File: suitable if has no parts OR stage is not for parts
+          !unit.parts?.length || !attributes.forParts
+        : // Part: suitable only if stage is for parts
+          attributes.forParts) &&
       // Some stages are suitable for particular languages only
       (!('languages' in unit) ||
         !attributes.forLanguages ||
