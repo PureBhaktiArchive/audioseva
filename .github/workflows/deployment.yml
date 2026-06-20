@@ -29,8 +29,8 @@ jobs:
         env:
           SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           # Using node version from functions because it's more likely to be the freshest
           node-version-file: functions/package.json
