@@ -4,21 +4,21 @@ Monorepo with 7 independent sub-projects under one Firebase project. CI runs per
 
 ## Sub-projects
 
-| Path | Tech | Entry | Node | Key command |
-|---|---|---|---|---|
-| `frontend/` | Vue 2 + Vuetify 2 + Vue CLI 4 + webpack 4 | `src/main.ts` | 18 | `npm run serve` |
-| `functions/` | Firebase Functions + TypeScript (CommonJS) | `src/index.ts` → globs `**/*.functions.js` | 20 | `npm run build` |
-| `TR/` | Vue 3 + Vite + PrimeVue 4 + Tailwind | `src/main.js` | latest LTS | `npm run dev` |
-| `cli/` | TypeScript CLI (yargs, fluent-ffmpeg) | `src/index.ts` | >=16 | `npm run build` |
-| `gas/` | Google Apps Script + clasp (TE, Transcripts, CRP, FC) | TypeScript per sub-dir | >=18 | `npm run build` |
-| `CR/` | Static HTML/JS (vanilla Vue 2 via CDN) | `index.html` | — | none |
-| `website/` | Drupal 8 Bootstrap subtheme | — | — | none |
+| Path         | Tech                                                  | Entry                                      | Node       | Key command     |
+| ------------ | ----------------------------------------------------- | ------------------------------------------ | ---------- | --------------- |
+| `frontend/`  | Vue 2 + Vuetify 2 + Vue CLI 4 + webpack 4             | `src/main.ts`                              | 18         | `npm run serve` |
+| `functions/` | Firebase Functions + TypeScript (CommonJS)            | `src/index.ts` → globs `**/*.functions.js` | 20         | `npm run build` |
+| `TR/`        | Vue 3 + Vite + PrimeVue 4 + Tailwind                  | `src/main.js`                              | latest LTS | `npm run dev`   |
+| `cli/`       | TypeScript CLI (yargs, fluent-ffmpeg)                 | `src/index.ts`                             | >=16       | `npm run build` |
+| `gas/`       | Google Apps Script + clasp (TE, Transcripts, CRP, FC) | TypeScript per sub-dir                     | >=18       | `npm run build` |
+| `CR/`        | Static HTML/JS (vanilla Vue 2 via CDN)                | `index.html`                               | —          | none            |
+| `website/`   | Drupal 8 Bootstrap subtheme                           | —                                          | —          | none            |
 
 ## Commands (run from each sub-project directory)
 
 **frontend:** `npm run serve` (dev), `npm run build` (prod), `npm test` (Jest 26), `npm run lint` (ESLint 6)
 
-**functions:** `npm run build` (tsc → `lib/`), `npm run build:watch`, `npm test` (Jest 29), `npm run lint`, `npm run deploy`
+**functions:** `npm run build` (tsc → `lib/`), `npm run build:watch`, `npm test` (Jest 29), `npm run lint`
 
 **TR:** `npm run dev` (Vite, requires HTTPS + `localhost.pfx`), `npm run build`, `npm run lint`
 
@@ -31,7 +31,15 @@ Monorepo with 7 independent sub-projects under one Firebase project. CI runs per
 PRs trigger per-project matrix (via `dorny/paths-filter`):
 `npm ci` → `npx prettier --check .` → `npm run lint -- --no-fix` → `npm run build` → `npm run test -- --ci`
 
-Production deployment: push to `production` branch → builds `frontend`+`functions`+`TR` → `firebase deploy`
+## Production Deployment (`.github/workflows/deploy-production.yml`)
+
+Push `master` → `production` to deploy:
+
+```
+git push origin master:production
+```
+
+This triggers GitHub Actions (`deployment.yml`): builds `frontend`+`functions`+`TR`, then runs `firebase deploy` with a service account.
 
 ## Architecture gotchas
 

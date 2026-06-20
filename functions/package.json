@@ -8,7 +8,6 @@
     "test": "jest",
     "test:watch": "jest --watch --noStackTrace --detectOpenHandles",
     "test:coverage": "jest --coverage",
-    "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
   "main": "lib/index.js",
