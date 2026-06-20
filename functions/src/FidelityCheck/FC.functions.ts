@@ -13,7 +13,6 @@ import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
 import { getFileDurationPath, getMetadataCacheRef } from '../metadata-database';
-import { modificationTime } from '../modification-time';
 import {
   Approval,
   FidelityCheck,
@@ -165,12 +164,6 @@ export const importRecords = functions
       );
       if (!file) return 'File not found';
 
-      const fileCreationTime = modificationTime(file);
-
-      // The FC Date should be later than the time when the file was created.
-      if (fileCreationTime.toMillis() > fidelityCheck.timestamp)
-        return `File was created on ${fileCreationTime.toISODate()}, after Fidelity Check`;
-
       const fileReference: StorageFileReference = {
         bucket: file.bucket.name,
         name: file.name,
@@ -224,9 +217,6 @@ export const importRecords = functions
           )
         ).toMillis(),
       };
-
-      if (approval.timestamp < fidelityCheck.timestamp)
-        return 'Finalization Date must be greater than FC Date';
 
       if (typeof (row['Topics Ready'] || false) !== 'boolean')
         return 'Topics Ready must be ticked';
