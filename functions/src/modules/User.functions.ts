@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { authorize } from '../auth';

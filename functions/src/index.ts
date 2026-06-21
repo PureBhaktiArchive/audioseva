@@ -4,7 +4,7 @@
 
 import { initializeApp } from 'firebase-admin/app';
 import { TaskQueue } from 'firebase-admin/functions';
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 // https://github.com/firebase/firebase-functions/issues/1351
 import 'firebase-functions/logger/compat';
 import { globSync } from 'glob';

@@ -4,7 +4,7 @@
 
 import { Storage } from 'firebase-admin/storage';
 import { modificationTime } from './modification-time';
-import functions = require('firebase-functions');
+import functions = require('firebase-functions/v1');
 import admin = require('firebase-admin');
 import path = require('path');
 import _ = require('lodash');

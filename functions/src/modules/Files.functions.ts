@@ -23,7 +23,7 @@ import {
 } from '../metadata-database';
 import { modificationTime } from '../modification-time';
 import pMap = require('p-map');
-import functions = require('firebase-functions');
+import functions = require('firebase-functions/v1');
 import express = require('express');
 import admin = require('firebase-admin');
 import _ = require('lodash');

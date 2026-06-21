@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import { URL } from 'url';
 
 export const frontendUrl = new URL(

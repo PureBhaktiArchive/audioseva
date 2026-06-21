@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import functions = require('firebase-functions');
+import functions = require('firebase-functions/v1');
 import { StorageManager } from '../StorageManager';
 import admin = require('firebase-admin');
 

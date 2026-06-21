@@ -3,7 +3,7 @@
  */
 
 import { database } from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import { map, pipe } from 'iter-ops';
 import { DateTime } from 'luxon';
 import { getDiff } from 'recursive-diff';

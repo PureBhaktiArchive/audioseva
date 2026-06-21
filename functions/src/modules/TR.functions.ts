@@ -3,7 +3,7 @@
  */
 import { PubSub } from '@google-cloud/pubsub';
 import { ServerValue, getDatabase } from 'firebase-admin/database';
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import { google } from 'googleapis';
 import { DateTime } from 'luxon';
 import * as mir from 'multi-integer-range';

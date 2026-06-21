@@ -1,5 +1,5 @@
 import { createDirectus, rest, staticToken } from '@directus/sdk';
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import { AudioRecord } from './AudioRecord';
 
 type Schema = {
