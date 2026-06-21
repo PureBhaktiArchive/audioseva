@@ -50,10 +50,38 @@ This triggers GitHub Actions (`deployment.yml`): builds `frontend`+`functions`+`
 - **TR dev needs HTTPS + auth proxy:** Vite dev server uses `localhost.pfx` (password `1`). Firebase auth is proxied through Vite; `authDomain` is patched at runtime in `firebase.js`.
 - **TR requires `VITE_FIREBASE_CONFIG`** env var (JSON string). See `TR/.env.development.local`.
 - **Frontend overrides are pinned** in `package.json`: webpack@4, css-loader@3, terser-webpack-plugin@2, react-dom@16. Do not bump without checking Vue CLI 4 compat.
-- **Renovate disables frontend updates** (`"matchFileNames": ["frontend/**"]` → `"enabled": false`).
 - **All sub-projects pin exact versions** (`save-exact=true` in `.npmrc`). No `^` ranges.
 - **Functions local debug:** place `credentials.json.local` in repo root, run `firebase functions:config:get > .runtimeconfig.json` once in `functions/`.
 - **CR is plain HTML/JS** — no build step. Deployed as-is from `CR/` directory to Firebase Hosting.
+
+## Renovate (`.renovaterc.json`)
+
+- **Dashboard** — [#515](https://github.com/PureBhaktiArchive/audioseva/issues/515) tracks all pending, scheduled, open, and blocked updates. Check it before starting update work.
+- **Minor/patch updates** — Handled autonomously by Renovate. `:automergeMinor` auto-merges these when CI passes. No manual action needed.
+- **Major version bumps** — Require dashboard approval (checkbox on #515). Manual review needed for breaking changes.
+- **Security alerts** — Labeled `security`, bypass the quarterly schedule, run at any time. Prioritize these.
+- **Schedule** — Quarterly for non-security updates via `schedule:quarterly`.
+- **Lock file maintenance** — Runs monthly via `:maintainLockFilesMonthly`. CI may fail from transitive `@types/*` bumps — pin the offending `@types/*` explicitly (see pinned types above).
+- **PR limits** — Max 2/hour (`:prHourlyLimit2`), 10 concurrent (`:prConcurrentLimit10`).
+- **Frontend** — Disabled (`"matchFileNames": ["frontend/**"]` → `"enabled": false`). No Renovate PRs for the frontend.
+- **`googleapis`** — Auto-approved for all updates (no dashboard approval needed).
+- **PrimeVue** — Grouped as a monorepo (`primevue` + `@primevue/themes` updated together).
+
+### Update workflow
+
+1. **Let Renovate handle minor/patch updates** — they auto-merge on green CI. No action required.
+2. **Check the Dashboard** (#515) for:
+   - *Pending Approval* — major version bumps needing manual review
+   - *Awaiting Schedule* — minor/patch bumps waiting for quarterly (can trigger early via checkbox)
+   - *Open* — existing PRs that may need CI diagnosis or merge
+3. **For failed PRs** — common failure patterns:
+   - Peer dependency conflicts → add `legacy-peer-deps=true` or npm overrides
+   - Transitive `@types/*` regressions → pin the package explicitly
+   - Breaking API changes in major bumps → code migration needed
+4. **Risk guide** (from audit in #515):
+   - *Low (auto-merge)*: patch/minor bumps, `@types/*`, prettier, ESLint minor, lodash
+   - *Medium (manual review)*: `uuid`, `glob`, `yargs`, `email-templates`, `multi-integer-range` majors — doable with small code tweaks
+   - *High (project-level effort)*: `vue` 2→3, `vuetify` 2→3, `tailwindcss` 3→4, `firebase` majors, `express` 5.x, ESM-only packages (`ora`, `p-map`) — require migration
 
 ## Style
 
