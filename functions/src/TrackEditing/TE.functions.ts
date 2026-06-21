@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import { DateTime } from 'luxon';
 import * as path from 'path';
 import { AllotmentStatus } from '../Allotment';

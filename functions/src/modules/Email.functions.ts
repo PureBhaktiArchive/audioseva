@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import { DateTime } from 'luxon';
 import Email = require('email-templates');
 import admin = require('firebase-admin');

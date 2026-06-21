@@ -2,7 +2,7 @@
  * sri sri guru gauranga jayatah
  */
 
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import { Person } from '../Person';
 import { authorize } from '../auth';
 import { SQRSubmission } from './SQRSubmission';

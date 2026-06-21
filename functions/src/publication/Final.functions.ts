@@ -7,7 +7,7 @@ import contentDisposition from 'content-disposition';
 import { getDatabase } from 'firebase-admin/database';
 import { getFunctions } from 'firebase-admin/functions';
 import { getStorage } from 'firebase-admin/storage';
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import { drain, map, pipeAsync, pipeSync, waitRace } from 'iter-ops';
 import { finished } from 'node:stream/promises';
 import * as path from 'path';
