@@ -17,6 +17,7 @@
     "vue": "3.5.31"
   },
   "devDependencies": {
+    "@types/node": "24.10.1",
     "@eslint/js": "9.17.0",
     "@iconify/json": "2.2.458",
     "@iconify/tailwind": "1.2.0",
