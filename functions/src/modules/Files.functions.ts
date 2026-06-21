@@ -35,7 +35,10 @@ app.get(
   asyncHandler(async ({ params: { bucket, fileName } }, res) => {
     try {
       const file = await StorageManager.getMostRecentFile(
-        StorageManager.getCandidateFiles(fileName as string, bucket as BucketName)
+        StorageManager.getCandidateFiles(
+          fileName as string,
+          bucket as BucketName
+        )
       );
 
       if (file) {
@@ -56,7 +59,9 @@ app.get(
             file.bucket.name.startsWith('restored') ? '.SEd' : ''
           }${path.extname(file.name)}`,
         });
-        console.log(`Redirecting ${bucket as string}/${fileName as string} to ${url}`);
+        console.log(
+          `Redirecting ${bucket as string}/${fileName as string} to ${url}`
+        );
         res.redirect(307, url);
       } else {
         console.warn(
