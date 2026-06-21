@@ -44,6 +44,7 @@ This triggers GitHub Actions (`deployment.yml`): builds `frontend`+`functions`+`
 ## Architecture gotchas
 
 - **Functions auto-register** via `globSync('./**/*.functions.js')` — each `.functions.ts` file becomes a module; exported function names become `{ModuleName}-{functionName}` on Firebase.
+- **`@types/express-serve-static-core` pinned** in `functions/package.json` as workaround for `firebase-functions@5.x` declaring `@types/express@4.17.3` which uses a `*` range on core types. Remove the pin when upgrading to `firebase-functions@7+`.
 - **Postbuild copies emails:** `npm run build` runs tsc then `cp -r emails lib/`. If you add/remove email templates, the copy still happens.
 - **TR dev needs HTTPS + auth proxy:** Vite dev server uses `localhost.pfx` (password `1`). Firebase auth is proxied through Vite; `authDomain` is patched at runtime in `firebase.js`.
 - **TR requires `VITE_FIREBASE_CONFIG`** env var (JSON string). See `TR/.env.development.local`.

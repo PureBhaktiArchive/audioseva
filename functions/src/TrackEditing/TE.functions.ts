@@ -278,7 +278,7 @@ export const download = functions.https.onRequest(
     '/te/tasks/:taskId/versions/:versionId/file',
     asyncHandler(async ({ params: { taskId, versionId } }, res) => {
       const repository = new TasksRepository();
-      const task = await repository.getTask(taskId as string);
+      const task = await repository.getTask(taskId);
 
       if (!task) {
         res
@@ -287,7 +287,7 @@ export const download = functions.https.onRequest(
         return;
       }
 
-      const version = task.versions?.[versionId as string];
+      const version = task.versions?.[versionId];
       if (!version) {
         res
           .status(404)

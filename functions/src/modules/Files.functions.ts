@@ -35,10 +35,7 @@ app.get(
   asyncHandler(async ({ params: { bucket, fileName } }, res) => {
     try {
       const file = await StorageManager.getMostRecentFile(
-        StorageManager.getCandidateFiles(
-          fileName as string,
-          bucket as BucketName
-        )
+        StorageManager.getCandidateFiles(fileName, bucket as BucketName)
       );
 
       if (file) {
@@ -55,13 +52,11 @@ app.get(
            * Adding “SEd” suffix for restored files to visually distinguish them
            * and verify that the downloaded file was actually sound-engineered.
            */
-          promptSaveAs: `${path.basename(fileName as string, path.extname(fileName as string))}${
+          promptSaveAs: `${path.basename(fileName, path.extname(fileName))}${
             file.bucket.name.startsWith('restored') ? '.SEd' : ''
           }${path.extname(file.name)}`,
         });
-        console.log(
-          `Redirecting ${bucket as string}/${fileName as string} to ${url}`
-        );
+        console.log(`Redirecting ${bucket}/${fileName} to ${url}`);
         res.redirect(307, url);
       } else {
         console.warn(
