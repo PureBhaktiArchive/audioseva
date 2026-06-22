@@ -16,7 +16,7 @@
     "node": "18.18.2"
   },
   "dependencies": {
-    "@casl/ability": "4.1.6",
+    "@casl/ability": "6.7.5",
     "@casl/vue": "1.2.3",
     "bluebird": "3.7.2",
     "core-js": "3.33.3",
