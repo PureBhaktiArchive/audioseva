@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/node": "24.10.1",
     "@eslint/js": "9.17.0",
-    "@iconify/json": "2.2.458",
+    "@iconify/json": "2.2.494",
     "@iconify/tailwind": "1.2.0",
     "@vitejs/plugin-vue": "5.2.4",
     "autoprefixer": "10.4.27",
