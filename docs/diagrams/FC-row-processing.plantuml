@@ -1,0 +1,95 @@
+@startuml (id=process_row)
+  skinparam ConditionEndStyle hline
+  !pragma useVerticalIf off
+  
+  :Row<
+  :Normalize (sanitize) strings and booleans|
+  if (Task ID) then (empty)
+    stop
+  elseif (Task ID) then (malformed)
+    #pink:Invalid Task ID>
+    kill
+  elseif (Task ID) then (is a duplicate)
+    #pink:Duplicate Task ID>
+    kill
+  else (normal)
+  endif
+
+  if (Replacement Task ID) then (filled)
+    :Store the replacement Task ID into the database/
+    #Aquamarine:Replaced>
+    kill
+  elseif (Was replaced in the database) then (yes)
+    #pink:Was replaced>
+    kill
+  else (no)
+  endif
+  
+  if (Ready for Archive) then (no)
+    :Remove approval from the database/
+  else (yes)
+  endif
+
+  if (Fidelity Checked?) then (no)
+    :Remove a record from the database/
+    #Yellow:Awaiting FC>
+    note left: No further processing happens\nuntil a record is Fidelity-checked.
+    stop
+  else (yes)
+  endif
+
+  :Validate the content details|
+  note left: Several sanity checks
+  if (Is content details valid?) then (no)
+    #pink:Data is invalid: messages>
+    kill
+  endif
+
+  if (FC Date?) then (invalid)
+    #pink:Invalid FC Date>
+    kill
+  endif
+
+  :Get most recent file by Task ID|
+
+  if (File) then (not found)
+    #pink:File not found>
+    kill
+  elseif (File was created after the FC Date) then (yes)
+    #pink:File was created on …, after Fidelity Check>
+    kill
+  endif
+
+  if (FC Date) then (is later than a stored one)
+    :Update the FC mark in the database/
+  else (is not later)
+    if (File reference) then (differs from the stored one)
+      #pink:Fidelity Check was done against another file version>
+      kill
+    endif
+  endif
+
+  if (Ready For Archive) then (no)
+    #pink:Awaiting Ready For Archive>
+    kill
+  elseif (Finalization Date) then (is invalid)
+    #pink:Invalid Finalization Date>
+    kill
+  elseif (Finalization Date) then (less than FC Date)
+    #pink:Finalization Date must be greater than FC Date>
+    kill
+  elseif (Topics Ready) then (is not ticked)
+    #pink:Topics Ready must be ticked>
+    kill
+  endif
+
+  if (Finalization Date was bumped?) then (yes)
+    :Store the content details into the database/
+  elseif (Content details have changed) then (yes)
+    #pink:Changed after finalization>
+    kill
+  endif
+
+  #PaleGreen:OK>
+  end
+@enduml
