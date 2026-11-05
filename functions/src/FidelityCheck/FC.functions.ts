@@ -13,6 +13,7 @@ import { Spreadsheet } from '../Spreadsheet';
 import { StorageFileReference } from '../StorageFileReference';
 import { StorageManager } from '../StorageManager';
 import { getFileDurationPath, getMetadataCacheRef } from '../metadata-database';
+import { fidelityCheckSpreadsheetId } from '../params';
 import {
   Approval,
   FidelityCheck,
@@ -33,10 +34,10 @@ const dateToEndOfDay = (date: DateTime) =>
 export const importRecords = functions
   .runWith({ timeoutSeconds: 540, memory: '1GB' })
   .pubsub.schedule('every day 18:30')
-  .timeZone(functions.config().coordinator.timezone as string)
+  .timeZone(process.env.COORDINATOR_TIMEZONE || '')
   .onRun(async () => {
     const sheet = await Spreadsheet.open<FidelityCheckRow>(
-      functions.config().fc.spreadsheet.id as string,
+      fidelityCheckSpreadsheetId.value(),
       'Fidelity Check'
     );
 

@@ -2,26 +2,29 @@
  * sri sri guru gauranga jayatah
  */
 
-import * as functions from 'firebase-functions/v1';
 import { URL } from 'url';
+import { projectDomain } from './params';
 
-export const frontendUrl = new URL(
-  `https://app.${functions.config().project.domain}`
-);
+export function getFrontendUrl(): URL {
+  return new URL(`https://app.${projectDomain.value()}`);
+}
 
 export const listeningPageLink = (fileName: string) =>
-  new URL(`listen/${encodeURIComponent(fileName)}.mp3`, frontendUrl).toString();
+  new URL(
+    `listen/${encodeURIComponent(fileName)}.mp3`,
+    getFrontendUrl()
+  ).toString();
 
 export const sqrSubmissionLink = (fileName: string, token: string) =>
   new URL(
     `form/sound-quality-report/${encodeURIComponent(
       fileName
     )}/${encodeURIComponent(token)}`,
-    frontendUrl
+    getFrontendUrl()
   ).toString();
 
 export const sqrAllotmentLink = (emailAddress: string) => {
-  const url = new URL('/sqr/allot', frontendUrl);
+  const url = new URL('/sqr/allot', getFrontendUrl());
   url.searchParams.set('emailAddress', emailAddress);
   return url.toString();
 };
@@ -42,5 +45,5 @@ export const trackEditingVersionOutputLink = (
     `te/tasks/${encodeURIComponent(taskId)}/versions/${encodeURIComponent(
       versionId
     )}/file`,
-    frontendUrl
+    getFrontendUrl()
   ).toString();

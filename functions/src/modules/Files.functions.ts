@@ -27,6 +27,7 @@ import functions = require('firebase-functions/v1');
 import express = require('express');
 import admin = require('firebase-admin');
 import _ = require('lodash');
+import { trackEditingSpreadsheetId } from '../params';
 
 const app = express();
 
@@ -86,7 +87,7 @@ const DURATION_EXTRACTION_TOPIC_NAME = 'extract-file-duration';
 export const saveMetadataToDatabase = functions
   .runWith({ timeoutSeconds: 120, memory: '512MB' })
   .pubsub.schedule('every day 23:00')
-  .timeZone(functions.config().coordinator.timezone as string)
+  .timeZone(process.env.COORDINATOR_TIMEZONE || '')
   .onRun(async () => {
     const snapshot = await getMetadataCacheRef().once('value');
     const updateAllMetadata = snapshot
@@ -199,7 +200,7 @@ export const extractDuration = functions
 
 export const exportMetadataToSpreadsheet = functions.pubsub
   .schedule('every day 04:00')
-  .timeZone(functions.config().coordinator.timezone as string)
+  .timeZone(process.env.COORDINATOR_TIMEZONE || '')
   .onRun(async () => {
     type Source = 'SE' | 'TE' | 'Original';
     interface DurationsRow {
@@ -248,7 +249,7 @@ export const exportMetadataToSpreadsheet = functions.pubsub
       .value();
 
     const sheet = await Spreadsheet.open<DurationsRow>(
-      functions.config().te.spreadsheet.id as string,
+      trackEditingSpreadsheetId.value(),
       'Durations'
     );
 

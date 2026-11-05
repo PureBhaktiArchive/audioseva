@@ -18,8 +18,9 @@ import { StorageManager } from '../StorageManager';
 import { objectToIterableEntries } from '../iterable-helpers';
 import { getDifference } from '../object-diff';
 import { ActiveRecord, AudioRecord } from './AudioRecord';
-import { directus } from './directus';
+import { getDirectus } from './directus';
 import { finalizeAudios } from './finalization';
+import { finalPublicationBucket, directusToken } from '../params';
 import { composeFileName, composeMediaMetadata } from './metadata';
 import {
   addMediaMetadata,
@@ -29,9 +30,7 @@ import {
 } from './transcode';
 
 const getPublicFile = (id: number) =>
-  getStorage()
-    .bucket(functions.config().final?.publication?.bucket)
-    .file(`${id}.mp3`);
+  getStorage().bucket(finalPublicationBucket.value()).file(`${id}.mp3`);
 
 const composeStorageMetadata = (fileName: string, md5Hash: string) => ({
   contentType: 'audio/mpeg',
@@ -190,11 +189,14 @@ export const publish = functions
     timeoutSeconds: 540,
     memory: '2GB', // We don't need that much memory, though specifying it to have higher CPU and network bandwith. https://cloud.google.com/functions/docs/configuring/memory
     maxInstances: 1,
-    invoker: (functions.config().final.publication.invokers as string)
+    secrets: [directusToken],
+    invoker: (process.env.FINAL_PUBLICATION_INVOKERS || '')
       .split(',')
-      .map((x) => x.trim()),
+      .map((x) => x.trim())
+      .filter(Boolean),
   })
   .https.onRequest(async (req, res) => {
+    const directus = getDirectus();
     // If nothing is specified in the request, by default we work in a preview mode
     const preview = req.body.preview === false ? false : true;
 

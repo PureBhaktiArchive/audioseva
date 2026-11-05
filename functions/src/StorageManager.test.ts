@@ -5,8 +5,8 @@
 import { MockStorage } from './MockStorage';
 import { StorageManager } from './StorageManager';
 
-jest.mock('firebase-functions/v1', () => ({
-  config: () => ({ project: { domain: 'test' } }),
+jest.mock('./params', () => ({
+  projectDomain: { value: () => 'test' },
 }));
 
 jest.mock('firebase-admin', () => ({

@@ -2,13 +2,24 @@ import * as functions from 'firebase-functions/v1';
 import { DateTime } from 'luxon';
 import Email = require('email-templates');
 import admin = require('firebase-admin');
+import {
+  emailSenderName,
+  emailSenderAddress,
+  projectDomain,
+  emailConnection,
+} from '../params';
 
-const email = new Email({
-  message: {
-    from: functions.config().email.sender,
-  },
-  transport: functions.config().email.connection,
-});
+function getEmail() {
+  return new Email({
+    message: {
+      from: {
+        name: emailSenderName.value(),
+        address: emailSenderAddress.value(),
+      },
+    },
+    transport: emailConnection.value(),
+  });
+}
 
 async function sendNotificationEmailSnapshot(
   snapshot: admin.database.DataSnapshot
@@ -29,7 +40,7 @@ async function sendNotificationEmailSnapshot(
 
   if (process.env.FUNCTIONS_EMULATOR) return;
 
-  await email.send({
+  await getEmail().send({
     template: data.template,
     message: {
       to: data.to,
@@ -39,7 +50,7 @@ async function sendNotificationEmailSnapshot(
     locals: {
       settings: {
         project: {
-          domain: functions.config().project.domain,
+          domain: projectDomain.value(),
         },
       },
       DateTime,
@@ -52,15 +63,17 @@ async function sendNotificationEmailSnapshot(
   });
 }
 
-export const sendNotificationEmail = functions.database
-  .ref('/email/notifications/{pushId}')
+export const sendNotificationEmail = functions
+  .runWith({ secrets: [emailConnection] })
+  .database.ref('/email/notifications/{pushId}')
   .onCreate(async (snapshot) => {
     await sendNotificationEmailSnapshot(snapshot);
   });
 
-export const retryFailedEmails = functions.pubsub
-  .schedule('every day 09:00')
-  .timeZone(functions.config().coordinator.timezone as string)
+export const retryFailedEmails = functions
+  .runWith({ secrets: [emailConnection] })
+  .pubsub.schedule('every day 09:00')
+  .timeZone(process.env.COORDINATOR_TIMEZONE || '')
   .onRun(async () => {
     const failedNotifications = await admin
       .database()

@@ -2,12 +2,12 @@
  * sri sri guru gauranga jayatah
  */
 
-import * as functions from 'firebase-functions/v1';
 import { AbstractRepository } from '../AbstractRepository';
 import { isActiveAllotment } from '../Allotment';
 import { ReportingAllotmentRow } from '../ReportingAllotmentRow';
 import { ReportingTask } from '../ReportingTask';
 import { SpareFile } from './SpareFile';
+import { soundQualityReportingSpreadsheetId } from '../params';
 import admin = require('firebase-admin');
 import _ = require('lodash');
 
@@ -19,7 +19,7 @@ export class TasksRepository extends AbstractRepository<
 > {
   constructor() {
     super(
-      functions.config().sqr.spreadsheet_id as string,
+      soundQualityReportingSpreadsheetId.value(),
       'fileName',
       'File Name',
       admin.database().ref(`/SQR`).child(`allotments`)

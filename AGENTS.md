@@ -51,7 +51,7 @@ This triggers GitHub Actions (`deployment.yml`): builds `frontend`+`functions`+`
 - **TR requires `VITE_FIREBASE_CONFIG`** env var (JSON string). See `TR/.env.development.local`.
 - **Frontend overrides are pinned** in `package.json`: webpack@4, css-loader@3, terser-webpack-plugin@2, react-dom@16. Do not bump without checking Vue CLI 4 compat.
 - **All sub-projects pin exact versions** (`save-exact=true` in `.npmrc`). No `^` ranges.
-- **Functions local debug:** place `credentials.json.local` in repo root, run `firebase functions:config:get > .runtimeconfig.json` once in `functions/`.
+- **Functions local debug:** place `credentials.json.local` in repo root, create `functions/.env.audio-seva` (get from CI secret or run `firebase functions:config:export`), for secrets run `firebase functions:secrets:access <SECRET_NAME>`.
 - **CR is plain HTML/JS** — no build step. Deployed as-is from `CR/` directory to Firebase Hosting.
 
 ## Renovate (`.renovaterc.json`)

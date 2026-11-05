@@ -14,6 +14,12 @@ import { StorageManager } from '../StorageManager';
 import { authorize } from '../auth';
 import { getDomainWideDelegationClient } from '../domain-wide-delegation';
 import {
+  transcriptionSpreadsheetId,
+  transcriptionFolderId,
+  transcriptionCoordinatorEmailAddress,
+  finalPublicationBucket,
+} from '../params';
+import {
   MimeTypes,
   Queries,
   createDriveFile,
@@ -87,14 +93,8 @@ export const getFiles = functions.https.onCall(async (data, context) => {
   authorize(context, ['TR.coordinator']);
 
   const [filesSheet, partsSheet] = await Promise.all([
-    Spreadsheet.open<FileRow>(
-      functions.config().transcription.spreadsheet.id as string,
-      'Overview'
-    ),
-    Spreadsheet.open<PartRow>(
-      functions.config().transcription.spreadsheet.id as string,
-      'Parts'
-    ),
+    Spreadsheet.open<FileRow>(transcriptionSpreadsheetId.value(), 'Overview'),
+    Spreadsheet.open<PartRow>(transcriptionSpreadsheetId.value(), 'Parts'),
   ]);
 
   const [fileRows, partRows] = await Promise.all([
@@ -181,7 +181,7 @@ export const allot = functions.https.onCall(
 
     let [transcriptsFolder] = await listDriveFiles([
       Queries.mimeTypeIs(MimeTypes.Folder),
-      Queries.parentIs(functions.config().transcription.folder.id),
+      Queries.parentIs(transcriptionFolderId.value()),
       Queries.nameIs(data.id.toString()),
       Queries.notTrashed,
     ]);
@@ -192,7 +192,7 @@ export const allot = functions.https.onCall(
     transcriptsFolder ||= await createDriveFile(
       data.id.toString(),
       MimeTypes.Folder,
-      functions.config().transcription.folder.id
+      transcriptionFolderId.value()
     );
 
     const existingDocs = await listDriveFiles([
@@ -225,7 +225,7 @@ export const allot = functions.https.onCall(
     );
 
     const sheet = await Spreadsheet.open<AllotmentRow>(
-      functions.config().transcription.spreadsheet.id as string,
+      transcriptionSpreadsheetId.value(),
       'Allotments'
     );
     await sheet.appendRows(
@@ -259,8 +259,8 @@ export const allot = functions.https.onCall(
         timestamp: ServerValue.TIMESTAMP,
         template: 'transcription/allotment',
         to: data.assignee.emailAddress,
-        bcc: functions.config().transcription.coordinator.email_address,
-        replyTo: functions.config().transcription.coordinator.email_address,
+        bcc: transcriptionCoordinatorEmailAddress.value(),
+        replyTo: transcriptionCoordinatorEmailAddress.value(),
         params: {
           ...data,
           parts: data.parts.map((part, index) => ({
@@ -271,7 +271,7 @@ export const allot = functions.https.onCall(
           partsRanges: mir.stringify(mir.normalize(data.parts)),
           // These links are added only for the full file allotments
           ...(data.parts.length === 0 && {
-            audioLink: `https://storage.googleapis.com/${functions.config().final?.publication?.bucket}/${data.id}.mp3`,
+            audioLink: `https://storage.googleapis.com/${finalPublicationBucket.value()}/${data.id}.mp3`,
             docLink: allottedGoogleDocs?.[0]?.webViewLink,
           }),
           stageName: stageDescription?.name,
@@ -293,7 +293,7 @@ const getGmailClient = async (...scopes: string[]) =>
   google.gmail({
     version: 'v1',
     auth: await getDomainWideDelegationClient(
-      functions.config().transcription.coordinator.email_address,
+      transcriptionCoordinatorEmailAddress.value(),
       scopes
     ),
   });
@@ -414,7 +414,7 @@ const processHistory = async (startHistoryId: string) => {
   functions.logger.info('Processing', subjects);
 
   const sheet = await Spreadsheet.open<AllotmentRow>(
-    functions.config().transcription.spreadsheet.id as string,
+    transcriptionSpreadsheetId.value(),
     'Allotments'
   );
 
@@ -472,7 +472,7 @@ const processHistory = async (startHistoryId: string) => {
     units.map(async ({ id, indices }) => {
       const [transcriptsFolder] = await listDriveFiles([
         Queries.mimeTypeIs(MimeTypes.Folder),
-        Queries.parentIs(functions.config().transcription.folder.id),
+        Queries.parentIs(transcriptionFolderId.value()),
         Queries.nameIs(id.toString()),
         Queries.notTrashed,
       ]);

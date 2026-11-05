@@ -50,6 +50,8 @@ jobs:
         env:
           VITE_FIREBASE_CONFIG: ${{ vars.VITE_FIREBASE_CONFIG }}
 
+      - name: Create .env file for Cloud Functions
+        run: echo "${{ secrets.FUNCTIONS_ENV }}" > functions/.env
       - name: Deploy to ${{ inputs.environment }}
         run: |
           firebase target:apply storage uploads te.uploads.$PROJECT_DOMAIN --project $FIREBASE_PROJECT

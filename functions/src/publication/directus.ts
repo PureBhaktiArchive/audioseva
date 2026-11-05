@@ -1,13 +1,13 @@
 import { createDirectus, rest, staticToken } from '@directus/sdk';
-import * as functions from 'firebase-functions/v1';
 import { AudioRecord } from './AudioRecord';
+import { directusUrl, directusToken } from '../params';
 
 type Schema = {
   audios: AudioRecord[];
 };
 
-export const directus = createDirectus<Schema>(
-  functions.config().directus.url as string
-)
-  .with(staticToken(functions.config().directus.token as string))
-  .with(rest());
+export function getDirectus() {
+  return createDirectus<Schema>(directusUrl.value())
+    .with(staticToken(directusToken.value()))
+    .with(rest());
+}

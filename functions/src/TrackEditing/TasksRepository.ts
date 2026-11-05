@@ -2,7 +2,6 @@
  * sri sri guru gauranga jayatah
  */
 
-import * as functions from 'firebase-functions/v1';
 import { DateTime } from 'luxon';
 import { AbstractRepository } from '../AbstractRepository';
 import { AudioChunk } from '../AudioChunk';
@@ -10,6 +9,7 @@ import { DateTimeConverter } from '../DateTimeConverter';
 import { FileVersion } from '../FileVersion';
 import { trackEditingVersionOutputLink } from '../Frontend';
 import { Spreadsheet } from '../Spreadsheet';
+import { trackEditingSpreadsheetId } from '../params';
 import { ChunkRow } from './ChunkRow';
 import { TaskValidator } from './TaskValidator';
 import { TrackEditingAllotmentRow } from './TrackEditingAllotmentRow';
@@ -25,7 +25,7 @@ export class TasksRepository extends AbstractRepository<
 > {
   constructor() {
     super(
-      functions.config().te.spreadsheet.id as string,
+      trackEditingSpreadsheetId.value(),
       'id',
       'Task ID',
       admin.database().ref(`/TE`).child(`tasks`)
@@ -86,7 +86,7 @@ export class TasksRepository extends AbstractRepository<
 
   public async importTasks() {
     const tasksSheet = await Spreadsheet.open<ChunkRow>(
-      functions.config().te.spreadsheet.id as string,
+      trackEditingSpreadsheetId.value(),
       'Tasks'
     );
 

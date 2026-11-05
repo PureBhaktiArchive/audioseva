@@ -6,6 +6,7 @@ import * as functions from 'firebase-functions/v1';
 import { DateTimeConverter } from '../DateTimeConverter';
 import { Spreadsheet } from '../Spreadsheet';
 import { authorize } from '../auth';
+import { registrationsSpreadsheetId } from '../params';
 
 enum RegistrationColumns {
   Details = 'Details',
@@ -46,7 +47,7 @@ export const importUserRegistrationData = functions.https.onCall(
     authorize(context, ['coordinator']);
 
     const sheet = await Spreadsheet.open(
-      functions.config().registrations.spreadsheet_id as string,
+      registrationsSpreadsheetId.value(),
       'Registrations'
     );
 
@@ -204,7 +205,7 @@ export const getAssignees = functions.https.onCall(
     skills ||= [phase || Roles.CR];
 
     const registrationsSheet = await Spreadsheet.open(
-      functions.config().registrations.spreadsheet_id as string,
+      registrationsSpreadsheetId.value(),
       'Registrations'
     );
 
