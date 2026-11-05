@@ -1,7 +1,7 @@
-import * as functions from 'firebase-functions/v1';
 import { google } from 'googleapis';
 import { DateTime } from 'luxon';
 import { getDomainWideDelegationClient } from './domain-wide-delegation';
+import { transcriptionCoordinatorEmailAddress } from './params';
 
 export enum MimeTypes {
   Folder = 'application/vnd.google-apps.folder',
@@ -23,7 +23,7 @@ const getDriveClient = async () =>
     // It produces "Expiration dates cannot be set on this item." error
     // https://stackoverflow.com/questions/75423531/google-service-account-drive-api-unable-to-set-expirationtime-python
     auth: await getDomainWideDelegationClient(
-      functions.config().transcription.coordinator.email_address,
+      transcriptionCoordinatorEmailAddress.value(),
       ['https://www.googleapis.com/auth/drive']
     ),
   });

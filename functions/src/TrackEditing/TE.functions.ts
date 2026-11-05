@@ -8,6 +8,7 @@ import * as path from 'path';
 import { AllotmentStatus } from '../Allotment';
 import { FileResolution } from '../FileResolution';
 import { FileVersion } from '../FileVersion';
+import { trackEditingCoordinatorEmailAddress } from '../params';
 import { Person } from '../Person';
 import { StorageManager } from '../StorageManager';
 import { asyncHandler } from '../asyncHandler';
@@ -73,8 +74,8 @@ export const processAllotment = functions
           timestamp: admin.database.ServerValue.TIMESTAMP,
           template: 'track-editing/allotment',
           to: assignee.emailAddress,
-          bcc: functions.config().te.coordinator.email_address,
-          replyTo: functions.config().te.coordinator.email_address,
+          bcc: trackEditingCoordinatorEmailAddress.value(),
+          replyTo: trackEditingCoordinatorEmailAddress.value(),
           params: {
             tasks: updatedTasks,
             assignee,
@@ -186,7 +187,7 @@ export const processUpload = functions
     await admin.database().ref(`/email/notifications`).push({
       timestamp: admin.database.ServerValue.TIMESTAMP,
       template: 'track-editing/upload',
-      to: functions.config().te.coordinator.email_address,
+      to: trackEditingCoordinatorEmailAddress.value(),
       replyTo: task.assignee.emailAddress,
       params: {
         task,
@@ -243,8 +244,8 @@ export const processResolution = functions
         timestamp: admin.database.ServerValue.TIMESTAMP,
         template: 'track-editing/feedback',
         to: task.assignee.emailAddress,
-        bcc: functions.config().te.coordinator.email_address,
-        replyTo: functions.config().te.coordinator.email_address,
+        bcc: trackEditingCoordinatorEmailAddress.value(),
+        replyTo: trackEditingCoordinatorEmailAddress.value(),
         params: {
           task,
           versionKey,
@@ -257,7 +258,7 @@ export const processResolution = functions
 export const importTasks = functions
   .runWith({ timeoutSeconds: 120 })
   .pubsub.schedule('every day 00:00')
-  .timeZone(functions.config().coordinator.timezone as string)
+  .timeZone(process.env.COORDINATOR_TIMEZONE || '')
   .onRun(async () => {
     const repository = new TasksRepository();
     const count: number = await repository.importTasks();
@@ -267,7 +268,7 @@ export const importTasks = functions
 export const syncAllotments = functions
   .runWith({ timeoutSeconds: 120, memory: '512MB' })
   .pubsub.schedule('every 1 hours from 05:00 to 00:00')
-  .timeZone(functions.config().coordinator.timezone as string)
+  .timeZone(process.env.COORDINATOR_TIMEZONE || '')
   .onRun(async () => {
     const repository = new TasksRepository();
     await repository.syncAllotments();

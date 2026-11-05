@@ -4,12 +4,13 @@
 
 import { initializeApp } from 'firebase-admin/app';
 import { TaskQueue } from 'firebase-admin/functions';
-import * as functions from 'firebase-functions/v1';
+import { onInit } from 'firebase-functions/v1';
 // https://github.com/firebase/firebase-functions/issues/1351
 import 'firebase-functions/logger/compat';
 import { globSync } from 'glob';
 import { Settings as DateTimeSettings } from 'luxon';
 import * as path from 'path';
+import { coordinatorTimezone } from './params';
 
 initializeApp();
 
@@ -27,7 +28,9 @@ if (process.env.FUNCTIONS_EMULATOR) {
   });
 }
 
-DateTimeSettings.defaultZone = functions.config().coordinator.timezone;
+onInit(() => {
+  DateTimeSettings.defaultZone = coordinatorTimezone.value();
+});
 
 /*********************************************
  **

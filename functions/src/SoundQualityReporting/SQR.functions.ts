@@ -9,6 +9,7 @@ import { SQRSubmission } from './SQRSubmission';
 import { SQRWorkflow } from './SQRWorkflow';
 import { SpareFile } from './SpareFile';
 import { TasksRepository } from './TasksRepository';
+
 import _ = require('lodash');
 
 /**
@@ -99,7 +100,7 @@ export const cancelAllotment = functions.https.onCall(
 export const syncAllotments = functions
   .runWith({ timeoutSeconds: 120 })
   .pubsub.schedule('every 1 hours from 05:00 to 00:00')
-  .timeZone(functions.config().coordinator.timezone as string)
+  .timeZone(process.env.COORDINATOR_TIMEZONE || '')
   .onRun(async () => {
     const repository = new TasksRepository();
     await repository.syncAllotments({ createTasksInDatabase: true });

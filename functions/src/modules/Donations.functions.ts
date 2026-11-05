@@ -4,6 +4,11 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions/v1';
 import { Spreadsheet } from '../Spreadsheet';
+import {
+  donationsCashSpreadsheetId,
+  donationsCashSpreadsheetName,
+  donationsContactEmailAddress,
+} from '../params';
 
 export const processDonations = functions.database
   .ref('/donations/cash/{donation_id}')
@@ -11,8 +16,8 @@ export const processDonations = functions.database
     const donation = snapshot.val();
 
     const sheet = await Spreadsheet.open(
-      functions.config().donations.cash.spreadsheet.id as string,
-      functions.config().donations.cash.spreadsheet.name as string
+      donationsCashSpreadsheetId.value(),
+      donationsCashSpreadsheetName.value()
     );
 
     await sheet.appendRows([
@@ -31,8 +36,8 @@ export const processDonations = functions.database
     return admin.database().ref(`/email/notifications`).push({
       timestamp: admin.database.ServerValue.TIMESTAMP,
       to: donation.donor.emailAddress,
-      bcc: functions.config().donations.contact.email_address,
-      replyTo: functions.config().donations.contact.email_address,
+      bcc: donationsContactEmailAddress.value(),
+      replyTo: donationsContactEmailAddress.value(),
       template: 'donations/acknowledgement',
       params: {
         donation,

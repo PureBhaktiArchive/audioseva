@@ -19,12 +19,16 @@ import { Person } from '../Person';
 import { Spreadsheet } from '../Spreadsheet';
 import { SQRSubmission } from './SQRSubmission';
 import { TasksRepository } from './TasksRepository';
+import {
+  soundQualityReportingSpreadsheetId,
+  coordinatorEmailAddress,
+} from '../params';
 import _ = require('lodash');
 
 export class SQRWorkflow {
   static async submissionsSheet() {
     return await Spreadsheet.open(
-      functions.config().sqr.spreadsheet_id as string,
+      soundQualityReportingSpreadsheetId.value(),
       'Submissions'
     );
   }
@@ -95,8 +99,8 @@ export class SQRWorkflow {
         timestamp: admin.database.ServerValue.TIMESTAMP,
         template: 'sqr/allotment',
         to: assignee.emailAddress,
-        bcc: functions.config().coordinator.email_address,
-        replyTo: functions.config().coordinator.email_address,
+        bcc: coordinatorEmailAddress.value(),
+        replyTo: coordinatorEmailAddress.value(),
         params: {
           files: updatedTasks.map(({ fileName, token }) => ({
             name: fileName,
@@ -210,7 +214,7 @@ export class SQRWorkflow {
       .push({
         timestamp: admin.database.ServerValue.TIMESTAMP,
         template: 'sqr/submission',
-        to: functions.config().coordinator.email_address,
+        to: coordinatorEmailAddress.value(),
         replyTo: task.assignee.emailAddress,
         params: {
           currentSet,
@@ -277,7 +281,7 @@ export class SQRWorkflow {
       .push({
         timestamp: admin.database.ServerValue.TIMESTAMP,
         template: 'sqr/cancellation',
-        to: functions.config().coordinator.email_address,
+        to: coordinatorEmailAddress.value(),
         replyTo: task.assignee.emailAddress,
         params: {
           fileName,

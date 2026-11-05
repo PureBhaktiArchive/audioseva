@@ -4,7 +4,7 @@
 
 import { Storage } from 'firebase-admin/storage';
 import { modificationTime } from './modification-time';
-import functions = require('firebase-functions/v1');
+import { projectDomain } from './params';
 import admin = require('firebase-admin');
 import path = require('path');
 import _ = require('lodash');
@@ -34,7 +34,7 @@ export type BucketName =
 
 export class StorageManager {
   static getFullBucketName(bucketName: BucketName) {
-    return `${bucketName}.${functions.config().project.domain}`;
+    return `${bucketName}.${projectDomain.value()}`;
   }
 
   static getBucket(bucketName: BucketName) {
